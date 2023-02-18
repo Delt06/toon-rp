@@ -17,6 +17,11 @@
 			Tags{"LightMode" = "ToonRPForward"}
 			
 			HLSLPROGRAM
+
+			// Require variable-length loops
+			#pragma target 3.5
+
+			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
 			
 			#pragma vertex VS
 			#pragma fragment PS

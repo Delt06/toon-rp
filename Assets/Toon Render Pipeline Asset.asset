@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Toon Render Pipeline Asset
   m_EditorClassIdentifier: 
   GlobalRampSettings:
-    Threshold: 0
-    Smoothness: 0.02
+    Threshold: 0.07
+    CrispAntiAliased: 1
+    Smoothness: 0.05
     ShadowColor: {r: 0, g: 0, b: 0, a: 0.78039217}
   CameraRendererSettings:
     UseSrpBatching: 1

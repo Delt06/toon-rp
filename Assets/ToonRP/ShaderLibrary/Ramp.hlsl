@@ -3,8 +3,8 @@
 
 #include "Math.hlsl"
 
-float _ToonRP_GlobalRampEdge1;
-float _ToonRP_GlobalRampEdge2;
+float2 _ToonRP_GlobalRamp;
+float2 _ToonRP_GlobalRampSpecular;
 float4 _ToonRP_GlobalShadowColor;
 
 float ComputeRamp(const float nDotL, const float edge1, const float edge2)
@@ -12,13 +12,23 @@ float ComputeRamp(const float nDotL, const float edge1, const float edge2)
     return smoothstep(edge1, edge2, nDotL);
 }
 
+float ComputeGlobalRamp(const float nDotL, const float2 ramp)
+{
+    #ifdef _TOON_RP_GLOBAL_RAMP_CRISP
+    return StepAntiAliased(ramp.x, nDotL);
+    #else // !_TOON_RP_GLOBAL_RAMP_CRISP
+    return ComputeRamp(nDotL, ramp.x, ramp.y);
+    #endif // _TOON_RP_GLOBAL_RAMP_CRISP 
+}
+
 float ComputeGlobalRamp(const float nDotL)
 {
-#ifdef _TOON_RP_GLOBAL_RAMP_CRISP
-    return StepAntiAliased(_ToonRP_GlobalRampEdge1, nDotL);
-#else // !_TOON_RP_GLOBAL_RAMP_CRISP
-    return ComputeRamp(nDotL, _ToonRP_GlobalRampEdge1, _ToonRP_GlobalRampEdge2);
-#endif // _TOON_RP_GLOBAL_RAMP_CRISP 
+    return ComputeGlobalRamp(nDotL, _ToonRP_GlobalRamp);
+}
+
+float ComputeGlobalRampSpecular(const float nDotH)
+{
+    return ComputeGlobalRamp(nDotH, _ToonRP_GlobalRampSpecular);
 }
 
 float3 MixShadowColor(const float3 albedo, const float4 shadowColor)

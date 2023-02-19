@@ -9,7 +9,9 @@ namespace ToonRP.Runtime
         public ToonRampSettings GlobalRampSettings = new()
         {
             Threshold = 0.0f,
+            SpecularThreshold = 0.99f,
             Smoothness = 0.02f,
+            SpecularSmoothness = 0.005f,
             ShadowColor = new Color(0.0f, 0.0f, 0.0f, 0.75f),
         };
 

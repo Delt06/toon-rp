@@ -6,8 +6,8 @@ namespace ToonRP.Runtime
     public sealed class ToonGlobalRamp
     {
         private const string BufferName = "Global Ramp";
-        private static readonly int GlobalRampEdge1Id = Shader.PropertyToID("_ToonRP_GlobalRampEdge1");
-        private static readonly int GlobalRampEdge2Id = Shader.PropertyToID("_ToonRP_GlobalRampEdge2");
+        private static readonly int GlobalRampId = Shader.PropertyToID("_ToonRP_GlobalRamp");
+        private static readonly int GlobalRampSpecularId = Shader.PropertyToID("_ToonRP_GlobalRampSpecular");
         private static readonly int GlobalShadowColorId = Shader.PropertyToID("_ToonRP_GlobalShadowColor");
 
         private readonly CommandBuffer _buffer = new() { name = BufferName };
@@ -24,10 +24,20 @@ namespace ToonRP.Runtime
 
         private void SetupGlobalRamp(in ToonRampSettings rampSettings)
         {
-            float edge1 = rampSettings.Threshold;
-            float edge2 = edge1 + rampSettings.Smoothness;
-            _buffer.SetGlobalFloat(GlobalRampEdge1Id, edge1);
-            _buffer.SetGlobalFloat(GlobalRampEdge2Id, edge2);
+            // diffuse
+            {
+                float edge1 = rampSettings.Threshold;
+                float edge2 = edge1 + rampSettings.Smoothness;
+                _buffer.SetGlobalVector(GlobalRampId, new Vector4(edge1, edge2));
+            }
+
+            // specular
+            {
+                float edge1 = rampSettings.SpecularThreshold;
+                float edge2 = edge1 + rampSettings.SpecularSmoothness;
+                _buffer.SetGlobalVector(GlobalRampSpecularId, new Vector4(edge1, edge2));
+            }
+
             _buffer.SetGlobalColor(GlobalShadowColorId, rampSettings.ShadowColor);
             _buffer.SetKeyword(_globalRampCrispKeyword, rampSettings.CrispAntiAliased);
         }

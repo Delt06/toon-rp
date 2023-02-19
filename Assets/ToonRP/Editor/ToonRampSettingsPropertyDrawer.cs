@@ -14,30 +14,32 @@ namespace ToonRP.Editor
 
             root.Add(new ToonRpHeaderLabel("Global Ramp"));
 
-            var thresholdField =
-                new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Threshold)));
             SerializedProperty crispAntiAliasedProperty =
                 property.FindPropertyRelative(nameof(ToonRampSettings.CrispAntiAliased));
             var crispAntiAliasedField =
                 new PropertyField(crispAntiAliasedProperty);
             var smoothnessField =
                 new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Smoothness)));
-            var shadowColorField =
-                new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.ShadowColor)));
+            var specularSmoothnessField =
+                new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularSmoothness)));
 
-            void RefreshSmoothnessField()
+            void RefreshSmoothnessFields()
             {
-                smoothnessField.SetEnabled(!crispAntiAliasedProperty.boolValue);
+                bool showSmoothness = !crispAntiAliasedProperty.boolValue;
+                smoothnessField.SetEnabled(showSmoothness);
+                specularSmoothnessField.SetEnabled(showSmoothness);
             }
 
-            RefreshSmoothnessField();
+            RefreshSmoothnessFields();
 
-            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshSmoothnessField());
+            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshSmoothnessFields());
 
-            root.Add(thresholdField);
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Threshold))));
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularThreshold))));
             root.Add(crispAntiAliasedField);
             root.Add(smoothnessField);
-            root.Add(shadowColorField);
+            root.Add(specularSmoothnessField);
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.ShadowColor))));
 
             return root;
         }

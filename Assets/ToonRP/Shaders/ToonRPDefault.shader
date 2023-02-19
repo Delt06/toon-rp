@@ -6,6 +6,8 @@
 		_MainColor ("Color", Color) = (1, 1, 1, 1)
 		[MainTexture]
 		_MainTexture ("Texture", 2D) = "white" {}
+	    [HDR]
+		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
 	}
 	SubShader
 	{
@@ -41,12 +43,14 @@
 			{
 				float2 uv : TEXCOORD0;
 				float3 normalWs : NORMAL_WS;
-				float4 vertex : SV_POSITION;
+			    float3 positionWs : POSITION_WS;
+				float4 positionCs : SV_POSITION;
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 				float4 _MainColor;
 				DECLARE_TILING_OFFSET(_MainTexture)
+			    float3 _SpecularColor;
 			CBUFFER_END
 
 			TEXTURE2D(_MainTexture);
@@ -55,23 +59,40 @@
 			v2f VS(const appdata IN)
 			{
 				v2f OUT;
-				OUT.vertex = TransformObjectToHClip(IN.vertex);
-				OUT.normalWs = TransformObjectToWorldNormal(IN.normal);
-				OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
+			    
+			    OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
+			    OUT.normalWs = TransformObjectToWorldNormal(IN.normal);
+
+                const float3 positionWs = TransformObjectToWorld(IN.vertex);
+			    OUT.positionWs = positionWs;
+				OUT.positionCs = TransformWorldToHClip(positionWs);
+				
 				return OUT;
 			}
+
+			float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const float3 lightDirectionWs)
+            {
+                const float3 halfVector = normalize(viewDirectionWs + lightDirectionWs);
+                return dot(normalWs, halfVector);
+            }
 			
 			float4 PS(const v2f IN) : SV_TARGET
 			{
 				const float3 normalWs = normalize(IN.normalWs);
 				const Light light = GetMainLight();
 				const float nDotL = dot(normalWs, light.direction);
-				const float ramp = ComputeGlobalRamp(nDotL);
+				const float diffuseRamp = ComputeGlobalRamp(nDotL);
 				const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
 				const float3 mixedShadowColor = MixGlobalShadowColor(albedo);
+				const float3 diffuse = light.color * ApplyRamp(albedo, mixedShadowColor, diffuseRamp);
 
-				const float3 diffuseColor = light.color * ApplyRamp(albedo, mixedShadowColor, ramp);
-				return float4(diffuseColor, 1.0f);
+			    const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
+			    const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
+			    const float specularRamp = ComputeGlobalRampSpecular(nDotH);
+			    const float3 specular = light.color * _SpecularColor * specularRamp;
+
+			    const float3 outputColor = diffuse + specular;
+				return float4(outputColor, 1.0f);
 			}
 			ENDHLSL
 		}

@@ -9,16 +9,16 @@ namespace ToonRP.Runtime
         private static readonly int GlobalRampId = Shader.PropertyToID("_ToonRP_GlobalRamp");
         private static readonly int GlobalRampSpecularId = Shader.PropertyToID("_ToonRP_GlobalRampSpecular");
 
-        private readonly CommandBuffer _buffer = new() { name = BufferName };
+        private readonly CommandBuffer _cmd = new() { name = BufferName };
         private readonly GlobalKeyword _globalRampCrispKeyword = GlobalKeyword.Create("_TOON_RP_GLOBAL_RAMP_CRISP");
 
         public void Setup(ScriptableRenderContext context, in ToonRampSettings rampSettings)
         {
-            _buffer.BeginSample(BufferName);
+            _cmd.BeginSample(BufferName);
             SetupGlobalRamp(rampSettings);
-            _buffer.EndSample(BufferName);
-            context.ExecuteCommandBuffer(_buffer);
-            _buffer.Clear();
+            _cmd.EndSample(BufferName);
+            context.ExecuteCommandBuffer(_cmd);
+            _cmd.Clear();
         }
 
         private void SetupGlobalRamp(in ToonRampSettings rampSettings)
@@ -27,17 +27,17 @@ namespace ToonRP.Runtime
             {
                 float edge1 = rampSettings.Threshold;
                 float edge2 = edge1 + rampSettings.Smoothness;
-                _buffer.SetGlobalVector(GlobalRampId, new Vector4(edge1, edge2));
+                _cmd.SetGlobalVector(GlobalRampId, new Vector4(edge1, edge2));
             }
 
             // specular
             {
                 float edge1 = rampSettings.SpecularThreshold;
                 float edge2 = edge1 + rampSettings.SpecularSmoothness;
-                _buffer.SetGlobalVector(GlobalRampSpecularId, new Vector4(edge1, edge2));
+                _cmd.SetGlobalVector(GlobalRampSpecularId, new Vector4(edge1, edge2));
             }
 
-            _buffer.SetKeyword(_globalRampCrispKeyword, rampSettings.CrispAntiAliased);
+            _cmd.SetKeyword(_globalRampCrispKeyword, rampSettings.CrispAntiAliased);
         }
     }
 }

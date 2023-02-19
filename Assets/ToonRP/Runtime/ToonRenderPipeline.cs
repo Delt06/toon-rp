@@ -8,12 +8,14 @@ namespace ToonRP.Runtime
         private readonly ToonCameraRenderer _cameraRenderer = new();
         private readonly ToonCameraRendererSettings _cameraRendererSettings;
         private readonly ToonRampSettings _globalRampSettings;
+        private readonly ToonShadowSettings _shadowSettings;
 
         public ToonRenderPipeline(in ToonCameraRendererSettings cameraRendererSettings,
-            ToonRampSettings globalRampSettings)
+            in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings)
         {
             _cameraRendererSettings = cameraRendererSettings;
             _globalRampSettings = globalRampSettings;
+            _shadowSettings = shadowSettings;
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
         }
 
@@ -21,7 +23,7 @@ namespace ToonRP.Runtime
         {
             foreach (Camera camera in cameras)
             {
-                _cameraRenderer.Render(context, camera, _cameraRendererSettings, _globalRampSettings);
+                _cameraRenderer.Render(context, camera, _cameraRendererSettings, _globalRampSettings, _shadowSettings);
             }
         }
     }

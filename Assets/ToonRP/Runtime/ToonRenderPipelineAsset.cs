@@ -21,11 +21,18 @@ namespace ToonRP.Runtime
             UseDynamicBatching = false,
         };
 
+        [ToonRpHeader("Shadows")]
+        public ToonShadowSettings ShadowSettings = new()
+        {
+            MaxDistance = 100.0f,
+            Directional = { AtlasSize = ToonShadowSettings.TextureSize._1024 },
+        };
+
         public override Material defaultMaterial => new(defaultShader);
 
         public override Shader defaultShader => Shader.Find("Toon RP/Default");
 
         protected override RenderPipeline CreatePipeline() =>
-            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings);
+            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings);
     }
 }

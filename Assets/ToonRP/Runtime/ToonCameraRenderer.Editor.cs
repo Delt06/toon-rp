@@ -45,8 +45,8 @@ namespace ToonRP.Runtime
 
         partial void PrepareBuffer()
         {
-            _bufferName = _camera.name;
-            _buffer.name = _bufferName;
+            _cmdName = _camera.name;
+            _cmd.name = _cmdName;
         }
 
         partial void DrawUnsupportedShaders()

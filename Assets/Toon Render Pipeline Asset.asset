@@ -18,7 +18,10 @@ MonoBehaviour:
     CrispAntiAliased: 1
     Smoothness: 0.02
     SpecularSmoothness: 0.005
-    ShadowColor: {r: 0, g: 0, b: 0, a: 0.78039217}
   CameraRendererSettings:
     UseSrpBatching: 1
     UseDynamicBatching: 0
+  ShadowSettings:
+    MaxDistance: 100
+    Directional:
+      AtlasSize: 2048

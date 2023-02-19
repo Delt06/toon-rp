@@ -5,24 +5,23 @@ namespace ToonRP.Runtime
 {
     public sealed class ToonLighting
     {
-        private const string BufferName = "Lighting";
+        private const string CmdName = "Lighting";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
         private static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");
 
-        private readonly CommandBuffer _buffer = new() { name = BufferName };
+        private readonly CommandBuffer _buffer = new() { name = CmdName };
 
-        public void Setup(ScriptableRenderContext context)
+        public void Setup(ScriptableRenderContext context, Light light)
         {
-            _buffer.BeginSample(BufferName);
-            SetupDirectionalLight();
-            _buffer.EndSample(BufferName);
+            _buffer.BeginSample(CmdName);
+            SetupDirectionalLight(light);
+            _buffer.EndSample(CmdName);
             context.ExecuteCommandBuffer(_buffer);
             _buffer.Clear();
         }
 
-        private void SetupDirectionalLight()
+        private void SetupDirectionalLight(Light light)
         {
-            Light light = RenderSettings.sun;
             if (light != null)
             {
                 _buffer.SetGlobalVector(DirectionalLightColorId, light.color.linear * light.intensity);

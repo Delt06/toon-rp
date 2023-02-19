@@ -119,8 +119,7 @@ namespace ToonRP.Runtime
                 RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store
             );
-            // TODO: remove clear color
-            _cmd.ClearRenderTarget(true, true, Color.clear);
+            _cmd.ClearRenderTarget(true, true, new Color(Mathf.Infinity, Mathf.Infinity, 0.0f, 0.0f));
             _cmd.BeginSample(CmdName);
             ExecuteBuffer();
 

@@ -68,7 +68,7 @@ float ComputeShadowRamp(const float shadowAttenuation, const float3 positionVs)
 {
     const float ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
     const float fade = ShadowFade(positionVs.z, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
-    return saturate(ramp + fade);
+    return max(ramp, fade);
 }
 
 #endif // TOON_RP_SHADOWS

@@ -162,9 +162,14 @@ namespace ToonRP.Runtime
             _directionalShadowMatricesVp[index] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, tileSize);
             _directionalShadowMatricesV[index] = viewMatrix;
             _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
+            
+            _cmd.SetGlobalDepthBias(0.0f, _settings.Directional.SlopeBias);
             ExecuteBuffer();
+            
             _context.DrawShadows(ref shadowSettings);
+            
+            _cmd.SetGlobalDepthBias(0f, 0.0f);
+            ExecuteBuffer();
 
             _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
             _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);

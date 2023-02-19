@@ -28,3 +28,4 @@ MonoBehaviour:
       AtlasSize: 1024
       Threshold: 0.09
       Smoothness: 0.15
+      SlopeBias: 2

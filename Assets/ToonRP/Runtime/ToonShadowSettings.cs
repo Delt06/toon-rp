@@ -30,6 +30,8 @@ namespace ToonRP.Runtime
             public float Threshold;
             [Range(0.0f, 1.0f)]
             public float Smoothness;
+            [Range(0.0f, 5.0f)]
+            public float SlopeBias;
         }
     }
 }

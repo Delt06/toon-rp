@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Toon RP/VSM Gaussian Blur"
+﻿Shader "Hidden/Toon RP/VSM Blur"
 {
 	Properties
 	{

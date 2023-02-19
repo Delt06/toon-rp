@@ -28,7 +28,7 @@ namespace ToonRP.Runtime
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
 
-        private readonly Material _blurMaterial = new(Shader.Find("Hidden/Toon RP/VSM Gaussian Blur"));
+        private readonly Material _blurMaterial = new(Shader.Find("Hidden/Toon RP/VSM Blur"));
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =

@@ -25,6 +25,7 @@ namespace ToonRP.Runtime
         public ToonShadowSettings ShadowSettings = new()
         {
             MaxDistance = 100.0f,
+            DistanceFade = 0.1f,
             Directional = { AtlasSize = ToonShadowSettings.TextureSize._1024, Smoothness = 0.075f },
         };
 

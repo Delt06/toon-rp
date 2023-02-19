@@ -19,6 +19,7 @@ CBUFFER_START(_ToonRpShadows)
 float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT];
 float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT];
 float2 _ToonRP_ShadowRamp;
+float2 _ToonRP_ShadowDistanceFade;
 CBUFFER_END
 
 inline float SampleShadowAttenuation(const float3 shadowCoords)
@@ -58,9 +59,16 @@ float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspect
     return shadowCoords.xyz;
 }
 
-float ComputeShadowRamp(const float shadowAttenuation)
+float ShadowFade(const float distance, const float scale, const float fade)
 {
-    return ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
+    return 1.0f - saturate((1.0 - distance * scale) * fade);
+}
+
+float ComputeShadowRamp(const float shadowAttenuation, const float3 positionVs)
+{
+    const float ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
+    const float fade = ShadowFade(positionVs.z, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
+    return saturate(ramp + fade);
 }
 
 #endif // TOON_RP_SHADOWS

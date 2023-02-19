@@ -22,7 +22,8 @@ MonoBehaviour:
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
-    MaxDistance: 50
+    MaxDistance: 25
+    DistanceFade: 0.1
     Directional:
       AtlasSize: 1024
       Threshold: 0

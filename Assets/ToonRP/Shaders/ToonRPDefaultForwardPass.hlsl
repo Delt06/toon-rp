@@ -17,6 +17,7 @@ struct v2f
     float2 uv : TEXCOORD0;
     float3 normalWs : NORMAL_WS;
     float3 positionWs : POSITION_WS;
+    float3 positionVs : POSITION_VS;
     float4 positionCs : SV_POSITION;
 };
 
@@ -31,6 +32,13 @@ v2f VS(const appdata IN)
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     OUT.positionWs = positionWs;
+    
+    float3 positionVs = TransformWorldToView(positionWs);
+    #ifdef UNITY_REVERSED_Z
+    positionVs.z *= -1.0f;
+    #endif // UNITY_REVERSED_Z
+    OUT.positionVs = positionVs;
+    
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
     return OUT;
@@ -47,7 +55,7 @@ float4 PS(const v2f IN) : SV_TARGET
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
     const float3 normalWs = normalize(IN.normalWs);
     const Light light = GetMainLight(shadowCoords);
-    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation);
+    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionVs);
     const float nDotL = dot(normalWs, light.direction);
     float diffuseRamp = ComputeGlobalRamp(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);

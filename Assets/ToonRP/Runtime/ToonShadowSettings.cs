@@ -18,6 +18,8 @@ namespace ToonRP.Runtime
 
         [Min(0f)]
         public float MaxDistance;
+        [Range(0.001f, 1f)]
+        public float DistanceFade;
         public DirectionalShadows Directional;
 
         [Serializable]

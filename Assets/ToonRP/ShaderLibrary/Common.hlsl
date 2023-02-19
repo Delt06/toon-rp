@@ -17,9 +17,10 @@
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
-    return (unity_OrthoParams.w == 0);
+    return unity_OrthoParams.w == 0;
 }
 
+// Camera ("Eye") position in world space
 float3 GetCurrentViewPosition()
 {
     return _WorldSpaceCameraPos;
@@ -42,9 +43,5 @@ float3 GetWorldSpaceViewDir(const float3 positionWs)
     // Orthographic
     return -GetViewForwardDir();
 }
-
-#define CONSTRUCT_TILING_OFFSET_NAME(textureName) textureName ## _ST
-#define DECLARE_TILING_OFFSET(textureName) float4 CONSTRUCT_TILING_OFFSET_NAME(textureName);
-#define APPLY_TILING_OFFSET(uv, textureName) (uv) * (CONSTRUCT_TILING_OFFSET_NAME(textureName).xy) + (CONSTRUCT_TILING_OFFSET_NAME(textureName).zw)
 
 #endif // TOON_RP_COMMON

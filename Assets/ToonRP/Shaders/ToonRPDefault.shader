@@ -29,8 +29,9 @@
 			#pragma fragment PS
 
 			#include "../ShaderLibrary/Common.hlsl"
-			#include "../ShaderLibrary/Ramp.hlsl"
 			#include "../ShaderLibrary/Lighting.hlsl"
+			#include "../ShaderLibrary/Ramp.hlsl"
+			#include "../ShaderLibrary/Textures.hlsl"
 
 			struct appdata
 			{

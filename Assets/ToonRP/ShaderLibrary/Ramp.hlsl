@@ -6,9 +6,14 @@
 float2 _ToonRP_GlobalRamp;
 float2 _ToonRP_GlobalRampSpecular;
 
-float ComputeRamp(const float nDotL, const float edge1, const float edge2)
+float ComputeRamp(const float value, const float edge1, const float edge2)
 {
-    return smoothstep(edge1, edge2, nDotL);
+    return smoothstep(edge1, edge2, value);
+}
+
+float ComputeRamp(const float value, const float2 ramp)
+{
+    return ComputeRamp(value, ramp.x, ramp.y);
 }
 
 float ComputeGlobalRamp(const float nDotL, const float2 ramp)
@@ -16,7 +21,7 @@ float ComputeGlobalRamp(const float nDotL, const float2 ramp)
     #ifdef _TOON_RP_GLOBAL_RAMP_CRISP
     return StepAntiAliased(ramp.x, nDotL);
     #else // !_TOON_RP_GLOBAL_RAMP_CRISP
-    return ComputeRamp(nDotL, ramp.x, ramp.y);
+    return ComputeRamp(nDotL, ramp);
     #endif // _TOON_RP_GLOBAL_RAMP_CRISP 
 }
 

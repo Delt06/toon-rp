@@ -1,6 +1,8 @@
 ﻿#ifndef TOON_RP_SHADOWS
 #define TOON_RP_SHADOWS
 
+#include "Ramp.hlsl"
+
 static const float ToonRp_Vsm_DepthScale = 0.1f;
 
 float PackVsmDepth(const float depth)
@@ -16,6 +18,7 @@ SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
 CBUFFER_START(_ToonRpShadows)
 float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT];
 float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT];
+float2 _ToonRP_ShadowRamp;
 CBUFFER_END
 
 inline float SampleShadowAttenuation(const float3 shadowCoords)
@@ -53,6 +56,11 @@ float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspect
     #endif // UNITY_REVERSED_Z
 
     return shadowCoords.xyz;
+}
+
+float ComputeShadowRamp(const float shadowAttenuation)
+{
+    return ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
 }
 
 #endif // TOON_RP_SHADOWS

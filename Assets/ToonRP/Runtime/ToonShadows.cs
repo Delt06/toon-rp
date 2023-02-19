@@ -6,6 +6,7 @@ namespace ToonRP.Runtime
     public class ToonShadows
     {
         private const string CmdName = "Shadows";
+        private const string BlurCmdName = "Blur";
 
         private const int MaxShadowedDirectionalLightCount = 1;
         private const int DepthBits = 32;
@@ -15,10 +16,17 @@ namespace ToonRP.Runtime
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
 
         private static readonly int DirectionalShadowsAtlasId = Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas");
+        private static readonly int DirectionalShadowsAtlasTempId =
+            Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas_Temp");
         private static readonly int DirectionalShadowsMatricesVpId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_VP");
         private static readonly int DirectionalShadowsMatricesVId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_V");
+        private static readonly int ShadowRampId =
+            Shader.PropertyToID("_ToonRP_ShadowRamp");
+        private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
+
+        private readonly Material _blurMaterial = new(Shader.Find("Hidden/Toon RP/VSM Gaussian Blur"));
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =
@@ -35,11 +43,13 @@ namespace ToonRP.Runtime
         private int _shadowedDirectionalLightCount;
 
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer(CommandBuffer commandBuffer)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(commandBuffer);
+            commandBuffer.Clear();
         }
+
+        private void ExecuteBuffer() => ExecuteBuffer(_cmd);
 
         public void Setup(in ScriptableRenderContext context,
             in CullingResults cullingResults,
@@ -86,6 +96,7 @@ namespace ToonRP.Runtime
         public void Cleanup()
         {
             _cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasId);
+            _cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasTempId);
             ExecuteBuffer();
         }
 
@@ -94,6 +105,11 @@ namespace ToonRP.Runtime
             int atlasSize = (int) _settings.Directional.AtlasSize;
             _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
                 DepthBits,
+                ShadowmapFiltering,
+                ShadowmapFormat
+            );
+            _cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
+                0,
                 ShadowmapFiltering,
                 ShadowmapFormat
             );
@@ -116,6 +132,12 @@ namespace ToonRP.Runtime
 
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
+            _cmd.SetGlobalVector(ShadowRampId,
+                new Vector4(
+                    _settings.Directional.Threshold,
+                    _settings.Directional.Threshold + _settings.Directional.Smoothness
+                )
+            );
             _cmd.EndSample(CmdName);
             ExecuteBuffer();
         }
@@ -136,6 +158,10 @@ namespace ToonRP.Runtime
 
             ExecuteBuffer();
             _context.DrawShadows(ref shadowSettings);
+
+            _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
+            _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+            ExecuteBuffer(_blurCmd);
         }
 
         private void SetTileViewport(int index, int split, int tileSize, out Vector2 offset)

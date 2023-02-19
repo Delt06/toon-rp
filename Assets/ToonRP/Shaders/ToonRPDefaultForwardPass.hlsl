@@ -45,14 +45,12 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
 float4 PS(const v2f IN) : SV_TARGET
 {
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
-    // return float4(shadowCoords, 1.0f);
-
     const float3 normalWs = normalize(IN.normalWs);
     const Light light = GetMainLight(shadowCoords);
-    const float lightAttenuation = light.shadowAttenuation;
-    float nDotL = dot(normalWs, light.direction);
-    nDotL = min(nDotL * lightAttenuation, nDotL);
-    const float diffuseRamp = ComputeGlobalRamp(nDotL);
+    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation);
+    const float nDotL = dot(normalWs, light.direction);
+    float diffuseRamp = ComputeGlobalRamp(nDotL);
+    diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
     const float3 mixedShadowColor = MixShadowColor(albedo, _ShadowColor);
     const float3 diffuse = light.color * ApplyRamp(albedo, mixedShadowColor, diffuseRamp);

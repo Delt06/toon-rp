@@ -16,12 +16,14 @@ MonoBehaviour:
     Threshold: 0
     SpecularThreshold: 0.99
     CrispAntiAliased: 1
-    Smoothness: 0.02
+    Smoothness: 0.083
     SpecularSmoothness: 0.005
   CameraRendererSettings:
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
-    MaxDistance: 100
+    MaxDistance: 50
     Directional:
-      AtlasSize: 2048
+      AtlasSize: 1024
+      Threshold: 0
+      Smoothness: 0.075

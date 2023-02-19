@@ -24,6 +24,10 @@ namespace ToonRP.Runtime
         public struct DirectionalShadows
         {
             public TextureSize AtlasSize;
+            [Range(0.0f, 1.0f)]
+            public float Threshold;
+            [Range(0.0f, 1.0f)]
+            public float Smoothness;
         }
     }
 }

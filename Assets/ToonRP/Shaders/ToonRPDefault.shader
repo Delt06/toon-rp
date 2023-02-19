@@ -6,6 +6,7 @@
 		_MainColor ("Color", Color) = (1, 1, 1, 1)
 		[MainTexture]
 		_MainTexture ("Texture", 2D) = "white" {}
+	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
 	}
@@ -51,6 +52,7 @@
 			CBUFFER_START(UnityPerMaterial)
 				float4 _MainColor;
 				DECLARE_TILING_OFFSET(_MainTexture)
+			    float4 _ShadowColor;
 			    float3 _SpecularColor;
 			CBUFFER_END
 
@@ -84,7 +86,7 @@
 				const float nDotL = dot(normalWs, light.direction);
 				const float diffuseRamp = ComputeGlobalRamp(nDotL);
 				const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
-				const float3 mixedShadowColor = MixGlobalShadowColor(albedo);
+				const float3 mixedShadowColor = MixShadowColor(albedo, _ShadowColor);
 				const float3 diffuse = light.color * ApplyRamp(albedo, mixedShadowColor, diffuseRamp);
 
 			    const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));

@@ -39,7 +39,6 @@ namespace ToonRP.Editor
             root.Add(crispAntiAliasedField);
             root.Add(smoothnessField);
             root.Add(specularSmoothnessField);
-            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.ShadowColor))));
 
             return root;
         }

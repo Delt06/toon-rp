@@ -5,7 +5,6 @@
 
 float2 _ToonRP_GlobalRamp;
 float2 _ToonRP_GlobalRampSpecular;
-float4 _ToonRP_GlobalShadowColor;
 
 float ComputeRamp(const float nDotL, const float edge1, const float edge2)
 {
@@ -34,11 +33,6 @@ float ComputeGlobalRampSpecular(const float nDotH)
 float3 MixShadowColor(const float3 albedo, const float4 shadowColor)
 {
     return lerp(albedo, shadowColor.rgb, shadowColor.a);
-}
-
-float3 MixGlobalShadowColor(const float3 albedo)
-{
-    return MixShadowColor(albedo, _ToonRP_GlobalShadowColor);
 }
 
 float3 ApplyRamp(const float3 albedo, const float3 mixedShadowColor, const float ramp)

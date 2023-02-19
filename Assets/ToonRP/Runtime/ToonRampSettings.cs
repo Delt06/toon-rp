@@ -15,6 +15,5 @@ namespace ToonRP.Runtime
         public float Smoothness;
         [Range(0.0f, 2.0f)]
         public float SpecularSmoothness;
-        public Color ShadowColor;
     }
 }

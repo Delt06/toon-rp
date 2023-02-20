@@ -20,7 +20,9 @@
         DECLARE_TEXEL_SIZE(_MainTex);
 
         #define SOURCE_SAMPLER sampler_linear_clamp
-        SAMPLER(SOURCE_SAMPLER);        
+        SAMPLER(SOURCE_SAMPLER);
+
+        // https://www.rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 
 #ifdef _TOON_RP_VSM_BLUR_HIGH_QUALITY
 
@@ -46,9 +48,9 @@
 
         const static float BlurOffsets[BlurKernelSize] =
         {
-            -1.72027972039f,
+            -1.72027972039f / 2,
             0.0f,
-            1.72027972039f
+            1.72027972039f / 2
         };
 
         const static float BlurWeights[BlurKernelSize] =

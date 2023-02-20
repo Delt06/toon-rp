@@ -27,14 +27,14 @@ namespace ToonRP.Runtime
         private static readonly int ShadowDistanceFadeId =
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
-        private readonly Material _blurMaterial;
+        private Material _blurMaterial;
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =
             new Matrix4x4[MaxShadowedDirectionalLightCount];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
             new Matrix4x4[MaxShadowedDirectionalLightCount];
-        private readonly LocalKeyword _highQualityBlurKeyword;
+        private LocalKeyword _highQualityBlurKeyword;
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
@@ -44,8 +44,12 @@ namespace ToonRP.Runtime
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
 
-        public ToonShadows()
+        private void EnsureMaterialIsCreated()
         {
+            if (_blurMaterial != null)
+            {
+                return;
+            }
             var blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
             _blurMaterial = new Material(blurShader);
             _highQualityBlurKeyword = new LocalKeyword(blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY");
@@ -68,6 +72,7 @@ namespace ToonRP.Runtime
             _cullingResults = cullingResults;
             _settings = settings;
             _shadowedDirectionalLightCount = 0;
+            EnsureMaterialIsCreated();
         }
 
         public void ReserveDirectionalShadows(Light light, int visibleLightIndex)

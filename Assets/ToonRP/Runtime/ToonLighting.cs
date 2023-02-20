@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using JetBrains.Annotations;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace ToonRP.Runtime
@@ -11,7 +12,7 @@ namespace ToonRP.Runtime
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
 
-        public void Setup(ScriptableRenderContext context, Light light)
+        public void Setup(ScriptableRenderContext context, [CanBeNull] Light light)
         {
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(light);
@@ -20,7 +21,7 @@ namespace ToonRP.Runtime
             _buffer.Clear();
         }
 
-        private void SetupDirectionalLight(Light light)
+        private void SetupDirectionalLight([CanBeNull] Light light)
         {
             if (light != null)
             {

@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  GlobalRampSettings:
+    Threshold: 0
+    SpecularThreshold: 0.99
+    CrispAntiAliased: 1
+    Smoothness: 0.083
+    SpecularSmoothness: 0.005
+  CameraRendererSettings:
+    Msaa: 8
+    MsaaResolveDepth: 1
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+  ShadowSettings:
+    MaxDistance: 25
+    DistanceFade: 0.1
+    HighQualityBlur: 1
+    Directional:
+      AtlasSize: 4096
+      Threshold: 0.471
+      Smoothness: 0.15
+      SlopeBias: 2

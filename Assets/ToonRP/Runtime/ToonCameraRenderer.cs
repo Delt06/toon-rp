@@ -135,23 +135,16 @@ namespace ToonRP.Runtime
 
             _globalRamp.Setup(_context, globalRampSettings);
 
-            Light sun = RenderSettings.sun;
-            _lighting.Setup(_context, sun);
+
+            VisibleLight visibleLight =
+                _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;
+            _lighting.Setup(_context, visibleLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, toonShadowSettings);
-
-                for (int visibleLightIndex = 0;
-                     visibleLightIndex < _cullingResults.visibleLights.Length;
-                     visibleLightIndex++)
+                if (visibleLight.light != null)
                 {
-                    VisibleLight visibleLight = _cullingResults.visibleLights[visibleLightIndex];
-                    if (visibleLight.light != sun)
-                    {
-                        continue;
-                    }
-
-                    _shadows.ReserveDirectionalShadows(visibleLight.light, visibleLightIndex);
+                    _shadows.ReserveDirectionalShadows(visibleLight.light, 0);
                 }
 
                 _shadows.Render();

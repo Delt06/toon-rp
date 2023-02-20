@@ -27,6 +27,7 @@ namespace ToonRP.Runtime
         {
             MaxDistance = 100.0f,
             DistanceFade = 0.1f,
+            HighQualityBlur = true,
             Directional = { AtlasSize = ToonShadowSettings.TextureSize._1024, Smoothness = 0.075f },
         };
 

@@ -11,6 +11,8 @@
 	    #pragma vertex VS
 		#pragma fragment PS
 
+        #pragma multi_compile_local_fragment _ _TOON_RP_VSM_BLUR_HIGH_QUALITY
+
         #include "../ShaderLibrary/Common.hlsl"
         #include "../ShaderLibrary/Textures.hlsl"
 
@@ -18,7 +20,9 @@
         DECLARE_TEXEL_SIZE(_MainTex);
 
         #define SOURCE_SAMPLER sampler_linear_clamp
-        SAMPLER(SOURCE_SAMPLER);
+        SAMPLER(SOURCE_SAMPLER);        
+
+#ifdef _TOON_RP_VSM_BLUR_HIGH_QUALITY
 
         const static uint BlurKernelSize = 5;
 
@@ -35,6 +39,24 @@
             0.2270270270f,
             0.3162162162f, 0.0702702703f
         };
+
+#else // !_TOON_RP_VSM_BLUR_HIGH_QUALITY
+
+        const static uint BlurKernelSize = 3;
+
+        const static float BlurOffsets[BlurKernelSize] =
+        {
+            -1.72027972039f,
+            0.0f,
+            1.72027972039f
+        };
+
+        const static float BlurWeights[BlurKernelSize] =
+        {
+            0.3864864865f, 0.2270270270f, 0.3864864865f,
+        };
+
+#endif // _TOON_RP_VSM_BLUR_HIGH_QUALITY
 
         struct appdata
         {

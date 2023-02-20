@@ -64,7 +64,7 @@
             for (uint i = 0; i < BlurKernelSize; ++i)
             {
                 const float2 uvOffset = uv + direction * BlurOffsets[i] * texelSize;
-                value += SAMPLE_TEXTURE2D(_MainTex, SOURCE_SAMPLER, uvOffset) * BlurWeights[i];
+                value += SAMPLE_TEXTURE2D(_MainTex, SOURCE_SAMPLER, uvOffset).rg * BlurWeights[i];
             }
 
             return value;

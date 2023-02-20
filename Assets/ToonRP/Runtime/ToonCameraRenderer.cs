@@ -7,9 +7,14 @@ namespace ToonRP.Runtime
     {
         private const string DefaultCmdName = "Render Camera";
         private static readonly ShaderTagId ForwardShaderTagId = new("ToonRPForward");
+
+        private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
+        private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
+        private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
+        private readonly CommandBuffer _prepareRtCmd = new() { name = "Prepare Render Targets" };
         private readonly ToonShadows _shadows = new();
 
         private Camera _camera;
@@ -17,6 +22,8 @@ namespace ToonRP.Runtime
         private string _cmdName = DefaultCmdName;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+        private int _msaaSamples;
+        private bool _renderToTexture;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings)
@@ -24,6 +31,7 @@ namespace ToonRP.Runtime
             _context = context;
             _camera = camera;
 
+            PrepareMsaa(camera, settings);
             PrepareBuffer();
             PrepareForSceneWindow();
 
@@ -34,12 +42,49 @@ namespace ToonRP.Runtime
 
             Setup(globalRampSettings, toonShadowSettings);
 
+
+            SetRenderTargets();
+            ClearRenderTargets();
+
             DrawVisibleGeometry(settings);
             DrawUnsupportedShaders();
             DrawGizmos();
 
-            _shadows.Cleanup();
+            BlitToCameraTarget();
+
+            Cleanup();
             Submit();
+        }
+
+        private void SetRenderTargets()
+        {
+            if (_renderToTexture)
+            {
+                _cmd.SetRenderTarget(
+                    CameraColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    CameraDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                );
+            }
+            else
+            {
+                _cmd.SetRenderTarget(
+                    BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store
+                );
+            }
+
+            ExecuteBuffer(_cmd);
+        }
+
+
+        private void PrepareMsaa(Camera camera, ToonCameraRendererSettings settings)
+        {
+            _msaaSamples = (int) settings.Msaa;
+            QualitySettings.antiAliasing = _msaaSamples;
+            // QualitySettings.antiAliasing returns 0 if MSAA is not supported
+            _msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
+            _msaaSamples = camera.allowMSAA ? _msaaSamples : 1;
+            _renderToTexture = _msaaSamples > 1;
         }
 
         partial void PrepareBuffer();
@@ -63,7 +108,21 @@ namespace ToonRP.Runtime
             SetupLighting(globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
-            ClearRenderTargets();
+
+            if (_renderToTexture)
+            {
+                _cmd.GetTemporaryRT(
+                    CameraColorBufferId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                    FilterMode.Bilinear, RenderTextureFormat.Default,
+                    RenderTextureReadWrite.Default, _msaaSamples
+                );
+                _cmd.GetTemporaryRT(
+                    CameraDepthBufferId, _camera.pixelWidth, _camera.pixelHeight, 24,
+                    FilterMode.Point, RenderTextureFormat.Depth,
+                    RenderTextureReadWrite.Linear, _msaaSamples
+                );
+            }
+
             _cmd.BeginSample(_cmdName);
 
             ExecuteBuffer();
@@ -105,15 +164,38 @@ namespace ToonRP.Runtime
         {
             const string sampleName = "Clear Render Targets";
 
-            _cmd.BeginSample(sampleName);
+            _prepareRtCmd.BeginSample(sampleName);
 
             CameraClearFlags cameraClearFlags = _camera.clearFlags;
             bool clearDepth = cameraClearFlags <= CameraClearFlags.Depth;
             bool clearColor = cameraClearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
-            _cmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
+            _prepareRtCmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
-            _cmd.EndSample(sampleName);
+            _prepareRtCmd.EndSample(sampleName);
+            ExecuteBuffer(_prepareRtCmd);
+        }
+
+        private void BlitToCameraTarget()
+        {
+            if (_renderToTexture)
+            {
+                _finalBlitCmd.Blit(CameraColorBufferId, BuiltinRenderTextureType.CameraTarget);
+                ExecuteBuffer(_finalBlitCmd);
+            }
+        }
+
+        private void Cleanup()
+        {
+            _shadows.Cleanup();
+
+            if (_renderToTexture)
+            {
+                _cmd.ReleaseTemporaryRT(CameraColorBufferId);
+                _cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+            }
+
+            ExecuteBuffer();
         }
 
         private void Submit()
@@ -123,11 +205,13 @@ namespace ToonRP.Runtime
             _context.Submit();
         }
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
+
+        private void ExecuteBuffer() => ExecuteBuffer(_cmd);
 
         private void DrawVisibleGeometry(in ToonCameraRendererSettings settings)
         {

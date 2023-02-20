@@ -43,7 +43,7 @@ struct PsOut
     float2 depth_depthSqr : SV_TARGET;
 };
 
-PsOut PS(const v2f IN) : SV_TARGET
+PsOut PS(const v2f IN)
 {
     PsOut OUT;
     OUT.depth_depthSqr = float2(IN.depth, IN.depth * IN.depth);

@@ -14,9 +14,10 @@ namespace ToonRP.Runtime
             SpecularSmoothness = 0.005f,
         };
 
-        [ToonRpHeader("Camera Renderer")]
         public ToonCameraRendererSettings CameraRendererSettings = new()
         {
+            Msaa = ToonCameraRendererSettings.MsaaMode.Off,
+            MsaaResolveDepth = true,
             UseSrpBatching = true,
             UseDynamicBatching = false,
         };

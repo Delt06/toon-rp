@@ -24,11 +24,11 @@ MonoBehaviour:
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
-    MaxDistance: 25
+    MaxDistance: 10
     DistanceFade: 0.1
     HighQualityBlur: 1
     Directional:
       AtlasSize: 2048
-      Threshold: 0.73
-      Smoothness: 0.039
+      Threshold: 0.541
+      Smoothness: 0.294
       SlopeBias: 2

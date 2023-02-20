@@ -28,7 +28,7 @@ MonoBehaviour:
     DistanceFade: 0.1
     HighQualityBlur: 1
     Directional:
-      AtlasSize: 4096
-      Threshold: 0.471
-      Smoothness: 0.15
+      AtlasSize: 2048
+      Threshold: 0.73
+      Smoothness: 0.039
       SlopeBias: 2

@@ -30,8 +30,8 @@ namespace ToonRP.Runtime
             }
             else
             {
-                _buffer.SetGlobalVector(DirectionalLightColorId, Vector4.zero);
-                _buffer.SetGlobalVector(DirectionalLightDirectionId, Vector4.zero);
+                _buffer.SetGlobalVector(DirectionalLightColorId, Vector4.one);
+                _buffer.SetGlobalVector(DirectionalLightDirectionId, Vector4.one);
             }
         }
     }

@@ -27,19 +27,21 @@ namespace ToonRP.Runtime
         private static readonly int ShadowDistanceFadeId =
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
-        private Material _blurMaterial;
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =
             new Matrix4x4[MaxShadowedDirectionalLightCount];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
             new Matrix4x4[MaxShadowedDirectionalLightCount];
-        private LocalKeyword _highQualityBlurKeyword;
+        private readonly GlobalKeyword _directionalShadowsGlobalKeyword =
+            GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS");
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
+        private Material _blurMaterial;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+        private LocalKeyword _highQualityBlurKeyword;
 
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
@@ -50,6 +52,7 @@ namespace ToonRP.Runtime
             {
                 return;
             }
+
             var blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
             _blurMaterial = new Material(blurShader);
             _highQualityBlurKeyword = new LocalKeyword(blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY");
@@ -91,9 +94,10 @@ namespace ToonRP.Runtime
 
         public void Render()
         {
-            if (_shadowedDirectionalLightCount > 0)
+            if (_settings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
             {
                 RenderDirectionalShadows();
+                _cmd.EnableKeyword(_directionalShadowsGlobalKeyword);
             }
             else
             {
@@ -102,6 +106,7 @@ namespace ToonRP.Runtime
                     ShadowmapFiltering,
                     ShadowmapFormat
                 );
+                _cmd.DisableKeyword(_directionalShadowsGlobalKeyword);
             }
 
             ExecuteBuffer();

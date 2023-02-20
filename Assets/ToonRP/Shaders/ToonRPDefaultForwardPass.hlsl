@@ -17,7 +17,11 @@ struct v2f
     float2 uv : TEXCOORD0;
     float3 normalWs : NORMAL_WS;
     float3 positionWs : POSITION_WS;
+
+    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
     float3 positionVs : POSITION_VS;
+    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+
     float4 positionCs : SV_POSITION;
 };
 
@@ -32,13 +36,16 @@ v2f VS(const appdata IN)
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     OUT.positionWs = positionWs;
-    
+
     float3 positionVs = TransformWorldToView(positionWs);
     #ifdef UNITY_REVERSED_Z
     positionVs.z *= -1.0f;
     #endif // UNITY_REVERSED_Z
+
+    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
     OUT.positionVs = positionVs;
-    
+    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
     return OUT;
@@ -50,13 +57,32 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
     return dot(normalWs, halfVector);
 }
 
+float GetShadowAttenuation(const v2f IN, const Light light)
+{
+#ifdef _TOON_RP_DIRECTIONAL_SHADOWS
+    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionVs);
+    return shadowAttenuation;
+#else // !_TOON_RP_DIRECTIONAL_SHADOWS
+    return 1.0f;
+#endif // _TOON_RP_DIRECTIONAL_SHADOWS
+}
+
+Light GetMainLight(const v2f IN)
+{
+    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
+    const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
+    return GetMainLight(shadowCoords); 
+    #else // !_TOON_RP_DIRECTIONAL_SHADOWS
+    return GetMainLight();
+    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+}
+
 float4 PS(const v2f IN) : SV_TARGET
 {
-    const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
+    const Light light = GetMainLight(IN);
     const float3 normalWs = normalize(IN.normalWs);
-    const Light light = GetMainLight(shadowCoords);
-    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionVs);
     const float nDotL = dot(normalWs, light.direction);
+    const float shadowAttenuation = GetShadowAttenuation(IN, light);
     float diffuseRamp = ComputeGlobalRamp(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;

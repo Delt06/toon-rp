@@ -33,6 +33,7 @@
 			HLSLPROGRAM
 
 			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
+			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

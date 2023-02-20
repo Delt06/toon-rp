@@ -26,6 +26,7 @@ namespace ToonRP.Runtime
         [Serializable]
         public struct DirectionalShadows
         {
+            public bool Enabled;
             public TextureSize AtlasSize;
             [Range(0.0f, 1.0f)]
             public float Threshold;

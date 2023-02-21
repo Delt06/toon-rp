@@ -26,6 +26,8 @@ namespace ToonRP.Runtime
             Shader.PropertyToID("_ToonRP_ShadowRamp");
         private static readonly int ShadowDistanceFadeId =
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
+        private static readonly int ShadowBiasId =
+            Shader.PropertyToID("_ToonRP_ShadowBias");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
@@ -181,6 +183,7 @@ namespace ToonRP.Runtime
             _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
             _cmd.SetGlobalDepthBias(0.0f, _settings.Directional.SlopeBias);
+            _cmd.SetGlobalVector(ShadowBiasId, new Vector4(-_settings.Directional.DepthBias, _settings.Directional.NormalBias));
             ExecuteBuffer();
 
             _context.DrawShadows(ref shadowSettings);

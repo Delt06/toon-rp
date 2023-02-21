@@ -20,9 +20,21 @@ float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT];
 float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT];
 float2 _ToonRP_ShadowRamp;
 float2 _ToonRP_ShadowDistanceFade;
+float2 _ToonRP_ShadowBias; // x - depth, y - normal
 CBUFFER_END
 
-inline float SampleShadowAttenuation(const float3 shadowCoords)
+float3 ApplyShadowBias(float3 positionWs, const float3 normalWs, const float3 lightDirection)
+{
+    const float invNDotL = 1.0 - saturate(dot(lightDirection, normalWs));
+    float scale = invNDotL * _ToonRP_ShadowBias.y;
+
+    // normal bias is negative since we want to apply an inset normal offset
+    positionWs = lightDirection * _ToonRP_ShadowBias.xxx + positionWs;
+    positionWs = normalWs * scale.xxx + positionWs;
+    return positionWs;
+}
+
+float SampleShadowAttenuation(const float3 shadowCoords)
 {
     const float2 varianceSample = SAMPLE_TEXTURE2D(_ToonRP_DirectionalShadowAtlas,
                                                    sampler_ToonRP_DirectionalShadowAtlas,

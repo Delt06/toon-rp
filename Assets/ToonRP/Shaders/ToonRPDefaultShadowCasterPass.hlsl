@@ -2,6 +2,7 @@
 #define TOON_RP_DEFAULT_SHADOW_CASTER_PASS
 
 #include "../ShaderLibrary/Common.hlsl"
+#include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
 
 struct appdata
@@ -26,7 +27,10 @@ v2f VS(const appdata IN)
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
 
-    const float3 positionWs = TransformObjectToWorld(IN.vertex);
+    float3 positionWs = TransformObjectToWorld(IN.vertex);
+    const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
+    // TODO: if in point light shadow pass, use a different light direction
+    positionWs = ApplyShadowBias(positionWs, normalWs, _DirectionalLightDirection);
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
     float viewZ = TransformWorldToView(positionWs).z;

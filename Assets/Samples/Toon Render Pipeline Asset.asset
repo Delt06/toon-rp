@@ -30,6 +30,8 @@ MonoBehaviour:
     Directional:
       Enabled: 1
       AtlasSize: 2048
-      Threshold: 0.541
-      Smoothness: 0.294
-      SlopeBias: 2
+      Threshold: 0.5
+      Smoothness: 0.25
+      DepthBias: 0
+      NormalBias: 0
+      SlopeBias: 0

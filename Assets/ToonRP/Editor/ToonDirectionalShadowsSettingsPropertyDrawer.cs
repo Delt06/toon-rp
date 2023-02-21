@@ -41,6 +41,12 @@ namespace ToonRP.Editor
                 new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.Smoothness)))
             );
             enabledContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.DepthBias)))
+            );
+            enabledContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.NormalBias)))
+            );
+            enabledContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.SlopeBias)))
             );
 

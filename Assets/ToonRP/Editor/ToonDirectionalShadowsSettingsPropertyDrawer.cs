@@ -19,6 +19,11 @@ namespace ToonRP.Editor
 
             SerializedProperty enabledProperty =
                 property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.Enabled));
+            SerializedProperty crispAntiAliasedProperty =
+                property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.CrispAntiAliased));
+            var crispAntiAliasedField = new PropertyField(crispAntiAliasedProperty);
+            var smoothnessField =
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.Smoothness)));
             var enabledField = new PropertyField(enabledProperty);
 
             var enabledContainer = new VisualElement();
@@ -26,9 +31,14 @@ namespace ToonRP.Editor
             void RefreshFields()
             {
                 enabledContainer.SetEnabled(enabledProperty.boolValue);
+                smoothnessField.SetEnabled(!crispAntiAliasedProperty.boolValue);
             }
 
+            RefreshFields();
+
             enabledField.RegisterValueChangeCallback(_ => RefreshFields());
+            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshFields());
+
             foldout.Add(enabledField);
 
             enabledContainer.Add(
@@ -37,9 +47,8 @@ namespace ToonRP.Editor
             enabledContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.Threshold)))
             );
-            enabledContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.Smoothness)))
-            );
+            enabledContainer.Add(crispAntiAliasedField);
+            enabledContainer.Add(smoothnessField);
             enabledContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Directional.DepthBias)))
             );

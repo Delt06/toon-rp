@@ -78,7 +78,12 @@ float ShadowFade(const float distance, const float scale, const float fade)
 
 float ComputeShadowRamp(const float shadowAttenuation, const float3 positionVs)
 {
-    const float ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
+    float ramp;
+    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+    ramp = StepAntiAliased(_ToonRP_ShadowRamp.x, shadowAttenuation);
+    #else // !_TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+    ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
+    #endif // _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
     const float fade = ShadowFade(positionVs.z, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
     return max(ramp, fade);
 }

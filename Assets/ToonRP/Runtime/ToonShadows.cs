@@ -37,6 +37,8 @@ namespace ToonRP.Runtime
             new Matrix4x4[MaxShadowedDirectionalLightCount];
         private readonly GlobalKeyword _directionalShadowsGlobalKeyword =
             GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS");
+        private readonly GlobalKeyword _directionalShadowsRampCrisp =
+            GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP");
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
@@ -100,6 +102,7 @@ namespace ToonRP.Runtime
             {
                 RenderDirectionalShadows();
                 _cmd.EnableKeyword(_directionalShadowsGlobalKeyword);
+                _cmd.SetKeyword(_directionalShadowsRampCrisp, _settings.Directional.CrispAntiAliased);
             }
             else
             {
@@ -109,6 +112,7 @@ namespace ToonRP.Runtime
                     ShadowmapFormat
                 );
                 _cmd.DisableKeyword(_directionalShadowsGlobalKeyword);
+                _cmd.DisableKeyword(_directionalShadowsRampCrisp);
             }
 
             ExecuteBuffer();
@@ -183,7 +187,9 @@ namespace ToonRP.Runtime
             _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
             _cmd.SetGlobalDepthBias(0.0f, _settings.Directional.SlopeBias);
-            _cmd.SetGlobalVector(ShadowBiasId, new Vector4(-_settings.Directional.DepthBias, _settings.Directional.NormalBias));
+            _cmd.SetGlobalVector(ShadowBiasId,
+                new Vector4(-_settings.Directional.DepthBias, _settings.Directional.NormalBias)
+            );
             ExecuteBuffer();
 
             _context.DrawShadows(ref shadowSettings);

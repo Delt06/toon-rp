@@ -29,9 +29,10 @@ MonoBehaviour:
     HighQualityBlur: 1
     Directional:
       Enabled: 1
-      AtlasSize: 2048
-      Threshold: 0.5
-      Smoothness: 0.25
-      DepthBias: 0
+      AtlasSize: 1024
+      Threshold: 0.757
+      CrispAntiAliased: 1
+      Smoothness: 1
+      DepthBias: 0.01
       NormalBias: 0
       SlopeBias: 0

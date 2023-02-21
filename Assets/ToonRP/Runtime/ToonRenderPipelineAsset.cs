@@ -28,7 +28,10 @@ namespace ToonRP.Runtime
             MaxDistance = 100.0f,
             DistanceFade = 0.1f,
             HighQualityBlur = true,
-            Directional = { Enabled = true, AtlasSize = ToonShadowSettings.TextureSize._1024, Smoothness = 0.075f },
+            Directional =
+            {
+                Enabled = true, AtlasSize = ToonShadowSettings.TextureSize._1024, Threshold = 0.5f, Smoothness = 0.075f,
+            },
         };
 
         public override Material defaultMaterial => new(defaultShader);

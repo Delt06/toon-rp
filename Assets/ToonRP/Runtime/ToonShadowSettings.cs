@@ -30,6 +30,7 @@ namespace ToonRP.Runtime
             public TextureSize AtlasSize;
             [Range(0.0f, 1.0f)]
             public float Threshold;
+            public bool CrispAntiAliased;
             [Range(0.0f, 1.0f)]
             public float Smoothness;
             [Range(0.0f, 2.0f)]

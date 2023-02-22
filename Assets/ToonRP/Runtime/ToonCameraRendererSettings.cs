@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace ToonRP.Runtime
 {
@@ -14,6 +13,7 @@ namespace ToonRP.Runtime
             _8x = 8,
         }
 
+        public bool AllowHdr;
         public MsaaMode Msaa;
         public bool MsaaResolveDepth;
 

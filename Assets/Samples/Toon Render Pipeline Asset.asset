@@ -19,6 +19,7 @@ MonoBehaviour:
     Smoothness: 0.083
     SpecularSmoothness: 0.005
   CameraRendererSettings:
+    AllowHdr: 1
     Msaa: 8
     MsaaResolveDepth: 1
     UseSrpBatching: 1

@@ -40,8 +40,7 @@ namespace ToonRP.Runtime
                 return;
             }
 
-            Setup(globalRampSettings, toonShadowSettings);
-
+            Setup(settings, globalRampSettings, toonShadowSettings);
 
             SetRenderTargets();
             ClearRenderTargets();
@@ -84,7 +83,6 @@ namespace ToonRP.Runtime
             // QualitySettings.antiAliasing returns 0 if MSAA is not supported
             _msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
             _msaaSamples = camera.allowMSAA ? _msaaSamples : 1;
-            _renderToTexture = _msaaSamples > 1;
         }
 
         partial void PrepareBuffer();
@@ -103,17 +101,21 @@ namespace ToonRP.Runtime
             return true;
         }
 
-        private void Setup(in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings)
+        private void Setup(in ToonCameraRendererSettings settings, in ToonRampSettings globalRampSettings,
+            in ToonShadowSettings toonShadowSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
+            _renderToTexture = settings.AllowHdr || _msaaSamples > 1;
 
             if (_renderToTexture)
             {
+                RenderTextureFormat colorFormat =
+                    settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
                 _cmd.GetTemporaryRT(
                     CameraColorBufferId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                    FilterMode.Bilinear, RenderTextureFormat.Default,
+                    FilterMode.Bilinear, colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
                 );
                 _cmd.GetTemporaryRT(

@@ -28,6 +28,11 @@ namespace ToonRP.Editor
 
             msaaField.RegisterValueChangeCallback(_ => RefreshFields());
 
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.AllowHdr)))
+                {
+                    label = "Allow HDR",
+                }
+            );
             root.Add(msaaField);
             root.Add(msaaResolveDepth);
             root.Add(

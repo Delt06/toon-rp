@@ -32,7 +32,7 @@ float ComputeGlobalRamp(const float nDotL)
 
 float ComputeGlobalRampSpecular(const float nDotH)
 {
-    return ComputeGlobalRamp(nDotH, _ToonRP_GlobalRampSpecular);
+    return ComputeRamp(nDotH, _ToonRP_GlobalRampSpecular);
 }
 
 float3 MixShadowColor(const float3 albedo, const float4 shadowColor)

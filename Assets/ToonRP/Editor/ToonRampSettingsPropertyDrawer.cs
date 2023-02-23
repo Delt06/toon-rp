@@ -23,16 +23,15 @@ namespace ToonRP.Editor
             var specularSmoothnessField =
                 new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularSmoothness)));
 
-            void RefreshSmoothnessFields()
+            void RefreshSmoothness()
             {
                 bool showSmoothness = !crispAntiAliasedProperty.boolValue;
                 smoothnessField.SetEnabled(showSmoothness);
-                specularSmoothnessField.SetEnabled(showSmoothness);
             }
 
-            RefreshSmoothnessFields();
+            RefreshSmoothness();
 
-            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshSmoothnessFields());
+            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshSmoothness());
 
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Threshold))));
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularThreshold))));

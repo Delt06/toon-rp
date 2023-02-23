@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Toon RP_Sphere
+  m_Name: Toon RP_White
   m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -30,12 +30,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _SpecularExponent: 50
+    - _SpecularExponent: 52.31
     m_Colors:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BaseColor: {r: 0.46429244, g: 0.9622642, b: 0.24056605, a: 1}
-    - _MainColor: {r: 0.3949175, g: 0.9433962, b: 0.26254895, a: 1}
-    - _ShadowColor: {r: 0.16353682, g: 0.46226412, b: 0.44780958, a: 0.8235294}
+    - _BaseColor: {r: 0, g: 0.46625757, b: 1, a: 1}
+    - _MainColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
     - _SpecularCColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SpecularColor: {r: 3.4632993, g: 6.4222345, b: 0, a: 1}
+    - _SpecularColor: {r: 6.623533, g: 6.7142005, b: 5.6690655, a: 1}
   m_BuildTextureStacks: []

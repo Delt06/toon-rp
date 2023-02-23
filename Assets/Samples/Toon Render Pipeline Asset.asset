@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GlobalRampSettings:
     Threshold: 0
-    SpecularThreshold: 0.99
+    SpecularThreshold: 0.992
     CrispAntiAliased: 1
     Smoothness: 0.083
     SpecularSmoothness: 0.005
@@ -37,3 +37,13 @@ MonoBehaviour:
       DepthBias: 0.01
       NormalBias: 0
       SlopeBias: 0
+  PostProcessing:
+    Enabled: 1
+    Bloom:
+      Enabled: 1
+      Intensity: 1
+      Threshold: 2
+      ThresholdKnee: 0.293
+      MaxIterations: 16
+      DownsampleLimit: 2
+      BicubicUpsampling: 1

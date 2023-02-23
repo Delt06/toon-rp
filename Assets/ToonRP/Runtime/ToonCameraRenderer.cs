@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ToonRP.Runtime.PostProcessing;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace ToonRP.Runtime
@@ -9,24 +10,28 @@ namespace ToonRP.Runtime
         private static readonly ShaderTagId ForwardShaderTagId = new("ToonRPForward");
 
         private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
+        private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
         private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
+        private readonly ToonPostProcessing _postProcessing = new();
         private readonly CommandBuffer _prepareRtCmd = new() { name = "Prepare Render Targets" };
         private readonly ToonShadows _shadows = new();
 
         private Camera _camera;
 
         private string _cmdName = DefaultCmdName;
+        private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private int _msaaSamples;
         private bool _renderToTexture;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
-            in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings)
+            in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
+            in ToonPostProcessingSettings postProcessingSettings)
         {
             _context = context;
             _camera = camera;
@@ -40,7 +45,8 @@ namespace ToonRP.Runtime
                 return;
             }
 
-            Setup(settings, globalRampSettings, toonShadowSettings);
+            Setup(settings, globalRampSettings, toonShadowSettings, postProcessingSettings);
+            _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera);
 
             SetRenderTargets();
             ClearRenderTargets();
@@ -49,7 +55,14 @@ namespace ToonRP.Runtime
             DrawUnsupportedShaders();
             DrawGizmos();
 
-            BlitToCameraTarget();
+            if (_postProcessing.IsActive)
+            {
+                RenderPostProcessing();
+            }
+            else
+            {
+                BlitToCameraTarget();
+            }
 
             Cleanup();
             Submit();
@@ -102,20 +115,19 @@ namespace ToonRP.Runtime
         }
 
         private void Setup(in ToonCameraRendererSettings settings, in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
-            _renderToTexture = settings.AllowHdr || _msaaSamples > 1;
+            _renderToTexture = settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
+            _colorFormat = settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
             if (_renderToTexture)
             {
-                RenderTextureFormat colorFormat =
-                    settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
                 _cmd.GetTemporaryRT(
                     CameraColorBufferId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                    FilterMode.Bilinear, colorFormat,
+                    FilterMode.Bilinear, _colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
                 );
                 _cmd.GetTemporaryRT(
@@ -170,6 +182,35 @@ namespace ToonRP.Runtime
             _prepareRtCmd.EndSample(sampleName);
             ExecuteBuffer(_prepareRtCmd);
         }
+
+        private void RenderPostProcessing()
+        {
+            int sourceId;
+            if (_msaaSamples > 1)
+            {
+                const string sampleName = "Resolve Camera Color";
+                _cmd.BeginSample(sampleName);
+                _cmd.GetTemporaryRT(
+                    PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                    FilterMode.Point, _colorFormat,
+                    RenderTextureReadWrite.Default
+                );
+                _cmd.Blit(CameraColorBufferId, PostProcessingSourceId);
+                _cmd.EndSample(sampleName);
+                ExecuteBuffer();
+                sourceId = PostProcessingSourceId;
+            }
+            else
+            {
+                sourceId = CameraColorBufferId;
+            }
+
+            ExecuteBuffer();
+            _postProcessing.Render(
+                sourceId, BuiltinRenderTextureType.CameraTarget
+            );
+        }
+
 
         private void BlitToCameraTarget()
         {

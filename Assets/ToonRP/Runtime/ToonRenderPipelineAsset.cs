@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ToonRP.Runtime.PostProcessing;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace ToonRP.Runtime
@@ -34,11 +35,23 @@ namespace ToonRP.Runtime
             },
         };
 
+        public ToonPostProcessingSettings PostProcessing = new()
+        {
+            Bloom = new ToonBloomSettings
+            {
+                Intensity = 1.0f,
+                Threshold = 0.95f,
+                ThresholdKnee = 0.5f,
+                MaxIterations = ToonBloom.MaxIterations,
+                DownsampleLimit = 2,
+            },
+        };
+
         public override Material defaultMaterial => new(defaultShader);
 
         public override Shader defaultShader => Shader.Find("Toon RP/Default");
 
         protected override RenderPipeline CreatePipeline() =>
-            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings);
+            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing);
     }
 }

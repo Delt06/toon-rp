@@ -11,8 +11,8 @@
 	    #pragma vertex VS
 		#pragma fragment PS
 
-        #include "../ShaderLibrary/Common.hlsl"
-        #include "../ShaderLibrary/Textures.hlsl"
+        #include "../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderLibrary/Textures.hlsl"
 
         TEXTURE2D(_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
@@ -120,10 +120,37 @@
 			
 			HLSLPROGRAM
 
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 			TEXTURE2D(_MainTex2);
 			float _ToonRP_Bloom_Intensity;
+			bool _ToonRP_Bloom_UsePattern;
+			float _ToonRP_Bloom_PatternScale;
+			float _ToonRP_Bloom_PatternPower;
+			float _ToonRP_Bloom_PatternMultiplier;
+			float _ToonRP_Bloom_PatternEdge;
+
+			float ComputePattern(const float2 uv)
+			{
+			    float aspectRatio = _MainTex_TexelSize.x / _MainTex_TexelSize.y;
+                const float2 scale2 = _ToonRP_Bloom_PatternScale * float2(1, aspectRatio);
+                float2 patternUv = uv * scale2 - 0.5;
+                const float2 gridUv = ceil(patternUv) / scale2;
+                patternUv %= 1;
+			
+                const float3 gridSample = SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, gridUv, 0).rgb;
+                const float luminance = Luminance(gridSample);
+
+			    // scale pattern based on how bright the bloom in that area is
+                float2 centeredPatternUv = patternUv * 2 - 1;
+                centeredPatternUv /= _ToonRP_Bloom_PatternMultiplier * min(pow(luminance, _ToonRP_Bloom_PatternPower), 1);
+			
+                float patternIntensity = smoothstep(1, _ToonRP_Bloom_PatternEdge, length(centeredPatternUv));
+			    // avoid very small details
+                patternIntensity *= step(0.05, luminance);
+			    return patternIntensity;
+			}
 
 			float4 PS(const v2f IN) : SV_TARGET
             {
@@ -136,8 +163,13 @@
                 {
                     source1 = SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, IN.uv, 0).rgb;    
                 }
+
+                if (_ToonRP_Bloom_UsePattern)
+                {
+                    source1 *= ComputePattern(IN.uv);
+                }
                  
-                const float3 source2 = SAMPLE_TEXTURE2D_LOD(_MainTex2, POINT_SAMPLER, IN.uv, 0).rgb; 
+                const float3 source2 = SAMPLE_TEXTURE2D_LOD(_MainTex2, POINT_SAMPLER, IN.uv, 0).rgb;
                 return float4(source1 * _ToonRP_Bloom_Intensity + source2, 1.0f);
             }
 

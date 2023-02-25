@@ -24,5 +24,21 @@ namespace ToonRP.Runtime.PostProcessing
         public int DownsampleLimit;
 
         public bool BicubicUpsampling;
+        
+        public PatternSettings Pattern;
+    
+        [Serializable]
+        public struct PatternSettings
+        {
+            public bool Enabled;
+            [Min(0f)]
+            public float Scale;
+            [Min(0.001f)]
+            public float Power;
+            [Min(0f)]
+            public float Multiplier;
+            [Range(0.001f, 1.0f)]
+            public float Smoothness;
+        }
     }
 }

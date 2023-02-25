@@ -19,7 +19,7 @@ namespace ToonRP.Editor
 
             void RefreshFields()
             {
-                settingsContainer.SetEnabled(enabledProperty.boolValue);
+                settingsContainer.SetVisible(enabledProperty.boolValue);
             }
 
             RefreshFields();

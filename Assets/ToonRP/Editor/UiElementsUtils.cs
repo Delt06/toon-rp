@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using JetBrains.Annotations;
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -25,6 +27,17 @@ namespace ToonRP.Editor
 
                 destination.Add(field);
             } while (prop.NextVisible(false));
+        }
+
+        public static void SetVisible([NotNull] this VisualElement visualElement, bool visible)
+        {
+            if (visualElement == null)
+            {
+                throw new ArgumentNullException(nameof(visualElement));
+            }
+
+            DisplayStyle styleDisplay = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            visualElement.style.display = styleDisplay;
         }
     }
 }

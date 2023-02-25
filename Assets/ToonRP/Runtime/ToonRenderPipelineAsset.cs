@@ -44,6 +44,13 @@ namespace ToonRP.Runtime
                 ThresholdKnee = 0.5f,
                 MaxIterations = ToonBloom.MaxIterations,
                 DownsampleLimit = 2,
+                Pattern = new ToonBloomSettings.PatternSettings
+                {
+                    Scale = 350,
+                    Power = 2,
+                    Multiplier = 4,
+                    Smoothness = 0.5f,
+                },
             },
         };
 

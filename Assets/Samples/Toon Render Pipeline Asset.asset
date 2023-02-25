@@ -42,8 +42,14 @@ MonoBehaviour:
     Bloom:
       Enabled: 1
       Intensity: 1
-      Threshold: 2
-      ThresholdKnee: 0.293
-      MaxIterations: 16
+      Threshold: 1.66
+      ThresholdKnee: 0.715
+      MaxIterations: 15
       DownsampleLimit: 2
       BicubicUpsampling: 1
+      Pattern:
+        Enabled: 1
+        Scale: 350
+        Power: 1.7
+        Multiplier: 33
+        Smoothness: 0.8

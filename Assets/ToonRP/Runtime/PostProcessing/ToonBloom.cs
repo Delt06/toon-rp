@@ -22,6 +22,11 @@ namespace ToonRP.Runtime.PostProcessing
         private static readonly int PrefilterSourceId = Shader.PropertyToID("_ToonRP_Bloom_Prefilter");
         private static readonly int ThresholdId = Shader.PropertyToID("_ToonRP_Bloom_Threshold");
         private static readonly int IntensityId = Shader.PropertyToID("_ToonRP_Bloom_Intensity");
+        private static readonly int UsePatternId = Shader.PropertyToID("_ToonRP_Bloom_UsePattern");
+        private static readonly int PatternScaleId = Shader.PropertyToID("_ToonRP_Bloom_PatternScale");
+        private static readonly int PatternPowerId = Shader.PropertyToID("_ToonRP_Bloom_PatternPower");
+        private static readonly int PatternMultiplierId = Shader.PropertyToID("_ToonRP_Bloom_PatternMultiplier");
+        private static readonly int PatternEdgeId = Shader.PropertyToID("_ToonRP_Bloom_PatternEdge");
 
         private readonly int _bloomPyramidId;
 
@@ -131,6 +136,7 @@ namespace ToonRP.Runtime.PostProcessing
             cmd.BeginSample(CombineSampleName);
             cmd.SetGlobalInteger(UseBicubicUpsamplingId, _settings.BicubicUpsampling ? 1 : 0);
             cmd.SetGlobalFloat(IntensityId, 1.0f);
+            cmd.SetGlobalInteger(UsePatternId, 0);
             if (i > 1)
             {
                 cmd.ReleaseTemporaryRT(fromId - 1);
@@ -154,6 +160,16 @@ namespace ToonRP.Runtime.PostProcessing
             }
 
             cmd.SetGlobalFloat(IntensityId, _settings.Intensity);
+
+            if (_settings.Pattern.Enabled)
+            {
+                cmd.SetGlobalInteger(UsePatternId, 1);
+                cmd.SetGlobalFloat(PatternScaleId, _settings.Pattern.Scale);
+                cmd.SetGlobalFloat(PatternPowerId, _settings.Pattern.Power);
+                cmd.SetGlobalFloat(PatternMultiplierId, _settings.Pattern.Multiplier);
+                cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);
+            }
+
             cmd.SetGlobalTexture(MainTex2Id, sourceId);
             cmd.Blit(fromId, destination, _material, CombinePass);
             cmd.ReleaseTemporaryRT(fromId);

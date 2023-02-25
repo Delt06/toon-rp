@@ -91,7 +91,8 @@ float4 PS(const v2f IN) : SV_TARGET
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
     const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
-    const float specularRamp = ComputeGlobalRampSpecular(nDotH);
+    float specularRamp = ComputeGlobalRampSpecular(nDotH);
+    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = light.color * _SpecularColor * specularRamp;
 
     const float3 outputColor = diffuse + specular;

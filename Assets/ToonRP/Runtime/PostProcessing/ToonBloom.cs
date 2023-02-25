@@ -30,7 +30,10 @@ namespace ToonRP.Runtime.PostProcessing
 
         private readonly int _bloomPyramidId;
 
-        private readonly Material _material = new(Shader.Find("Hidden/Toon RP/Bloom"));
+        private readonly Material _material = new(Shader.Find("Hidden/Toon RP/Bloom"))
+        {
+            name = "Toon RP Bloom",
+        };
         private Camera _camera;
         private RenderTextureFormat _colorFormat;
         private ToonBloomSettings _settings;

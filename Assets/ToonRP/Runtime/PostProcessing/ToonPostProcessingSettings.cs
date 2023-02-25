@@ -7,5 +7,6 @@ namespace ToonRP.Runtime.PostProcessing
     {
         public bool Enabled;
         public ToonBloomSettings Bloom;
+        public ToonOutlineSettings Outline;
     }
 }

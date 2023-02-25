@@ -52,6 +52,23 @@ namespace ToonRP.Runtime
                     Smoothness = 0.5f,
                 },
             },
+            Outline = new ToonOutlineSettings
+            {
+                Mode = ToonOutlineSettings.OutlineMode.Off,
+                InvertedHull = new ToonInvertedHullOutlineSettings
+                {
+                    Passes = new[]
+                    {
+                        new ToonInvertedHullOutlineSettings.Pass
+                        {
+                            Name = "Outline",
+                            Color = Color.black,
+                            Thickness = 0.02f,
+                            LayerMask = int.MaxValue,
+                        },
+                    },
+                },
+            },
         };
 
         public override Material defaultMaterial => new(defaultShader);

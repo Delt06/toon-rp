@@ -70,7 +70,7 @@
                     const float offset = offsets[i] * 2.0 * _MainTex_TexelSize.x;
 		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv + float2(offset, 0.0), 0).rgb * weights[i];
 	            }
-	            return float4(color, 1.0);
+                return color;
             }
 
 			float4 PS(const v2f IN) : SV_TARGET
@@ -103,7 +103,7 @@
                     const float offset = offsets[i] * _MainTex_TexelSize.y;
 		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv + float2(0.0, offset), 0).rgb * weights[i];
 	            }
-	            return float4(color, 1.0);
+                return color;
             }
 
 			float4 PS(const v2f IN) : SV_TARGET

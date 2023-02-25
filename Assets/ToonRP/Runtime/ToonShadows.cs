@@ -58,7 +58,10 @@ namespace ToonRP.Runtime
             }
 
             var blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
-            _blurMaterial = new Material(blurShader);
+            _blurMaterial = new Material(blurShader)
+            {
+                name = "Toon RP VSM Blur",
+            };
             _highQualityBlurKeyword = new LocalKeyword(blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY");
         }
 

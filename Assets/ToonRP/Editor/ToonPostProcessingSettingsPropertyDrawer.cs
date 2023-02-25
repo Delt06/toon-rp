@@ -29,6 +29,9 @@ namespace ToonRP.Editor
             settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Bloom)))
             );
+            settingsContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Outline)))
+            );
 
             root.Add(new ToonRpHeaderLabel("Post-Processing"));
             root.Add(enabledField);

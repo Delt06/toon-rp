@@ -53,3 +53,14 @@ MonoBehaviour:
         Power: 1.7
         Multiplier: 33
         Smoothness: 0.8
+    Outline:
+      Mode: 1
+      InvertedHull:
+        Passes:
+        - Name: Outline
+          LayerMask:
+            serializedVersion: 2
+            m_Bits: 4294967295
+          Color: {r: 0, g: 0, b: 0, a: 0}
+          Thickness: 0.02
+          DepthBias: 0

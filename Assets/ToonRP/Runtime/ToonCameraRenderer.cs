@@ -7,7 +7,7 @@ namespace ToonRP.Runtime
     public sealed partial class ToonCameraRenderer
     {
         private const string DefaultCmdName = "Render Camera";
-        private static readonly ShaderTagId ForwardShaderTagId = new("ToonRPForward");
+        public static readonly ShaderTagId ForwardShaderTagId = new("ToonRPForward");
 
         private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
@@ -15,6 +15,7 @@ namespace ToonRP.Runtime
         private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
+        private readonly ToonInvertedHullOutline _invertedHullOutline = new();
         private readonly ToonLighting _lighting = new();
         private readonly ToonPostProcessing _postProcessing = new();
         private readonly CommandBuffer _prepareRtCmd = new() { name = "Prepare Render Targets" };
@@ -47,9 +48,22 @@ namespace ToonRP.Runtime
 
             Setup(settings, globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera);
+            bool drawInvertedHullOutlines =
+                postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
+            if (drawInvertedHullOutlines)
+            {
+                _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
+                    postProcessingSettings.Outline.InvertedHull
+                );
+            }
 
             SetRenderTargets();
             ClearRenderTargets();
+
+            if (drawInvertedHullOutlines)
+            {
+                _invertedHullOutline.Render();
+            }
 
             DrawVisibleGeometry(settings);
             DrawUnsupportedShaders();

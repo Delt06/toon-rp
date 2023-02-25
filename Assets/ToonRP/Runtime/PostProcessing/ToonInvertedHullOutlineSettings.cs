@@ -1,0 +1,23 @@
+﻿using System;
+using UnityEngine;
+
+namespace ToonRP.Runtime.PostProcessing
+{
+    [Serializable]
+    public struct ToonInvertedHullOutlineSettings
+    {
+        public Pass[] Passes;
+
+        [Serializable]
+        public struct Pass
+        {
+            public string Name;
+            public LayerMask LayerMask;
+            [ColorUsage(false, true)]
+            public Color Color;
+            [Min(0f)]
+            public float Thickness;
+            public float DepthBias;
+        }
+    }
+}

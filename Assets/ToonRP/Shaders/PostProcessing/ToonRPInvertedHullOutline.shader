@@ -11,38 +11,22 @@
 			#pragma vertex VS
 			#pragma fragment PS
 
-			#include "../../ShaderLibrary/Common.hlsl"
+			#include "ToonRPInvertedHullOutline.hlsl"
 
-			struct appdata
-			{
-			    float3 vertex : POSITION;
-			    float3 normal : NORMAL;
-			};
+			ENDHLSL
+		}
+	    
+	    Pass
+		{
+		    Name "Toon RP Outline (Inverted Hull, Custom Normals)"
+			
+			HLSLPROGRAM
 
-			struct v2f
-			{
-			    float4 positionCs : SV_POSITION;
-			};
+			#pragma vertex VS
+			#pragma fragment PS
 
-			float _ToonRP_Outline_InvertedHull_Thickness;
-			float3 _ToonRP_Outline_InvertedHull_Color;
-
-			v2f VS(const appdata IN)
-			{
-			    v2f OUT;
-
-			    const float4 positionCs = TransformObjectToHClip(IN.vertex);
-			    const float3 normalCs = TransformWorldToHClipDir(TransformObjectToWorldNormal(IN.normal));
-			    OUT.positionCs = positionCs + float4(normalCs * _ToonRP_Outline_InvertedHull_Thickness, 0);
-
-			    return OUT;
-			}
-
-			float4 PS() : SV_TARGET
-			{
-			    return float4(_ToonRP_Outline_InvertedHull_Color, 1);
-			    
-			}
+			#define TOON_RP_USE_TEXCOORD2_NORMALS
+			#include "ToonRPInvertedHullOutline.hlsl"
 
 			ENDHLSL
 		}

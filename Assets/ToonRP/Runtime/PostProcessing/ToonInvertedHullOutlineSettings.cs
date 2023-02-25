@@ -17,6 +17,7 @@ namespace ToonRP.Runtime.PostProcessing
             public Color Color;
             [Min(0f)]
             public float Thickness;
+            public bool UseNormalsFromUV2;
             public float DepthBias;
         }
     }

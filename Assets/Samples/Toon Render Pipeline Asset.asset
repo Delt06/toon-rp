@@ -57,10 +57,19 @@ MonoBehaviour:
       Mode: 1
       InvertedHull:
         Passes:
-        - Name: Outline
+        - Name: Default
           LayerMask:
             serializedVersion: 2
-            m_Bits: 4294967295
+            m_Bits: 55
           Color: {r: 0, g: 0, b: 0, a: 0}
-          Thickness: 0.02
+          Thickness: 0.03
+          UseNormalsFromUV2: 0
+          DepthBias: 0
+        - Name: SmoothedNormals
+          LayerMask:
+            serializedVersion: 2
+            m_Bits: 64
+          Color: {r: 0, g: 0, b: 0, a: 0}
+          Thickness: 0.03
+          UseNormalsFromUV2: 1
           DepthBias: 0

@@ -6,6 +6,9 @@ namespace ToonRP.Runtime.PostProcessing
     public class ToonInvertedHullOutline
     {
         private const string SampleName = "Outline (Inverted Hull)";
+
+        private const int DefaultPassId = 0;
+        private const int UvNormalsPassId = 1;
         private static readonly int ThicknessId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Thickness");
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Color");
         private readonly CommandBuffer _cmd = new() { name = SampleName };
@@ -54,6 +57,7 @@ namespace ToonRP.Runtime.PostProcessing
                 {
                     enableDynamicBatching = _settings.UseDynamicBatching,
                     overrideMaterial = _outlineMaterial,
+                    overrideMaterialPassIndex = pass.UseNormalsFromUV2 ? UvNormalsPassId : DefaultPassId,
                 };
                 var filteringSettings = new FilteringSettings(RenderQueueRange.opaque)
                 {

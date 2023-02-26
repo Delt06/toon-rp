@@ -22,7 +22,7 @@ MonoBehaviour:
     AllowHdr: 1
     Msaa: 8
     MsaaResolveDepth: 1
-    UseSrpBatching: 0
+    UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
     MaxDistance: 10

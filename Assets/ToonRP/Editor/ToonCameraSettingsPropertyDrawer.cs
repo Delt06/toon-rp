@@ -15,9 +15,12 @@ namespace ToonRP.Editor
             root.Add(new ToonRpHeaderLabel("Camera Renderer"));
 
             SerializedProperty msaaProperty = property.FindPropertyRelative(nameof(ToonCameraRendererSettings.Msaa));
-            var msaaField = new PropertyField(msaaProperty);
+            var msaaField = new PropertyField(msaaProperty) { label = "MSAA" };
             var msaaResolveDepth =
-                new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MsaaResolveDepth)));
+                new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MsaaResolveDepth)))
+                {
+                    label = "MSAA Resolve Depth",
+                };
 
             void RefreshFields()
             {
@@ -37,6 +40,9 @@ namespace ToonRP.Editor
             root.Add(msaaResolveDepth);
             root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.UseSrpBatching)))
+                {
+                    label = "Use SRP Batching",
+                }
             );
             root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.UseDynamicBatching)))

@@ -10,6 +10,7 @@ namespace ToonRP.Runtime.PostProcessing
         private const int DefaultPassId = 0;
         private const int UvNormalsPassId = 1;
         private static readonly int ThicknessId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Thickness");
+        private static readonly int DistanceFadeId = Shader.PropertyToID("_ToonRP_Outline_DistanceFade");
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Color");
         private readonly CommandBuffer _cmd = new() { name = SampleName };
         private Camera _camera;
@@ -47,6 +48,12 @@ namespace ToonRP.Runtime.PostProcessing
                 _cmd.SetGlobalFloat(ThicknessId, pass.Thickness);
                 _cmd.SetGlobalVector(ColorId, pass.Color);
                 _cmd.SetGlobalDepthBias(pass.DepthBias, 0);
+                _cmd.SetGlobalVector(DistanceFadeId,
+                    new Vector4(
+                        1.0f / pass.MaxDistance,
+                        1.0f / pass.DistanceFade
+                    )
+                );
                 ExecuteBuffer();
 
                 var sortingSettings = new SortingSettings(_camera)

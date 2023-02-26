@@ -44,4 +44,13 @@ float3 GetWorldSpaceViewDir(const float3 positionWs)
     return -GetViewForwardDir();
 }
 
+float GetLinearDepth(const float3 positionWs)
+{
+    float depth = TransformWorldToView(positionWs).z;
+    #ifdef UNITY_REVERSED_Z
+    depth *= -1.0f;
+    #endif // UNITY_REVERSED_Z
+    return depth;
+}
+
 #endif // TOON_RP_COMMON

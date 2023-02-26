@@ -65,6 +65,8 @@ namespace ToonRP.Runtime
                             Color = Color.black,
                             Thickness = 0.02f,
                             LayerMask = int.MaxValue,
+                            MaxDistance = 100.0f,
+                            DistanceFade = 0.1f,
                         },
                     },
                 },

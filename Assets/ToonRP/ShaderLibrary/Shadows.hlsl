@@ -1,6 +1,7 @@
 ﻿#ifndef TOON_RP_SHADOWS
 #define TOON_RP_SHADOWS
 
+#include "Math.hlsl"
 #include "Ramp.hlsl"
 
 static const float ToonRp_Vsm_DepthScale = 0.1f;
@@ -71,12 +72,7 @@ float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspect
     return shadowCoords.xyz;
 }
 
-float ShadowFade(const float distance, const float scale, const float fade)
-{
-    return 1.0f - saturate((1.0 - distance * scale) * fade);
-}
-
-float ComputeShadowRamp(const float shadowAttenuation, const float3 positionVs)
+float ComputeShadowRamp(const float shadowAttenuation, const float depth)
 {
     float ramp;
     #ifdef _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
@@ -84,7 +80,7 @@ float ComputeShadowRamp(const float shadowAttenuation, const float3 positionVs)
     #else // !_TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
     ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
     #endif // _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
-    const float fade = ShadowFade(positionVs.z, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
+    const float fade = DistanceFade(depth, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
     return max(ramp, fade);
 }
 

@@ -22,7 +22,7 @@ MonoBehaviour:
     AllowHdr: 1
     Msaa: 8
     MsaaResolveDepth: 1
-    UseSrpBatching: 1
+    UseSrpBatching: 0
     UseDynamicBatching: 0
   ShadowSettings:
     MaxDistance: 10
@@ -60,8 +60,10 @@ MonoBehaviour:
         - Name: Default
           LayerMask:
             serializedVersion: 2
-            m_Bits: 55
+            m_Bits: 4294967295
           Color: {r: 0, g: 0, b: 0, a: 0}
           Thickness: 0.03
           UseNormalsFromUV2: 0
           DepthBias: 0
+          MaxDistance: 15
+          DistanceFade: 0.1

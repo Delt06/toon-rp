@@ -19,6 +19,10 @@ namespace ToonRP.Runtime.PostProcessing
             public float Thickness;
             public bool UseNormalsFromUV2;
             public float DepthBias;
+            [Min(0f)]
+            public float MaxDistance;
+            [Range(0.001f, 1f)]
+            public float DistanceFade;
         }
     }
 }

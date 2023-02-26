@@ -18,4 +18,9 @@ float StepAntiAliased(const float edge, const float value)
     return InverseLerpClamped(edge - halfChange, edge + halfChange, value);
 }
 
+float DistanceFade(const float distance, const float scale, const float fade)
+{
+    return 1.0f - saturate((1.0 - distance * scale) * fade);
+}
+
 #endif // TOON_RP_MATH

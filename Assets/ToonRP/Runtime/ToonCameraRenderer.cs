@@ -29,6 +29,8 @@ namespace ToonRP.Runtime
         private CullingResults _cullingResults;
         private int _msaaSamples;
         private bool _renderToTexture;
+        private int _rtHeight;
+        private int _rtWidth;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -47,7 +49,7 @@ namespace ToonRP.Runtime
             }
 
             Setup(settings, globalRampSettings, toonShadowSettings, postProcessingSettings);
-            _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera);
+            _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
             bool drawInvertedHullOutlines =
                 postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
             if (drawInvertedHullOutlines)
@@ -139,13 +141,15 @@ namespace ToonRP.Runtime
 
             if (_renderToTexture)
             {
+                _rtWidth = _camera.pixelWidth;
+                _rtHeight = _camera.pixelHeight;
                 _cmd.GetTemporaryRT(
-                    CameraColorBufferId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                    CameraColorBufferId, _rtWidth, _rtHeight, 0,
                     FilterMode.Bilinear, _colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
                 );
                 _cmd.GetTemporaryRT(
-                    CameraDepthBufferId, _camera.pixelWidth, _camera.pixelHeight, 24,
+                    CameraDepthBufferId, _rtWidth, _rtHeight, 24,
                     FilterMode.Point, RenderTextureFormat.Depth,
                     RenderTextureReadWrite.Linear, _msaaSamples
                 );

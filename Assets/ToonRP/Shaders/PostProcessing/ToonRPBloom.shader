@@ -145,7 +145,8 @@
 			    // scale pattern based on how bright the bloom in that area is
                 float2 centeredPatternUv = patternUv * 2 - 1;
                 centeredPatternUv /= _ToonRP_Bloom_PatternMultiplier * min(pow(luminance, _ToonRP_Bloom_PatternPower), 1);
-			
+
+			    // smooth circle in each grid cell
                 float patternIntensity = smoothstep(1, _ToonRP_Bloom_PatternEdge, length(centeredPatternUv));
 			    // avoid very small details
                 patternIntensity *= step(0.05, luminance);

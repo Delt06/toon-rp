@@ -17,6 +17,7 @@ namespace ToonRP.Runtime.PostProcessing
         private const int VerticalBlurPass = 1;
         private const int CombinePass = 2;
         private const int PrefilterPass = 3;
+        private const float MinPatternSize = 3;
         private static readonly int MainTex2Id = Shader.PropertyToID("_MainTex2");
         private static readonly int UseBicubicUpsamplingId = Shader.PropertyToID("_ToonRP_Bloom_UseBicubicUpsampling");
         private static readonly int PrefilterSourceId = Shader.PropertyToID("_ToonRP_Bloom_Prefilter");
@@ -34,8 +35,10 @@ namespace ToonRP.Runtime.PostProcessing
         {
             name = "Toon RP Bloom",
         };
-        private Camera _camera;
+
         private RenderTextureFormat _colorFormat;
+        private int _rtHeight;
+        private int _rtWidth;
         private ToonBloomSettings _settings;
 
         public ToonBloom()
@@ -48,18 +51,19 @@ namespace ToonRP.Runtime.PostProcessing
             }
         }
 
-        public void Setup(in ToonBloomSettings settings, RenderTextureFormat colorFormat, Camera camera)
+        public void Setup(in ToonBloomSettings settings, RenderTextureFormat colorFormat, int rtWidth, int rtHeight)
         {
             _settings = settings;
             _colorFormat = colorFormat;
-            _camera = camera;
+            _rtWidth = rtWidth;
+            _rtHeight = rtHeight;
         }
 
         public void Render(CommandBuffer cmd, int sourceId, RenderTargetIdentifier destination)
         {
             cmd.BeginSample(BaseSampleName);
 
-            int width = _camera.pixelWidth / 2, height = _camera.pixelHeight / 2;
+            int width = _rtWidth / 2, height = _rtHeight / 2;
 
             int downscaleLimit = _settings.DownsampleLimit * 2;
 
@@ -167,7 +171,13 @@ namespace ToonRP.Runtime.PostProcessing
             if (_settings.Pattern.Enabled)
             {
                 cmd.SetGlobalInteger(UsePatternId, 1);
-                cmd.SetGlobalFloat(PatternScaleId, _settings.Pattern.Scale);
+
+                {
+                    float minPatternScale = Mathf.Min(_rtWidth, _rtHeight) / MinPatternSize;
+                    float patternScale = Mathf.Min(_settings.Pattern.Scale, minPatternScale);
+                    cmd.SetGlobalFloat(PatternScaleId, patternScale);
+                }
+
                 cmd.SetGlobalFloat(PatternPowerId, _settings.Pattern.Power);
                 cmd.SetGlobalFloat(PatternMultiplierId, _settings.Pattern.Multiplier);
                 cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);

@@ -12,17 +12,21 @@ namespace ToonRP.Runtime.PostProcessing
         private Camera _camera;
         private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
+        private int _rtHeight;
+        private int _rtWidth;
         private ToonPostProcessingSettings _settings;
 
         public bool IsActive => _settings.Enabled && _camera.cameraType <= CameraType.SceneView;
 
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
-            RenderTextureFormat colorFormat, Camera camera)
+            RenderTextureFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
             _colorFormat = colorFormat;
             _context = context;
             _settings = settings;
             _camera = camera;
+            _rtWidth = rtWidth;
+            _rtHeight = rtHeight;
 
             SetupBloom();
         }
@@ -35,7 +39,7 @@ namespace ToonRP.Runtime.PostProcessing
             }
 
             _bloom ??= new ToonBloom();
-            _bloom.Setup(_settings.Bloom, _colorFormat, _camera);
+            _bloom.Setup(_settings.Bloom, _colorFormat, _rtWidth, _rtHeight);
         }
 
         public void Render(int sourceId, RenderTargetIdentifier destination)

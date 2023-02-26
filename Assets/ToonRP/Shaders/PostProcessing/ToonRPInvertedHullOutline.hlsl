@@ -41,7 +41,9 @@ v2f VS(const appdata IN)
     const float3 normalCs = TransformWorldToHClipDir(TransformObjectToWorldNormal(IN.normal));
     const float depth = GetLinearDepth(positionWs);
     const float distanceFade = 1 - DistanceFade(depth, _ToonRP_Outline_DistanceFade.x, _ToonRP_Outline_DistanceFade.y);
+    
     #ifdef USE_CLIP_DISTANCE
+    // 0 - keep, -1 - discard 
     OUT.clipDistance = distanceFade > 0 ? 0 : -1;
     #endif // USE_CLIP_DISTANCE
 

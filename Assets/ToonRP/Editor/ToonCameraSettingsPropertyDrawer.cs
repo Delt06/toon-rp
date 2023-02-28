@@ -36,8 +36,17 @@ namespace ToonRP.Editor
                     label = "Allow HDR",
                 }
             );
+
+
             root.Add(msaaField);
             root.Add(msaaResolveDepth);
+
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.DepthPrePass)))
+                {
+                    label = "Depth Pre-Pass Mode",
+                }
+            );
+
             root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.UseSrpBatching)))
                 {

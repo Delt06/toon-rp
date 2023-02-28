@@ -1,6 +1,7 @@
 ﻿using ToonRP.Runtime.PostProcessing;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static ToonRP.Runtime.ToonCameraRendererSettings;
 
 namespace ToonRP.Runtime
 {
@@ -32,6 +33,7 @@ namespace ToonRP.Runtime
         private bool _renderToTexture;
         private int _rtHeight;
         private int _rtWidth;
+        private ToonCameraRendererSettings _settings;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -39,8 +41,9 @@ namespace ToonRP.Runtime
         {
             _context = context;
             _camera = camera;
+            _settings = settings;
 
-            PrepareMsaa(camera, settings);
+            PrepareMsaa(camera);
             PrepareBuffer();
             PrepareForSceneWindow();
 
@@ -49,7 +52,7 @@ namespace ToonRP.Runtime
                 return;
             }
 
-            Setup(settings, globalRampSettings, toonShadowSettings, postProcessingSettings);
+            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
             bool drawInvertedHullOutlines =
                 postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
@@ -60,9 +63,12 @@ namespace ToonRP.Runtime
                 );
             }
 
-            _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _rtWidth, _rtHeight, true
-            ); // TODO: create a mode for depth normals : off, depth , depth normals
-            _depthPrePass.Render();
+            if (settings.DepthPrePass != DepthPrePassMode.Off)
+            {
+                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _rtWidth, _rtHeight);
+                _depthPrePass.Render();
+            }
+
 
             SetRenderTargets();
             ClearRenderTargets();
@@ -72,7 +78,7 @@ namespace ToonRP.Runtime
                 _invertedHullOutline.Render();
             }
 
-            DrawVisibleGeometry(settings);
+            DrawVisibleGeometry();
             DrawUnsupportedShaders();
             DrawGizmos();
 
@@ -110,9 +116,9 @@ namespace ToonRP.Runtime
         }
 
 
-        private void PrepareMsaa(Camera camera, ToonCameraRendererSettings settings)
+        private void PrepareMsaa(Camera camera)
         {
-            _msaaSamples = (int) settings.Msaa;
+            _msaaSamples = (int) _settings.Msaa;
             QualitySettings.antiAliasing = _msaaSamples;
             // QualitySettings.antiAliasing returns 0 if MSAA is not supported
             _msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
@@ -135,14 +141,14 @@ namespace ToonRP.Runtime
             return true;
         }
 
-        private void Setup(in ToonCameraRendererSettings settings, in ToonRampSettings globalRampSettings,
+        private void Setup(in ToonRampSettings globalRampSettings,
             in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
-            _renderToTexture = settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
-            _colorFormat = settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
+            _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
             if (_renderToTexture)
             {
@@ -247,7 +253,10 @@ namespace ToonRP.Runtime
         private void Cleanup()
         {
             _shadows.Cleanup();
-            _depthPrePass.Cleanup();
+            if (_settings.DepthPrePass != DepthPrePassMode.Off)
+            {
+                _depthPrePass.Cleanup();
+            }
 
             if (_renderToTexture)
             {
@@ -273,13 +282,13 @@ namespace ToonRP.Runtime
 
         private void ExecuteBuffer() => ExecuteBuffer(_cmd);
 
-        private void DrawVisibleGeometry(in ToonCameraRendererSettings settings)
+        private void DrawVisibleGeometry()
         {
-            DrawOpaqueGeometry(settings);
+            DrawOpaqueGeometry();
             _context.DrawSkybox(_camera);
         }
 
-        private void DrawOpaqueGeometry(in ToonCameraRendererSettings settings)
+        private void DrawOpaqueGeometry()
         {
             var sortingSettings = new SortingSettings(_camera)
             {
@@ -287,7 +296,7 @@ namespace ToonRP.Runtime
             };
             var drawingSettings = new DrawingSettings(ForwardShaderTagId, sortingSettings)
             {
-                enableDynamicBatching = settings.UseDynamicBatching,
+                enableDynamicBatching = _settings.UseDynamicBatching,
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
 

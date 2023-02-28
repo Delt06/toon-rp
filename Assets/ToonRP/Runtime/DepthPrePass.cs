@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using static ToonRP.Runtime.ToonCameraRendererSettings;
 
 namespace ToonRP.Runtime
 {
@@ -26,7 +27,7 @@ namespace ToonRP.Runtime
         private ToonCameraRendererSettings _settings;
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            in ToonCameraRendererSettings settings, int rtWidth, int rtHeight, bool normals)
+            in ToonCameraRendererSettings settings, int rtWidth, int rtHeight)
         {
             _context = context;
             _cullingResults = cullingResults;
@@ -34,7 +35,7 @@ namespace ToonRP.Runtime
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
-            _normals = normals;
+            _normals = _settings.DepthPrePass == DepthPrePassMode.DepthNormals;
         }
 
         public void Render()

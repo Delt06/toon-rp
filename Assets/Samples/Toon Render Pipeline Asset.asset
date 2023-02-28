@@ -22,6 +22,7 @@ MonoBehaviour:
     AllowHdr: 1
     Msaa: 8
     MsaaResolveDepth: 1
+    DepthPrePass: 2
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:

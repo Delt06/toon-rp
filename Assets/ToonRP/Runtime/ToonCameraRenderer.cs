@@ -13,6 +13,7 @@ namespace ToonRP.Runtime
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
         private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
+        private readonly DepthPrePass _depthPrePass = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonInvertedHullOutline _invertedHullOutline = new();
@@ -58,6 +59,10 @@ namespace ToonRP.Runtime
                     postProcessingSettings.Outline.InvertedHull
                 );
             }
+
+            _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _rtWidth, _rtHeight, true
+            ); // TODO: create a mode for depth normals : off, depth , depth normals
+            _depthPrePass.Render();
 
             SetRenderTargets();
             ClearRenderTargets();
@@ -242,6 +247,7 @@ namespace ToonRP.Runtime
         private void Cleanup()
         {
             _shadows.Cleanup();
+            _depthPrePass.Cleanup();
 
             if (_renderToTexture)
             {

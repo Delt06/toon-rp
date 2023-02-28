@@ -56,5 +56,33 @@
 			
 			ENDHLSL
 		}
+	    
+	    Pass
+		{
+		    Name "Toon RP Depth Only"
+			Tags{ "LightMode" = "ToonRPDepthOnly" }
+		    
+		    ColorMask 0
+			
+			HLSLPROGRAM
+
+			#include "ToonRPDefaultDepthOnlyPass.hlsl"
+			
+			ENDHLSL
+		}
+	    
+	    Pass
+		{
+		    Name "Toon RP Depth Normals"
+			Tags{ "LightMode" = "ToonRPDepthNormals" }
+		    
+		    ColorMask RG
+			
+			HLSLPROGRAM
+
+			#include "ToonRPDefaultDepthNormalsPass.hlsl"
+			
+			ENDHLSL
+		}
 	}
 }

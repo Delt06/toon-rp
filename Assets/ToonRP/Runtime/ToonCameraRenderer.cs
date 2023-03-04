@@ -22,6 +22,7 @@ namespace ToonRP.Runtime
         private readonly ToonPostProcessing _postProcessing = new();
         private readonly CommandBuffer _prepareRtCmd = new() { name = "Prepare Render Targets" };
         private readonly ToonShadows _shadows = new();
+        private readonly ToonSsao _ssao = new();
 
         private Camera _camera;
 
@@ -37,7 +38,7 @@ namespace ToonRP.Runtime
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
-            in ToonPostProcessingSettings postProcessingSettings)
+            in ToonPostProcessingSettings postProcessingSettings, in ToonSsaoSettings ssaoSettings)
         {
             _context = context;
             _camera = camera;
@@ -69,6 +70,15 @@ namespace ToonRP.Runtime
                 _depthPrePass.Render();
             }
 
+            if (ssaoSettings.Enabled)
+            {
+                _ssao.Setup(_context, ssaoSettings, _rtWidth, _rtHeight);
+                _ssao.Render();
+            }
+            else
+            {
+                _ssao.SetupDisabled(_context);
+            }
 
             SetRenderTargets();
             ClearRenderTargets();
@@ -77,6 +87,7 @@ namespace ToonRP.Runtime
             {
                 _invertedHullOutline.Render();
             }
+
 
             DrawVisibleGeometry();
             DrawUnsupportedShaders();
@@ -147,6 +158,10 @@ namespace ToonRP.Runtime
             SetupLighting(globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
+            Matrix4x4 gpuProjectionMatrix =
+                GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
+            _cmd.SetGlobalMatrix("unity_MatrixInvP", Matrix4x4.Inverse(gpuProjectionMatrix));
+
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
@@ -258,6 +273,8 @@ namespace ToonRP.Runtime
                 _depthPrePass.Cleanup();
             }
 
+            _ssao.Cleanup();
+
             if (_renderToTexture)
             {
                 _cmd.ReleaseTemporaryRT(CameraColorBufferId);
@@ -290,6 +307,15 @@ namespace ToonRP.Runtime
 
         private void DrawOpaqueGeometry()
         {
+            _cmd.SetGlobalVector("_ToonRP_ScreenParams", new Vector4(
+                    1.0f / _rtWidth,
+                    1.0f / _rtHeight,
+                    _rtWidth,
+                    _rtHeight
+                )
+            );
+            ExecuteBuffer();
+
             var sortingSettings = new SortingSettings(_camera)
             {
                 criteria = SortingCriteria.CommonOpaque,

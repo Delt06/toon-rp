@@ -45,7 +45,8 @@ namespace ToonRP.Runtime
             );
             if (_normals)
             {
-                _cmd.GetTemporaryRT(NormalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point, RenderTextureFormat.RG16
+                _cmd.GetTemporaryRT(NormalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
+                    RenderTextureFormat.RGB565
                 );
                 _cmd.SetRenderTarget(
                     NormalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,

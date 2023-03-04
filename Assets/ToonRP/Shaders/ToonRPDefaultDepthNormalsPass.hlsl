@@ -27,7 +27,7 @@ v2f VS(const appdata IN)
 float4 PS(const v2f IN) : SV_TARGET
 {
     const float3 normalWs = normalize(IN.normalWs);
-    return float4(PackNormal(normalWs.xy), 0, 0);
+    return float4(PackNormal(normalWs), 0);
 }
 
 #endif // TOON_RP_DEFAULT_DEPTH_ONLY_PASS

@@ -9,17 +9,28 @@ DECLARE_TEXEL_SIZE(_ToonRP_DepthTexture);
 TEXTURE2D(_ToonRP_NormalsTexture);
 DECLARE_TEXEL_SIZE(_ToonRP_NormalsTexture);
 
-float2 PackNormal(const float2 normal)
+#define DEPTH_NORMALS_SAMPLER sampler_point_clamp_DepthNormalsSampler
+SAMPLER(DEPTH_NORMALS_SAMPLER);
+
+float3 PackNormal(const float3 normal)
 {
-    return normal.xy * 0.5 + 0.5;
+    return normal * 0.5 + 0.5;
 }
 
-float3 UnpackNormal(const float2 packedNormal)
+float3 UnpackNormal(const float3 packedNormal)
 {
-    const float2 normalXy = packedNormal * 2 - 1;
-    // reconstruct Z
-    const float normalZ = sqrt(1 - normalXy.x * normalXy.x - normalXy.y * normalXy.y);
-    return float3(normalXy, normalZ);
+    return packedNormal * 2 - 1;
+}
+
+float SampleDepthTexture(const float2 uv)
+{
+    return SAMPLE_TEXTURE2D_LOD(_ToonRP_DepthTexture, DEPTH_NORMALS_SAMPLER, uv, 0).r;
+}
+
+float3 SampleNormalsTexture(const float2 uv)
+{
+    const float3 packedNormal = SAMPLE_TEXTURE2D_LOD(_ToonRP_NormalsTexture, DEPTH_NORMALS_SAMPLER, uv, 0).xyz;
+    return normalize(UnpackNormal(packedNormal));
 }
 
 #endif // TOON_RP_DEPTH_NORMALS

@@ -8,9 +8,13 @@
 #define UNITY_MATRIX_V unity_MatrixV
 #define UNITY_MATRIX_VP unity_MatrixVP
 #define UNITY_MATRIX_P glstate_matrix_projection
+#define UNITY_MATRIX_I_V   unity_MatrixInvV
+#define UNITY_MATRIX_I_P   unity_MatrixInvP
 
 #define UNITY_PREV_MATRIX_M unity_MatrixPreviousM
 #define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
+
+float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
@@ -51,6 +55,15 @@ float GetLinearDepth(const float3 positionWs)
     depth *= -1.0f;
     #endif // UNITY_REVERSED_Z
     return depth;
+}
+
+float2 PositionHClipToScreenUv(const float4 positionCs)
+{
+    float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
+    #ifdef UNITY_UV_STARTS_AT_TOP
+    // screenUv.y = 1 - screenUv.y;
+    #endif // UNITY_UV_STARTS_AT_TOP
+    return screenUv;
 }
 
 #endif // TOON_RP_COMMON

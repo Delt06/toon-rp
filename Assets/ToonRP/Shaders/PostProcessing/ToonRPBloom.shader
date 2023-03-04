@@ -50,7 +50,7 @@
 
 		Pass
 		{
-		    Name "Toon RP Bloom Horizontal"
+		    Name "Toon RP Bloom Blur Horizontal"
 			
 			HLSLPROGRAM
 
@@ -83,7 +83,7 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Bloom Vertical"
+		    Name "Toon RP Bloom Blur Vertical"
 			
 			HLSLPROGRAM
 

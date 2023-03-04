@@ -4,6 +4,7 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Ramp.hlsl"
+#include "../ShaderLibrary/SSAO.hlsl"
 
 struct appdata
 {
@@ -41,7 +42,8 @@ v2f VS(const appdata IN)
     OUT.depth = GetLinearDepth(positionWs);
     #endif // _TOON_RP_DIRECTIONAL_SHADOWS
 
-    OUT.positionCs = TransformWorldToHClip(positionWs);
+    const float4 positionCs = TransformWorldToHClip(positionWs);
+    OUT.positionCs = positionCs;
 
     return OUT;
 }
@@ -77,7 +79,8 @@ float4 PS(const v2f IN) : SV_TARGET
     const Light light = GetMainLight(IN);
     const float3 normalWs = normalize(IN.normalWs);
     const float nDotL = dot(normalWs, light.direction);
-    const float shadowAttenuation = GetShadowAttenuation(IN, light);
+    const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
+    const float shadowAttenuation = GetShadowAttenuation(IN, light) * SampleAmbientOcclusion(screenUv);
     float diffuseRamp = ComputeGlobalRamp(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;

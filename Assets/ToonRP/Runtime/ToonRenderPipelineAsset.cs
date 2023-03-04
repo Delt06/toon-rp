@@ -35,6 +35,15 @@ namespace ToonRP.Runtime
             },
         };
 
+        public ToonSsaoSettings Ssao = new()
+        {
+            Power = 10.0f,
+            Radius = 0.1f,
+            KernelSize = 4,
+            Threshold = 0.6f,
+            Smoothness = 0.2f,
+        };
+
         public ToonPostProcessingSettings PostProcessing = new()
         {
             Bloom = new ToonBloomSettings
@@ -78,6 +87,6 @@ namespace ToonRP.Runtime
         public override Shader defaultShader => Shader.Find("Toon RP/Default");
 
         protected override RenderPipeline CreatePipeline() =>
-            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing);
+            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing, Ssao);
     }
 }

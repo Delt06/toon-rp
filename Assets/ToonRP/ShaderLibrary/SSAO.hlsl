@@ -11,7 +11,7 @@
 TEXTURE2D(_ToonRP_SSAOTexture);
 SAMPLER(sampler_ToonRP_SSAOTexture);
 float2 _ToonRP_SSAO_Ramp;
-float _ToonRP_SSAO_Pattern_Scale;
+float3 _ToonRP_SSAO_Pattern_Scale;
 float2 _ToonRP_SSAO_Pattern_Ramp;
 float2 _ToonRP_SSAO_Pattern_DistanceFade;
 
@@ -22,7 +22,8 @@ float SampleAmbientOcclusionRaw(const float2 screenUv)
 
 float GetAmbientOcclusionPattern(const float3 positionWs, const float depth)
 {
-    const float seed = (positionWs.x + positionWs.y + positionWs.z) * _ToonRP_SSAO_Pattern_Scale;
+    const float3 scaledPosition = positionWs * _ToonRP_SSAO_Pattern_Scale;
+    const float seed = scaledPosition.x + scaledPosition.y + scaledPosition.z;
     const float patternBase = abs(frac(seed) - 0.5) * 2;
     const float pattern = ComputeRamp(patternBase, _ToonRP_SSAO_Pattern_Ramp);
     const float distanceFade = DistanceFade(depth, _ToonRP_SSAO_Pattern_DistanceFade.x,

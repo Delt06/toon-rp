@@ -26,8 +26,7 @@ namespace ToonRP.Runtime.PostProcessing
         public struct PatternSettings
         {
             public bool Enabled;
-            [Min(0.0f)]
-            public float Scale;
+            public Vector3 Scale;
             [Range(0.0f, 1.0f)]
             public float Thickness;
             [Range(0.0f, 1.0f)]

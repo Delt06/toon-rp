@@ -40,7 +40,7 @@ MonoBehaviour:
       SlopeBias: 0
   Ssao:
     Enabled: 1
-    Radius: 0.2
+    Radius: 0.15
     Power: 10
     KernelSize: 16
     HalfResolution: 1
@@ -48,7 +48,7 @@ MonoBehaviour:
     Smoothness: 0.2
     Pattern:
       Enabled: 1
-      Scale: 15
+      Scale: {x: 15, y: 50.8, z: 15}
       Thickness: 0.5
       Smoothness: 0.1
       MaxDistance: 15

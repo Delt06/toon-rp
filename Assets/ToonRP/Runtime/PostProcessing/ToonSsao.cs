@@ -157,7 +157,7 @@ namespace ToonRP.Runtime.PostProcessing
 
             if (_settings.Pattern.Enabled)
             {
-                _cmd.SetGlobalFloat("_ToonRP_SSAO_Pattern_Scale", _settings.Pattern.Scale);
+                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_Scale", _settings.Pattern.Scale);
                 float threshold = _settings.Pattern.Thickness;
                 _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_Ramp",
                     new Vector4(threshold, threshold + _settings.Pattern.Smoothness)

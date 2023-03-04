@@ -45,7 +45,7 @@ namespace ToonRP.Runtime
             Pattern = new ToonSsaoSettings.PatternSettings
             {
                 Enabled = true,
-                Scale = 15.0f,
+                Scale = Vector3.one * 15.0f,
                 Thickness = 0.5f,
                 Smoothness = 0.1f,
                 MaxDistance = 15.0f,

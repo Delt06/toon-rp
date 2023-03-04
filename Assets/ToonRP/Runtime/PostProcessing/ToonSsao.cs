@@ -6,6 +6,8 @@ namespace ToonRP.Runtime.PostProcessing
 {
     public class ToonSsao
     {
+        // TODO: move all property Set's from string to cached id
+
         public const int MaxSamplesCount = 64;
 
         private const GraphicsFormat RtFormat = GraphicsFormat.R8_UNorm;
@@ -20,6 +22,7 @@ namespace ToonRP.Runtime.PostProcessing
         };
         private readonly Vector4[] _samples;
         private readonly GlobalKeyword _ssaoKeyword;
+        private readonly GlobalKeyword _ssaoPatternKeyword;
         private ScriptableRenderContext _context;
         private int _height;
         private Texture _noiseTexture;
@@ -31,6 +34,7 @@ namespace ToonRP.Runtime.PostProcessing
         {
             _samples = GenerateRandomSamples(MaxSamplesCount);
             _ssaoKeyword = GlobalKeyword.Create("_TOON_RP_SSAO");
+            _ssaoPatternKeyword = GlobalKeyword.Create("_TOON_RP_SSAO_PATTERN");
         }
 
         private static Texture2D GenerateNoiseTexture()
@@ -103,7 +107,9 @@ namespace ToonRP.Runtime.PostProcessing
                 _height /= 2;
             }
 
-            _cmd.EnableKeyword(_ssaoKeyword);
+            bool patternEnabled = _settings.Pattern.Enabled;
+            _cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
+            _cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
             ExecuteBuffer();
         }
 
@@ -142,10 +148,26 @@ namespace ToonRP.Runtime.PostProcessing
                 _cmd.EndSample(sampleName);
             }
 
-            float effectiveThreshold = 1 - _settings.Threshold;
-            _cmd.SetGlobalVector("_ToonRP_SSAO_Ramp",
-                new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
-            );
+            {
+                float effectiveThreshold = 1 - _settings.Threshold;
+                _cmd.SetGlobalVector("_ToonRP_SSAO_Ramp",
+                    new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
+                );
+            }
+
+            if (_settings.Pattern.Enabled)
+            {
+                _cmd.SetGlobalFloat("_ToonRP_SSAO_Pattern_Scale", _settings.Pattern.Scale);
+                float threshold = _settings.Pattern.Thickness;
+                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_Ramp",
+                    new Vector4(threshold, threshold + _settings.Pattern.Smoothness)
+                );
+                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_DistanceFade", new Vector4(
+                        1.0f / _settings.Pattern.MaxDistance,
+                        1.0f / _settings.Pattern.DistanceFade
+                    )
+                );
+            }
 
             ExecuteBuffer();
         }
@@ -195,6 +217,7 @@ namespace ToonRP.Runtime.PostProcessing
         {
             _context = context;
             _cmd.DisableKeyword(_ssaoKeyword);
+            _cmd.DisableKeyword(_ssaoPatternKeyword);
             ExecuteBuffer();
         }
     }

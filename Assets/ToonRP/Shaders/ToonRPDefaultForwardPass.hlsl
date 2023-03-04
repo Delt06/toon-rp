@@ -6,6 +6,10 @@
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
+#if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(TOON_RP_SSAO_ANY)
+#define REQUIRE_DEPTH_INTERPOLANT
+#endif // _TOON_RP_DIRECTIONAL_SHADOWS || TOON_RP_ANY
+
 struct appdata
 {
     float3 vertex : POSITION;
@@ -19,9 +23,9 @@ struct v2f
     float3 normalWs : NORMAL_WS;
     float3 positionWs : POSITION_WS;
 
-    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
+    #ifdef REQUIRE_DEPTH_INTERPOLANT
     float depth : DEPTH_VS;
-    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+    #endif // REQUIRE_DEPTH_INTERPOLANT
 
     float4 positionCs : SV_POSITION;
 };
@@ -38,9 +42,9 @@ v2f VS(const appdata IN)
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     OUT.positionWs = positionWs;
 
-    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
+    #ifdef REQUIRE_DEPTH_INTERPOLANT
     OUT.depth = GetLinearDepth(positionWs);
-    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+    #endif // REQUIRE_DEPTH_INTERPOLANT
 
     const float4 positionCs = TransformWorldToHClip(positionWs);
     OUT.positionCs = positionCs;
@@ -79,8 +83,14 @@ float4 PS(const v2f IN) : SV_TARGET
     const Light light = GetMainLight(IN);
     const float3 normalWs = normalize(IN.normalWs);
     const float nDotL = dot(normalWs, light.direction);
+
+    float shadowAttenuation = GetShadowAttenuation(IN, light);
+
+    #ifdef TOON_RP_SSAO_ANY
     const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
-    const float shadowAttenuation = GetShadowAttenuation(IN, light) * SampleAmbientOcclusion(screenUv);
+    shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs, IN.depth);
+    #endif // TOON_RP_SSAO_ANY
+
     float diffuseRamp = ComputeGlobalRamp(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;

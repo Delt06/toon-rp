@@ -39,12 +39,20 @@ MonoBehaviour:
       NormalBias: 0
       SlopeBias: 0
   Ssao:
-    Radius: 0.1
+    Enabled: 1
+    Radius: 0.2
     Power: 10
-    KernelSize: 4
-    HalfResolution: 0
+    KernelSize: 16
+    HalfResolution: 1
     Threshold: 0.6
     Smoothness: 0.2
+    Pattern:
+      Enabled: 1
+      Scale: 15
+      Thickness: 0.5
+      Smoothness: 0.1
+      MaxDistance: 15
+      DistanceFade: 0.5
   PostProcessing:
     Enabled: 1
     Bloom:

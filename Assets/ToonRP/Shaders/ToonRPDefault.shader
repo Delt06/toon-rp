@@ -37,7 +37,7 @@
 			// shadows
 			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS
 			#pragma multi_compile_fragment _ _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
-			#pragma multi_compile_fragment _ _TOON_RP_SSAO
+			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

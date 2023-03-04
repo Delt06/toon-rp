@@ -11,6 +11,10 @@ namespace ToonRP.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             var root = new VisualElement();
+            var foldout = new Foldout
+            {
+                text = "SSAO",
+            };
 
             SerializedProperty enabledProperty =
                 property.FindPropertyRelative(nameof(ToonSsaoSettings.Enabled));
@@ -44,10 +48,13 @@ namespace ToonRP.Editor
             settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.Smoothness)))
             );
+            settingsContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.Pattern)))
+            );
 
-            root.Add(new ToonRpHeaderLabel("SSAO"));
-            root.Add(enabledField);
-            root.Add(settingsContainer);
+            foldout.Add(enabledField);
+            foldout.Add(settingsContainer);
+            root.Add(foldout);
 
             return root;
         }

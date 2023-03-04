@@ -42,6 +42,15 @@ namespace ToonRP.Runtime
             KernelSize = 4,
             Threshold = 0.6f,
             Smoothness = 0.2f,
+            Pattern = new ToonSsaoSettings.PatternSettings
+            {
+                Enabled = true,
+                Scale = 15.0f,
+                Thickness = 0.5f,
+                Smoothness = 0.1f,
+                MaxDistance = 15.0f,
+                DistanceFade = 0.5f,
+            },
         };
 
         public ToonPostProcessingSettings PostProcessing = new()

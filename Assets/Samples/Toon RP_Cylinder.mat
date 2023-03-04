@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Toon RP_White
+  m_Name: Toon RP_Cylinder
   m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -34,7 +34,7 @@ Material:
     m_Colors:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor: {r: 0, g: 0.46625757, b: 1, a: 1}
-    - _MainColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MainColor: {r: 0.8773585, g: 0.8773585, b: 0.8773585, a: 1}
     - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
     - _SpecularCColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularColor: {r: 6.623533, g: 6.7142005, b: 5.6690655, a: 1}

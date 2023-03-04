@@ -118,6 +118,13 @@
 
                     float2 sampleScreenSpaceUv = samplePositionCs.xy;
                     sampleScreenSpaceUv = sampleScreenSpaceUv * 0.5 + 0.5;
+
+                    // check if we are out of screen
+                    if (any(sampleScreenSpaceUv < 0) || any(sampleScreenSpaceUv > 1))
+                    {
+                        continue;
+                    }
+                    
                     #if UNITY_UV_STARTS_AT_TOP
                     sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;
                     #endif // UNITY_UV_STARTS_AT_TOP

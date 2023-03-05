@@ -18,7 +18,6 @@ namespace ToonRP.Runtime
         public ToonCameraRendererSettings CameraRendererSettings = new()
         {
             Msaa = ToonCameraRendererSettings.MsaaMode.Off,
-            MsaaResolveDepth = true,
             UseSrpBatching = true,
             UseDynamicBatching = false,
         };

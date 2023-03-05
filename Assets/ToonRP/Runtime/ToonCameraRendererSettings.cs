@@ -22,7 +22,6 @@ namespace ToonRP.Runtime
 
         public bool AllowHdr;
         public MsaaMode Msaa;
-        public bool MsaaResolveDepth;
         public DepthPrePassMode DepthPrePass;
 
         public bool UseSrpBatching;

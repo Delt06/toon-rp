@@ -220,9 +220,13 @@ namespace ToonRP.Runtime
             );
         }
 
-        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split) =>
-            // TODO: construct a proper matrix to avoid all the calculations on GPU
-            m;
+        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
+        {
+            Matrix4x4 remap = Matrix4x4.identity;
+            remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
+            remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
+            return remap * m;
+        }
 
         private struct ShadowedDirectionalLight
         {

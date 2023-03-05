@@ -61,8 +61,6 @@ float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspect
         shadowCoords.xyz /= shadowCoords.w;
     }
 
-    shadowCoords.xy = shadowCoords.xy * 0.5f + 0.5f; // [-1; 1] -> [0, 1]
-
     shadowCoords.z = PackVsmDepth(shadowCoords.z);
 
     #ifdef UNITY_REVERSED_Z

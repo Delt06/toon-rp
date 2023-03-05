@@ -32,11 +32,16 @@
 			
 			HLSLPROGRAM
 
+			#pragma multi_compile_fog
+
+			// Global Ramp
 			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
 
-			// shadows
+			// Shadows
 			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS
 			#pragma multi_compile_fragment _ _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+
+			// SSAO
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			#include "ToonRPDefaultForwardPass.hlsl"

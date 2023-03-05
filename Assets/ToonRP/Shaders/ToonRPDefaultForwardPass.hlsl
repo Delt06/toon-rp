@@ -2,6 +2,7 @@
 #define TOON_RP_DEFAULT_FORWARD_PASS
 
 #include "../ShaderLibrary/Common.hlsl"
+#include "../ShaderLibrary/Fog.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
@@ -27,6 +28,8 @@ struct v2f
     float depth : DEPTH_VS;
     #endif // REQUIRE_DEPTH_INTERPOLANT
 
+    TOON_RP_FOG_FACTOR_INTERPOLANT
+
     float4 positionCs : SV_POSITION;
 };
 
@@ -48,6 +51,8 @@ v2f VS(const appdata IN)
 
     const float4 positionCs = TransformWorldToHClip(positionWs);
     OUT.positionCs = positionCs;
+
+    TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 
     return OUT;
 }
@@ -103,7 +108,8 @@ float4 PS(const v2f IN) : SV_TARGET
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = light.color * _SpecularColor * specularRamp;
 
-    const float3 outputColor = diffuse + specular;
+    float3 outputColor = diffuse + specular;
+    TOON_RP_FOG_MIX(IN, outputColor);
     return float4(outputColor, 1.0f);
 }
 

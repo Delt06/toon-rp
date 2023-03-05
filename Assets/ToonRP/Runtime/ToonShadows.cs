@@ -82,7 +82,6 @@ namespace ToonRP.Runtime
             _cullingResults = cullingResults;
             _settings = settings;
             _shadowedDirectionalLightCount = 0;
-            EnsureMaterialIsCreated();
         }
 
         public void ReserveDirectionalShadows(Light light, int visibleLightIndex)
@@ -103,6 +102,7 @@ namespace ToonRP.Runtime
         {
             if (_settings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
             {
+                EnsureMaterialIsCreated();
                 RenderDirectionalShadows();
                 _cmd.EnableKeyword(_directionalShadowsGlobalKeyword);
                 _cmd.SetKeyword(_directionalShadowsRampCrisp, _settings.Directional.CrispAntiAliased);

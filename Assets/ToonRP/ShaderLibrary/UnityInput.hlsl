@@ -29,4 +29,7 @@ float3 _WorldSpaceCameraPos;
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
 
+float4 unity_FogParams;
+real4 unity_FogColor;
+
 #endif // TOON_RP_UNITY_INPUT

@@ -2,6 +2,7 @@
 #define TOON_RP_INVERTED_HULL_OUTLINE
 
 #include "../../ShaderLibrary/Common.hlsl"
+#include "../../ShaderLibrary/Fog.hlsl"
 #include "../../ShaderLibrary/Math.hlsl"
 
 // TODO: figure out if this works on all hardware (most likely it doesn't)
@@ -24,6 +25,7 @@ struct v2f
     #ifdef USE_CLIP_DISTANCE
     float clipDistance : SV_ClipDistance;
     #endif // USE_CLIP_DISTANCE
+    TOON_RP_FOG_FACTOR_INTERPOLANT
 };
 
 CBUFFER_START(_ToonRpInvertedHullOutline)
@@ -41,7 +43,7 @@ v2f VS(const appdata IN)
     const float3 normalCs = TransformWorldToHClipDir(TransformObjectToWorldNormal(IN.normal));
     const float depth = GetLinearDepth(positionWs);
     const float distanceFade = 1 - DistanceFade(depth, _ToonRP_Outline_DistanceFade.x, _ToonRP_Outline_DistanceFade.y);
-    
+
     #ifdef USE_CLIP_DISTANCE
     // 0 - keep, -1 - discard 
     OUT.clipDistance = distanceFade > 0 ? 0 : -1;
@@ -50,12 +52,16 @@ v2f VS(const appdata IN)
     const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness) * distanceFade;
     OUT.positionCs = positionCs + float4(normalCs * thickness, 0);
 
+    TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
+
     return OUT;
 }
 
-float4 PS() : SV_TARGET
+float4 PS(const v2f IN) : SV_TARGET
 {
-    return float4(_ToonRP_Outline_InvertedHull_Color, 1);
+    float3 outputColor = _ToonRP_Outline_InvertedHull_Color;
+    TOON_RP_FOG_MIX(IN, outputColor);
+    return float4(outputColor, 1);
 }
 
 #endif // TOON_RP_INVERTED_HULL_OUTLINE

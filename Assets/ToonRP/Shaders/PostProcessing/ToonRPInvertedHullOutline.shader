@@ -11,6 +11,8 @@
 			#pragma vertex VS
 			#pragma fragment PS
 
+			#pragma multi_compile_fog
+
 			#include "ToonRPInvertedHullOutline.hlsl"
 
 			ENDHLSL
@@ -24,6 +26,8 @@
 
 			#pragma vertex VS
 			#pragma fragment PS
+
+			#pragma multi_compile_fog
 
 			#define TOON_RP_USE_TEXCOORD2_NORMALS
 			#include "ToonRPInvertedHullOutline.hlsl"

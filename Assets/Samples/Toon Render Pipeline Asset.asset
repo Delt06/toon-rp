@@ -82,7 +82,7 @@ MonoBehaviour:
             serializedVersion: 2
             m_Bits: 4294967295
           Color: {r: 0, g: 0, b: 0, a: 0}
-          Thickness: 0.03
+          Thickness: 0.025
           UseNormalsFromUV2: 0
           DepthBias: 0
           MaxDistance: 15

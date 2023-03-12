@@ -39,8 +39,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
-    const float4 positionCs = TransformWorldToHClip(positionWs);
-    const float3 normalCs = TransformWorldToHClipDir(TransformObjectToWorldNormal(IN.normal));
+    const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
     const float depth = GetLinearDepth(positionWs);
     const float distanceFade = 1 - DistanceFade(depth, _ToonRP_Outline_DistanceFade.x, _ToonRP_Outline_DistanceFade.y);
 
@@ -50,7 +49,8 @@ v2f VS(const appdata IN)
     #endif // USE_CLIP_DISTANCE
 
     const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness) * distanceFade;
-    OUT.positionCs = positionCs + float4(normalCs * thickness, 0);
+    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness); 
+    OUT.positionCs = positionCs;
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 

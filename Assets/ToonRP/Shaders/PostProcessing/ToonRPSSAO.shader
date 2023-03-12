@@ -7,6 +7,7 @@
 	{
 	    ZTest Off
 		ZWrite Off
+	    Cull Off
 	    
 	    HLSLINCLUDE
 
@@ -54,14 +55,14 @@
 			
             #include "../../ShaderLibrary/DepthNormals.hlsl"
 
-			#define SAMPLES_COUNT 64
+			#define MAX_SAMPLES_COUNT 64
 			#define NORMAL_BIAS 0.0
             #define DEPTH_BIAS 0.01
 
 			CBUFFER_START(ToonRpSsao)
 			float2 _NoiseScale;
 			int _KernelSize;
-			float4 _Samples[SAMPLES_COUNT];
+			float4 _Samples[MAX_SAMPLES_COUNT];
 			float _Radius;
 			float _Power;
 			CBUFFER_END
@@ -83,7 +84,8 @@
 			float4 RestorePositionVs(float3 positionNdc, const float4x4 inverseProjection)
             {
                 float4 positionVs = mul(inverseProjection, float4(positionNdc, 1.0));
-                positionVs /= positionVs.w;
+                positionVs.xyz /= positionVs.w;
+			    positionVs.w = 1;
                 return positionVs;
             }
 

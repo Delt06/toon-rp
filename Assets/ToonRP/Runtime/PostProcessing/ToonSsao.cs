@@ -178,7 +178,8 @@ namespace ToonRP.Runtime.PostProcessing
             _cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
             _cmd.SetGlobalTexture("_NoiseTexture", _noiseTexture);
-            _cmd.SetGlobalFloat("_Radius", _settings.Radius);
+
+            _cmd.SetGlobalFloat("_Radius", GetRadius());
             _cmd.SetGlobalFloat("_Power", _settings.Power);
             _cmd.SetGlobalVector("_NoiseScale",
                 new Vector4((float) _width / _noiseTexture.width, (float) _height / _noiseTexture.height)
@@ -186,6 +187,17 @@ namespace ToonRP.Runtime.PostProcessing
             _cmd.SetGlobalInteger("_KernelSize", _settings.KernelSize);
             _cmd.SetGlobalVectorArray("_Samples", _samples);
             Draw(MainPass);
+        }
+
+        private float GetRadius()
+        {
+            float radius = _settings.Radius;
+            if (GraphicsApiUtils.OpenGlStyleClipDepth)
+            {
+                radius *= 2;
+            }
+
+            return radius;
         }
 
         private void RenderBlur(Vector2 direction, in RenderTargetIdentifier source)

@@ -46,7 +46,7 @@ MonoBehaviour:
     Enabled: 1
     Radius: 0.15
     Power: 10
-    KernelSize: 16
+    KernelSize: 2
     HalfResolution: 1
     Threshold: 0.6
     Smoothness: 0.2

@@ -162,7 +162,7 @@
 
 	        float Blur(const float2 uv)
             {
-	            float3 color = 0.0;
+	            float result = 0.0;
                 const float offsets[] =
                 {
 		            -3.23076923, -1.38461538, 0.0, 1.38461538, 3.23076923
@@ -173,10 +173,10 @@
 	            };
 	            for (int i = 0; i < 5; i++)
 	            {
-                    const float2 offset = offsets[i] * _Direction * _SourceTex_TexelSize;
-		            color += SAMPLE_TEXTURE2D_LOD(_SourceTex, sampler_SourceTex, uv + offset, 0).rgb * weights[i];
+                    const float2 offset = offsets[i] * _Direction * _SourceTex_TexelSize.xy;
+		            result += SAMPLE_TEXTURE2D_LOD(_SourceTex, sampler_SourceTex, uv + offset, 0).r * weights[i];
 	            }
-                return color;
+                return result;
             }
 
 			float4 PS(const v2f IN) : SV_TARGET

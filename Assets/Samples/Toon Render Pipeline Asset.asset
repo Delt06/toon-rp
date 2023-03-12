@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
   m_Name: Toon Render Pipeline Asset
   m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
+  - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
+  - {fileID: 4800000, guid: b9380af3e4224cabbf4b789b6a3f87d0, type: 3}
   GlobalRampSettings:
     Threshold: 0
     SpecularThreshold: 0.992
@@ -21,7 +26,6 @@ MonoBehaviour:
   CameraRendererSettings:
     AllowHdr: 1
     Msaa: 8
-    MsaaResolveDepth: 1
     DepthPrePass: 2
     UseSrpBatching: 1
     UseDynamicBatching: 0

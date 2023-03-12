@@ -7,6 +7,10 @@ namespace ToonRP.Runtime
     [CreateAssetMenu(menuName = "Rendering/Toon Render Pipeline")]
     public sealed class ToonRenderPipelineAsset : RenderPipelineAsset
     {
+        // Hold references to all shaders access in runtime to ensure they get included to the build
+        [HideInInspector]
+        public Shader[] ForceIncludedShaders;
+
         public ToonRampSettings GlobalRampSettings = new()
         {
             Threshold = 0.0f,

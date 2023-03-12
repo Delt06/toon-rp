@@ -10,6 +10,8 @@
 	    
 	    HLSLINCLUDE
 
+	    #pragma enable_d3d11_debug_symbols
+
 	    #include "../../ShaderLibrary/Common.hlsl"
 
 	    #pragma vertex VS
@@ -47,6 +49,8 @@
 		    Name "Toon RP SSAO"
 			
 			HLSLPROGRAM
+
+			#pragma enable_d3d11_debug_symbols
 			
             #include "../../ShaderLibrary/DepthNormals.hlsl"
 
@@ -152,6 +156,8 @@
 	        Name "Toon RP SSAO Blur"
 	        
 	        HLSLPROGRAM
+
+	        #pragma enable_d3d11_debug_symbols
 
 	        #include "../../ShaderLibrary/Textures.hlsl"
 

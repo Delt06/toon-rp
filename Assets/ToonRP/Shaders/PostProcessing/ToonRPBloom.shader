@@ -8,6 +8,8 @@
 	{
         HLSLINCLUDE
 
+        #pragma enable_d3d11_debug_symbols
+
 	    #pragma vertex VS
 		#pragma fragment PS
 

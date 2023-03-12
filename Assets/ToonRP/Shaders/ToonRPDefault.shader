@@ -32,6 +32,8 @@
 			
 			HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
+
 			#pragma multi_compile_fog
 
 			// Global Ramp
@@ -58,6 +60,8 @@
 			
 			HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
+
 			#include "ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -72,6 +76,8 @@
 			
 			HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
+
 			#include "ToonRPDefaultDepthOnlyPass.hlsl"
 			
 			ENDHLSL
@@ -85,6 +91,8 @@
 		    ColorMask RGB
 			
 			HLSLPROGRAM
+
+			#pragma enable_d3d11_debug_symbols
 
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			

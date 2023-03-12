@@ -8,6 +8,8 @@
 			
 			HLSLPROGRAM
 
+			#pragma enable_d3d11_debug_symbols
+
 			#pragma vertex VS
 			#pragma fragment PS
 
@@ -23,6 +25,8 @@
 		    Name "Toon RP Outline (Inverted Hull, Custom Normals)"
 			
 			HLSLPROGRAM
+
+			#pragma enable_d3d11_debug_symbols
 
 			#pragma vertex VS
 			#pragma fragment PS

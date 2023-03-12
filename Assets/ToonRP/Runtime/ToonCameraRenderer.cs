@@ -56,6 +56,7 @@ namespace ToonRP.Runtime
             Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
             bool drawInvertedHullOutlines =
+                postProcessingSettings.Enabled &&
                 postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
             if (drawInvertedHullOutlines)
             {

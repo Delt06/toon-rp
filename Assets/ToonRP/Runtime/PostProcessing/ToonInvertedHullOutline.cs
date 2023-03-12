@@ -41,10 +41,11 @@ namespace ToonRP.Runtime.PostProcessing
                 return;
             }
 
+            _cmd.BeginSample(SampleName);
+            ExecuteBuffer();
+
             foreach (ToonInvertedHullOutlineSettings.Pass pass in _outlineSettings.Passes)
             {
-                string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Outline Pass" : pass.Name;
-                _cmd.BeginSample(passName);
                 _cmd.SetGlobalFloat(ThicknessId, pass.Thickness);
                 _cmd.SetGlobalVector(ColorId, pass.Color);
                 _cmd.SetGlobalDepthBias(pass.DepthBias, 0);
@@ -80,16 +81,21 @@ namespace ToonRP.Runtime.PostProcessing
                     ref drawingSettings, ref filteringSettings, ref renderStateBlock
                 );
 
-                _cmd.EndSample(passName);
+
                 _cmd.SetGlobalDepthBias(0, 0);
                 ExecuteBuffer();
             }
+
+            _cmd.EndSample(SampleName);
+            ExecuteBuffer();
         }
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer() => ExecuteBuffer(_cmd);
+
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         private void EnsureMaterialIsCreated()

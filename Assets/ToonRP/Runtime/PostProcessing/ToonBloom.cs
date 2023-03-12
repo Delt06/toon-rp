@@ -31,12 +31,9 @@ namespace ToonRP.Runtime.PostProcessing
 
         private readonly int _bloomPyramidId;
 
-        private readonly Material _material = new(Shader.Find("Hidden/Toon RP/Bloom"))
-        {
-            name = "Toon RP Bloom",
-        };
-
         private RenderTextureFormat _colorFormat;
+
+        private Material _material;
         private int _rtHeight;
         private int _rtWidth;
         private ToonBloomSettings _settings;
@@ -51,6 +48,19 @@ namespace ToonRP.Runtime.PostProcessing
             }
         }
 
+        private void EnsureMaterialIsCreated()
+        {
+            if (_material != null)
+            {
+                return;
+            }
+
+            _material = new Material(Shader.Find("Hidden/Toon RP/Bloom"))
+            {
+                name = "Toon RP Bloom",
+            };
+        }
+
         public void Setup(in ToonBloomSettings settings, RenderTextureFormat colorFormat, int rtWidth, int rtHeight)
         {
             _settings = settings;
@@ -61,6 +71,8 @@ namespace ToonRP.Runtime.PostProcessing
 
         public void Render(CommandBuffer cmd, int sourceId, RenderTargetIdentifier destination)
         {
+            EnsureMaterialIsCreated();
+
             cmd.BeginSample(BaseSampleName);
 
             int width = _rtWidth / 2, height = _rtHeight / 2;

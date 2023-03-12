@@ -41,7 +41,13 @@ float SampleShadowAttenuation(const float3 shadowCoords)
                                                    sampler_ToonRP_DirectionalShadowAtlas,
                                                    shadowCoords.xy).rg;
     const float variance = varianceSample.y - varianceSample.x * varianceSample.x;
+    
+    #ifdef UNITY_REVERSED_Z
     const float difference = shadowCoords.z - varianceSample.x;
+    #else // !UNITY_REVERSED_Z
+    const float difference = varianceSample.x - shadowCoords.z;
+    #endif // UNITY_REVERSED_Z
+    
     if (difference > 0.00001)
     {
         return smoothstep(0.4, 1.0, variance / (variance + difference * difference));

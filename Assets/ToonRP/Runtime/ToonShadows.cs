@@ -145,7 +145,7 @@ namespace ToonRP.Runtime
                 RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store
             );
-            _cmd.ClearRenderTarget(true, true, new Color(Mathf.Infinity, Mathf.Infinity, 0.0f, 0.0f));
+            _cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
             _cmd.BeginSample(CmdName);
             ExecuteBuffer();
 
@@ -173,6 +173,18 @@ namespace ToonRP.Runtime
             );
             _cmd.EndSample(CmdName);
             ExecuteBuffer();
+        }
+
+        private static Color GetShadowmapClearColor()
+        {
+            var color = new Color(Mathf.NegativeInfinity, Mathf.Infinity, 0.0f, 0.0f);
+            
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                color.r *= -1;
+            }
+
+            return color;
         }
 
         private void RenderDirectionalShadows(int index, int split, int tileSize)

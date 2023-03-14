@@ -1,6 +1,6 @@
 # Toon Render Pipeline (Unity SRP)
 
-A Scriptable Render Pipeline (SRP) built around toon/stylized visuals.
+A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
 > The project is in its very **early** stages and has **not** been tested in production.
  

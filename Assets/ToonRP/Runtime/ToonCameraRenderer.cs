@@ -252,6 +252,7 @@ namespace ToonRP.Runtime
 
             ExecuteBuffer();
             _postProcessing.Render(
+                _rtWidth, _rtHeight, _colorFormat,
                 sourceId, BuiltinRenderTextureType.CameraTarget
             );
         }

@@ -7,6 +7,8 @@ namespace ToonRP.Runtime.PostProcessing
     {
         private const string BufferName = "Post-Processing";
 
+        private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
+
         private readonly CommandBuffer _cmd = new() { name = BufferName };
         private ToonBloom _bloom;
         private Camera _camera;
@@ -42,7 +44,8 @@ namespace ToonRP.Runtime.PostProcessing
             _bloom.Setup(_settings.Bloom, _colorFormat, _rtWidth, _rtHeight);
         }
 
-        public void Render(int sourceId, RenderTargetIdentifier destination)
+        public void Render(int width, int height, RenderTextureFormat format, int sourceId,
+            RenderTargetIdentifier destination)
         {
             if (!IsActive)
             {
@@ -51,10 +54,14 @@ namespace ToonRP.Runtime.PostProcessing
 
             RenderTargetIdentifier currentBuffer = sourceId;
 
+            _cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0, FilterMode.Point, format,
+                RenderTextureReadWrite.Linear
+            );
+
             if (_settings.Bloom.Enabled)
             {
-                _bloom.Render(_cmd, sourceId, destination);
-                currentBuffer = destination;
+                _bloom.Render(_cmd, sourceId, PostProcessingBufferId);
+                currentBuffer = PostProcessingBufferId;
             }
 
             if (currentBuffer != destination)
@@ -64,6 +71,8 @@ namespace ToonRP.Runtime.PostProcessing
                 _cmd.Blit(currentBuffer, destination);
                 _cmd.EndSample(sampleName);
             }
+
+            _cmd.ReleaseTemporaryRT(PostProcessingBufferId);
 
             _context.ExecuteCommandBuffer(_cmd);
             _cmd.Clear();

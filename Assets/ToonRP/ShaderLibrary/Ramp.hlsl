@@ -16,16 +16,21 @@ float ComputeRamp(const float value, const float2 ramp)
     return ComputeRamp(value, ramp.x, ramp.y);
 }
 
+float ComputeRampAntiAliased(const float nDotL, const float2 ramp)
+{
+    return StepAntiAliased(ramp.x, nDotL);
+}
+
 float ComputeGlobalRamp(const float nDotL, const float2 ramp)
 {
     #ifdef _TOON_RP_GLOBAL_RAMP_CRISP
-    return StepAntiAliased(ramp.x, nDotL);
+    return ComputeRampAntiAliased(nDotL, ramp);
     #else // !_TOON_RP_GLOBAL_RAMP_CRISP
     return ComputeRamp(nDotL, ramp);
     #endif // _TOON_RP_GLOBAL_RAMP_CRISP 
 }
 
-float ComputeGlobalRamp(const float nDotL)
+float ComputeGlobalRampDiffuse(const float nDotL)
 {
     return ComputeGlobalRamp(nDotL, _ToonRP_GlobalRamp);
 }

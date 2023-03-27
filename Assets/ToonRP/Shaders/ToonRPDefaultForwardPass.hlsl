@@ -83,6 +83,34 @@ Light GetMainLight(const v2f IN)
     #endif // _TOON_RP_DIRECTIONAL_SHADOWS
 }
 
+float ComputeRampDiffuse(const float nDotL)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    const float2 ramp = ConstructOverrideRampDiffuse();
+    return ComputeRamp(nDotL, ramp);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampDiffuse(nDotL);
+
+    #endif // _OVERRIDE_RAMP
+}
+
+float ComputeRampSpecular(const float nDotH)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    const float2 ramp = ConstructOverrideRampSpecular();
+    return ComputeRamp(nDotH, ramp);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampSpecular(nDotH);
+
+    #endif // _OVERRIDE_RAMP
+}
+
 float4 PS(const v2f IN) : SV_TARGET
 {
     const Light light = GetMainLight(IN);
@@ -96,7 +124,7 @@ float4 PS(const v2f IN) : SV_TARGET
     shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs, IN.depth);
     #endif // TOON_RP_SSAO_ANY
 
-    float diffuseRamp = ComputeGlobalRamp(nDotL);
+    float diffuseRamp = ComputeRampDiffuse(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
     const float3 mixedShadowColor = MixShadowColor(albedo, _ShadowColor);
@@ -104,7 +132,7 @@ float4 PS(const v2f IN) : SV_TARGET
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
     const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
-    float specularRamp = ComputeGlobalRampSpecular(nDotH);
+    float specularRamp = ComputeRampSpecular(nDotH);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = light.color * _SpecularColor * specularRamp;
 

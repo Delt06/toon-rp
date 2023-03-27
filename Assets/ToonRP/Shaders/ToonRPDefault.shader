@@ -9,6 +9,14 @@
 	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
+	    
+	    [Toggle(_OVERRIDE_RAMP)]
+	    _OverrideRamp ("Override Ramp", Float) = 0
+	    _OverrideRamp_Threshold ("Threshold", Range(-1, 1)) = 0
+	    _OverrideRamp_SpecularThreshold ("Specular Threshold", Range(-1, 1)) = 0.995
+	    
+	    _OverrideRamp_Smoothness ("Smoothness", Range(0, 1)) = 0.083
+	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.005
 	}
 	SubShader
 	{
@@ -45,6 +53,9 @@
 
 			// SSAO
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
+
+			// Per-Material
+			#pragma shader_feature_fragment _OVERRIDE_RAMP 
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			
@@ -99,4 +110,6 @@
 			ENDHLSL
 		}
 	}
+    
+    CustomEditor "ToonRP.Editor.ShaderGUI.ToonRpDefaultShaderGui"
 }

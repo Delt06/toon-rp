@@ -9,8 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Toon RP_Sphere
   m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
-  m_ValidKeywords:
-  - _OVERRIDE_RAMP
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -32,7 +31,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _OverrideCrispAntiAliased: 0
-    - _OverrideRamp: 1
+    - _OverrideRamp: 0
     - _OverrideRamp_Smoothness: 0.058
     - _OverrideRamp_SpecularSmoothness: 0.005
     - _OverrideRamp_SpecularThreshold: 0.992

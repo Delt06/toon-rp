@@ -325,6 +325,7 @@ namespace ToonRP.Runtime
             var drawingSettings = new DrawingSettings(ForwardShaderTagId, sortingSettings)
             {
                 enableDynamicBatching = _settings.UseDynamicBatching,
+                perObjectData = PerObjectData.LightProbe,
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
 

@@ -136,8 +136,11 @@ float4 PS(const v2f IN) : SV_TARGET
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = light.color * _SpecularColor * specularRamp;
 
-    float3 outputColor = diffuse + specular;
+    const float3 ambient = SampleSH(normalWs) * albedo;
+
+    float3 outputColor = diffuse + specular + ambient;
     TOON_RP_FOG_MIX(IN, outputColor);
+
     return float4(outputColor, 1.0f);
 }
 

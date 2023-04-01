@@ -13,6 +13,16 @@ real4 unity_WorldTransformParams;
 // Velocity
 float4x4 unity_MatrixPreviousM;
 float4x4 unity_MatrixPreviousMI;
+
+// SH block feature
+real4 unity_SHAr;
+real4 unity_SHAg;
+real4 unity_SHAb;
+real4 unity_SHBr;
+real4 unity_SHBg;
+real4 unity_SHBb;
+real4 unity_SHC;
+
 CBUFFER_END
 
 float4x4 unity_MatrixVP;

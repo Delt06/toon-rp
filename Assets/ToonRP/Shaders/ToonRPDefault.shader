@@ -55,7 +55,7 @@
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			// Per-Material
-			#pragma shader_feature_fragment _OVERRIDE_RAMP 
+			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

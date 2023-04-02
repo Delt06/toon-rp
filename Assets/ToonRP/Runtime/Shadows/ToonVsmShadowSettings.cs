@@ -1,21 +1,30 @@
 ﻿using System;
 using UnityEngine;
 
-namespace ToonRP.Runtime
+namespace ToonRP.Runtime.Shadows
 {
     [Serializable]
     public struct ToonShadowSettings
     {
-        public enum TextureSize
+        public enum ShadowMode
         {
-            _256 = 256,
-            _512 = 512,
-            _1024 = 1024,
-            _2048 = 2048,
-            _4096 = 4096,
-            _8192 = 8192,
+            Off = 0,
+            Vsm,
+            Blobs,
         }
 
+        public ShadowMode Mode;
+        public ToonVsmShadowSettings Vsm;
+        
+        [Range(0.0f, 1.0f)]
+        public float Threshold;
+        public bool CrispAntiAliased;
+        [Range(0.0f, 1.0f)]
+        public float Smoothness;
+    }
+    [Serializable]
+    public struct ToonVsmShadowSettings
+    {
         [Min(0f)]
         public float MaxDistance;
         [Range(0.001f, 1f)]
@@ -28,11 +37,6 @@ namespace ToonRP.Runtime
         {
             public bool Enabled;
             public TextureSize AtlasSize;
-            [Range(0.0f, 1.0f)]
-            public float Threshold;
-            public bool CrispAntiAliased;
-            [Range(0.0f, 1.0f)]
-            public float Smoothness;
             [Range(0.0f, 2.0f)]
             public float DepthBias;
             [Range(0.0f, 2.0f)]

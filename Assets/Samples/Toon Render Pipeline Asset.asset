@@ -30,18 +30,20 @@ MonoBehaviour:
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
-    MaxDistance: 10
-    DistanceFade: 0.1
-    HighQualityBlur: 1
-    Directional:
-      Enabled: 1
-      AtlasSize: 1024
-      Threshold: 0.757
-      CrispAntiAliased: 1
-      Smoothness: 1
-      DepthBias: 0.01
-      NormalBias: 0
-      SlopeBias: 0
+    Mode: 1
+    Vsm:
+      MaxDistance: 10
+      DistanceFade: 0.1
+      HighQualityBlur: 1
+      Directional:
+        Enabled: 1
+        AtlasSize: 1024
+        DepthBias: 0.01
+        NormalBias: 0
+        SlopeBias: 0
+    Threshold: 0.757
+    CrispAntiAliased: 1
+    Smoothness: 0.075
   Ssao:
     Enabled: 1
     Radius: 0.15

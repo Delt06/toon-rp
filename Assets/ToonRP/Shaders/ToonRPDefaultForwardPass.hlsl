@@ -1,6 +1,7 @@
 ﻿#ifndef TOON_RP_DEFAULT_FORWARD_PASS
 #define TOON_RP_DEFAULT_FORWARD_PASS
 
+#include "../ShaderLibrary/BlobShadows.hlsl"
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Fog.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
@@ -9,7 +10,7 @@
 
 #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
-#endif // _TOON_RP_DIRECTIONAL_SHADOWS || TOON_RP_ANY
+#endif // _TOON_RP_DIRECTIONAL_SHADOWS || TOON_RP_SSAO_ANY
 
 struct appdata
 {
@@ -65,22 +66,40 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
 
 float GetShadowAttenuation(const v2f IN, const Light light)
 {
-    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
+    #if defined(_TOON_RP_DIRECTIONAL_SHADOWS)
+    
     const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.depth);
     return shadowAttenuation;
-    #else // !_TOON_RP_DIRECTIONAL_SHADOWS
+    
+    #elif defined(_TOON_RP_BLOB_SHADOWS)
+    
+    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation);
+    return shadowAttenuation;
+
+    #else 
+    
     return 1.0f;
-    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+    
+    #endif 
 }
 
 Light GetMainLight(const v2f IN)
 {
     #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
-    return GetMainLight(shadowCoords); 
+    Light light = GetMainLight(shadowCoords); 
     #else // !_TOON_RP_DIRECTIONAL_SHADOWS
-    return GetMainLight();
+    Light light =  GetMainLight();
     #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+    
+    #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
+
+    const float blobShadowAttenuation = SampleBlobShadowAttenuation(IN.positionWs);
+    light.shadowAttenuation = min(blobShadowAttenuation, light.shadowAttenuation);
+
+    #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
+
+    return light;
 }
 
 float ComputeRampDiffuse(const float nDotL)

@@ -1,4 +1,5 @@
 ﻿using ToonRP.Runtime.PostProcessing;
+using ToonRP.Runtime.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static ToonRP.Runtime.ToonCameraRendererSettings;
@@ -48,7 +49,7 @@ namespace ToonRP.Runtime
             PrepareBuffer();
             PrepareForSceneWindow();
 
-            if (!Cull(toonShadowSettings.MaxDistance))
+            if (!Cull(toonShadowSettings))
             {
                 return;
             }
@@ -141,14 +142,18 @@ namespace ToonRP.Runtime
 
         partial void PrepareForSceneWindow();
 
-        private bool Cull(float maxShadowDistance)
+        private bool Cull(in ToonShadowSettings toonShadowSettings)
         {
             if (!_camera.TryGetCullingParameters(out ScriptableCullingParameters parameters))
             {
                 return false;
             }
 
-            parameters.shadowDistance = Mathf.Min(maxShadowDistance, _camera.farClipPlane);
+            if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm)
+            {
+                parameters.shadowDistance = Mathf.Min(toonShadowSettings.Vsm.MaxDistance, _camera.farClipPlane);
+            }
+
             _cullingResults = _context.Cull(ref parameters);
             return true;
         }
@@ -187,7 +192,7 @@ namespace ToonRP.Runtime
             ExecuteBuffer();
         }
 
-        private void SetupLighting(ToonRampSettings globalRampSettings, ToonShadowSettings toonShadowSettings)
+        private void SetupLighting(ToonRampSettings globalRampSettings, ToonShadowSettings shadowSettings)
         {
             _cmd.BeginSample(_cmdName);
             ExecuteBuffer();
@@ -200,13 +205,8 @@ namespace ToonRP.Runtime
             _lighting.Setup(_context, visibleLight.light);
 
             {
-                _shadows.Setup(_context, _cullingResults, toonShadowSettings);
-                if (visibleLight.light != null)
-                {
-                    _shadows.ReserveDirectionalShadows(visibleLight.light, 0);
-                }
-
-                _shadows.Render();
+                _shadows.Setup(_context, _cullingResults, shadowSettings);
+                _shadows.Render(visibleLight.light);
             }
 
             _cmd.EndSample(_cmdName);
@@ -270,6 +270,7 @@ namespace ToonRP.Runtime
         private void Cleanup()
         {
             _shadows.Cleanup();
+
             if (_settings.DepthPrePass != DepthPrePassMode.Off)
             {
                 _depthPrePass.Cleanup();

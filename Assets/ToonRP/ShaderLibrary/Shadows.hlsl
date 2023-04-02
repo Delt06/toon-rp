@@ -76,14 +76,20 @@ float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspect
     return shadowCoords.xyz;
 }
 
-float ComputeShadowRamp(const float shadowAttenuation, const float depth)
+float ComputeShadowRamp(const float shadowAttenuation)
 {
     float ramp;
-    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+    #ifdef _TOON_RP_SHADOWS_RAMP_CRISP
     ramp = StepAntiAliased(_ToonRP_ShadowRamp.x, shadowAttenuation);
-    #else // !_TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+    #else // !_TOON_RP_SHADOWS_RAMP_CRISP
     ramp = ComputeRamp(shadowAttenuation, _ToonRP_ShadowRamp);
-    #endif // _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+    #endif // _TOON_RP_SHADOWS_RAMP_CRISP
+    return ramp;
+}
+
+float ComputeShadowRamp(const float shadowAttenuation, const float depth)
+{
+    const float ramp = ComputeShadowRamp(shadowAttenuation);
     const float fade = DistanceFade(depth, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
     return max(ramp, fade);
 }

@@ -1,4 +1,5 @@
 ﻿using ToonRP.Runtime.PostProcessing;
+using ToonRP.Runtime.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,15 +27,19 @@ namespace ToonRP.Runtime
             UseDynamicBatching = false,
         };
 
-        [ToonRpHeader("Shadows")]
         public ToonShadowSettings ShadowSettings = new()
         {
-            MaxDistance = 100.0f,
-            DistanceFade = 0.1f,
-            HighQualityBlur = true,
-            Directional =
+            Mode = ToonShadowSettings.ShadowMode.Vsm,
+            Threshold = 0.5f, Smoothness = 0.075f,
+            Vsm = new ToonVsmShadowSettings
             {
-                Enabled = true, AtlasSize = ToonShadowSettings.TextureSize._1024, Threshold = 0.5f, Smoothness = 0.075f,
+                MaxDistance = 100.0f,
+                DistanceFade = 0.1f,
+                HighQualityBlur = true,
+                Directional =
+                {
+                    Enabled = true, AtlasSize = TextureSize._1024,
+                },
             },
         };
 

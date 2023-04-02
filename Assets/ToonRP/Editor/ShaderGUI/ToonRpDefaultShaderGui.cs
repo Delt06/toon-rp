@@ -34,6 +34,10 @@ namespace ToonRP.Editor.ShaderGUI
             DrawProperty("_MainTexture");
             DrawProperty("_ShadowColor");
             DrawProperty("_SpecularColor");
+            
+            EditorGUILayout.Space();
+            
+            DrawProperty("_ReceiveBlobShadows");
 
             EditorGUILayout.Space();
 

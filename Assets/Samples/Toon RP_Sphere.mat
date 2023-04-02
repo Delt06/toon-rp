@@ -36,11 +36,13 @@ Material:
     - _OverrideRamp_SpecularSmoothness: 0.005
     - _OverrideRamp_SpecularThreshold: 0.992
     - _OverrideRamp_Threshold: 0.35
+    - _ReceiveBlobShadows: 0
     - _SpecularExponent: 50
     m_Colors:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor: {r: 0.46429244, g: 0.9622642, b: 0.24056605, a: 1}
     - _MainColor: {r: 0.3949175, g: 0.9433962, b: 0.26254895, a: 1}
+    - _RimColor: {r: 0, g: 0, b: 0, a: 1}
     - _ShadowColor: {r: 0.16353682, g: 0.46226412, b: 0.44780958, a: 0.8235294}
     - _SpecularCColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularColor: {r: 3.4632993, g: 6.4222345, b: 0, a: 1}

@@ -21,9 +21,11 @@ MonoBehaviour:
   GlobalRampSettings:
     Threshold: 0
     SpecularThreshold: 0.992
+    RimThreshold: 0.5
     CrispAntiAliased: 1
     Smoothness: 0.083
     SpecularSmoothness: 0.005
+    RimSmoothness: 0.1
   CameraRendererSettings:
     AllowHdr: 1
     Msaa: 8

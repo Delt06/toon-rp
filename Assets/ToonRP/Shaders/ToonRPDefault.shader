@@ -9,6 +9,8 @@
 	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
+	    [HDR]
+		_RimColor ("Rim Color", Color) = (0, 0, 0, 0)
 	    
 	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
 	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
@@ -17,9 +19,11 @@
 	    _OverrideRamp ("Override Ramp", Float) = 0
 	    _OverrideRamp_Threshold ("Threshold", Range(-1, 1)) = 0
 	    _OverrideRamp_SpecularThreshold ("Specular Threshold", Range(-1, 1)) = 0.995
+	    _OverrideRamp_RimThreshold ("Rim Threshold", Range(-1, 1)) = 0.5
 	    
 	    _OverrideRamp_Smoothness ("Smoothness", Range(0, 1)) = 0.083
-	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 1)) = 0.005
+	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 2)) = 0.005
+	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
 	}
 	SubShader
 	{

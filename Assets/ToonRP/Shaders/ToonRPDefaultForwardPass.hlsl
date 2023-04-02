@@ -124,6 +124,20 @@ float ComputeRampSpecular(const float nDotH)
     #endif // _OVERRIDE_RAMP
 }
 
+float ComputeRampRim(const float fresnel)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    const float2 ramp = ConstructOverrideRampRim();
+    return ComputeRamp(fresnel, ramp);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampRim(fresnel);
+
+    #endif // _OVERRIDE_RAMP
+}
+
 float4 PS(const v2f IN) : SV_TARGET
 {
     const Light light = GetMainLight(IN);
@@ -141,17 +155,21 @@ float4 PS(const v2f IN) : SV_TARGET
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
     const float3 mixedShadowColor = MixShadowColor(albedo, _ShadowColor);
-    const float3 diffuse = light.color * ApplyRamp(albedo, mixedShadowColor, diffuseRamp);
+    const float3 diffuse = ApplyRamp(albedo, mixedShadowColor, diffuseRamp);
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
     const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
     float specularRamp = ComputeRampSpecular(nDotH);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
-    const float3 specular = light.color * _SpecularColor * specularRamp;
+    const float3 specular = _SpecularColor * specularRamp;
+
+    const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
+    const float rimRamp = ComputeRampRim(fresnel);
+    const float3 rim = _RimColor * rimRamp;
 
     const float3 ambient = SampleSH(normalWs) * albedo;
 
-    float3 outputColor = diffuse + specular + ambient;
+    float3 outputColor = light.color * (diffuse + specular + rim) + ambient;
     TOON_RP_FOG_MIX(IN, outputColor);
 
     return float4(outputColor, 1.0f);

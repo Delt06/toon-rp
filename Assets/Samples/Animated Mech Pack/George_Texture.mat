@@ -72,7 +72,15 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
+    - _OverrideRamp: 0
+    - _OverrideRamp_RimSmoothness: 0.1
+    - _OverrideRamp_RimThreshold: 0.252
+    - _OverrideRamp_Smoothness: 0.083
+    - _OverrideRamp_SpecularSmoothness: 0.005
+    - _OverrideRamp_SpecularThreshold: 0.995
+    - _OverrideRamp_Threshold: 0
     - _Parallax: 0.02
+    - _ReceiveBlobShadows: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -82,6 +90,7 @@ Material:
     - _Color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 0.020803953, g: 0.014859967, b: 0.15157166, a: 1}
     - _ShadowColor: {r: 0.05934328, g: 0.04026866, b: 0.071, a: 0.72156864}
-    - _SpecularColor: {r: 4.0147743, g: 3.3866122, b: 5.2164755, a: 1}
+    - _SpecularColor: {r: 2.6894727, g: 1.7841355, b: 7.719116, a: 1}
   m_BuildTextureStacks: []

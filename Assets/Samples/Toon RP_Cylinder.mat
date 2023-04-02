@@ -41,6 +41,7 @@ Material:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor: {r: 0, g: 0.46625757, b: 1, a: 1}
     - _MainColor: {r: 0.8773585, g: 0.8773585, b: 0.8773585, a: 1}
+    - _RimColor: {r: 0.32602972, g: 0.32602972, b: 0.32602972, a: 1}
     - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
     - _SpecularCColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecularColor: {r: 6.623533, g: 6.7142005, b: 5.6690655, a: 1}

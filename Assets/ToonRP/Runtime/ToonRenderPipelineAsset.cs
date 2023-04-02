@@ -25,8 +25,10 @@ namespace ToonRP.Runtime
         {
             Threshold = 0.0f,
             SpecularThreshold = 0.99f,
+            RimThreshold = 0.5f,
             Smoothness = 0.02f,
             SpecularSmoothness = 0.005f,
+            RimSmoothness = 0.1f,
         };
 
         public ToonCameraRendererSettings CameraRendererSettings = new()

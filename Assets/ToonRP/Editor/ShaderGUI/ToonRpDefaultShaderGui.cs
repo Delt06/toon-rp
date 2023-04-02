@@ -34,9 +34,10 @@ namespace ToonRP.Editor.ShaderGUI
             DrawProperty("_MainTexture");
             DrawProperty("_ShadowColor");
             DrawProperty("_SpecularColor");
-            
+            DrawProperty("_RimColor");
+
             EditorGUILayout.Space();
-            
+
             DrawProperty("_ReceiveBlobShadows");
 
             EditorGUILayout.Space();
@@ -46,9 +47,11 @@ namespace ToonRP.Editor.ShaderGUI
             {
                 EditorGUI.indentLevel++;
                 DrawProperty("_OverrideRamp_Threshold");
-                DrawProperty("_OverrideRamp_SpecularThreshold");
                 DrawProperty("_OverrideRamp_Smoothness");
+                DrawProperty("_OverrideRamp_SpecularThreshold");
                 DrawProperty("_OverrideRamp_SpecularSmoothness");
+                DrawProperty("_OverrideRamp_RimThreshold");
+                DrawProperty("_OverrideRamp_RimSmoothness");
                 EditorGUI.indentLevel--;
             }
         }

@@ -5,6 +5,7 @@
 
 float2 _ToonRP_GlobalRamp;
 float2 _ToonRP_GlobalRampSpecular;
+float2 _ToonRP_GlobalRampRim;
 
 float ComputeRamp(const float value, const float edge1, const float edge2)
 {
@@ -38,6 +39,11 @@ float ComputeGlobalRampDiffuse(const float nDotL)
 float ComputeGlobalRampSpecular(const float nDotH)
 {
     return ComputeRamp(nDotH, _ToonRP_GlobalRampSpecular);
+}
+
+float ComputeGlobalRampRim(const float fresnel)
+{
+    return ComputeRamp(fresnel, _ToonRP_GlobalRampRim);
 }
 
 float3 MixShadowColor(const float3 albedo, const float4 shadowColor)

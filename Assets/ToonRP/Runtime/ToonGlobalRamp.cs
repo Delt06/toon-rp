@@ -8,6 +8,7 @@ namespace ToonRP.Runtime
         private const string BufferName = "Global Ramp";
         private static readonly int GlobalRampId = Shader.PropertyToID("_ToonRP_GlobalRamp");
         private static readonly int GlobalRampSpecularId = Shader.PropertyToID("_ToonRP_GlobalRampSpecular");
+        private static readonly int GlobalRampRimId = Shader.PropertyToID("_ToonRP_GlobalRampRim");
 
         private readonly CommandBuffer _cmd = new() { name = BufferName };
         private readonly GlobalKeyword _globalRampCrispKeyword = GlobalKeyword.Create("_TOON_RP_GLOBAL_RAMP_CRISP");
@@ -35,6 +36,13 @@ namespace ToonRP.Runtime
                 float edge1 = rampSettings.SpecularThreshold;
                 float edge2 = edge1 + rampSettings.SpecularSmoothness;
                 _cmd.SetGlobalVector(GlobalRampSpecularId, new Vector4(edge1, edge2));
+            }
+
+            // rim
+            {
+                float edge1 = rampSettings.RimThreshold;
+                float edge2 = edge1 + rampSettings.RimSmoothness;
+                _cmd.SetGlobalVector(GlobalRampRimId, new Vector4(edge1, edge2));
             }
 
             _cmd.SetKeyword(_globalRampCrispKeyword, rampSettings.CrispAntiAliased);

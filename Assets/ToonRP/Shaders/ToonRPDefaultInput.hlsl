@@ -9,11 +9,14 @@ float4 _MainColor;
 DECLARE_TILING_OFFSET(_MainTexture)
 float4 _ShadowColor;
 float3 _SpecularColor;
+float3 _RimColor;
 
 float _OverrideRamp_Threshold;
 float _OverrideRamp_SpecularThreshold;
+float _OverrideRamp_RimThreshold;
 float _OverrideRamp_Smoothness;
 float _OverrideRamp_SpecularSmoothness;
+float _OverrideRamp_RimSmoothness;
 
 CBUFFER_END
 
@@ -28,6 +31,11 @@ float2 ConstructOverrideRampDiffuse()
 float2 ConstructOverrideRampSpecular()
 {
     return float2(_OverrideRamp_SpecularThreshold, _OverrideRamp_SpecularThreshold + _OverrideRamp_SpecularSmoothness);
+}
+
+float2 ConstructOverrideRampRim()
+{
+    return float2(_OverrideRamp_RimThreshold, _OverrideRamp_RimThreshold + _OverrideRamp_RimSmoothness);
 }
 
 #endif // TOON_RP_DEFAULT_INPUT

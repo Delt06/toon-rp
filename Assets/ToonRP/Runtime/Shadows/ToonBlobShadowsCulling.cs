@@ -41,7 +41,6 @@ namespace ToonRP.Runtime.Shadows
 
                 Renderers.Add(new RendererData
                     {
-                        Bounds = bounds,
                         Position = position,
                         Radius = radius,
                     }
@@ -60,7 +59,6 @@ namespace ToonRP.Runtime.Shadows
         {
             public Vector3 Position;
             public float Radius;
-            public Bounds2D Bounds;
         }
     }
 }

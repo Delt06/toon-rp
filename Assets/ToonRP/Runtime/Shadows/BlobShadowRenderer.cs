@@ -20,12 +20,5 @@ namespace ToonRP.Runtime.Shadows
         {
             BlobShadowsManager.OnRendererDisabled(this);
         }
-
-        public Bounds ComputeBounds()
-        {
-            float diameter = Radius * 2;
-            var bounds = new Bounds(Position, new Vector3(diameter, 0, diameter));
-            return bounds;
-        }
     }
 }

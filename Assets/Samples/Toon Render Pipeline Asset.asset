@@ -31,7 +31,7 @@ MonoBehaviour:
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
-    Mode: 2
+    Mode: 1
     Threshold: 0.757
     CrispAntiAliased: 1
     Smoothness: 0.416
@@ -49,7 +49,6 @@ MonoBehaviour:
       AtlasSize: 128
       Mode: 0
       Saturation: 5
-      GPUInstancing: 0
   Ssao:
     Enabled: 1
     Radius: 0.15

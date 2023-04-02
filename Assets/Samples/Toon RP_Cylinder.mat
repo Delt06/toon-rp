@@ -30,6 +30,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _OverrideRamp: 0
+    - _OverrideRamp_Smoothness: 0.083
+    - _OverrideRamp_SpecularSmoothness: 0.005
+    - _OverrideRamp_SpecularThreshold: 0.995
+    - _OverrideRamp_Threshold: 0
+    - _ReceiveBlobShadows: 0
     - _SpecularExponent: 52.31
     m_Colors:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}

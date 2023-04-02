@@ -52,7 +52,7 @@ namespace ToonRP.Runtime.Shadows
                         new(-0.5f, 0.5f),
                     }
                 );
-                _mesh.SetIndices(new[] { 0, 1, 2, 2, 3, 0 }, MeshTopology.Triangles, 0);
+                _mesh.SetTriangles(new[] { 0, 1, 2, 2, 3, 0 }, SubmeshIndex);
             }
         }
 

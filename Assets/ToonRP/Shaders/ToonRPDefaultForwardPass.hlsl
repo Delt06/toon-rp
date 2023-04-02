@@ -45,6 +45,8 @@ v2f VS(const appdata IN)
 
     #ifdef REQUIRE_DEPTH_INTERPOLANT
     OUT.depth = GetLinearDepth(positionWs);
+    #else // !REQUIRE_DEPTH_INTERPOLANT
+    OUT.depth = 0.0f;
     #endif // REQUIRE_DEPTH_INTERPOLANT
 
     const float4 positionCs = TransformWorldToHClip(positionWs);
@@ -63,7 +65,7 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
 
 float GetShadowAttenuation(const v2f IN, const Light light)
 {
-    #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS)
+    #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
     
     const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.depth);
     return shadowAttenuation;
@@ -87,7 +89,7 @@ Light GetMainLight(const v2f IN)
     #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 
     const float blobShadowAttenuation = SampleBlobShadowAttenuation(IN.positionWs);
-    light.shadowAttenuation = min(blobShadowAttenuation, light.shadowAttenuation);
+    light.shadowAttenuation = blobShadowAttenuation;
 
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
 

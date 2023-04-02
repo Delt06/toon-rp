@@ -15,9 +15,8 @@
 		    
 		    
 		    ColorMask R
+		    Cull Off
         
-		    // BlobBlendingMode.Default => (BlendMode.One, BlendMode.One, BlendOp.Max),
-		    // BlobBlendingMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
             Blend [_SrcBlend] [_DstBlend]
             BlendOp [_BlendOp]
 		    

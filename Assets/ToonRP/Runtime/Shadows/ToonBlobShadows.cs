@@ -64,7 +64,9 @@ namespace ToonRP.Runtime.Shadows
             _blobShadowsSettings = settings.Blobs;
 
             int atlasSize = (int) _blobShadowsSettings.AtlasSize;
-            _cmd.GetTemporaryRT(ShadowMapId, atlasSize, atlasSize, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+            _cmd.GetTemporaryRT(ShadowMapId, atlasSize, atlasSize, 0, FilterMode.Bilinear, RenderTextureFormat.R8,
+                RenderTextureReadWrite.Linear
+            );
             ExecuteBuffer();
 
             _useInstancing = SystemInfo.supportsInstancing && _blobShadowsSettings.GPUInstancing;

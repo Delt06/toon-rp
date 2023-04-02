@@ -9,6 +9,8 @@ namespace ToonRP.Runtime.Shadows
     {
         private static readonly int ShadowRampId =
             Shader.PropertyToID("_ToonRP_ShadowRamp");
+        private static readonly int ShadowDistanceFadeId =
+            Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private readonly CommandBuffer _cmd = new() { name = "Toon Shadows" };
         private ToonBlobShadows _blobShadows;
         private ScriptableRenderContext _context;
@@ -51,6 +53,13 @@ namespace ToonRP.Runtime.Shadows
                     new Vector4(
                         _settings.Threshold,
                         _settings.Threshold + _settings.Smoothness
+                    )
+                );
+
+                _cmd.SetGlobalVector(ShadowDistanceFadeId,
+                    new Vector4(
+                        1.0f / _settings.MaxDistance,
+                        1.0f / _settings.DistanceFade
                     )
                 );
             }

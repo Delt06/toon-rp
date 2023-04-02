@@ -151,7 +151,7 @@ namespace ToonRP.Runtime
 
             if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm)
             {
-                parameters.shadowDistance = Mathf.Min(toonShadowSettings.Vsm.MaxDistance, _camera.farClipPlane);
+                parameters.shadowDistance = Mathf.Min(toonShadowSettings.MaxDistance, _camera.farClipPlane);
             }
 
             _cullingResults = _context.Cull(ref parameters);

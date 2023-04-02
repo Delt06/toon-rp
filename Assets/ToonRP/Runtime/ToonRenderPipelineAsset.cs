@@ -31,10 +31,10 @@ namespace ToonRP.Runtime
         {
             Mode = ToonShadowSettings.ShadowMode.Vsm,
             Threshold = 0.5f, Smoothness = 0.075f,
+            MaxDistance = 100.0f,
+            DistanceFade = 0.1f,
             Vsm = new ToonVsmShadowSettings
             {
-                MaxDistance = 100.0f,
-                DistanceFade = 0.1f,
                 HighQualityBlur = true,
                 Directional =
                 {

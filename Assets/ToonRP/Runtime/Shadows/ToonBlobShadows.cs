@@ -26,6 +26,7 @@ namespace ToonRP.Runtime.Shadows
         private Matrix4x4[] _matrices;
         private int _matricesCount;
         private Mesh _mesh;
+        private ToonShadowSettings _settings;
         private bool _useInstancing;
 
         private void EnsureAssetsAreCreated()
@@ -59,6 +60,7 @@ namespace ToonRP.Runtime.Shadows
         {
             _camera = camera;
             _context = context;
+            _settings = settings;
             _blobShadowsSettings = settings.Blobs;
 
             int atlasSize = (int) _blobShadowsSettings.AtlasSize;
@@ -82,7 +84,8 @@ namespace ToonRP.Runtime.Shadows
             );
             _cmd.ClearRenderTarget(false, true, Color.black);
 
-            _culling.Cull(BlobShadowsManager.Renderers, _camera);
+            float maxDistance = Mathf.Min(_settings.MaxDistance, _camera.farClipPlane);
+            _culling.Cull(BlobShadowsManager.Renderers, _camera, maxDistance);
             DrawShadows();
 
             {

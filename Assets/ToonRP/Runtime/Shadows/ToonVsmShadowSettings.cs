@@ -6,10 +6,6 @@ namespace ToonRP.Runtime.Shadows
     [Serializable]
     public struct ToonVsmShadowSettings
     {
-        [Min(0f)]
-        public float MaxDistance;
-        [Range(0.001f, 1f)]
-        public float DistanceFade;
         public bool HighQualityBlur;
         public DirectionalShadows Directional;
 

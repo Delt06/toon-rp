@@ -12,12 +12,14 @@ namespace ToonRP.Runtime.Shadows
 
         public List<RendererData> Renderers { get; } = new();
 
-        public void Cull(HashSet<BlobShadowRenderer> renderers, Camera camera)
+        public void Cull(HashSet<BlobShadowRenderer> renderers, Camera camera, float maxDistance)
         {
             Renderers.Clear();
             _bounds = new Bounds2D();
 
-            GeometryUtility.CalculateFrustumPlanes(camera, _frustumPlanes);
+            Matrix4x4 worldToProjectionMatrix =
+                ComputeCustomProjectionMatrix(camera, maxDistance) * camera.worldToCameraMatrix;
+            GeometryUtility.CalculateFrustumPlanes(worldToProjectionMatrix, _frustumPlanes);
 
             foreach (BlobShadowRenderer renderer in renderers)
             {
@@ -46,6 +48,18 @@ namespace ToonRP.Runtime.Shadows
                     }
                 );
             }
+        }
+
+        private static Matrix4x4 ComputeCustomProjectionMatrix(Camera camera, float farPlane)
+        {
+            if (!camera.orthographic)
+            {
+                return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, farPlane);
+            }
+
+            float halfSizeV = camera.orthographicSize;
+            float halfSizeH = halfSizeV * camera.aspect;
+            return Matrix4x4.Ortho(-halfSizeH, halfSizeH, -halfSizeV, halfSizeV, camera.nearClipPlane, farPlane);
         }
 
         private static Bounds2D ComputeBounds(float radius, Vector3 position)

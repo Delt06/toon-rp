@@ -15,13 +15,17 @@ namespace ToonRP.Runtime.Shadows
 
         public ShadowMode Mode;
 
-        public ToonVsmShadowSettings Vsm;
-        public ToonBlobShadowsSettings Blobs;
-
         [Range(0.0f, 1.0f)]
         public float Threshold;
         public bool CrispAntiAliased;
         [Range(0.0f, 1.0f)]
         public float Smoothness;
+        [Min(0f)]
+        public float MaxDistance;
+        [Range(0.001f, 1f)]
+        public float DistanceFade;
+
+        public ToonVsmShadowSettings Vsm;
+        public ToonBlobShadowsSettings Blobs;
     }
 }

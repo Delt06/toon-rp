@@ -49,6 +49,12 @@ namespace ToonRP.Editor
                 );
                 enabledContainer.Add(crispAntiAliasedField);
                 enabledContainer.Add(smoothnessField);
+                enabledContainer.Add(
+                    new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.MaxDistance)))
+                );
+                enabledContainer.Add(
+                    new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.DistanceFade)))
+                );
             }
 
             {

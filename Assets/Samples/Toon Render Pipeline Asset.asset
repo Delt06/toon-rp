@@ -31,13 +31,16 @@ MonoBehaviour:
     UseDynamicBatching: 0
   ShadowSettings:
     Mode: 2
+    Threshold: 0.757
+    CrispAntiAliased: 1
+    Smoothness: 0.935
+    MaxDistance: 15
+    DistanceFade: 0.5
     Vsm:
-      MaxDistance: 10
-      DistanceFade: 0.1
       HighQualityBlur: 1
       Directional:
         Enabled: 1
-        AtlasSize: 1024
+        AtlasSize: 2048
         DepthBias: 0.01
         NormalBias: 0
         SlopeBias: 0
@@ -46,9 +49,6 @@ MonoBehaviour:
       Mode: 0
       Saturation: 5
       GPUInstancing: 1
-    Threshold: 0.757
-    CrispAntiAliased: 1
-    Smoothness: 0.935
   Ssao:
     Enabled: 1
     Radius: 0.15

@@ -22,8 +22,6 @@ namespace ToonRP.Runtime.Shadows
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_VP");
         private static readonly int DirectionalShadowsMatricesVId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_V");
-        private static readonly int ShadowDistanceFadeId =
-            Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
@@ -40,10 +38,10 @@ namespace ToonRP.Runtime.Shadows
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private LocalKeyword _highQualityBlurKeyword;
+        private ToonShadowSettings _settings;
+        private int _shadowedDirectionalLightCount;
 
         private ToonVsmShadowSettings _vsmSettings;
-        private int _shadowedDirectionalLightCount;
-        private ToonShadowSettings _settings;
 
         private void EnsureMaterialIsCreated()
         {
@@ -155,12 +153,6 @@ namespace ToonRP.Runtime.Shadows
 
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
-            _cmd.SetGlobalVector(ShadowDistanceFadeId,
-                new Vector4(
-                    1.0f / _vsmSettings.MaxDistance,
-                    1.0f / _vsmSettings.DistanceFade
-                )
-            );
             _cmd.EndSample(CmdName);
             ExecuteBuffer();
         }
@@ -168,7 +160,7 @@ namespace ToonRP.Runtime.Shadows
         private static Color GetShadowmapClearColor()
         {
             var color = new Color(Mathf.NegativeInfinity, Mathf.Infinity, 0.0f, 0.0f);
-            
+
             if (SystemInfo.usesReversedZBuffer)
             {
                 color.r *= -1;

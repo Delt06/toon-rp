@@ -60,7 +60,7 @@
 
 			float4 PS(const v2f IN) : SV_TARGET
             {
-                return (1.0f - length(IN.centeredUV)) * _Saturation; 
+                return saturate(1.0f - length(IN.centeredUV)) * _Saturation; 
             }
 
 			ENDHLSL

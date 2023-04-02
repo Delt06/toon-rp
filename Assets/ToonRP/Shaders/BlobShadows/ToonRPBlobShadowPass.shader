@@ -2,17 +2,24 @@
 {
 	Properties
 	{
-	}
+	    _Saturation ("Saturation", Float) = 1
+        _SrcBlend ("Src Blend", Float) = 0
+        _DstBlend ("Src Blend", Float) = 0
+        _BlendOp ("Blend Op", Float) = 0
+    }
 	SubShader
 	{
         Pass
 		{
 		    Name "Shadow Caster"
 		    
+		    
+		    ColorMask R
+        
+		    // BlobBlendingMode.Default => (BlendMode.One, BlendMode.One, BlendOp.Max),
 		    // BlobBlendingMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
-            // BlobBlendingMode.Voronoi => (BlendMode.One, BlendMode.One, BlendOp.Max),
-		    Blend SrcColor One
-		    BlendOp Add
+            Blend [_SrcBlend] [_DstBlend]
+            BlendOp [_BlendOp]
 		    
 			HLSLPROGRAM
 

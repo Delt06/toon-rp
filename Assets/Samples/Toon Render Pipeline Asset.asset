@@ -42,7 +42,8 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 0
     Blobs:
-      AtlasSize: 1024
+      AtlasSize: 512
+      Mode: 0
       Saturation: 5
       GPUInstancing: 1
     Threshold: 0.757

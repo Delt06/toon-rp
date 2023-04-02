@@ -7,6 +7,7 @@ namespace ToonRP.Runtime.Shadows
     public struct ToonBlobShadowsSettings
     {
         public TextureSize AtlasSize;
+        public BlobShadowsMode Mode;
         [Min(0f)]
         public float Saturation;
         public bool GPUInstancing;

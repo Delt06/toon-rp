@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace ToonRP.Runtime.Shadows
@@ -11,6 +12,9 @@ namespace ToonRP.Runtime.Shadows
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
         private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
+        private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
+        private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
+        private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private readonly CommandBuffer _cmd = new() { name = "Blob Shadows" };
 
         private readonly Vector3 _worldMax = new(10, 0, 10);
@@ -95,6 +99,7 @@ namespace ToonRP.Runtime.Shadows
         private void DrawShadows()
         {
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
+            SetupBlending();
 
             _inverseWorldSize = _worldMax - _worldMin;
             _inverseWorldSize.x = 1.0f / _inverseWorldSize.x;
@@ -133,6 +138,18 @@ namespace ToonRP.Runtime.Shadows
             }
         }
 
+        private void SetupBlending()
+        {
+            (BlendMode srcBlend, BlendMode dstBlend, BlendOp blendOp) = _blobShadowsSettings.Mode switch
+            {
+                BlobShadowsMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
+                BlobShadowsMode.Default => (BlendMode.One, BlendMode.One, BlendOp.Max),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+            _material.SetFloat(SrcBlendId, (float) srcBlend);
+            _material.SetFloat(DstBlendId, (float) dstBlend);
+            _material.SetFloat(BlendOpId, (float) blendOp);
+        }
 
         private Matrix4x4 ComputeMatrix(BlobShadowRenderer renderer)
         {

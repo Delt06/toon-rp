@@ -9,6 +9,8 @@ namespace ToonRP.Runtime.Shadows
 
         public float Radius => _radius;
 
+        public Vector3 Position => transform.position;
+
         private void OnEnable()
         {
             BlobShadowsManager.OnRendererEnabled(this);
@@ -17,6 +19,13 @@ namespace ToonRP.Runtime.Shadows
         private void OnDisable()
         {
             BlobShadowsManager.OnRendererDisabled(this);
+        }
+
+        public Bounds ComputeBounds()
+        {
+            float diameter = Radius * 2;
+            var bounds = new Bounds(Position, new Vector3(diameter, 0, diameter));
+            return bounds;
         }
     }
 }

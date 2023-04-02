@@ -27,7 +27,7 @@ namespace ToonRP.Runtime.Shadows
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults,
-            in ToonShadowSettings settings)
+            in ToonShadowSettings settings, Camera camera)
         {
             _context = context;
             _settings = settings;
@@ -67,7 +67,7 @@ namespace ToonRP.Runtime.Shadows
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows ??= new ToonBlobShadows();
-                    _blobShadows.Setup(context, settings);
+                    _blobShadows.Setup(context, settings, camera);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -205,7 +205,7 @@ namespace ToonRP.Runtime
             _lighting.Setup(_context, visibleLight.light);
 
             {
-                _shadows.Setup(_context, _cullingResults, shadowSettings);
+                _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
                 _shadows.Render(visibleLight.light);
             }
 

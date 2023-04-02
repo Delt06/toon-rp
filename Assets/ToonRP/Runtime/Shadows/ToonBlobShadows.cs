@@ -16,10 +16,10 @@ namespace ToonRP.Runtime.Shadows
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private readonly CommandBuffer _cmd = new() { name = "Blob Shadows" };
+        private readonly ToonBlobShadowsCulling _culling = new();
 
-        private readonly Vector3 _worldMax = new(10, 0, 10);
-        private readonly Vector3 _worldMin = new(-10, 0, -10);
         private ToonBlobShadowsSettings _blobShadowsSettings;
+        private Camera _camera;
         private ScriptableRenderContext _context;
         private Vector3 _inverseWorldSize;
         private Material _material;
@@ -55,8 +55,9 @@ namespace ToonRP.Runtime.Shadows
             }
         }
 
-        public void Setup(in ScriptableRenderContext context, in ToonShadowSettings settings)
+        public void Setup(in ScriptableRenderContext context, in ToonShadowSettings settings, Camera camera)
         {
+            _camera = camera;
             _context = context;
             _blobShadowsSettings = settings.Blobs;
 
@@ -81,13 +82,15 @@ namespace ToonRP.Runtime.Shadows
             );
             _cmd.ClearRenderTarget(false, true, Color.black);
 
+            _culling.Cull(BlobShadowsManager.Renderers, _camera);
             DrawShadows();
 
             {
-                Vector3 size = _worldMax - _worldMin;
+                Vector2 min = _culling.Bounds.Min;
+                Vector2 size = _culling.Bounds.Size;
                 var minSize = new Vector4(
-                    _worldMin.x, _worldMin.z,
-                    size.x, size.z
+                    min.x, min.y,
+                    size.x, size.y
                 );
                 _cmd.SetGlobalVector(MinSizeId, minSize);
             }
@@ -101,16 +104,16 @@ namespace ToonRP.Runtime.Shadows
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
 
-            _inverseWorldSize = _worldMax - _worldMin;
+            _inverseWorldSize = _culling.Bounds.Size;
             _inverseWorldSize.x = 1.0f / _inverseWorldSize.x;
-            _inverseWorldSize.y = 1.0f / _inverseWorldSize.z;
+            _inverseWorldSize.y = 1.0f / _inverseWorldSize.y;
             _inverseWorldSize.z = 1.0f;
 
             if (_useInstancing)
             {
                 _matricesCount = 0;
 
-                foreach (BlobShadowRenderer renderer in BlobShadowsManager.Renderers)
+                foreach (ToonBlobShadowsCulling.RendererData renderer in _culling.Renderers)
                 {
                     _matrices[_matricesCount] = ComputeMatrix(renderer);
                     _matricesCount++;
@@ -131,7 +134,7 @@ namespace ToonRP.Runtime.Shadows
             }
             else
             {
-                foreach (BlobShadowRenderer renderer in BlobShadowsManager.Renderers)
+                foreach (ToonBlobShadowsCulling.RendererData renderer in _culling.Renderers)
                 {
                     _cmd.DrawMesh(_mesh, ComputeMatrix(renderer), _material, SubmeshIndex, ShaderPass);
                 }
@@ -151,11 +154,11 @@ namespace ToonRP.Runtime.Shadows
             _material.SetFloat(BlendOpId, (float) blendOp);
         }
 
-        private Matrix4x4 ComputeMatrix(BlobShadowRenderer renderer)
+        private Matrix4x4 ComputeMatrix(in ToonBlobShadowsCulling.RendererData renderer)
         {
             Quaternion rotation = Quaternion.identity;
 
-            Vector3 position = WorldToHClip(renderer.transform.position);
+            Vector3 position = WorldToHClip(renderer.Position);
             // the quad's size is one by one
             float diameter = renderer.Radius * 2.0f;
             Vector3 scale = _inverseWorldSize * diameter * 2;
@@ -165,9 +168,11 @@ namespace ToonRP.Runtime.Shadows
 
         private Vector3 WorldToHClip(Vector3 position)
         {
-            float x = Mathf.InverseLerp(_worldMin.x, _worldMax.x, position.x);
+            Vector2 boundsMin = _culling.Bounds.Min;
+            Vector2 boundsMax = _culling.Bounds.Max;
+            float x = Mathf.InverseLerp(boundsMin.x, boundsMax.x, position.x);
             x = (x - 0.5f) * 2.0f;
-            float y = Mathf.InverseLerp(_worldMin.z, _worldMax.z, position.z);
+            float y = Mathf.InverseLerp(boundsMin.y, boundsMax.y, position.z);
             y = (y - 0.5f) * 2.0f;
 
             if (SystemInfo.graphicsUVStartsAtTop)

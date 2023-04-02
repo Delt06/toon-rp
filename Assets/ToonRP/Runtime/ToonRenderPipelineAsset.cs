@@ -52,7 +52,6 @@ namespace ToonRP.Runtime
             },
             Blobs = new ToonBlobShadowsSettings
             {
-                GPUInstancing = true,
                 Saturation = 1.0f,
                 AtlasSize = TextureSize._128,
                 Mode = BlobShadowsMode.Default,

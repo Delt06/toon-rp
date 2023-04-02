@@ -34,7 +34,7 @@ MonoBehaviour:
     Mode: 2
     Threshold: 0.757
     CrispAntiAliased: 1
-    Smoothness: 0.935
+    Smoothness: 0.416
     MaxDistance: 15
     DistanceFade: 0.5
     Vsm:
@@ -49,7 +49,7 @@ MonoBehaviour:
       AtlasSize: 128
       Mode: 0
       Saturation: 5
-      GPUInstancing: 1
+      GPUInstancing: 0
   Ssao:
     Enabled: 1
     Radius: 0.15

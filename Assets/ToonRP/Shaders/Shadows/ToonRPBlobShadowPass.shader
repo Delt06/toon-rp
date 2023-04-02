@@ -13,8 +13,7 @@
 		{
 		    Name "Shadow Caster"
 		    
-		    
-		    ColorMask R
+            ColorMask R
 		    Cull Off
         
             Blend [_SrcBlend] [_DstBlend]
@@ -24,8 +23,6 @@
 
 			#pragma enable_d3d11_debug_symbols
 			
-			#pragma multi_compile_instancing
-
 	        #pragma vertex VS
 		    #pragma fragment PS
 			
@@ -37,8 +34,8 @@
 
             struct appdata
             {
-                float3 position : POSITION;
-			    UNITY_VERTEX_INPUT_INSTANCE_ID
+                float2 position : POSITION;
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
@@ -51,10 +48,8 @@
             {
                 v2f OUT;
 
-                UNITY_SETUP_INSTANCE_ID(IN);
-
-                OUT.centeredUV = IN.position.xy * 2.0f;
-                OUT.positionCs = float4(TransformObjectToWorld(IN.position), 1);
+                OUT.centeredUV = IN.uv;
+                OUT.positionCs = float4(IN.position, 0.5f, 1);
                 return OUT;
             }
 

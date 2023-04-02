@@ -10,6 +10,5 @@ namespace ToonRP.Runtime.Shadows
         public BlobShadowsMode Mode;
         [Min(0f)]
         public float Saturation;
-        public bool GPUInstancing;
     }
 }

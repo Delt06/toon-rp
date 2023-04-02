@@ -33,6 +33,11 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ![VSM](./Documentation/features_vsm.jpg?raw=true)
 
+- Blob Shadows
+    - _Optional_: crisp anti-aliased ramp
+
+![Blob Shadows](./Documentation/features_blob_shadows.jpg?raw=true)
+
 - MSAA
 
 ![MSAA](./Documentation/features_msaa.jpg?raw=true)

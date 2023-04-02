@@ -13,7 +13,17 @@ namespace ToonRP.Runtime.Shadows
             Max = center + extents;
         }
 
-        public Vector2 Size => Max - Min;
+        public Vector2 Size
+        {
+            get => Max - Min;
+            set
+            {
+                Vector2 center = (Min + Max) * 0.5f;
+                Vector2 extents = value * 0.5f;
+                Min = center - extents;
+                Max = center + extents;
+            }
+        }
 
         public Bounds AsXZ(float yCenter, float yExtents)
         {

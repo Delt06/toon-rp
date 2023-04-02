@@ -48,6 +48,10 @@ namespace ToonRP.Runtime.Shadows
                     }
                 );
             }
+
+            // slight padding to ensure shadows do not touch the shadowmap bounds
+            // otherwise, there may be artifacts on low resolutions (< 128) 
+            _bounds.Size *= Vector2.one * 1.01f;
         }
 
         private static Matrix4x4 ComputeCustomProjectionMatrix(Camera camera, float farPlane)

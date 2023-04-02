@@ -15,6 +15,18 @@ namespace ToonRP.Runtime.PostProcessing
         private const int BlurPass = 1;
         private static readonly int RtId = Shader.PropertyToID("_ToonRP_SSAOTexture");
         private static readonly int RtTempId = Shader.PropertyToID("_ToonRP_SSAOTexture_Temp");
+        private static readonly int RampId = Shader.PropertyToID("_ToonRP_SSAO_Ramp");
+        private static readonly int PatternScaleId = Shader.PropertyToID("_ToonRP_SSAO_Pattern_Scale");
+        private static readonly int PatternRampId = Shader.PropertyToID("_ToonRP_SSAO_Pattern_Ramp");
+        private static readonly int PatternDistanceFade = Shader.PropertyToID("_ToonRP_SSAO_Pattern_DistanceFade");
+        private static readonly int NoiseTextureId = Shader.PropertyToID("_ToonRP_SSAO_NoiseTexture");
+        private static readonly int RadiusId = Shader.PropertyToID("_ToonRP_SSAO_Radius");
+        private static readonly int PowerId = Shader.PropertyToID("_ToonRP_SSAO_Power");
+        private static readonly int NoiseScaleId = Shader.PropertyToID("_ToonRP_SSAO_NoiseScale");
+        private static readonly int KernelSizeId = Shader.PropertyToID("_ToonRP_SSAO_KernelSize");
+        private static readonly int SamplesId = Shader.PropertyToID("_ToonRP_SSAO_Samples");
+        private static readonly int BlurDirectionId = Shader.PropertyToID("_ToonRP_SSAO_Blur_Direction");
+        private static readonly int BlurSourceId = Shader.PropertyToID("_ToonRP_SSAO_Blur_SourceTex");
 
         private readonly CommandBuffer _cmd = new()
         {
@@ -150,19 +162,19 @@ namespace ToonRP.Runtime.PostProcessing
 
             {
                 float effectiveThreshold = 1 - _settings.Threshold;
-                _cmd.SetGlobalVector("_ToonRP_SSAO_Ramp",
+                _cmd.SetGlobalVector(RampId,
                     new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
                 );
             }
 
             if (_settings.Pattern.Enabled)
             {
-                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_Scale", _settings.Pattern.Scale);
+                _cmd.SetGlobalVector(PatternScaleId, _settings.Pattern.Scale);
                 float threshold = _settings.Pattern.Thickness;
-                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_Ramp",
+                _cmd.SetGlobalVector(PatternRampId,
                     new Vector4(threshold, threshold + _settings.Pattern.Smoothness)
                 );
-                _cmd.SetGlobalVector("_ToonRP_SSAO_Pattern_DistanceFade", new Vector4(
+                _cmd.SetGlobalVector(PatternDistanceFade, new Vector4(
                         1.0f / _settings.Pattern.MaxDistance,
                         1.0f / _settings.Pattern.DistanceFade
                     )
@@ -177,15 +189,15 @@ namespace ToonRP.Runtime.PostProcessing
         {
             _cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-            _cmd.SetGlobalTexture("_NoiseTexture", _noiseTexture);
+            _cmd.SetGlobalTexture(NoiseTextureId, _noiseTexture);
 
-            _cmd.SetGlobalFloat("_Radius", GetRadius());
-            _cmd.SetGlobalFloat("_Power", _settings.Power);
-            _cmd.SetGlobalVector("_NoiseScale",
+            _cmd.SetGlobalFloat(RadiusId, GetRadius());
+            _cmd.SetGlobalFloat(PowerId, _settings.Power);
+            _cmd.SetGlobalVector(NoiseScaleId,
                 new Vector4((float) _width / _noiseTexture.width, (float) _height / _noiseTexture.height)
             );
-            _cmd.SetGlobalInteger("_KernelSize", _settings.KernelSize);
-            _cmd.SetGlobalVectorArray("_Samples", _samples);
+            _cmd.SetGlobalInteger(KernelSizeId, _settings.KernelSize);
+            _cmd.SetGlobalVectorArray(SamplesId, _samples);
             Draw(MainPass);
         }
 
@@ -202,8 +214,8 @@ namespace ToonRP.Runtime.PostProcessing
 
         private void RenderBlur(Vector2 direction, in RenderTargetIdentifier source)
         {
-            _cmd.SetGlobalVector("_Direction", direction);
-            _cmd.SetGlobalTexture("_SourceTex", source);
+            _cmd.SetGlobalVector(BlurDirectionId, direction);
+            _cmd.SetGlobalTexture(BlurSourceId, source);
             Draw(BlurPass);
         }
 

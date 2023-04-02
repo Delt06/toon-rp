@@ -60,11 +60,11 @@
             #define DEPTH_BIAS 0.01
 
 			CBUFFER_START(ToonRpSsao)
-			float2 _NoiseScale;
-			int _KernelSize;
-			float4 _Samples[MAX_SAMPLES_COUNT];
-			float _Radius;
-			float _Power;
+			float2 _ToonRP_SSAO_NoiseScale;
+			int _ToonRP_SSAO_KernelSize;
+			float4 _ToonRP_SSAO_Samples[MAX_SAMPLES_COUNT];
+			float _ToonRP_SSAO_Radius;
+			float _ToonRP_SSAO_Power;
 			CBUFFER_END
 
 			TEXTURE2D(_NoiseTexture);
@@ -106,7 +106,7 @@
                 const float4 positionVs = RestorePositionVs(positionNdc, UNITY_MATRIX_I_P);
                 const float3 positionWs = mul(UNITY_MATRIX_I_V, positionVs).xyz + normalWs * NORMAL_BIAS;
 
-                const float3 randomVector = float3(SAMPLE_TEXTURE2D_LOD(_NoiseTexture, sampler_NoiseTexture, uv * _NoiseScale, 0).xy, 0);
+                const float3 randomVector = float3(SAMPLE_TEXTURE2D_LOD(_NoiseTexture, sampler_NoiseTexture, uv * _ToonRP_SSAO_NoiseScale, 0).xy, 0);
 
                 const float3 tangent = normalize(randomVector - normalWs * dot(randomVector, normalWs));
                 const float3 bitangent = cross(normalWs, tangent);
@@ -115,9 +115,9 @@
                 float occlusion = 0.0;
 
                 UNITY_LOOP
-                for (int i = 0; i < _KernelSize; ++i)
+                for (int i = 0; i < _ToonRP_SSAO_KernelSize; ++i)
                 {
-                    const float3 samplePositionWs = positionWs + normalWs * _Radius + mul(tbn, _Samples[i].xyz) * _Radius;
+                    const float3 samplePositionWs = positionWs + normalWs * _ToonRP_SSAO_Radius + mul(tbn, _ToonRP_SSAO_Samples[i].xyz) * _ToonRP_SSAO_Radius;
 
                     float4 samplePositionCs = TransformWorldToHClip(samplePositionWs);
                     samplePositionCs /= samplePositionCs.w;
@@ -142,12 +142,12 @@
                     float3 samplePositionVs = TransformWorldToView(samplePositionWs);
 
                     const float distance = abs(positionVs.z - sampleDepthPositionVs.z);
-                    const float rangeCheck = smoothstep(0.0, 1.0, _Radius / (0.000001 + distance));
+                    const float rangeCheck = smoothstep(0.0, 1.0, _ToonRP_SSAO_Radius / (0.000001 + distance));
                     occlusion += samplePositionVs.z <= sampleDepthPositionVs.z + DEPTH_BIAS ? rangeCheck : 0;
                 }
 
-                occlusion = 1.0 - occlusion / _KernelSize;
-                return float4(pow(abs(occlusion), _Power), 1.0f, 1.0f, 1.0f);
+                occlusion = 1.0 - occlusion / _ToonRP_SSAO_KernelSize;
+                return float4(pow(abs(occlusion), _ToonRP_SSAO_Power), 1.0f, 1.0f, 1.0f);
             }
 
 			ENDHLSL
@@ -163,10 +163,10 @@
 
 	        #include "../../ShaderLibrary/Textures.hlsl"
 
-	        float2 _Direction;
-	        TEXTURE2D(_SourceTex);
-	        SAMPLER(sampler_SourceTex);
-	        DECLARE_TEXEL_SIZE(_SourceTex);
+	        float2 _ToonRP_SSAO_Blur_Direction;
+	        TEXTURE2D(_ToonRP_SSAO_Blur_SourceTex);
+	        SAMPLER(sampler_ToonRP_SSAO_Blur_SourceTex);
+	        DECLARE_TEXEL_SIZE(_ToonRP_SSAO_Blur_SourceTex);
 
 	        float Blur(const float2 uv)
             {
@@ -181,8 +181,8 @@
 	            };
 	            for (int i = 0; i < 5; i++)
 	            {
-                    const float2 offset = offsets[i] * _Direction * _SourceTex_TexelSize.xy;
-		            result += SAMPLE_TEXTURE2D_LOD(_SourceTex, sampler_SourceTex, uv + offset, 0).r * weights[i];
+                    const float2 offset = offsets[i] * _ToonRP_SSAO_Blur_Direction * _ToonRP_SSAO_Blur_SourceTex_TexelSize.xy;
+		            result += SAMPLE_TEXTURE2D_LOD(_ToonRP_SSAO_Blur_SourceTex, sampler_ToonRP_SSAO_Blur_SourceTex, uv + offset, 0).r * weights[i];
 	            }
                 return result;
             }

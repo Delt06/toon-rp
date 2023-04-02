@@ -14,6 +14,8 @@ namespace ToonRP.Runtime
         private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
         private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
+        private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
+        private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
         private readonly DepthPrePass _depthPrePass = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
@@ -166,7 +168,7 @@ namespace ToonRP.Runtime
             _context.SetupCameraProperties(_camera);
             Matrix4x4 gpuProjectionMatrix =
                 GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
-            _cmd.SetGlobalMatrix("unity_MatrixInvP", Matrix4x4.Inverse(gpuProjectionMatrix));
+            _cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
@@ -310,7 +312,7 @@ namespace ToonRP.Runtime
 
         private void DrawOpaqueGeometry()
         {
-            _cmd.SetGlobalVector("_ToonRP_ScreenParams", new Vector4(
+            _cmd.SetGlobalVector(ScreenParamsId, new Vector4(
                     1.0f / _rtWidth,
                     1.0f / _rtHeight,
                     _rtWidth,

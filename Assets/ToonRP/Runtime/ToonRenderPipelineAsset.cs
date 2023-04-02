@@ -41,6 +41,12 @@ namespace ToonRP.Runtime
                     Enabled = true, AtlasSize = TextureSize._1024,
                 },
             },
+            Blobs = new ToonBlobShadowsSettings
+            {
+                GPUInstancing = true,
+                Saturation = 1.0f,
+                AtlasSize = TextureSize._1024,
+            },
         };
 
         public ToonSsaoSettings Ssao = new()

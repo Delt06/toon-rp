@@ -23,12 +23,14 @@ namespace ToonRP.Editor
 
             var enabledContainer = new VisualElement();
             var vsmContainer = new VisualElement();
+            var blobsContainer = new VisualElement();
 
             void RefreshFields()
             {
                 var mode = (ToonShadowSettings.ShadowMode) modeProperty.intValue;
                 enabledContainer.SetVisible(mode != ToonShadowSettings.ShadowMode.Off);
                 vsmContainer.SetVisible(mode == ToonShadowSettings.ShadowMode.Vsm);
+                blobsContainer.SetVisible(mode == ToonShadowSettings.ShadowMode.Blobs);
                 smoothnessField.SetEnabled(!crispAntiAliasedProperty.boolValue);
             }
 
@@ -54,6 +56,13 @@ namespace ToonRP.Editor
                     { label = "VSM" }
                 );
                 enabledContainer.Add(vsmContainer);
+            }
+
+            {
+                blobsContainer.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Blobs)))
+                    { label = "Blobs" }
+                );
+                enabledContainer.Add(blobsContainer);
             }
 
 

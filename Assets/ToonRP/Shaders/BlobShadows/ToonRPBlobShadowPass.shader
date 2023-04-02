@@ -22,8 +22,12 @@
 
 	        #pragma vertex VS
 		    #pragma fragment PS
-
+			
             #include "../../ShaderLibrary/Common.hlsl"
+
+			CBUFFER_START(UnityPerMaterial)
+			float _Saturation;
+			CBUFFER_END
 
             struct appdata
             {
@@ -50,7 +54,7 @@
 
 			float4 PS(const v2f IN) : SV_TARGET
             {
-                return 1.0f - length(IN.centeredUV); 
+                return (1.0f - length(IN.centeredUV)) * _Saturation; 
             }
 
 			ENDHLSL

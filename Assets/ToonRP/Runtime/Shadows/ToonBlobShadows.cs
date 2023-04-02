@@ -6,17 +6,23 @@ namespace ToonRP.Runtime.Shadows
     public class ToonBlobShadows
     {
         private const int MaxMatrices = 1023;
+        private const int SubmeshIndex = 0;
+        private const int ShaderPass = 0;
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
+        private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
         private readonly CommandBuffer _cmd = new() { name = "Blob Shadows" };
 
         private readonly Vector3 _worldMax = new(10, 0, 10);
         private readonly Vector3 _worldMin = new(-10, 0, -10);
+        private ToonBlobShadowsSettings _blobShadowsSettings;
         private ScriptableRenderContext _context;
+        private Vector3 _inverseWorldSize;
         private Material _material;
         private Matrix4x4[] _matrices;
         private int _matricesCount;
         private Mesh _mesh;
+        private bool _useInstancing;
 
         private void EnsureAssetsAreCreated()
         {
@@ -45,13 +51,18 @@ namespace ToonRP.Runtime.Shadows
             }
         }
 
-        public void Setup(ScriptableRenderContext context)
+        public void Setup(in ScriptableRenderContext context, in ToonShadowSettings settings)
         {
             _context = context;
-            _cmd.GetTemporaryRT(ShadowMapId, 1024, 1024, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
+            _blobShadowsSettings = settings.Blobs;
+
+            int atlasSize = (int) _blobShadowsSettings.AtlasSize;
+            _cmd.GetTemporaryRT(ShadowMapId, atlasSize, atlasSize, 0, FilterMode.Bilinear, RenderTextureFormat.R8);
             ExecuteBuffer();
 
-            if (SystemInfo.supportsInstancing)
+            _useInstancing = SystemInfo.supportsInstancing && _blobShadowsSettings.GPUInstancing;
+
+            if (_useInstancing)
             {
                 _matrices ??= new Matrix4x4[MaxMatrices];
             }
@@ -66,49 +77,7 @@ namespace ToonRP.Runtime.Shadows
             );
             _cmd.ClearRenderTarget(false, true, Color.black);
 
-            if (SystemInfo.supportsInstancing)
-            {
-                _matricesCount = 0;
-
-                Vector3 inverseWorldSize = _worldMax - _worldMin;
-                inverseWorldSize.x = 1.0f / inverseWorldSize.x;
-                inverseWorldSize.y = 1.0f / inverseWorldSize.z;
-                inverseWorldSize.z = 1.0f;
-                Quaternion rotation = Quaternion.identity;
-
-                foreach (BlobShadowRenderer renderer in BlobShadowsManager.Renderers)
-                {
-                    Vector3 position = WorldToHClip(renderer.transform.position);
-                    // the quad's size is one by one
-                    float diameter = renderer.Radius * 2.0f;
-                    Vector3 scale = inverseWorldSize * diameter * 2;
-
-                    // _cmd.DrawMesh(_mesh, Matrix4x4.TRS(position, rotation, scale), _material, 0, 0);
-
-                    _matrices[_matricesCount] = Matrix4x4.TRS(position, rotation, scale);
-                    _matricesCount++;
-
-                    if (_matricesCount < MaxMatrices)
-                    {
-                        continue;
-                    }
-
-                    _cmd.DrawMeshInstanced(_mesh, 0, _material, 0, _matrices, _matricesCount);
-                    _matricesCount = 0;
-                }
-
-                if (_matricesCount > 0)
-                {
-                    _cmd.DrawMeshInstanced(_mesh, 0, _material, 0, _matrices, _matricesCount);
-                }
-            }
-
-            // TODO: implement drawing without instancing
-            // else{
-            // foreach ()
-            // {
-            //     _cmd.DrawMesh();
-            // }}
+            DrawShadows();
 
             {
                 Vector3 size = _worldMax - _worldMin;
@@ -121,6 +90,60 @@ namespace ToonRP.Runtime.Shadows
 
 
             ExecuteBuffer();
+        }
+
+        private void DrawShadows()
+        {
+            _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
+
+            _inverseWorldSize = _worldMax - _worldMin;
+            _inverseWorldSize.x = 1.0f / _inverseWorldSize.x;
+            _inverseWorldSize.y = 1.0f / _inverseWorldSize.z;
+            _inverseWorldSize.z = 1.0f;
+
+            if (_useInstancing)
+            {
+                _matricesCount = 0;
+
+                foreach (BlobShadowRenderer renderer in BlobShadowsManager.Renderers)
+                {
+                    _matrices[_matricesCount] = ComputeMatrix(renderer);
+                    _matricesCount++;
+
+                    if (_matricesCount < MaxMatrices)
+                    {
+                        continue;
+                    }
+
+                    _cmd.DrawMeshInstanced(_mesh, SubmeshIndex, _material, ShaderPass, _matrices, _matricesCount);
+                    _matricesCount = 0;
+                }
+
+                if (_matricesCount > 0)
+                {
+                    _cmd.DrawMeshInstanced(_mesh, SubmeshIndex, _material, ShaderPass, _matrices, _matricesCount);
+                }
+            }
+            else
+            {
+                foreach (BlobShadowRenderer renderer in BlobShadowsManager.Renderers)
+                {
+                    _cmd.DrawMesh(_mesh, ComputeMatrix(renderer), _material, SubmeshIndex, ShaderPass);
+                }
+            }
+        }
+
+
+        private Matrix4x4 ComputeMatrix(BlobShadowRenderer renderer)
+        {
+            Quaternion rotation = Quaternion.identity;
+
+            Vector3 position = WorldToHClip(renderer.transform.position);
+            // the quad's size is one by one
+            float diameter = renderer.Radius * 2.0f;
+            Vector3 scale = _inverseWorldSize * diameter * 2;
+
+            return Matrix4x4.TRS(position, rotation, scale);
         }
 
         private Vector3 WorldToHClip(Vector3 position)

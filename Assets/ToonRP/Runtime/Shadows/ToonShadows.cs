@@ -67,7 +67,7 @@ namespace ToonRP.Runtime.Shadows
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows ??= new ToonBlobShadows();
-                    _blobShadows.Setup(context);
+                    _blobShadows.Setup(context, settings);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

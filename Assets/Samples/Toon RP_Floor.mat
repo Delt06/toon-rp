@@ -9,7 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Toon RP_Floor
   m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _RECEIVE_BLOB_SHADOWS
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -30,6 +31,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _OverrideRamp: 0
+    - _OverrideRamp_Smoothness: 0.083
+    - _OverrideRamp_SpecularSmoothness: 0.005
+    - _OverrideRamp_SpecularThreshold: 0.995
+    - _OverrideRamp_Threshold: 0
+    - _ReceiveBlobShadows: 1
     - _SpecularExponent: 52.31
     m_Colors:
     - _AlbedoColor: {r: 1, g: 1, b: 1, a: 1}

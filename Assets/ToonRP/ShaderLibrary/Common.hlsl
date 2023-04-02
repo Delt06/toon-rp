@@ -14,6 +14,9 @@
 #define UNITY_PREV_MATRIX_M unity_MatrixPreviousM
 #define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
 
+// Include order is important here, instancing should come after macro definitions
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
 float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution
 float4 _ProjectionParams;
 

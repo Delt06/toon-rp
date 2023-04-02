@@ -1,4 +1,5 @@
 ﻿using ToonRP.Runtime.PostProcessing;
+using ToonRP.Runtime.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
 

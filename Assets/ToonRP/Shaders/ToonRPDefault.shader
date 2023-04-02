@@ -10,6 +10,9 @@
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
 	    
+	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
+	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
+	    
 	    [Toggle(_OVERRIDE_RAMP)]
 	    _OverrideRamp ("Override Ramp", Float) = 0
 	    _OverrideRamp_Threshold ("Threshold", Range(-1, 1)) = 0
@@ -48,14 +51,15 @@
 			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
 
 			// Shadows
-			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS
-			#pragma multi_compile_fragment _ _TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP
+			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_BLOB_SHADOWS
+			#pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
 
 			// SSAO
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			// Per-Material
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
+			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS 
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

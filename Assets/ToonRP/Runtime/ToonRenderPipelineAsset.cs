@@ -1,4 +1,6 @@
-﻿using ToonRP.Runtime.PostProcessing;
+﻿using System.Linq;
+using ToonRP.Runtime.PostProcessing;
+using ToonRP.Runtime.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -7,6 +9,14 @@ namespace ToonRP.Runtime
     [CreateAssetMenu(menuName = "Rendering/Toon Render Pipeline")]
     public sealed class ToonRenderPipelineAsset : RenderPipelineAsset
     {
+        private static readonly string[] ForceIncludedShaderNames =
+        {
+            "Hidden/Toon RP/VSM Blur",
+            "Hidden/Toon RP/Bloom",
+            "Hidden/Toon RP/Outline (Inverted Hull)",
+            "Hidden/Toon RP/SSAO",
+            "Hidden/Toon RP/Blob Shadow Pass",
+        };
         // Hold references to all shaders access in runtime to ensure they get included to the build
         [HideInInspector]
         public Shader[] ForceIncludedShaders;
@@ -26,15 +36,25 @@ namespace ToonRP.Runtime
             UseDynamicBatching = false,
         };
 
-        [ToonRpHeader("Shadows")]
         public ToonShadowSettings ShadowSettings = new()
         {
+            Mode = ToonShadowSettings.ShadowMode.Vsm,
+            Threshold = 0.5f, Smoothness = 0.075f,
             MaxDistance = 100.0f,
             DistanceFade = 0.1f,
-            HighQualityBlur = true,
-            Directional =
+            Vsm = new ToonVsmShadowSettings
             {
-                Enabled = true, AtlasSize = ToonShadowSettings.TextureSize._1024, Threshold = 0.5f, Smoothness = 0.075f,
+                HighQualityBlur = true,
+                Directional =
+                {
+                    Enabled = true, AtlasSize = TextureSize._1024,
+                },
+            },
+            Blobs = new ToonBlobShadowsSettings
+            {
+                Saturation = 1.0f,
+                AtlasSize = TextureSize._128,
+                Mode = BlobShadowsMode.Default,
             },
         };
 
@@ -97,6 +117,16 @@ namespace ToonRP.Runtime
         public override Material defaultMaterial => new(defaultShader);
 
         public override Shader defaultShader => Shader.Find("Toon RP/Default");
+
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+
+            if (ForceIncludedShaders == null || ForceIncludedShaders.Length != ForceIncludedShaderNames.Length)
+            {
+                ForceIncludedShaders = ForceIncludedShaderNames.Select(Shader.Find).ToArray();
+            }
+        }
 
         protected override RenderPipeline CreatePipeline() =>
             new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing, Ssao);

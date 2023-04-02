@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace ToonRP.Runtime
+namespace ToonRP.Runtime.Shadows
 {
-    public class ToonShadows
+    public class ToonVsmShadows
     {
         private const string CmdName = "Shadows";
         private const string BlurCmdName = "Blur";
@@ -22,10 +22,6 @@ namespace ToonRP.Runtime
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_VP");
         private static readonly int DirectionalShadowsMatricesVId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_V");
-        private static readonly int ShadowRampId =
-            Shader.PropertyToID("_ToonRP_ShadowRamp");
-        private static readonly int ShadowDistanceFadeId =
-            Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
@@ -35,10 +31,6 @@ namespace ToonRP.Runtime
             new Matrix4x4[MaxShadowedDirectionalLightCount];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
             new Matrix4x4[MaxShadowedDirectionalLightCount];
-        private readonly GlobalKeyword _directionalShadowsGlobalKeyword =
-            GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS");
-        private readonly GlobalKeyword _directionalShadowsRampCrisp =
-            GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS_RAMP_CRISP");
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
@@ -46,9 +38,10 @@ namespace ToonRP.Runtime
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private LocalKeyword _highQualityBlurKeyword;
-
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
+
+        private ToonVsmShadowSettings _vsmSettings;
 
         private void EnsureMaterialIsCreated()
         {
@@ -81,6 +74,7 @@ namespace ToonRP.Runtime
             _context = context;
             _cullingResults = cullingResults;
             _settings = settings;
+            _vsmSettings = settings.Vsm;
             _shadowedDirectionalLightCount = 0;
         }
 
@@ -100,12 +94,12 @@ namespace ToonRP.Runtime
 
         public void Render()
         {
-            if (_settings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
+            if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
             {
                 EnsureMaterialIsCreated();
                 RenderDirectionalShadows();
-                _cmd.EnableKeyword(_directionalShadowsGlobalKeyword);
-                _cmd.SetKeyword(_directionalShadowsRampCrisp, _settings.Directional.CrispAntiAliased);
+                _cmd.EnableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
+                _cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
             }
             else
             {
@@ -114,8 +108,8 @@ namespace ToonRP.Runtime
                     ShadowmapFiltering,
                     ShadowmapFormat
                 );
-                _cmd.DisableKeyword(_directionalShadowsGlobalKeyword);
-                _cmd.DisableKeyword(_directionalShadowsRampCrisp);
+                _cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
+                _cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
             }
 
             ExecuteBuffer();
@@ -130,7 +124,7 @@ namespace ToonRP.Runtime
 
         private void RenderDirectionalShadows()
         {
-            int atlasSize = (int) _settings.Directional.AtlasSize;
+            int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
             _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
                 DepthBits,
                 ShadowmapFiltering,
@@ -159,18 +153,6 @@ namespace ToonRP.Runtime
 
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
-            _cmd.SetGlobalVector(ShadowRampId,
-                new Vector4(
-                    _settings.Directional.Threshold,
-                    _settings.Directional.Threshold + _settings.Directional.Smoothness
-                )
-            );
-            _cmd.SetGlobalVector(ShadowDistanceFadeId,
-                new Vector4(
-                    1.0f / _settings.MaxDistance,
-                    1.0f / _settings.DistanceFade
-                )
-            );
             _cmd.EndSample(CmdName);
             ExecuteBuffer();
         }
@@ -178,7 +160,7 @@ namespace ToonRP.Runtime
         private static Color GetShadowmapClearColor()
         {
             var color = new Color(Mathf.NegativeInfinity, Mathf.Infinity, 0.0f, 0.0f);
-            
+
             if (SystemInfo.usesReversedZBuffer)
             {
                 color.r *= -1;
@@ -201,9 +183,9 @@ namespace ToonRP.Runtime
             _directionalShadowMatricesV[index] = viewMatrix;
             _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
-            _cmd.SetGlobalDepthBias(0.0f, _settings.Directional.SlopeBias);
+            _cmd.SetGlobalDepthBias(0.0f, _vsmSettings.Directional.SlopeBias);
             _cmd.SetGlobalVector(ShadowBiasId,
-                new Vector4(-_settings.Directional.DepthBias, _settings.Directional.NormalBias)
+                new Vector4(-_vsmSettings.Directional.DepthBias, _vsmSettings.Directional.NormalBias)
             );
             ExecuteBuffer();
 
@@ -213,7 +195,7 @@ namespace ToonRP.Runtime
             ExecuteBuffer();
 
             // TODO: try using _blurCmd.SetKeyword
-            _blurMaterial.SetKeyword(_highQualityBlurKeyword, _settings.HighQualityBlur);
+            _blurMaterial.SetKeyword(_highQualityBlurKeyword, _vsmSettings.HighQualityBlur);
             _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
             _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
             ExecuteBuffer(_blurCmd);

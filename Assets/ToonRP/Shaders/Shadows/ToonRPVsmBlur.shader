@@ -15,8 +15,8 @@
 
         #pragma multi_compile_local_fragment _ _TOON_RP_VSM_BLUR_HIGH_QUALITY
 
-        #include "../ShaderLibrary/Common.hlsl"
-        #include "../ShaderLibrary/Textures.hlsl"
+        #include "../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderLibrary/Textures.hlsl"
 
         TEXTURE2D(_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);

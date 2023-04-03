@@ -6,6 +6,8 @@
 struct appdata
 {
     float3 vertex : POSITION;
+    
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
@@ -16,7 +18,11 @@ struct v2f
 v2f VS(const appdata IN)
 {
     v2f OUT;
+
+    UNITY_SETUP_INSTANCE_ID(IN);
+    
     OUT.positionCs = TransformObjectToHClip(IN.vertex);
+    
     return OUT;
 }
 

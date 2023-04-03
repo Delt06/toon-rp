@@ -17,6 +17,8 @@ struct appdata
     float3 vertex : POSITION;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD0;
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
@@ -36,6 +38,8 @@ struct v2f
 v2f VS(const appdata IN)
 {
     v2f OUT;
+
+    UNITY_SETUP_INSTANCE_ID(IN);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
     OUT.normalWs = TransformObjectToWorldNormal(IN.normal);

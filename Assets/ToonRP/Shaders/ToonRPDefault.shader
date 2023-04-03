@@ -50,6 +50,7 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_fog
+			#pragma multi_compile_instancing
 
 			// Global Ramp
 			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
@@ -81,6 +82,8 @@
 
 			#pragma enable_d3d11_debug_symbols
 
+			#pragma multi_compile_instancing
+
 			#include "ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -97,6 +100,8 @@
 
 			#pragma enable_d3d11_debug_symbols
 
+			#pragma multi_compile_instancing
+
 			#include "ToonRPDefaultDepthOnlyPass.hlsl"
 			
 			ENDHLSL
@@ -112,6 +117,8 @@
 			HLSLPROGRAM
 
 			#pragma enable_d3d11_debug_symbols
+
+			#pragma multi_compile_instancing
 
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			

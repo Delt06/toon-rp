@@ -8,6 +8,8 @@ struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL;
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
@@ -19,8 +21,12 @@ struct v2f
 v2f VS(const appdata IN)
 {
     v2f OUT;
+
+    UNITY_SETUP_INSTANCE_ID(IN);
+    
     OUT.positionCs = TransformObjectToHClip(IN.vertex);
     OUT.normalWs = TransformObjectToWorldNormal(IN.normal);
+    
     return OUT;
 }
 

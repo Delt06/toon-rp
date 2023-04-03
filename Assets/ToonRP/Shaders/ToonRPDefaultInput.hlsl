@@ -23,6 +23,9 @@ CBUFFER_END
 TEXTURE2D(_MainTexture);
 SAMPLER(sampler_MainTexture);
 
+TEXTURE2D(_NormalMap);
+SAMPLER(sampler_NormalMap);
+
 float2 ConstructOverrideRampDiffuse()
 {
     return float2(_OverrideRamp_Threshold, _OverrideRamp_Threshold + _OverrideRamp_Smoothness);

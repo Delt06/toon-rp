@@ -1,5 +1,7 @@
 ﻿using JetBrains.Annotations;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ToonRP.Editor.ShaderGUI
 {
@@ -38,6 +40,10 @@ namespace ToonRP.Editor.ShaderGUI
 
             EditorGUILayout.Space();
 
+            DrawNormalMap();
+
+            EditorGUILayout.Space();
+
             DrawProperty("_ReceiveBlobShadows");
 
             EditorGUILayout.Space();
@@ -54,6 +60,18 @@ namespace ToonRP.Editor.ShaderGUI
                 DrawProperty("_OverrideRamp_RimSmoothness");
                 EditorGUI.indentLevel--;
             }
+        }
+
+        private void DrawNormalMap()
+        {
+            if (!DrawProperty("_NormalMap", out MaterialProperty normalMap))
+            {
+                return;
+            }
+
+            var material = (Material) _materialEditor.target;
+            material.SetKeyword(new LocalKeyword(material.shader, "_NORMAL_MAP"), normalMap.textureValue != null);
+            EditorUtility.SetDirty(material);
         }
 
         private bool DrawProperty(string propertyName, string labelOverride = null) =>

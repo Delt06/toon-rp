@@ -5,18 +5,27 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Fog.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/NormalMap.hlsl"
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
 #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS) || defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
-#endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_BLOB_SHADOWS || TOON_RP_SSAO_ANY 
+#endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_BLOB_SHADOWS || TOON_RP_SSAO_ANY
+
+#if defined(_NORMAL_MAP)
+#define REQUIRE_TANGENT_INTERPOLANT
+#endif // _NORMAL_MAP
 
 struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD0;
+    
+    #ifdef REQUIRE_TANGENT_INTERPOLANT
+    float4 tangent : TANGENT;
+    #endif // REQUIRE_TANGENT_INTERPOLANT
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -27,6 +36,11 @@ struct v2f
     float3 normalWs : NORMAL_WS;
     float4 positionWs : POSITION_WS;
     float depth : DEPTH_VS;
+
+    #ifdef REQUIRE_TANGENT_INTERPOLANT
+    float3 tangentWs : TANGENT_WS;
+    float3 bitangentWs : BITANGENT_WS;
+    #endif // REQUIRE_TANGENT_INTERPOLANT
 
     TOON_RP_FOG_FACTOR_INTERPOLANT
 
@@ -42,7 +56,8 @@ v2f VS(const appdata IN)
     UNITY_SETUP_INSTANCE_ID(IN);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
-    OUT.normalWs = TransformObjectToWorldNormal(IN.normal);
+    const float3 normalWs = TransformObjectToWorldNormal(IN.normal); 
+    OUT.normalWs = normalWs;
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     OUT.positionWs = float4(positionWs, 1.0f);
@@ -55,6 +70,10 @@ v2f VS(const appdata IN)
 
     const float4 positionCs = TransformWorldToHClip(positionWs);
     OUT.positionCs = positionCs;
+
+    #ifdef REQUIRE_TANGENT_INTERPOLANT
+    ComputeTangentsWs(IN.tangent, normalWs, OUT.tangentWs, OUT.bitangentWs);
+    #endif // REQUIRE_TANGENT_INTERPOLANT
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 
@@ -144,8 +163,15 @@ float ComputeRampRim(const float fresnel)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
+    #ifdef _NORMAL_MAP
+    const float3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
+    float3 normalWs = TransformTangentToWorld(normalTs, float3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
+    #else // !_NORMAL_MAP
+    float3 normalWs = IN.normalWs;
+    #endif // _NORMAL_MAP
+    normalWs = normalize(normalWs);
+
     const Light light = GetMainLight(IN);
-    const float3 normalWs = normalize(IN.normalWs);
     const float nDotL = dot(normalWs, light.direction);
 
     float shadowAttenuation = GetShadowAttenuation(IN, light);

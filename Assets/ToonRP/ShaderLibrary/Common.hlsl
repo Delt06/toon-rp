@@ -89,4 +89,12 @@ float2 PositionHClipToScreenUv(const float4 positionCs)
     return screenUv;
 }
 
+void ComputeTangentsWs(const float4 tangentOs, const float3 normalWs, out float3 tangentWs, out float3 bitangentWs)
+{
+    // mikkts space compliant. only normalize when extracting normal at frag.
+    const float sign = tangentOs.w * GetOddNegativeScale();
+    tangentWs = TransformObjectToWorldDir(tangentOs.xyz);
+    bitangentWs = cross(normalWs, tangentWs) * sign;
+}
+
 #endif // TOON_RP_COMMON

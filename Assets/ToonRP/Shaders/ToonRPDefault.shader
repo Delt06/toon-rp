@@ -12,6 +12,9 @@
 	    [HDR]
 		_RimColor ("Rim Color", Color) = (0, 0, 0, 0)
 	    
+	    [NoScaleOffset]
+	    _NormalMap ("Normal Map", 2D) = "bump" {}
+	    
 	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
 	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
 	    
@@ -63,6 +66,7 @@
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			// Per-Material
+			#pragma shader_feature_local _NORMAL_MAP 
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
 			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS 
 

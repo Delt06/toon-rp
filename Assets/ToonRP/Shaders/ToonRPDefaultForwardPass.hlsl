@@ -199,7 +199,7 @@ float4 PS(const v2f IN) : SV_TARGET
 
     const float3 ambient = SampleSH(normalWs) * albedo;
 
-    float3 outputColor = light.color * (diffuse + specular + rim) + ambient;
+    float3 outputColor = light.color * (diffuse + specular) + rim + ambient;
     TOON_RP_FOG_MIX(IN, outputColor);
 
     return float4(outputColor, 1.0f);

@@ -124,6 +124,9 @@
 
 			#pragma multi_compile_instancing
 
+			// Per-Material
+			#pragma shader_feature_local _NORMAL_MAP 
+
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			
 			ENDHLSL

@@ -3,6 +3,10 @@
 
 #include "../ShaderLibrary/Textures.hlsl"
 
+#if defined(_NORMAL_MAP)
+#define REQUIRE_TANGENT_INTERPOLANT
+#endif // _NORMAL_MAP
+
 CBUFFER_START(UnityPerMaterial)
 
 float4 _MainColor;

@@ -13,16 +13,14 @@
 #define REQUIRE_DEPTH_INTERPOLANT
 #endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_BLOB_SHADOWS || TOON_RP_SSAO_ANY
 
-#if defined(_NORMAL_MAP)
-#define REQUIRE_TANGENT_INTERPOLANT
-#endif // _NORMAL_MAP
+#include "ToonRpDefaultInput.hlsl"
 
 struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL;
     float2 uv : TEXCOORD0;
-    
+
     #ifdef REQUIRE_TANGENT_INTERPOLANT
     float4 tangent : TANGENT;
     #endif // REQUIRE_TANGENT_INTERPOLANT
@@ -47,8 +45,6 @@ struct v2f
     float4 positionCs : SV_POSITION;
 };
 
-#include "ToonRpDefaultInput.hlsl"
-
 v2f VS(const appdata IN)
 {
     v2f OUT;
@@ -56,7 +52,7 @@ v2f VS(const appdata IN)
     UNITY_SETUP_INSTANCE_ID(IN);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
-    const float3 normalWs = TransformObjectToWorldNormal(IN.normal); 
+    const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);

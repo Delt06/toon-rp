@@ -15,6 +15,8 @@ float4 _ShadowColor;
 float3 _SpecularColor;
 float3 _RimColor;
 
+float _AlphaClipThreshold;
+
 float _OverrideRamp_Threshold;
 float _OverrideRamp_SpecularThreshold;
 float _OverrideRamp_RimThreshold;
@@ -43,6 +45,18 @@ float2 ConstructOverrideRampSpecular()
 float2 ConstructOverrideRampRim()
 {
     return float2(_OverrideRamp_RimThreshold, _OverrideRamp_RimThreshold + _OverrideRamp_RimSmoothness);
+}
+
+float4 SampleAlbedo(const float2 uv)
+{
+    return _MainColor * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, uv);
+}
+
+void AlphaClip(const float4 albedo)
+{
+    #ifdef _ALPHATEST_ON
+    clip(albedo.a - _AlphaClipThreshold);
+    #endif // _ALPHATEST_ON
 }
 
 #endif // TOON_RP_DEFAULT_INPUT

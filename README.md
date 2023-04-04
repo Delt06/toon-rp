@@ -72,3 +72,4 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ## Used Assets
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)
+- [Quaternius - Ultimate Stylized Nature Pack](https://quaternius.com/packs/ultimatestylizednature.html)

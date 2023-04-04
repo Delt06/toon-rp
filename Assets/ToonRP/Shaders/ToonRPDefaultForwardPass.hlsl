@@ -179,9 +179,11 @@ float4 PS(const v2f IN) : SV_TARGET
 
     float diffuseRamp = ComputeRampDiffuse(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
-    const float3 albedo = _MainColor.rgb * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, IN.uv).rgb;
-    const float3 mixedShadowColor = MixShadowColor(albedo, _ShadowColor);
-    const float3 diffuse = ApplyRamp(albedo, mixedShadowColor, diffuseRamp);
+    const float4 albedo = SampleAlbedo(IN.uv);
+    AlphaClip(albedo);
+
+    const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
+    const float3 diffuse = ApplyRamp(albedo.rgb, mixedShadowColor, diffuseRamp);
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
     const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
@@ -193,7 +195,7 @@ float4 PS(const v2f IN) : SV_TARGET
     const float rimRamp = ComputeRampRim(fresnel);
     const float3 rim = _RimColor * rimRamp;
 
-    const float3 ambient = SampleSH(normalWs) * albedo;
+    const float3 ambient = SampleSH(normalWs) * albedo.rgb;
 
     float3 outputColor = light.color * (diffuse + specular) + rim + ambient;
     TOON_RP_FOG_MIX(IN, outputColor);

@@ -7,14 +7,18 @@
 
 #include "ToonRPDefaultInput.hlsl"
 
+#if defined(_NORMAL_MAP) || defined(_ALPHATEST_ON)
+#define REQUIRE_UV_INTERPOLANT
+#endif // _NORMAL_MAP || _ALPHATEST_ON
+
 struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL;
 
-    #ifdef _NORMAL_MAP
+    #ifdef REQUIRE_UV_INTERPOLANT
     float2 uv : TEXCOORD;
-    #endif // _NORMAL_MAP
+    #endif // REQUIRE_UV_INTERPOLANT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
     float4 tangent : TANGENT;
@@ -28,9 +32,9 @@ struct v2f
     float4 positionCs : SV_POSITION;
     float3 normalWs : NORMAL_WS;
 
-    #ifdef _NORMAL_MAP
+    #ifdef REQUIRE_UV_INTERPOLANT
     float2 uv : TEXCOORD;
-    #endif // _NORMAL_MAP
+    #endif // REQUIRE_UV_INTERPOLANT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
     float3 tangentWs : TANGENT_WS;
@@ -48,9 +52,9 @@ v2f VS(const appdata IN)
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
 
-    #ifdef _NORMAL_MAP
+    #ifdef REQUIRE_UV_INTERPOLANT
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
-    #endif // _NORMAL_MAP
+    #endif // REQUIRE_UV_INTERPOLANT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
     ComputeTangentsWs(IN.tangent, normalWs, OUT.tangentWs, OUT.bitangentWs);
@@ -61,6 +65,11 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
+    #ifdef _ALPHATEST_ON
+    const float alpha = SampleAlbedo(IN.uv).a;
+    AlphaClip(alpha);
+    #endif // _ALPHATEST_ON
+
     #ifdef _NORMAL_MAP
     const float3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
     float3 normalWs = TransformTangentToWorld(normalTs, float3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));

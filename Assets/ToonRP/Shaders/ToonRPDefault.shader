@@ -6,6 +6,11 @@
 		_MainColor ("Color", Color) = (1, 1, 1, 1)
 		[MainTexture]
 		_MainTexture ("Texture", 2D) = "white" {}
+	    
+	    [Toggle(_ALPHATEST_ON)]
+	    _AlphaClipping ("Alpha Clipping", Float) = 0
+	    _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
+	    
 	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
@@ -27,10 +32,12 @@
 	    _OverrideRamp_Smoothness ("Smoothness", Range(0, 1)) = 0.083
 	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 2)) = 0.005
 	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
+	    
+	    _QueueOffset ("Queue Offset", Float) = 0
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
+		Tags { "RenderType" = "Opaque" }
 		LOD 100
 	    
 	    HLSLINCLUDE
@@ -66,6 +73,7 @@
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON 
 			#pragma shader_feature_local _NORMAL_MAP 
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
 			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS 
@@ -88,6 +96,9 @@
 
 			#pragma multi_compile_instancing
 
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
+
 			#include "ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -105,6 +116,9 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
+
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
 
 			#include "ToonRPDefaultDepthOnlyPass.hlsl"
 			
@@ -125,7 +139,8 @@
 			#pragma multi_compile_instancing
 
 			// Per-Material
-			#pragma shader_feature_local _NORMAL_MAP 
+			#pragma shader_feature_local _NORMAL_MAP
+			#pragma shader_feature_local _ALPHATEST_ON
 
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			

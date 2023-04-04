@@ -8,9 +8,12 @@ namespace ToonRP.Editor.ShaderGUI
     [UsedImplicitly]
     public class ToonRpDefaultShaderGui : UnityEditor.ShaderGUI
     {
+        private const string QueueOffset = "_QueueOffset";
+        private const string AlphaClipping = "_AlphaClipping";
         private MaterialEditor _materialEditor;
         private MaterialProperty[] _properties;
 
+        private Material Material => (Material) _materialEditor.target;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -18,12 +21,17 @@ namespace ToonRP.Editor.ShaderGUI
             _properties = properties;
 
             {
+                EditorGUI.BeginChangeCheck();
                 DrawProperties();
 
                 EditorGUILayout.Space();
 
                 materialEditor.EnableInstancingField();
-                materialEditor.RenderQueueField();
+                DrawQueueOffset();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateQueue();
+                }
             }
 
             _materialEditor = null;
@@ -34,6 +42,14 @@ namespace ToonRP.Editor.ShaderGUI
         {
             DrawProperty("_MainColor");
             DrawProperty("_MainTexture");
+            DrawProperty(AlphaClipping, out MaterialProperty alphaClipping);
+            if (alphaClipping.floatValue != 0)
+            {
+                DrawProperty("_AlphaClipThreshold");
+            }
+
+            EditorGUILayout.Space();
+
             DrawProperty("_ShadowColor");
             DrawProperty("_SpecularColor");
             DrawProperty("_RimColor");
@@ -69,9 +85,8 @@ namespace ToonRP.Editor.ShaderGUI
                 return;
             }
 
-            var material = (Material) _materialEditor.target;
-            material.SetKeyword(new LocalKeyword(material.shader, "_NORMAL_MAP"), normalMap.textureValue != null);
-            EditorUtility.SetDirty(material);
+            Material.SetKeyword(new LocalKeyword(Material.shader, "_NORMAL_MAP"), normalMap.textureValue != null);
+            EditorUtility.SetDirty(Material);
         }
 
         private bool DrawProperty(string propertyName, string labelOverride = null) =>
@@ -84,6 +99,40 @@ namespace ToonRP.Editor.ShaderGUI
             _materialEditor.ShaderProperty(property, labelOverride ?? property.displayName);
             bool changed = EditorGUI.EndChangeCheck();
             return changed;
+        }
+
+        private void DrawQueueOffset()
+        {
+            MaterialProperty property = FindProperty(QueueOffset, _properties);
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            int currentValue = (int) property.floatValue;
+            const int queueOffsetRange = 50;
+            int newValue = EditorGUILayout.IntSlider("Queue Offset", currentValue, -queueOffsetRange, queueOffsetRange);
+            if (currentValue != newValue)
+            {
+                property.floatValue = newValue;
+                _materialEditor.PropertiesChanged();
+            }
+
+            EditorGUI.showMixedValue = false;
+        }
+
+        private void UpdateQueue()
+        {
+            bool alphaClipping = FindProperty(AlphaClipping, _properties).floatValue != 0;
+            if (alphaClipping)
+            {
+                Material.renderQueue = (int) RenderQueue.AlphaTest;
+                Material.SetOverrideTag("RenderType", "TransparentCutout");
+            }
+            else
+            {
+                Material.renderQueue = (int) RenderQueue.Geometry;
+                Material.SetOverrideTag("RenderType", "Opaque");
+            }
+
+            int queueOffset = (int) FindProperty(QueueOffset, _properties).floatValue;
+            Material.renderQueue += queueOffset;
         }
     }
 }

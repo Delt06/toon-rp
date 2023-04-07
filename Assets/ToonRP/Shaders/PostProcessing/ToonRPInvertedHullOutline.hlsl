@@ -7,7 +7,7 @@
 
 // TODO: figure out if this works on all hardware (most likely it doesn't)
 // https://forum.unity.com/threads/ignoring-some-triangles-in-a-vertex-shader.170834/
-#define USE_CLIP_DISTANCE
+//#define USE_CLIP_DISTANCE
 
 struct appdata
 {

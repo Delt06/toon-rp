@@ -20,7 +20,12 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 ## Features
 
 
-- Toon Shader with globally configurable ramp
+- Toon Shader
+  - Globally/locally configurable ramp;
+  - Alpha Clipping
+  - Normal Map
+  - GPU Instancing
+  - SRP Batcher Support
 
 ![Toon Shader](./Documentation/features_toon_shader.jpg?raw=true)
 

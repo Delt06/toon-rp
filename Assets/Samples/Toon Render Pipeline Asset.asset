@@ -80,7 +80,7 @@ MonoBehaviour:
       ThresholdKnee: 0.715
       MaxIterations: 3
       DownsampleLimit: 2
-      BicubicUpsampling: 1
+      BicubicUpsampling: 0
       Pattern:
         Enabled: 1
         Scale: 350

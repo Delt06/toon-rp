@@ -29,7 +29,7 @@ MonoBehaviour:
   CameraRendererSettings:
     AllowHdr: 1
     Stencil: 0
-    Msaa: 8
+    Msaa: 1
     DepthPrePass: 2
     UseSrpBatching: 1
     UseDynamicBatching: 0
@@ -78,7 +78,7 @@ MonoBehaviour:
       Intensity: 1
       Threshold: 1.66
       ThresholdKnee: 0.715
-      MaxIterations: 15
+      MaxIterations: 3
       DownsampleLimit: 2
       BicubicUpsampling: 1
       Pattern:

@@ -55,7 +55,7 @@ MonoBehaviour:
     Blobs:
       AtlasSize: 128
       Mode: 0
-      Saturation: 5
+      Saturation: 1
   Ssao:
     Enabled: 1
     Radius: 0.15

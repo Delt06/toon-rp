@@ -23,7 +23,11 @@ float PackVsmDepth(const float depth)
 #define MAX_CASCADE_COUNT 4
 
 TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
+#ifdef _TOON_RP_VSM
 SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
+#else // !_TOON_RP_VSM
+SAMPLER_CMP(sampler_ToonRP_DirectionalShadowAtlas);
+#endif //_TOON_RP_VSM
 
 CBUFFER_START(_ToonRpShadows)
 float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
@@ -48,6 +52,7 @@ float3 ApplyShadowBias(float3 positionWs, const float3 normalWs, const float3 li
 
 float SampleShadowAttenuation(const float3 shadowCoords)
 {
+    #ifdef _TOON_RP_VSM
     const float2 varianceSample = SAMPLE_TEXTURE2D(_ToonRP_DirectionalShadowAtlas,
                                                    sampler_ToonRP_DirectionalShadowAtlas,
                                                    shadowCoords.xy).rg;
@@ -65,6 +70,10 @@ float SampleShadowAttenuation(const float3 shadowCoords)
     }
 
     return 1.0;
+    #else // !_TOON_RP_VSM
+    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
+                                   shadowCoords).r;
+    #endif // _TOON_RP_VSM
 }
 
 uint ComputeShadowTileIndex(const float3 positionWs)
@@ -93,18 +102,23 @@ uint ComputeShadowTileIndex(const float3 positionWs)
 float3 TransformWorldToShadowCoords(const float3 positionWs, uint tileIndex, const bool perspectiveProjection = false)
 {
     float4 shadowCoords = mul(_ToonRP_DirectionalShadowMatrices_VP[tileIndex], float4(positionWs, 1.0f));
+    #ifdef _TOON_RP_VSM
     shadowCoords.z = mul(_ToonRP_DirectionalShadowMatrices_V[tileIndex], float4(positionWs, 1.0f)).z;
+    #endif // _TOON_RP_VSM
 
     if (perspectiveProjection)
     {
         shadowCoords.xyz /= shadowCoords.w;
     }
 
+    #ifdef _TOON_RP_VSM
     shadowCoords.z = PackVsmDepth(shadowCoords.z);
 
     #ifdef UNITY_REVERSED_Z
     shadowCoords.z *= -1.0f;
     #endif // UNITY_REVERSED_Z
+
+    #endif // _TOON_RP_VSM
 
     return shadowCoords.xyz;
 }

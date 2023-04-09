@@ -83,6 +83,7 @@
 
 			// Shadows
 			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS _TOON_RP_BLOB_SHADOWS
+			#pragma multi_compile_fragment _ _TOON_RP_VSM
 			#pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
 
 			// SSAO
@@ -114,6 +115,9 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
+
+			// Shadows
+			#pragma multi_compile _ _TOON_RP_VSM
 
 			// Per-Material
 			#pragma shader_feature_local _ALPHATEST_ON

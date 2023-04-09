@@ -13,7 +13,7 @@ namespace ToonRP.Runtime.Shadows
         public const int MaxCascades = 4;
 
         // R - depth, G - depth^2
-        private const RenderTextureFormat ShadowmapFormat = RenderTextureFormat.RGFloat;
+        private const RenderTextureFormat VsmShadowmapFormat = RenderTextureFormat.RGFloat;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
 
         private static readonly int DirectionalShadowsAtlasId = Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas");
@@ -108,6 +108,7 @@ namespace ToonRP.Runtime.Shadows
                 bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
                 _cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
                 _cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
+                _cmd.SetKeyword(ToonShadows.VsmGlobalKeyword, _vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None);
                 _cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
             }
             else
@@ -115,10 +116,11 @@ namespace ToonRP.Runtime.Shadows
                 _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, 1, 1,
                     DepthBits,
                     ShadowmapFiltering,
-                    ShadowmapFormat
+                    RenderTextureFormat.Shadowmap
                 );
                 _cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
                 _cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
+                _cmd.DisableKeyword(ToonShadows.VsmGlobalKeyword);
                 _cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
             }
 
@@ -135,16 +137,28 @@ namespace ToonRP.Runtime.Shadows
         private void RenderDirectionalShadows()
         {
             int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
-            _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
-                DepthBits,
-                ShadowmapFiltering,
-                ShadowmapFormat
-            );
-            _cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
-                0,
-                ShadowmapFiltering,
-                ShadowmapFormat
-            );
+
+
+            if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+            {
+                _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
+                    DepthBits,
+                    ShadowmapFiltering,
+                    VsmShadowmapFormat
+                );
+                _cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
+                    0,
+                    ShadowmapFiltering,
+                    VsmShadowmapFormat
+                );
+            }
+            else
+            {
+                _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
+                    RenderTextureFormat.Shadowmap
+                );
+            }
+
             _cmd.SetRenderTarget(DirectionalShadowsAtlasId,
                 RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store
@@ -225,9 +239,14 @@ namespace ToonRP.Runtime.Shadows
             ExecuteBuffer();
 
             // TODO: try using _blurCmd.SetKeyword
-            _blurMaterial.SetKeyword(_highQualityBlurKeyword, _vsmSettings.HighQualityBlur);
-            _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
-            _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+            if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+            {
+                bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.HighQuality;
+                _blurMaterial.SetKeyword(_highQualityBlurKeyword, highQualityBlur);
+                _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
+                _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+            }
+
             ExecuteBuffer(_blurCmd);
         }
 
@@ -244,11 +263,24 @@ namespace ToonRP.Runtime.Shadows
             );
         }
 
-        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
+        private Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
         {
             Matrix4x4 remap = Matrix4x4.identity;
             remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
             remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
+
+            if (_vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.None)
+            {
+                remap.m22 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
+
+                if (SystemInfo.usesReversedZBuffer)
+                {
+                    remap.m22 *= -1;
+                }
+
+                remap.m23 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
+            }
+
             m = remap * m;
 
             float scale = 1f / split;

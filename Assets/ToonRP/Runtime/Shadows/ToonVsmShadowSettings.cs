@@ -6,7 +6,14 @@ namespace ToonRP.Runtime.Shadows
     [Serializable]
     public struct ToonVsmShadowSettings
     {
-        public bool HighQualityBlur;
+        public enum BlurMode
+        {
+            None,
+            LowQuality,
+            HighQuality,
+        }
+
+        public BlurMode Blur;
         public DirectionalShadows Directional;
 
         [Serializable]

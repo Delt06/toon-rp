@@ -46,7 +46,7 @@ namespace ToonRP.Runtime
             DistanceFade = 0.1f,
             Vsm = new ToonVsmShadowSettings
             {
-                HighQualityBlur = true,
+                Blur = ToonVsmShadowSettings.BlurMode.LowQuality,
                 Directional =
                 {
                     Enabled = true, AtlasSize = TextureSize._1024,

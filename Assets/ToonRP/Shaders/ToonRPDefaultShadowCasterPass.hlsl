@@ -29,7 +29,9 @@ struct v2f
     float2 uv : TEXCOORD;
     #endif // REQUIRE_UV_INTERPOLANT
 
+    #ifdef _TOON_RP_VSM
     float depth : VIEW_Z;
+    #endif // _TOON_RP_VSM
 
     float4 positionCs : SV_POSITION;
 };
@@ -50,18 +52,22 @@ v2f VS(const appdata IN)
     positionWs = ApplyShadowBias(positionWs, normalWs, _DirectionalLightDirection);
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
+    #ifdef _TOON_RP_VSM
     float viewZ = TransformWorldToView(positionWs).z;
     #ifdef UNITY_REVERSED_Z
     viewZ *= -1.0f;
     #endif // UNITY_REVERSED_Z
     OUT.depth = PackVsmDepth(viewZ);
+    #endif // _TOON_RP_VSM
 
     return OUT;
 }
 
 struct PsOut
 {
+    #ifdef _TOON_RP_VSM
     float2 depth_depthSqr : SV_TARGET;
+    #endif // _TOON_RP_VSM
 };
 
 PsOut PS(const v2f IN)
@@ -72,7 +78,9 @@ PsOut PS(const v2f IN)
     #endif // _ALPHATEST_ON
 
     PsOut OUT;
+    #ifdef _TOON_RP_VSM
     OUT.depth_depthSqr = float2(IN.depth, IN.depth * IN.depth);
+    #endif // _TOON_RP_VSM
     return OUT;
 }
 

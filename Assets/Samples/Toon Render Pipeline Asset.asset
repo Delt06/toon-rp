@@ -41,12 +41,12 @@ MonoBehaviour:
     MaxDistance: 25
     DistanceFade: 0.354
     Vsm:
-      HighQualityBlur: 0
+      Blur: 1
       Directional:
         Enabled: 1
         AtlasSize: 2048
         CascadeCount: 4
-        CascadeRatio1: 0.113
+        CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
         DepthBias: 0.01

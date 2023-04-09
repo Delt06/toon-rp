@@ -35,6 +35,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 - Variance Shadow Mapping (VSM)
   - _Optional_: crisp anti-aliased ramp
+  - _Optional_: up to four cascades
 
 ![VSM](./Documentation/features_vsm.jpg?raw=true)
 

@@ -20,11 +20,13 @@ namespace ToonRP.Runtime.Shadows
         public ToonShadows()
         {
             DirectionalShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS");
+            DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS");
             BlobShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_BLOB_SHADOWS");
             ShadowsRampCrisp = GlobalKeyword.Create("_TOON_RP_SHADOWS_RAMP_CRISP");
         }
 
         public static GlobalKeyword DirectionalShadowsGlobalKeyword { get; private set; }
+        public static GlobalKeyword DirectionalCascadedShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword BlobShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
 
@@ -37,6 +39,7 @@ namespace ToonRP.Runtime.Shadows
             if (settings.Mode != ToonShadowSettings.ShadowMode.Vsm)
             {
                 _cmd.DisableKeyword(DirectionalShadowsGlobalKeyword);
+                _cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
             }
 
             _cmd.SetKeyword(BlobShadowsGlobalKeyword, settings.Mode == ToonShadowSettings.ShadowMode.Blobs);

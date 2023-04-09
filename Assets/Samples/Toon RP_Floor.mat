@@ -15,8 +15,9 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 2000
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -27,15 +28,29 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTexture:
         m_Texture: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
-        m_Scale: {x: 10, y: 10}
+        m_Scale: {x: 20, y: 20}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints:
+    - _ForwardStencilComp: 0
+    - _ForwardStencilPass: 0
+    - _ForwardStencilRef: 0
+    - _ForwardStencilWriteMask: 0
     m_Floats:
+    - _AlphaClipThreshold: 0.5
+    - _AlphaClipping: 0
+    - _OutlinesStencilLayer: 0
     - _OverrideRamp: 0
+    - _OverrideRamp_RimSmoothness: 0.1
+    - _OverrideRamp_RimThreshold: 0.5
     - _OverrideRamp_Smoothness: 0.083
     - _OverrideRamp_SpecularSmoothness: 0.005
     - _OverrideRamp_SpecularThreshold: 0.995
     - _OverrideRamp_Threshold: 0
+    - _QueueOffset: 0
     - _ReceiveBlobShadows: 1
     - _SpecularExponent: 52.31
     m_Colors:

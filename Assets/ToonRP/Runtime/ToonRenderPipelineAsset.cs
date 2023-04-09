@@ -50,6 +50,10 @@ namespace ToonRP.Runtime
                 Directional =
                 {
                     Enabled = true, AtlasSize = TextureSize._1024,
+                    CascadeCount = 4,
+                    CascadeRatio1 = 0.1f,
+                    CascadeRatio2 = 0.25f,
+                    CascadeRatio3 = 0.5f,
                 },
             },
             Blobs = new ToonBlobShadowsSettings

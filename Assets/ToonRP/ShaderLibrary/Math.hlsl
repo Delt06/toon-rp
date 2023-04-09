@@ -23,4 +23,9 @@ float DistanceFade(const float distance, const float scale, const float fade)
     return 1.0f - saturate((1.0 - distance * scale) * fade);
 }
 
+float DistanceSquared(const float3 point1, const float3 point2)
+{
+    return dot(point1 - point2, point1 - point2);
+}
+
 #endif // TOON_RP_MATH

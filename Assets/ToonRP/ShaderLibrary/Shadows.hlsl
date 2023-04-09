@@ -1,6 +1,14 @@
 ﻿#ifndef TOON_RP_SHADOWS
 #define TOON_RP_SHADOWS
 
+#if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS)
+#define _TOON_RP_VSM_SHADOWS
+#endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
+
+#if defined(_TOON_RP_VSM_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS)
+#define _TOON_RP_ANY_SHADOWS
+#endif // _TOON_RP_VSM_SHADOWS || _TOON_RP_BLOB_SHADOWS
+
 #include "Math.hlsl"
 #include "Ramp.hlsl"
 
@@ -12,13 +20,16 @@ float PackVsmDepth(const float depth)
 }
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 1
+#define MAX_CASCADE_COUNT 4
 
 TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
 SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
 
 CBUFFER_START(_ToonRpShadows)
-float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT];
-float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT];
+float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
+float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
+int _ToonRP_CascadeCount;
+float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
 float2 _ToonRP_ShadowRamp;
 float2 _ToonRP_ShadowDistanceFade;
 float2 _ToonRP_ShadowBias; // x - depth, y - normal
@@ -41,13 +52,13 @@ float SampleShadowAttenuation(const float3 shadowCoords)
                                                    sampler_ToonRP_DirectionalShadowAtlas,
                                                    shadowCoords.xy).rg;
     const float variance = varianceSample.y - varianceSample.x * varianceSample.x;
-    
+
     #ifdef UNITY_REVERSED_Z
     const float difference = shadowCoords.z - varianceSample.x;
     #else // !UNITY_REVERSED_Z
     const float difference = varianceSample.x - shadowCoords.z;
     #endif // UNITY_REVERSED_Z
-    
+
     if (difference > 0.00001)
     {
         return smoothstep(0.4, 1.0, variance / (variance + difference * difference));
@@ -56,11 +67,33 @@ float SampleShadowAttenuation(const float3 shadowCoords)
     return 1.0;
 }
 
-float3 TransformWorldToShadowCoords(const float3 positionWs, const bool perspectiveProjection = false)
+uint ComputeShadowTileIndex(const float3 positionWs)
 {
-    const uint lightIndex = 0;
-    float4 shadowCoords = mul(_ToonRP_DirectionalShadowMatrices_VP[lightIndex], float4(positionWs, 1.0f));
-    shadowCoords.z = mul(_ToonRP_DirectionalShadowMatrices_V[lightIndex], float4(positionWs, 1.0f)).z;
+    #ifdef _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
+    
+    int i;
+    for (i = 0; i < _ToonRP_CascadeCount; i++)
+    {
+        float4 sphere = _ToonRP_CascadeCullingSpheres[i];
+        const float distanceSqr = DistanceSquared(positionWs, sphere.xyz);
+        if (distanceSqr < sphere.w)
+        {
+            break;
+        }
+    }
+    return i;
+
+    #else // !_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
+
+    return 0;
+
+    #endif // _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
+}
+
+float3 TransformWorldToShadowCoords(const float3 positionWs, uint tileIndex, const bool perspectiveProjection = false)
+{
+    float4 shadowCoords = mul(_ToonRP_DirectionalShadowMatrices_VP[tileIndex], float4(positionWs, 1.0f));
+    shadowCoords.z = mul(_ToonRP_DirectionalShadowMatrices_V[tileIndex], float4(positionWs, 1.0f)).z;
 
     if (perspectiveProjection)
     {

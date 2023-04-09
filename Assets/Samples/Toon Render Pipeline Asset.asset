@@ -38,13 +38,17 @@ MonoBehaviour:
     Threshold: 0.757
     CrispAntiAliased: 1
     Smoothness: 0.416
-    MaxDistance: 15
-    DistanceFade: 0.5
+    MaxDistance: 25
+    DistanceFade: 0.354
     Vsm:
-      HighQualityBlur: 1
+      HighQualityBlur: 0
       Directional:
         Enabled: 1
         AtlasSize: 2048
+        CascadeCount: 4
+        CascadeRatio1: 0.113
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
         DepthBias: 0.01
         NormalBias: 0
         SlopeBias: 0

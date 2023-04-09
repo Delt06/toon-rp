@@ -9,9 +9,9 @@
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
-#if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS) || defined(TOON_RP_SSAO_ANY)
+#if defined(_TOON_RP_ANY_SHADOWS) || defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
-#endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_BLOB_SHADOWS || TOON_RP_SSAO_ANY
+#endif // _TOON_RP_ANY_SHADOWS || TOON_RP_SSAO_ANY
 
 #include "ToonRpDefaultInput.hlsl"
 
@@ -84,26 +84,27 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
 
 float GetShadowAttenuation(const v2f IN, const Light light)
 {
-    #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
+    #if defined(_TOON_RP_ANY_SHADOWS) || defined(_RECEIVE_BLOB_SHADOWS)
     
     const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.depth);
     return shadowAttenuation;
 
-    #else // !_TOON_RP_DIRECTIONAL_SHADOWS && !_TOON_RP_BLOB_SHADOWS
+    #else // !_TOON_RP_ANY_SHADOWS && !_TOON_RP_BLOB_SHADOWS
 
     return 1.0f;
 
-    #endif  // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_BLOB_SHADOWS
+    #endif  // _TOON_RP_ANY_SHADOWS || _TOON_RP_BLOB_SHADOWS
 }
 
 Light GetMainLight(const v2f IN)
 {
-    #ifdef _TOON_RP_DIRECTIONAL_SHADOWS
-    const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs);
-    Light light = GetMainLight(shadowCoords); 
-    #else // !_TOON_RP_DIRECTIONAL_SHADOWS
+    #ifdef _TOON_RP_VSM_SHADOWS
+    const uint tileIndex = ComputeShadowTileIndex(IN.positionWs);
+    const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs, tileIndex);
+    Light light = GetMainLight(shadowCoords);
+    #else // !_TOON_RP_VSM_SHADOWS
     Light light = GetMainLight();
-    #endif // _TOON_RP_DIRECTIONAL_SHADOWS
+    #endif // _TOON_RP_VSM_SHADOWS
 
     #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 

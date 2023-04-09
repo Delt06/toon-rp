@@ -82,7 +82,7 @@
 			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
 
 			// Shadows
-			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_BLOB_SHADOWS
+			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS _TOON_RP_BLOB_SHADOWS
 			#pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
 
 			// SSAO

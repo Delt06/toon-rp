@@ -10,6 +10,7 @@ namespace ToonRP.Runtime.Shadows
 
         private const int MaxShadowedDirectionalLightCount = 1;
         private const int DepthBits = 32;
+        public const int MaxCascades = 4;
 
         // R - depth, G - depth^2
         private const RenderTextureFormat ShadowmapFormat = RenderTextureFormat.RGFloat;
@@ -22,15 +23,20 @@ namespace ToonRP.Runtime.Shadows
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_VP");
         private static readonly int DirectionalShadowsMatricesVId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_V");
+        private static readonly int CascadeCountId =
+            Shader.PropertyToID("_ToonRP_CascadeCount");
+        private static readonly int CascadeCullingSpheresId =
+            Shader.PropertyToID("_ToonRP_CascadeCullingSpheres");
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
         private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
+        private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =
-            new Matrix4x4[MaxShadowedDirectionalLightCount];
+            new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
-            new Matrix4x4[MaxShadowedDirectionalLightCount];
+            new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
@@ -98,7 +104,10 @@ namespace ToonRP.Runtime.Shadows
             {
                 EnsureMaterialIsCreated();
                 RenderDirectionalShadows();
-                _cmd.EnableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
+
+                bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
+                _cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
+                _cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
                 _cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
             }
             else
@@ -109,6 +118,7 @@ namespace ToonRP.Runtime.Shadows
                     ShadowmapFormat
                 );
                 _cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
+                _cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
                 _cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
             }
 
@@ -143,7 +153,8 @@ namespace ToonRP.Runtime.Shadows
             _cmd.BeginSample(CmdName);
             ExecuteBuffer();
 
-            int split = _shadowedDirectionalLightCount <= 1 ? 1 : 2;
+            int tiles = _shadowedDirectionalLightCount * _vsmSettings.Directional.CascadeCount;
+            int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
             int tileSize = atlasSize / split;
 
             for (int i = 0; i < _shadowedDirectionalLightCount; ++i)
@@ -151,6 +162,8 @@ namespace ToonRP.Runtime.Shadows
                 RenderDirectionalShadows(i, split, tileSize);
             }
 
+            _cmd.SetGlobalInteger(CascadeCountId, _vsmSettings.Directional.CascadeCount);
+            _cmd.SetGlobalVectorArray(CascadeCullingSpheresId, _cascadeCullingSpheres);
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
             _cmd.EndSample(CmdName);
@@ -173,23 +186,40 @@ namespace ToonRP.Runtime.Shadows
         {
             ShadowedDirectionalLight light = _shadowedDirectionalLights[index];
             var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.VisibleLightIndex);
-            _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                light.VisibleLightIndex, index, 1, Vector3.zero, tileSize, 0f,
-                out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
-            );
-            shadowSettings.splitData = splitData;
-            SetTileViewport(index, split, tileSize, out Vector2 offset);
-            _directionalShadowMatricesVp[index] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, tileSize);
-            _directionalShadowMatricesV[index] = viewMatrix;
-            _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+            int cascadeCount = _vsmSettings.Directional.CascadeCount;
+            int tileOffset = index * cascadeCount;
+            Vector3 ratios = _vsmSettings.Directional.GetRatios();
 
             _cmd.SetGlobalDepthBias(0.0f, _vsmSettings.Directional.SlopeBias);
             _cmd.SetGlobalVector(ShadowBiasId,
                 new Vector4(-_vsmSettings.Directional.DepthBias, _vsmSettings.Directional.NormalBias)
             );
-            ExecuteBuffer();
 
-            _context.DrawShadows(ref shadowSettings);
+            for (int i = 0; i < cascadeCount; i++)
+            {
+                _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
+                    light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, 0f,
+                    out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
+                );
+                shadowSettings.splitData = splitData;
+                if (index == 0)
+                {
+                    Vector4 cullingSphere = splitData.cullingSphere;
+                    cullingSphere.w *= cullingSphere.w;
+                    _cascadeCullingSpheres[i] = cullingSphere;
+                }
+
+                int tileIndex = tileOffset + i;
+                SetTileViewport(tileIndex, split, tileSize, out Vector2 offset);
+                _directionalShadowMatricesVp[tileIndex] =
+                    ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
+                _directionalShadowMatricesV[tileIndex] = viewMatrix;
+                _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+
+                ExecuteBuffer();
+
+                _context.DrawShadows(ref shadowSettings);
+            }
 
             _cmd.SetGlobalDepthBias(0f, 0.0f);
             ExecuteBuffer();
@@ -219,7 +249,17 @@ namespace ToonRP.Runtime.Shadows
             Matrix4x4 remap = Matrix4x4.identity;
             remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
             remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
-            return remap * m;
+            m = remap * m;
+
+            float scale = 1f / split;
+            remap = Matrix4x4.identity;
+            remap.m00 = remap.m11 = scale;
+            remap.m03 = offset.x * scale;
+            remap.m13 = offset.y * scale;
+
+            m = remap * m;
+
+            return m;
         }
 
         private struct ShadowedDirectionalLight

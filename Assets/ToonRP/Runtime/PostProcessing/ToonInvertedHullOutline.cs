@@ -73,9 +73,20 @@ namespace ToonRP.Runtime.PostProcessing
                 };
                 var renderStateBlock = new RenderStateBlock
                 {
-                    mask = RenderStateMask.Raster,
+                    mask = RenderStateMask.Raster | RenderStateMask.Stencil,
                     rasterState = new RasterState(CullMode.Front, 0, pass.DepthBias),
                 };
+                if (pass.StencilLayer != StencilLayer.None)
+                {
+                    byte reference = pass.StencilLayer.ToReference();
+                    renderStateBlock.stencilReference = reference;
+                    renderStateBlock.stencilState = new StencilState(true, reference, 0, CompareFunction.NotEqual);
+                }
+                else
+                {
+                    renderStateBlock.stencilState = new StencilState(false);
+                }
+
 
                 _context.DrawRenderers(_cullingResults,
                     ref drawingSettings, ref filteringSettings, ref renderStateBlock

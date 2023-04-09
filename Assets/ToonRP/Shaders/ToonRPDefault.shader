@@ -23,6 +23,9 @@
 	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
 	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
 	    
+	    [Enum(ToonRP.Runtime.StencilLayer)]
+	    _OutlinesStencilLayer ("Outlines Stencil Layer", Float) = 0
+	    
 	    [Toggle(_OVERRIDE_RAMP)]
 	    _OverrideRamp ("Override Ramp", Float) = 0
 	    _OverrideRamp_Threshold ("Threshold", Range(-1, 1)) = 0
@@ -34,6 +37,11 @@
 	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
+	    
+	    _ForwardStencilRef ("Stencil Ref", Integer) = 0
+	    _ForwardStencilWriteMask ("Stencil Write Mask", Integer) = 0
+	    _ForwardStencilComp ("Stencil Comp", Integer) = 0
+	    _ForwardStencilPass ("Stencil Pass", Integer) = 0
 	}
 	SubShader
 	{
@@ -54,6 +62,14 @@
 		{
 		    Name "Toon RP Forward"
 			Tags{ "LightMode" = "ToonRPForward" }
+		    
+		    Stencil
+            {
+                Ref [_ForwardStencilRef]
+                WriteMask [_ForwardStencilWriteMask]
+                Comp [_ForwardStencilComp]
+                Pass [_ForwardStencilPass]
+            }
 			
 			HLSLPROGRAM
 
@@ -76,7 +92,10 @@
 			#pragma shader_feature_local _ALPHATEST_ON 
 			#pragma shader_feature_local _NORMAL_MAP 
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
-			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS 
+			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS
+
+			// Bug workaround: stencil might not be set if don't create a separate shader variant for outlines
+			#pragma shader_feature_local_vertex _HAS_OUTLINES_STENCIL_LAYER 
 
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

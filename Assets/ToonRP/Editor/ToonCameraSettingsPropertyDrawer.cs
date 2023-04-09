@@ -19,6 +19,7 @@ namespace ToonRP.Editor
                     label = "Allow HDR",
                 }
             );
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.Stencil))));
 
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.Msaa)))
                 {

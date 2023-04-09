@@ -28,6 +28,7 @@ MonoBehaviour:
     RimSmoothness: 0.1
   CameraRendererSettings:
     AllowHdr: 1
+    Stencil: 0
     Msaa: 8
     DepthPrePass: 2
     UseSrpBatching: 1
@@ -90,6 +91,7 @@ MonoBehaviour:
           LayerMask:
             serializedVersion: 2
             m_Bits: 55
+          StencilLayer: 8
           Color: {r: 0, g: 0, b: 0, a: 0}
           Thickness: 0.025
           UseNormalsFromUV2: 0

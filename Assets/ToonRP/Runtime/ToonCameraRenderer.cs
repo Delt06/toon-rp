@@ -1,6 +1,7 @@
 ﻿using ToonRP.Runtime.PostProcessing;
 using ToonRP.Runtime.Shadows;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using static ToonRP.Runtime.ToonCameraRendererSettings;
 
@@ -33,6 +34,7 @@ namespace ToonRP.Runtime
         private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+        private GraphicsFormat _depthStencilFormat;
         private int _msaaSamples;
         private bool _renderToTexture;
         private int _rtHeight;
@@ -87,15 +89,14 @@ namespace ToonRP.Runtime
             SetRenderTargets();
             ClearRenderTargets();
 
+            DrawVisibleGeometry();
+            DrawUnsupportedShaders();
+            DrawGizmos();
+
             if (drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Render();
             }
-
-
-            DrawVisibleGeometry();
-            DrawUnsupportedShaders();
-            DrawGizmos();
 
             if (_postProcessing.IsActive)
             {
@@ -172,6 +173,8 @@ namespace ToonRP.Runtime
 
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+            bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
+            _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
 
             if (_renderToTexture)
             {
@@ -182,16 +185,38 @@ namespace ToonRP.Runtime
                     FilterMode.Bilinear, _colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
                 );
-                _cmd.GetTemporaryRT(
-                    CameraDepthBufferId, _rtWidth, _rtHeight, 24,
-                    FilterMode.Point, RenderTextureFormat.Depth,
-                    RenderTextureReadWrite.Linear, _msaaSamples
-                );
+
+                var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                    GraphicsFormat.None, _depthStencilFormat,
+                    0
+                )
+                {
+                    msaaSamples = _msaaSamples,
+                };
+                _cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
             }
 
             _cmd.BeginSample(_cmdName);
 
             ExecuteBuffer();
+        }
+
+        private static bool InvertedHullOutlinesRequireStencil(in ToonPostProcessingSettings postProcessingSettings)
+        {
+            if (postProcessingSettings.Outline.Mode != ToonOutlineSettings.OutlineMode.InvertedHull)
+            {
+                return false;
+            }
+
+            foreach (ToonInvertedHullOutlineSettings.Pass pass in postProcessingSettings.Outline.InvertedHull.Passes)
+            {
+                if (pass.StencilLayer != StencilLayer.None)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void SetupLighting(ToonRampSettings globalRampSettings, ToonShadowSettings shadowSettings)

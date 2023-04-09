@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using ToonRP.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,6 +11,10 @@ namespace ToonRP.Editor.ShaderGUI
     {
         private const string QueueOffset = "_QueueOffset";
         private const string AlphaClipping = "_AlphaClipping";
+        private static readonly int ForwardStencilRefId = Shader.PropertyToID("_ForwardStencilRef");
+        private static readonly int ForwardStencilWriteMaskId = Shader.PropertyToID("_ForwardStencilWriteMask");
+        private static readonly int ForwardStencilCompId = Shader.PropertyToID("_ForwardStencilComp");
+        private static readonly int ForwardStencilPassId = Shader.PropertyToID("_ForwardStencilPass");
         private MaterialEditor _materialEditor;
         private MaterialProperty[] _properties;
 
@@ -61,6 +66,30 @@ namespace ToonRP.Editor.ShaderGUI
             EditorGUILayout.Space();
 
             DrawProperty("_ReceiveBlobShadows");
+
+            if (DrawProperty("_OutlinesStencilLayer", out MaterialProperty drawOutlines))
+            {
+                var stencilLayer = (StencilLayer) drawOutlines.floatValue;
+                var outlinesStencilLayerKeyword = new LocalKeyword(Material.shader, "_HAS_OUTLINES_STENCIL_LAYER");
+
+                if (stencilLayer != StencilLayer.None)
+                {
+                    byte reference = stencilLayer.ToReference();
+                    Material.SetInteger(ForwardStencilRefId, reference);
+                    Material.SetInteger(ForwardStencilWriteMaskId, reference);
+                    Material.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
+                    Material.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+                    Material.EnableKeyword(outlinesStencilLayerKeyword);
+                }
+                else
+                {
+                    Material.SetInteger(ForwardStencilRefId, 0);
+                    Material.SetInteger(ForwardStencilWriteMaskId, 0);
+                    Material.SetInteger(ForwardStencilCompId, 0);
+                    Material.SetInteger(ForwardStencilPassId, 0);
+                    Material.DisableKeyword(outlinesStencilLayerKeyword);
+                }
+            }
 
             EditorGUILayout.Space();
 

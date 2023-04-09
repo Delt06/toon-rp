@@ -23,6 +23,13 @@
 	    Pass
 		{
 		    Name "Toon RP Outline (Inverted Hull, Custom Normals)"
+		    
+		    Stencil
+            {
+                Ref 128
+                Comp Equal
+                Pass Keep
+            }
 			
 			HLSLPROGRAM
 

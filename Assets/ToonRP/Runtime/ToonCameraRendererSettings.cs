@@ -21,6 +21,7 @@ namespace ToonRP.Runtime
         }
 
         public bool AllowHdr;
+        public bool Stencil;
         public MsaaMode Msaa;
         public DepthPrePassMode DepthPrePass;
 

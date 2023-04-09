@@ -13,6 +13,7 @@ namespace ToonRP.Runtime.PostProcessing
         {
             public string Name;
             public LayerMask LayerMask;
+            public StencilLayer StencilLayer;
             [ColorUsage(false, true)]
             public Color Color;
             [Min(0f)]

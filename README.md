@@ -51,8 +51,11 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 - Outline (Inverted Hull)
   - Distance fade
   - _Optional_: get normals from a custom UV channel to improve outlines quality. Comes with a utility to bake these custom normals.
+  - _Optional_: remove inner outlines via stencil.
 
-![Outline](./Documentation/features_outlines_fade.gif?raw=true)
+![Outline](./Documentation/features_outlines.jpg?raw=true)
+
+![Outline Fade](./Documentation/features_outlines_fade.gif?raw=true)
 
 - SSAO
   - _Optional_: stylized pattern

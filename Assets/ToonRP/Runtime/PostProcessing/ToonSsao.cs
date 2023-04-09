@@ -6,8 +6,6 @@ namespace ToonRP.Runtime.PostProcessing
 {
     public class ToonSsao
     {
-        // TODO: move all property Set's from string to cached id
-
         public const int MaxSamplesCount = 64;
 
         private const GraphicsFormat RtFormat = GraphicsFormat.R8_UNorm;
@@ -54,6 +52,9 @@ namespace ToonRP.Runtime.PostProcessing
             const int noiseTextureWidth = 4;
             const int noiseTextureHeight = 4;
 
+            Random.State oldState = Random.state;
+            Random.InitState(0);
+
             var texture = new Texture2D(noiseTextureWidth, noiseTextureHeight, GraphicsFormat.R32G32_SFloat, 0,
                 TextureCreationFlags.None
             )
@@ -75,6 +76,8 @@ namespace ToonRP.Runtime.PostProcessing
                 }
             }
 
+            Random.state = oldState;
+
             texture.Apply();
 
             return texture;
@@ -82,6 +85,9 @@ namespace ToonRP.Runtime.PostProcessing
 
         private static Vector4[] GenerateRandomSamples(int samplesCount)
         {
+            Random.State oldState = Random.state;
+            Random.InitState(0);
+            
             var samples = new Vector4[samplesCount];
 
             for (int i = 0; i < samplesCount; ++i)
@@ -101,6 +107,8 @@ namespace ToonRP.Runtime.PostProcessing
 
                 samples[i] = sample;
             }
+            
+            Random.state = oldState;
 
             return samples;
         }

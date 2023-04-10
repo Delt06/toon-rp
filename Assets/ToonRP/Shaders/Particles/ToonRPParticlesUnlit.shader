@@ -7,12 +7,24 @@
         [MainTexture]
         _MainTexture ("Texture", 2D) = "white" {}
         
+        [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
+        _SurfaceType ("Surface Type", Float) = 1
+        [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode)]
+        _BlendMode ("Blend Mode", Float) = 0
+        _BlendSrc ("Blend Src", Float) = 5
+        _BlendDst ("Blend Dst", Float) = 10
+        _ZWrite ("ZWrite", Float) = 0
+        [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.RenderFace)]
+        _RenderFace ("Render Face", Float) = 2
+        
         _QueueOffset ("Queue Offset", Float) = 0
+        
 	}
 	SubShader
 	{
 		Tags { "RenderType" = "Transparent" "Queue" = "Transparent" "PreviewType" = "Plane" }
-		ZWrite Off
+		ZWrite [_ZWrite]
+		Cull [_RenderFace]
 		LOD 100
 	    
 	    HLSLINCLUDE
@@ -30,7 +42,7 @@
 		    Name "Toon RP Particles Unlit Forward"
 			Tags{ "LightMode" = "ToonRPForward" }
 			
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend [_BlendSrc] [_BlendDst]
 			
 			HLSLPROGRAM
 

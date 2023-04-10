@@ -3,7 +3,6 @@ using ToonRP.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static ToonRP.Editor.ShaderGUI.PropertyNames;
 
 namespace ToonRP.Editor.ShaderGUI
 {
@@ -18,9 +17,9 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected override void DrawProperties()
         {
-            DrawProperty(MainColor);
-            DrawProperty(MainTexture);
-            DrawProperty(AlphaClipping, out MaterialProperty alphaClipping);
+            DrawProperty(PropertyNames.MainColor);
+            DrawProperty(PropertyNames.MainTexture);
+            DrawProperty(PropertyNames.AlphaClipping, out MaterialProperty alphaClipping);
             if (alphaClipping.floatValue != 0)
             {
                 DrawProperty("_AlphaClipThreshold");
@@ -93,7 +92,7 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected override RenderQueue GetRenderQueue()
         {
-            bool alphaClipping = FindProperty(AlphaClipping).floatValue != 0;
+            bool alphaClipping = FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
             return alphaClipping ? RenderQueue.AlphaTest : RenderQueue.Geometry;
         }
     }

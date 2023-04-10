@@ -8,7 +8,7 @@ namespace ToonRP.Editor.ShaderGUI
     public abstract class ToonRpShaderGuiBase : UnityEditor.ShaderGUI
     {
         private MaterialEditor _materialEditor;
-        protected MaterialProperty[] Properties { get; private set; }
+        private MaterialProperty[] Properties { get; set; }
 
         protected Material Material => (Material) _materialEditor.target;
 

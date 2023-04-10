@@ -51,10 +51,12 @@ float4 PS(const v2f IN) : SV_TARGET
 {
     float4 albedo = SampleAlbedo(IN.uv) * IN.color;
     AlphaClip(albedo.a);
-    
+
     #ifdef _ALPHAPREMULTIPLY_ON
     albedo.rgb *= albedo.a;
     #endif// _ALPHAPREMULTIPLY_ON
+
+    albedo.rgb += _EmissionColor;
 
     float3 outputColor = albedo.rgb;
     TOON_RP_FOG_MIX(IN, outputColor);

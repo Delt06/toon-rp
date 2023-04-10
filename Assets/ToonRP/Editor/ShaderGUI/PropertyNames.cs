@@ -13,6 +13,7 @@
         public const string BlendDst = "_BlendDst";
         public const string ZWrite = "_ZWrite";
         public const string RenderFace = "_RenderFace";
+        public const string EmissionColor = "_EmissionColor";
 
         public const string QueueOffset = "_QueueOffset";
     }

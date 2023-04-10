@@ -53,6 +53,7 @@ namespace ToonRP.Editor.ShaderGUI
 
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
+            DrawProperty(PropertyNames.EmissionColor);
         }
 
         private void SetBlend(UnityBlendMode blendSrc, UnityBlendMode blendDst)

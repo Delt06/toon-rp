@@ -5,7 +5,9 @@
 #include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
 
-#include "ToonRpDefaultInput.hlsl"
+#if defined(_NORMAL_MAP)
+#define REQUIRE_TANGENT_INTERPOLANT
+#endif // _NORMAL_MAP
 
 #if defined(_NORMAL_MAP) || defined(_ALPHATEST_ON)
 #define REQUIRE_UV_INTERPOLANT

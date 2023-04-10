@@ -3,8 +3,6 @@
 
 #include "../ShaderLibrary/Common.hlsl"
 
-#include "ToonRPDefaultInput.hlsl"
-
 #if defined(_NORMAL_MAP) || defined(_ALPHATEST_ON)
 #define REQUIRE_UV_INTERPOLANT
 #endif // _NORMAL_MAP || _ALPHATEST_ON

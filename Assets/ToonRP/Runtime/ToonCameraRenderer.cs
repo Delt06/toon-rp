@@ -331,12 +331,6 @@ namespace ToonRP.Runtime
 
         private void DrawVisibleGeometry()
         {
-            DrawOpaqueGeometry();
-            _context.DrawSkybox(_camera);
-        }
-
-        private void DrawOpaqueGeometry()
-        {
             _cmd.SetGlobalVector(ScreenParamsId, new Vector4(
                     1.0f / _rtWidth,
                     1.0f / _rtHeight,
@@ -346,6 +340,13 @@ namespace ToonRP.Runtime
             );
             ExecuteBuffer();
 
+            DrawGeometry(RenderQueueRange.opaque);
+            _context.DrawSkybox(_camera);
+            DrawGeometry(RenderQueueRange.transparent);
+        }
+
+        private void DrawGeometry(RenderQueueRange renderQueueRange)
+        {
             var sortingSettings = new SortingSettings(_camera)
             {
                 criteria = SortingCriteria.CommonOpaque,
@@ -355,7 +356,7 @@ namespace ToonRP.Runtime
                 enableDynamicBatching = _settings.UseDynamicBatching,
                 perObjectData = PerObjectData.LightProbe,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+            var filteringSettings = new FilteringSettings(renderQueueRange);
 
             _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
         }

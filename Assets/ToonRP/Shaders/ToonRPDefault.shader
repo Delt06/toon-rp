@@ -122,6 +122,7 @@
 			// Per-Material
 			#pragma shader_feature_local _ALPHATEST_ON
 
+			#include "ToonRPDefaultInput.hlsl"
 			#include "ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -143,6 +144,7 @@
 			// Per-Material
 			#pragma shader_feature_local _ALPHATEST_ON
 
+			#include "ToonRPDefaultInput.hlsl"
 			#include "ToonRPDefaultDepthOnlyPass.hlsl"
 			
 			ENDHLSL
@@ -165,6 +167,7 @@
 			#pragma shader_feature_local _NORMAL_MAP
 			#pragma shader_feature_local _ALPHATEST_ON
 
+			#include "ToonRPDefaultInput.hlsl"
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			
 			ENDHLSL

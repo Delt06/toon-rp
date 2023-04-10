@@ -56,7 +56,8 @@
 			#pragma multi_compile_instancing
 			
 			// Per-Material
-            #pragma shader_feature_local _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 			
 			#include "ToonRPParticlesUnlitForwardPass.hlsl"
 			

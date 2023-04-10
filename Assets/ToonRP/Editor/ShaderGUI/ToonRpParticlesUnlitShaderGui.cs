@@ -1,6 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 using ToonRP.Editor.ShaderGUI.ShaderEnums;
+using ToonRP.Runtime;
 using UnityEditor;
 using UnityEngine.Rendering;
 using BlendMode = ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode;
@@ -23,9 +24,10 @@ namespace ToonRP.Editor.ShaderGUI
                     SetZWrite(false);
                 }
 
-                if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode))
+                if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
                 {
-                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = (BlendMode) blendMode.floatValue switch
+                    var blendModeValue = (BlendMode) blendMode.floatValue;
+                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue switch
                     {
                         BlendMode.Alpha => (UnityBlendMode.SrcAlpha, UnityBlendMode.OneMinusSrcAlpha),
                         BlendMode.Premultiply => (UnityBlendMode.One, UnityBlendMode.OneMinusSrcAlpha),
@@ -34,12 +36,15 @@ namespace ToonRP.Editor.ShaderGUI
                         _ => throw new ArgumentOutOfRangeException(),
                     };
                     SetBlend(blendSrc, blendDst);
+
+                    Material.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == BlendMode.Premultiply);
                 }
             }
             else if (surfaceTypeChanged)
             {
                 SetBlend(UnityBlendMode.One, UnityBlendMode.Zero);
                 SetZWrite(true);
+                Material.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
             }
 
             DrawProperty(PropertyNames.RenderFace);

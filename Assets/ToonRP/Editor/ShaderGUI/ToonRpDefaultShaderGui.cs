@@ -82,7 +82,7 @@ namespace ToonRP.Editor.ShaderGUI
                 return;
             }
 
-            Material.SetKeyword(new LocalKeyword(Material.shader, "_NORMAL_MAP"), normalMap.textureValue != null);
+            Material.SetKeyword("_NORMAL_MAP", normalMap.textureValue != null);
             EditorUtility.SetDirty(Material);
         }
 

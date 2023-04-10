@@ -40,6 +40,7 @@ namespace ToonRP.Runtime
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
+        private bool _drawInvertedHullOutlines;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -60,10 +61,9 @@ namespace ToonRP.Runtime
 
             Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
-            bool drawInvertedHullOutlines =
-                postProcessingSettings.Enabled &&
-                postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
-            if (drawInvertedHullOutlines)
+            _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
+                                        postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
+            if (_drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
                     postProcessingSettings.Outline.InvertedHull
@@ -92,11 +92,6 @@ namespace ToonRP.Runtime
             DrawVisibleGeometry();
             DrawUnsupportedShaders();
             DrawGizmos();
-
-            if (drawInvertedHullOutlines)
-            {
-                _invertedHullOutline.Render();
-            }
 
             if (_postProcessing.IsActive)
             {
@@ -341,7 +336,12 @@ namespace ToonRP.Runtime
             ExecuteBuffer();
 
             DrawGeometry(RenderQueueRange.opaque);
+            if (_drawInvertedHullOutlines)
+            {
+                _invertedHullOutline.Render();
+            }
             _context.DrawSkybox(_camera);
+            
             DrawGeometry(RenderQueueRange.transparent);
         }
 

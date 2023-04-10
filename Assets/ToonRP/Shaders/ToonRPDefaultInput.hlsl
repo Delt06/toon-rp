@@ -52,11 +52,6 @@ float4 SampleAlbedo(const float2 uv)
     return _MainColor * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, uv);
 }
 
-void AlphaClip(const float4 albedo)
-{
-    #ifdef _ALPHATEST_ON
-    clip(albedo.a - _AlphaClipThreshold);
-    #endif // _ALPHATEST_ON
-}
+#include "../ShaderLibrary/AlphaClipping.hlsl"
 
 #endif // TOON_RP_DEFAULT_INPUT

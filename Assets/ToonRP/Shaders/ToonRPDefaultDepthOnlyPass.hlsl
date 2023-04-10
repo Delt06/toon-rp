@@ -2,8 +2,7 @@
 #define TOON_RP_DEFAULT_DEPTH_ONLY_PASS
 
 #include "../ShaderLibrary/Common.hlsl"
-
-#include "ToonRPDefaultInput.hlsl"
+#include "../ShaderLibrary/Textures.hlsl"
 
 #if defined(_NORMAL_MAP) || defined(_ALPHATEST_ON)
 #define REQUIRE_UV_INTERPOLANT

@@ -9,11 +9,15 @@
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
+#if defined(_NORMAL_MAP)
+#define REQUIRE_TANGENT_INTERPOLANT
+#endif // _NORMAL_MAP
+
 #if defined(_TOON_RP_ANY_SHADOWS) || defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
 #endif // _TOON_RP_ANY_SHADOWS || TOON_RP_SSAO_ANY
 
-#include "ToonRpDefaultInput.hlsl"
+#include "ToonRPDefaultInput.hlsl"
 
 struct appdata
 {

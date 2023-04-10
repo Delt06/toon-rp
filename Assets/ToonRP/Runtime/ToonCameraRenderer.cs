@@ -40,6 +40,7 @@ namespace ToonRP.Runtime
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
+        private bool _drawInvertedHullOutlines;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -60,10 +61,9 @@ namespace ToonRP.Runtime
 
             Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
-            bool drawInvertedHullOutlines =
-                postProcessingSettings.Enabled &&
-                postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
-            if (drawInvertedHullOutlines)
+            _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
+                                        postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
+            if (_drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
                     postProcessingSettings.Outline.InvertedHull
@@ -92,11 +92,6 @@ namespace ToonRP.Runtime
             DrawVisibleGeometry();
             DrawUnsupportedShaders();
             DrawGizmos();
-
-            if (drawInvertedHullOutlines)
-            {
-                _invertedHullOutline.Render();
-            }
 
             if (_postProcessing.IsActive)
             {
@@ -331,12 +326,6 @@ namespace ToonRP.Runtime
 
         private void DrawVisibleGeometry()
         {
-            DrawOpaqueGeometry();
-            _context.DrawSkybox(_camera);
-        }
-
-        private void DrawOpaqueGeometry()
-        {
             _cmd.SetGlobalVector(ScreenParamsId, new Vector4(
                     1.0f / _rtWidth,
                     1.0f / _rtHeight,
@@ -346,6 +335,18 @@ namespace ToonRP.Runtime
             );
             ExecuteBuffer();
 
+            DrawGeometry(RenderQueueRange.opaque);
+            if (_drawInvertedHullOutlines)
+            {
+                _invertedHullOutline.Render();
+            }
+            _context.DrawSkybox(_camera);
+            
+            DrawGeometry(RenderQueueRange.transparent);
+        }
+
+        private void DrawGeometry(RenderQueueRange renderQueueRange)
+        {
             var sortingSettings = new SortingSettings(_camera)
             {
                 criteria = SortingCriteria.CommonOpaque,
@@ -355,7 +356,7 @@ namespace ToonRP.Runtime
                 enableDynamicBatching = _settings.UseDynamicBatching,
                 perObjectData = PerObjectData.LightProbe,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+            var filteringSettings = new FilteringSettings(renderQueueRange);
 
             _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
         }

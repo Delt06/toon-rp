@@ -50,6 +50,8 @@ v2f VS(const appdata IN)
 float4 PS(const v2f IN) : SV_TARGET
 {
     const float4 albedo = SampleAlbedo(IN.uv) * IN.color;
+    AlphaClip(albedo.a);
+
     float3 outputColor = albedo.rgb;
     TOON_RP_FOG_MIX(IN, outputColor);
 

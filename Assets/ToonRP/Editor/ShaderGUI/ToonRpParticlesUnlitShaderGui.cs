@@ -14,6 +14,7 @@ namespace ToonRP.Editor.ShaderGUI
         protected override void DrawProperties()
         {
             bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceType);
+            DrawAlphaClipping();
             var surfaceTypeValue = (SurfaceType) surfaceType.floatValue;
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
@@ -65,6 +66,7 @@ namespace ToonRP.Editor.ShaderGUI
             MaterialProperty surfaceType = FindProperty(PropertyNames.SurfaceType);
             return (SurfaceType) surfaceType.floatValue switch
             {
+                SurfaceType.Opaque when AlphaClippingEnabled() => RenderQueue.AlphaTest,
                 SurfaceType.Opaque => RenderQueue.Geometry,
                 SurfaceType.Transparent => RenderQueue.Transparent,
                 _ => throw new ArgumentOutOfRangeException(),

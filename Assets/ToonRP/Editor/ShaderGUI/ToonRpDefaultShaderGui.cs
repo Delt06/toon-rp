@@ -19,11 +19,7 @@ namespace ToonRP.Editor.ShaderGUI
         {
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
-            DrawProperty(PropertyNames.AlphaClipping, out MaterialProperty alphaClipping);
-            if (alphaClipping.floatValue != 0)
-            {
-                DrawProperty("_AlphaClipThreshold");
-            }
+            DrawAlphaClipping();
 
             EditorGUILayout.Space();
 
@@ -92,7 +88,7 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected override RenderQueue GetRenderQueue()
         {
-            bool alphaClipping = FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
+            bool alphaClipping = AlphaClippingEnabled();
             return alphaClipping ? RenderQueue.AlphaTest : RenderQueue.Geometry;
         }
     }

@@ -87,5 +87,16 @@ namespace ToonRP.Editor.ShaderGUI
         }
 
         protected abstract RenderQueue GetRenderQueue();
+
+        protected void DrawAlphaClipping()
+        {
+            DrawProperty(PropertyNames.AlphaClipping, out MaterialProperty alphaClipping);
+            if (alphaClipping.floatValue != 0)
+            {
+                DrawProperty(PropertyNames.AlphaClipThreshold);
+            }
+        }
+
+        protected bool AlphaClippingEnabled() => FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
     }
 }

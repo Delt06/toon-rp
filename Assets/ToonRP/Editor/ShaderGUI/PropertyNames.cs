@@ -4,9 +4,10 @@
     {
         public const string MainColor = "_MainColor";
         public const string MainTexture = "_MainTexture";
-        public const string AlphaClipping = "_AlphaClipping";
 
         public const string SurfaceType = "_SurfaceType";
+        public const string AlphaClipping = "_AlphaClipping";
+        public const string AlphaClipThreshold = "_AlphaClipThreshold";
         public const string BlendMode = "_BlendMode";
         public const string BlendSrc = "_BlendSrc";
         public const string BlendDst = "_BlendDst";

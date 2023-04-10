@@ -7,6 +7,10 @@
         [MainTexture]
         _MainTexture ("Texture", 2D) = "white" {}
         
+        [Toggle(_ALPHATEST_ON)]
+        _AlphaClipping ("Alpha Clipping", Float) = 0
+        _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
+        
         [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
         _SurfaceType ("Surface Type", Float) = 1
         [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode)]
@@ -51,6 +55,9 @@
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
 			
+			// Per-Material
+            #pragma shader_feature_local _ALPHATEST_ON
+			
 			#include "ToonRPParticlesUnlitForwardPass.hlsl"
 			
 			ENDHLSL
@@ -68,7 +75,11 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
+			
+			// Per-Material
+            #pragma shader_feature_local _ALPHATEST_ON
 
+            #include "ToonRPParticlesUnlitInput.hlsl"
 			#include "../ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -86,7 +97,11 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
+			
+			// Per-Material
+            #pragma shader_feature_local _ALPHATEST_ON
 
+            #include "ToonRPParticlesUnlitInput.hlsl"
 			#include "../ToonRPDefaultDepthOnlyPass.hlsl"
 			
 			ENDHLSL
@@ -104,7 +119,11 @@
 			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
+			
+			// Per-Material
+            #pragma shader_feature_local _ALPHATEST_ON
 
+            #include "ToonRPParticlesUnlitInput.hlsl"
 			#include "../ToonRPDefaultDepthNormalsPass.hlsl"
 			
 			ENDHLSL

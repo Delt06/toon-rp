@@ -4,6 +4,7 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
+#include "../ShaderLibrary/Textures.hlsl"
 
 #if defined(_NORMAL_MAP)
 #define REQUIRE_TANGENT_INTERPOLANT

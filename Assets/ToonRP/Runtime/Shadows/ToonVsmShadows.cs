@@ -94,6 +94,7 @@ namespace ToonRP.Runtime.Shadows
                 _shadowedDirectionalLights[_shadowedDirectionalLightCount++] = new ShadowedDirectionalLight
                 {
                     VisibleLightIndex = visibleLightIndex,
+                    NearPlaneOffset = light.shadowNearPlane,
                 };
             }
         }
@@ -212,7 +213,7 @@ namespace ToonRP.Runtime.Shadows
             for (int i = 0; i < cascadeCount; i++)
             {
                 _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                    light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, 0f,
+                    light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, light.NearPlaneOffset,
                     out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
                 );
                 shadowSettings.splitData = splitData;
@@ -297,6 +298,7 @@ namespace ToonRP.Runtime.Shadows
         private struct ShadowedDirectionalLight
         {
             public int VisibleLightIndex;
+            public float NearPlaneOffset;
         }
     }
 }

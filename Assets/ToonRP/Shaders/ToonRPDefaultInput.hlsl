@@ -11,6 +11,7 @@ CBUFFER_START(UnityPerMaterial)
 
 float4 _MainColor;
 DECLARE_TILING_OFFSET(_MainTexture)
+float3 _EmissionColor;
 float4 _ShadowColor;
 float3 _SpecularColor;
 float3 _RimColor;

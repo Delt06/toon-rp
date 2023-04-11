@@ -6,6 +6,8 @@
 		_MainColor ("Color", Color) = (1, 1, 1, 1)
 		[MainTexture]
 		_MainTexture ("Texture", 2D) = "white" {}
+	    [HDR]
+        _EmissionColor ("Emission", Color) = (0, 0, 0, 0)
 	    
 	    [Toggle(_ALPHATEST_ON)]
 	    _AlphaClipping ("Alpha Clipping", Float) = 0

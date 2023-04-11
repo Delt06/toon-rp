@@ -19,6 +19,7 @@ namespace ToonRP.Editor.ShaderGUI
         {
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
+            DrawProperty(PropertyNames.EmissionColor);
             DrawAlphaClipping();
 
             EditorGUILayout.Space();

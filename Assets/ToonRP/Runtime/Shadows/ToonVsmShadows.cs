@@ -103,14 +103,14 @@ namespace ToonRP.Runtime.Shadows
         {
             if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
             {
-                EnsureMaterialIsCreated();
-                RenderDirectionalShadows();
-
                 bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
                 _cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
                 _cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
                 _cmd.SetKeyword(ToonShadows.VsmGlobalKeyword, _vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None);
                 _cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
+
+                EnsureMaterialIsCreated();
+                RenderDirectionalShadows();
             }
             else
             {

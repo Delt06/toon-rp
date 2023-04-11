@@ -35,12 +35,12 @@ namespace ToonRP.Runtime
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private GraphicsFormat _depthStencilFormat;
+        private bool _drawInvertedHullOutlines;
         private int _msaaSamples;
         private bool _renderToTexture;
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
-        private bool _drawInvertedHullOutlines;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -62,7 +62,8 @@ namespace ToonRP.Runtime
             Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
             _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
-                                        postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.InvertedHull;
+                                        postProcessingSettings.Outline.Mode ==
+                                        ToonOutlineSettings.OutlineMode.InvertedHull;
             if (_drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
@@ -242,8 +243,23 @@ namespace ToonRP.Runtime
 
             CameraClearFlags cameraClearFlags = _camera.clearFlags;
             bool clearDepth = cameraClearFlags <= CameraClearFlags.Depth;
-            bool clearColor = cameraClearFlags == CameraClearFlags.Color;
-            Color backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
+            bool clearColor;
+            Color backgroundColor;
+
+#if UNITY_EDITOR
+            if (_camera.cameraType == CameraType.Preview)
+            {
+                clearColor = true;
+                backgroundColor = Color.black;
+                backgroundColor.r = backgroundColor.g = backgroundColor.b = 0.25f;
+            }
+            else
+#endif // UNITY_EDITOR
+            {
+                clearColor = cameraClearFlags == CameraClearFlags.Color;
+                backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
+            }
+
             _prepareRtCmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
             _prepareRtCmd.EndSample(sampleName);
@@ -340,8 +356,9 @@ namespace ToonRP.Runtime
             {
                 _invertedHullOutline.Render();
             }
+
             _context.DrawSkybox(_camera);
-            
+
             DrawGeometry(RenderQueueRange.transparent);
         }
 

@@ -54,9 +54,9 @@ float4 PS(const v2f IN) : SV_TARGET
 
     #ifdef _ALPHAPREMULTIPLY_ON
     albedo.rgb *= albedo.a;
-    #endif// _ALPHAPREMULTIPLY_ON
+    #endif // _ALPHAPREMULTIPLY_ON
 
-    albedo.rgb += _EmissionColor;
+    albedo.rgb += _EmissionColor * albedo.a;
 
     float3 outputColor = albedo.rgb;
     TOON_RP_FOG_MIX(IN, outputColor);

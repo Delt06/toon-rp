@@ -33,19 +33,18 @@ namespace ToonRP.Editor.ShaderGUI
 
             EditorGUILayout.Space();
 
+            DrawHeader(HeaderNames.Color);
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
-            DrawProperty(PropertyNames.EmissionColor);
 
             EditorGUILayout.Space();
 
+            DrawHeader(HeaderNames.Lighting);
             DrawProperty(ShadowColorPropertyName);
             DrawProperty(SpecularColorPropertyName);
             DrawProperty(RimColorPropertyName);
+            DrawProperty(PropertyNames.EmissionColor);
             DrawNormalMap();
-
-            EditorGUILayout.Space();
-
             DrawProperty("_ReceiveBlobShadows");
             DrawOverrideRamp();
 

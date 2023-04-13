@@ -14,6 +14,7 @@ namespace ToonRP.Editor.ShaderGUI
 
             EditorGUILayout.Space();
 
+            DrawHeader(HeaderNames.Color);
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
             DrawProperty(PropertyNames.EmissionColor);

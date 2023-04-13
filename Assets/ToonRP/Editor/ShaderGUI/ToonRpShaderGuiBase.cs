@@ -2,6 +2,7 @@
 using ToonRP.Editor.ShaderGUI.ShaderEnums;
 using ToonRP.Runtime;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using BlendMode = ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode;
@@ -13,6 +14,7 @@ namespace ToonRP.Editor.ShaderGUI
     public abstract class ToonRpShaderGuiBase : UnityEditor.ShaderGUI
     {
         private const string ShadowCasterPassName = "ShadowCaster";
+        private GUIStyle _headerStyle;
         private MaterialEditor _materialEditor;
         private MaterialProperty[] Properties { get; set; }
 
@@ -30,6 +32,9 @@ namespace ToonRP.Editor.ShaderGUI
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
+            _headerStyle = GUI.skin.label;
+            _headerStyle.richText = true;
+
             _materialEditor = materialEditor;
             Properties = properties;
 
@@ -39,6 +44,7 @@ namespace ToonRP.Editor.ShaderGUI
 
                 EditorGUILayout.Space();
 
+                DrawHeader("Misc");
                 materialEditor.EnableInstancingField();
                 DrawQueueOffset();
                 if (EditorGUI.EndChangeCheck())
@@ -49,6 +55,11 @@ namespace ToonRP.Editor.ShaderGUI
 
             _materialEditor = null;
             Properties = null;
+        }
+
+        protected static void DrawHeader(string text)
+        {
+            CoreEditorUtils.DrawHeader(text);
         }
 
         protected abstract void DrawProperties();
@@ -118,6 +129,8 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected void DrawSurfaceProperties()
         {
+            DrawHeader(HeaderNames.Surface);
+
             bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceTypeProperty);
             DrawAlphaClipping();
             if (surfaceTypeProperty.hasMixedValue)

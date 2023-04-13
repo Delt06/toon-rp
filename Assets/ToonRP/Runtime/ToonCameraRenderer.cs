@@ -10,7 +10,11 @@ namespace ToonRP.Runtime
     public sealed partial class ToonCameraRenderer
     {
         private const string DefaultCmdName = "Render Camera";
-        public static readonly ShaderTagId ForwardShaderTagId = new("ToonRPForward");
+        public static readonly ShaderTagId[] ShaderTagIds =
+        {
+            new("ToonRPForward"),
+            new("SRPDefaultUnlit"),
+        };
 
         private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
@@ -368,11 +372,17 @@ namespace ToonRP.Runtime
             {
                 criteria = SortingCriteria.CommonOpaque,
             };
-            var drawingSettings = new DrawingSettings(ForwardShaderTagId, sortingSettings)
+            var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = _settings.UseDynamicBatching,
                 perObjectData = PerObjectData.LightProbe,
             };
+
+            for (int i = 0; i < ShaderTagIds.Length; i++)
+            {
+                drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
+            }
+
             var filteringSettings = new FilteringSettings(renderQueueRange);
 
             _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);

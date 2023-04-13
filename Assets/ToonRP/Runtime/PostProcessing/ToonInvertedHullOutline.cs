@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using static ToonRP.Runtime.ToonCameraRenderer;
 
 namespace ToonRP.Runtime.PostProcessing
 {
@@ -61,12 +62,18 @@ namespace ToonRP.Runtime.PostProcessing
                 {
                     criteria = SortingCriteria.CommonOpaque,
                 };
-                var drawingSettings = new DrawingSettings(ToonCameraRenderer.ForwardShaderTagId, sortingSettings)
+                var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
                 {
                     enableDynamicBatching = _settings.UseDynamicBatching,
                     overrideMaterial = _outlineMaterial,
                     overrideMaterialPassIndex = pass.UseNormalsFromUV2 ? UvNormalsPassId : DefaultPassId,
                 };
+
+                for (int i = 0; i < ShaderTagIds.Length; i++)
+                {
+                    drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
+                }
+
                 var filteringSettings = new FilteringSettings(RenderQueueRange.opaque)
                 {
                     layerMask = pass.LayerMask,

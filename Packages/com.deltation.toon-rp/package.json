@@ -1,0 +1,17 @@
+{
+    "name": "com.deltation.toon-rp",
+    "displayName": "Toon RP",
+    "description": "A Scriptable Render Pipeline (SRP) designed for toon/stylized visuals (WIP).",
+    "version": "0.2.0",
+    "unity": "2021.3",
+    "unityRelease": "15f1",
+    "author": {
+        "name": "Vladislav Kantaev",
+        "email": "vvkantaev3@gmail.com",
+        "url": "https://deltation.tatar/"
+    },
+    "dependencies": {
+        "com.unity.render-pipelines.core": "12.1.8",
+        "com.unity.modules.uielements": "1.0.0"
+    }
+}

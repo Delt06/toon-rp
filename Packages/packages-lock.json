@@ -7,6 +7,15 @@
       "dependencies": {},
       "hash": "e4e5c5f92caaf91f5501510ea06efc0fc2523df8"
     },
+    "com.deltation.toon-rp": {
+      "version": "file:com.deltation.toon-rp",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.render-pipelines.core": "12.1.8",
+        "com.unity.modules.uielements": "1.0.0"
+      }
+    },
     "com.unity.burst": {
       "version": "1.7.3",
       "depth": 1,

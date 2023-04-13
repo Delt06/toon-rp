@@ -1,0 +1,19 @@
+{
+    "name": "DELTation.ToonRP.Editor",
+    "rootNamespace": "DELTation.ToonRP",
+    "references": [
+        "GUID:b2f6bed8b05f404e8c9a014b90146f52",
+        "GUID:3eae0364be2026648bf74846acb8a731"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

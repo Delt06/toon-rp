@@ -23,7 +23,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 ### 1. Add the package
 
 #### Option 1
-- Open Package Manager through Window/Package Manager
+- Open Package Manager through `Window/Package Manager`
 - Click "+" and choose "Add package from git URL..."
 - Insert the URL:
 

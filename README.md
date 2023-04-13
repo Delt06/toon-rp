@@ -8,7 +8,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ### Unity Version
 
-> Developed and verified with Unity 2021.3.0f1 LTS and Core RP Library v12.1.6.
+> Developed and verified with Unity 2021.3.15f1 LTS and Core RP Library v12.1.8.
 
 ### Table of Contents
 

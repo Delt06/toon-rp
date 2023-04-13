@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using BlendMode = ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode;
+using Object = UnityEngine.Object;
 using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace ToonRP.Editor.ShaderGUI
@@ -15,7 +16,17 @@ namespace ToonRP.Editor.ShaderGUI
         private MaterialEditor _materialEditor;
         private MaterialProperty[] Properties { get; set; }
 
-        protected Material Material => (Material) _materialEditor.target;
+        protected Object[] Targets => _materialEditor.targets;
+
+        protected void ForEachMaterial(Action<Material> action)
+        {
+            foreach (Object target in Targets)
+            {
+                action((Material) target);
+            }
+        }
+
+        protected Material GetFirstMaterial() => (Material) _materialEditor.target;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
@@ -74,26 +85,29 @@ namespace ToonRP.Editor.ShaderGUI
 
         private void UpdateQueue()
         {
-            RenderQueue renderQueue = GetRenderQueue();
-
-            int queueOffset = (int) FindProperty(PropertyNames.QueueOffset, Properties).floatValue;
-            Material.renderQueue = (int) renderQueue + queueOffset;
-            Material.SetOverrideTag("RenderType", renderQueue switch
+            ForEachMaterial(m =>
                 {
-                    RenderQueue.Background => "Opaque",
-                    RenderQueue.Geometry => "Opaque",
-                    RenderQueue.AlphaTest => "TransparentCutout",
-                    RenderQueue.GeometryLast => "TransparentCutout",
-                    RenderQueue.Transparent => "Transparent",
-                    RenderQueue.Overlay => "Transparent",
-                    _ => throw new ArgumentOutOfRangeException(),
+                    RenderQueue renderQueue = GetRenderQueue(m);
+                    int queueOffset = (int) m.GetFloat(PropertyNames.QueueOffset);
+                    m.renderQueue = (int) renderQueue + queueOffset;
+                    m.SetOverrideTag("RenderType", renderQueue switch
+                        {
+                            RenderQueue.Background => "Opaque",
+                            RenderQueue.Geometry => "Opaque",
+                            RenderQueue.AlphaTest => "TransparentCutout",
+                            RenderQueue.GeometryLast => "TransparentCutout",
+                            RenderQueue.Transparent => "Transparent",
+                            RenderQueue.Overlay => "Transparent",
+                            _ => throw new ArgumentOutOfRangeException(),
+                        }
+                    );
                 }
             );
         }
 
-        protected abstract RenderQueue GetRenderQueue();
+        protected abstract RenderQueue GetRenderQueue(Material m);
 
-        protected void DrawAlphaClipping()
+        private void DrawAlphaClipping()
         {
             DrawProperty(PropertyNames.AlphaClipping, out MaterialProperty alphaClipping);
             if (alphaClipping.floatValue != 0)
@@ -104,9 +118,14 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected void DrawSurfaceProperties()
         {
-            bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType);
+            bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceTypeProperty);
             DrawAlphaClipping();
-            SurfaceType surfaceTypeValue = GetSurfaceType();
+            if (surfaceTypeProperty.hasMixedValue)
+            {
+                return;
+            }
+
+            SurfaceType surfaceTypeValue = GetSurfaceType(GetFirstMaterial());
             if (surfaceTypeValue == SurfaceType.Transparent)
             {
                 if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
@@ -122,50 +141,61 @@ namespace ToonRP.Editor.ShaderGUI
                     };
                     SetBlend(blendSrc, blendDst);
 
-                    Material.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == BlendMode.Premultiply);
+                    ForEachMaterial(m =>
+                        {
+                            m.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == BlendMode.Premultiply);
+                        }
+                    );
                 }
 
                 if (surfaceTypeChanged)
                 {
                     SetZWrite(false);
-                    Material.SetShaderPassEnabled(ShadowCasterPassName, false);
+                    ForEachMaterial(m => m.SetShaderPassEnabled(ShadowCasterPassName, false));
                 }
             }
             else if (surfaceTypeChanged)
             {
                 SetBlend(UnityBlendMode.One, UnityBlendMode.Zero);
                 SetZWrite(true);
-                Material.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
-                Material.SetShaderPassEnabled(ShadowCasterPassName, true);
+                ForEachMaterial(m =>
+                    {
+                        m.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
+                        m.SetShaderPassEnabled(ShadowCasterPassName, true);
+                    }
+                );
             }
 
             DrawProperty(PropertyNames.RenderFace);
         }
 
-        protected SurfaceType GetSurfaceType() => (SurfaceType) FindProperty(PropertyNames.SurfaceType).floatValue;
+        private static SurfaceType GetSurfaceType(Material m) => (SurfaceType) m.GetFloat(PropertyNames.SurfaceType);
 
         private void SetBlend(UnityBlendMode blendSrc, UnityBlendMode blendDst)
         {
-            Material.SetFloat(PropertyNames.BlendSrc, (float) blendSrc);
-            Material.SetFloat(PropertyNames.BlendDst, (float) blendDst);
+            ForEachMaterial(m =>
+                {
+                    m.SetFloat(PropertyNames.BlendSrc, (float) blendSrc);
+                    m.SetFloat(PropertyNames.BlendDst, (float) blendDst);
+                }
+            );
         }
 
         private void SetZWrite(bool zWrite)
         {
-            Material.SetFloat(PropertyNames.ZWrite, zWrite ? 1.0f : 0.0f);
+            ForEachMaterial(m => m.SetFloat(PropertyNames.ZWrite, zWrite ? 1.0f : 0.0f));
             OnSetZWrite(zWrite);
         }
 
-        protected bool IsZWriteOn() => Material.GetFloat(PropertyNames.ZWrite) > 0.5f;
+        protected static bool IsZWriteOn(Material m) => m.GetFloat(PropertyNames.ZWrite) > 0.5f;
 
         protected virtual void OnSetZWrite(bool zWrite) { }
 
-        protected bool AlphaClippingEnabled() => FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
+        private bool AlphaClippingEnabled() => FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
 
-        protected RenderQueue GetRenderQueueWithAlphaTestAndTransparency()
+        protected RenderQueue GetRenderQueueWithAlphaTestAndTransparency(Material m)
         {
-            MaterialProperty surfaceType = FindProperty(PropertyNames.SurfaceType);
-            return (SurfaceType) surfaceType.floatValue switch
+            return GetSurfaceType(m) switch
             {
                 SurfaceType.Opaque when AlphaClippingEnabled() => RenderQueue.AlphaTest,
                 SurfaceType.Opaque => RenderQueue.Geometry,

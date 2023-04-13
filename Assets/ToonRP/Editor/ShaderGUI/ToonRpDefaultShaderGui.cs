@@ -23,6 +23,7 @@ namespace ToonRP.Editor.ShaderGUI
         private static readonly int SpecularColorId = Shader.PropertyToID(SpecularColorPropertyName);
         private static readonly int RimColorId = Shader.PropertyToID(RimColorPropertyName);
         private static readonly int NormalMapId = Shader.PropertyToID(NormalMapPropertyName);
+        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(OutlinesStencilLayerPropertyName);
 
 
         protected override void DrawProperties()
@@ -73,11 +74,16 @@ namespace ToonRP.Editor.ShaderGUI
 
         private void DrawOutlinesStencilLayer()
         {
-            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer());
+            if (IsCanUseOutlinesStencilLayerMixed())
+            {
+                return;
+            }
+
+            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer(GetFirstMaterial()));
 
             if (DrawProperty(OutlinesStencilLayerPropertyName))
             {
-                UpdateStencil();
+                ForEachMaterial(UpdateStencil);
             }
 
             EditorGUI.EndDisabledGroup();
@@ -86,31 +92,33 @@ namespace ToonRP.Editor.ShaderGUI
         protected override void OnSetZWrite(bool zWrite)
         {
             base.OnSetZWrite(zWrite);
-            UpdateStencil();
+            ForEachMaterial(UpdateStencil);
         }
 
-        private void UpdateStencil()
+        private void UpdateStencil(Material m)
         {
-            var stencilLayer = (StencilLayer) FindProperty(OutlinesStencilLayerPropertyName).floatValue;
+            var stencilLayer = (StencilLayer) m.GetFloat(OutlinesStencilLayerId);
 
-            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer())
+            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
             {
                 byte reference = stencilLayer.ToReference();
-                Material.SetInteger(ForwardStencilRefId, reference);
-                Material.SetInteger(ForwardStencilWriteMaskId, reference);
-                Material.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
-                Material.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+                m.SetInteger(ForwardStencilRefId, reference);
+                m.SetInteger(ForwardStencilWriteMaskId, reference);
+                m.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
+                m.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
             }
             else
             {
-                Material.SetInteger(ForwardStencilRefId, 0);
-                Material.SetInteger(ForwardStencilWriteMaskId, 0);
-                Material.SetInteger(ForwardStencilCompId, 0);
-                Material.SetInteger(ForwardStencilPassId, 0);
+                m.SetInteger(ForwardStencilRefId, 0);
+                m.SetInteger(ForwardStencilWriteMaskId, 0);
+                m.SetInteger(ForwardStencilCompId, 0);
+                m.SetInteger(ForwardStencilPassId, 0);
             }
         }
 
-        private bool CanUseOutlinesStencilLayer() => IsZWriteOn();
+        private static bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
+
+        private bool IsCanUseOutlinesStencilLayerMixed() => FindProperty(PropertyNames.ZWrite).hasMixedValue;
 
         private void DrawNormalMap()
         {
@@ -122,10 +130,10 @@ namespace ToonRP.Editor.ShaderGUI
 
         private void OnNormalMapUpdated()
         {
-            Material.SetKeyword("_NORMAL_MAP", Material.GetTexture(NormalMapId) != null);
+            ForEachMaterial(m => m.SetKeyword("_NORMAL_MAP", m.GetTexture(NormalMapId) != null));
         }
 
-        protected override RenderQueue GetRenderQueue() => GetRenderQueueWithAlphaTestAndTransparency();
+        protected override RenderQueue GetRenderQueue(Material m) => GetRenderQueueWithAlphaTestAndTransparency(m);
 
         private void DrawButtons()
         {
@@ -134,11 +142,19 @@ namespace ToonRP.Editor.ShaderGUI
                 return;
             }
 
-            Material.SetColor(PropertyNames.EmissionColor, Color.black);
-            Material.SetColor(ShadowColorId, Color.clear);
-            Material.SetColor(SpecularColorId, Color.black);
-            Material.SetColor(RimColorId, Color.black);
-            Material.SetTexture(NormalMapId, null);
+            Undo.RecordObjects(Targets, "Disable Lighting");
+
+            ForEachMaterial(m =>
+                {
+                    m.SetColor(PropertyNames.EmissionColor, Color.black);
+                    m.SetColor(ShadowColorId, Color.clear);
+                    m.SetColor(SpecularColorId, Color.black);
+                    m.SetColor(RimColorId, Color.black);
+                    m.SetTexture(NormalMapId, null);
+                    EditorUtility.SetDirty(m);
+                }
+            );
+
             OnNormalMapUpdated();
         }
     }

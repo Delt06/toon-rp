@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace ToonRP.Editor.ShaderGUI
@@ -18,6 +19,6 @@ namespace ToonRP.Editor.ShaderGUI
             DrawProperty(PropertyNames.EmissionColor);
         }
 
-        protected override RenderQueue GetRenderQueue() => GetRenderQueueWithAlphaTestAndTransparency();
+        protected override RenderQueue GetRenderQueue(Material m) => GetRenderQueueWithAlphaTestAndTransparency(m);
     }
 }

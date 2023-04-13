@@ -1,12 +1,17 @@
 ﻿using System;
+using ToonRP.Editor.ShaderGUI.ShaderEnums;
+using ToonRP.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using BlendMode = ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode;
+using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace ToonRP.Editor.ShaderGUI
 {
     public abstract class ToonRpShaderGuiBase : UnityEditor.ShaderGUI
     {
+        private const string ShadowCasterPassName = "ShadowCaster";
         private MaterialEditor _materialEditor;
         private MaterialProperty[] Properties { get; set; }
 
@@ -97,6 +102,76 @@ namespace ToonRP.Editor.ShaderGUI
             }
         }
 
+        protected void DrawSurfaceProperties()
+        {
+            bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType);
+            DrawAlphaClipping();
+            SurfaceType surfaceTypeValue = GetSurfaceType();
+            if (surfaceTypeValue == SurfaceType.Transparent)
+            {
+                if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
+                {
+                    var blendModeValue = (BlendMode) blendMode.floatValue;
+                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue switch
+                    {
+                        BlendMode.Alpha => (UnityBlendMode.SrcAlpha, UnityBlendMode.OneMinusSrcAlpha),
+                        BlendMode.Premultiply => (UnityBlendMode.One, UnityBlendMode.OneMinusSrcAlpha),
+                        BlendMode.Additive => (UnityBlendMode.One, UnityBlendMode.One),
+                        BlendMode.Multiply => (UnityBlendMode.DstColor, UnityBlendMode.Zero),
+                        _ => throw new ArgumentOutOfRangeException(),
+                    };
+                    SetBlend(blendSrc, blendDst);
+
+                    Material.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == BlendMode.Premultiply);
+                }
+
+                if (surfaceTypeChanged)
+                {
+                    SetZWrite(false);
+                    Material.SetShaderPassEnabled(ShadowCasterPassName, false);
+                }
+            }
+            else if (surfaceTypeChanged)
+            {
+                SetBlend(UnityBlendMode.One, UnityBlendMode.Zero);
+                SetZWrite(true);
+                Material.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
+                Material.SetShaderPassEnabled(ShadowCasterPassName, true);
+            }
+
+            DrawProperty(PropertyNames.RenderFace);
+        }
+
+        protected SurfaceType GetSurfaceType() => (SurfaceType) FindProperty(PropertyNames.SurfaceType).floatValue;
+
+        private void SetBlend(UnityBlendMode blendSrc, UnityBlendMode blendDst)
+        {
+            Material.SetFloat(PropertyNames.BlendSrc, (float) blendSrc);
+            Material.SetFloat(PropertyNames.BlendDst, (float) blendDst);
+        }
+
+        private void SetZWrite(bool zWrite)
+        {
+            Material.SetFloat(PropertyNames.ZWrite, zWrite ? 1.0f : 0.0f);
+            OnSetZWrite(zWrite);
+        }
+
+        protected bool IsZWriteOn() => Material.GetFloat(PropertyNames.ZWrite) > 0.5f;
+
+        protected virtual void OnSetZWrite(bool zWrite) { }
+
         protected bool AlphaClippingEnabled() => FindProperty(PropertyNames.AlphaClipping).floatValue != 0;
+
+        protected RenderQueue GetRenderQueueWithAlphaTestAndTransparency()
+        {
+            MaterialProperty surfaceType = FindProperty(PropertyNames.SurfaceType);
+            return (SurfaceType) surfaceType.floatValue switch
+            {
+                SurfaceType.Opaque when AlphaClippingEnabled() => RenderQueue.AlphaTest,
+                SurfaceType.Opaque => RenderQueue.Geometry,
+                SurfaceType.Transparent => RenderQueue.Transparent,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+        }
     }
 }

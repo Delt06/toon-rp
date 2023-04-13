@@ -22,7 +22,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 - Toon Shader
   - Globally/locally configurable ramp
-  - Alpha Clipping
+  - Alpha Clipping and Transparency
   - Normal Map
   - GPU Instancing
   - SRP Batcher Support

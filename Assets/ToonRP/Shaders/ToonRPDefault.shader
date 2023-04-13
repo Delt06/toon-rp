@@ -38,6 +38,16 @@
 	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 2)) = 0.005
 	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
 	    
+	    [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
+        _SurfaceType ("Surface Type", Float) = 0
+        [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode)]
+        _BlendMode ("Blend Mode", Float) = 0
+        _BlendSrc ("Blend Src", Float) = 1
+        _BlendDst ("Blend Dst", Float) = 0
+        _ZWrite ("ZWrite", Float) = 1
+        [Enum(ToonRP.Editor.ShaderGUI.ShaderEnums.RenderFace)]
+        _RenderFace ("Render Face", Float) = 2
+	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
 	    _ForwardStencilRef ("Stencil Ref", Integer) = 0
@@ -48,6 +58,7 @@
 	SubShader
 	{
 		Tags { "RenderType" = "Opaque" }
+		Cull [_RenderFace]
 		LOD 100
 	    
 	    HLSLINCLUDE
@@ -64,6 +75,9 @@
 		{
 		    Name "Toon RP Forward"
 			Tags{ "LightMode" = "ToonRPForward" }
+		    
+		    Blend [_BlendSrc] [_BlendDst]
+		    ZWrite [_ZWrite]
 		    
 		    Stencil
             {
@@ -92,7 +106,8 @@
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
 
 			// Per-Material
-			#pragma shader_feature_local _ALPHATEST_ON 
+			#pragma shader_feature_local _ALPHATEST_ON
+			#pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 			#pragma shader_feature_local _NORMAL_MAP 
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
 			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS
@@ -163,8 +178,8 @@
 			#pragma multi_compile_instancing
 
 			// Per-Material
-			#pragma shader_feature_local _NORMAL_MAP
 			#pragma shader_feature_local _ALPHATEST_ON
+			#pragma shader_feature_local _NORMAL_MAP
 
 			#include "ToonRPDefaultInput.hlsl"
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"

@@ -9,6 +9,7 @@ namespace ToonRP.Editor.ShaderGUI
     [UsedImplicitly]
     public sealed class ToonRpDefaultShaderGui : ToonRpShaderGuiBase
     {
+        private const string OutlinesStencilLayerPropertyName = "_OutlinesStencilLayer";
         private static readonly int ForwardStencilRefId = Shader.PropertyToID("_ForwardStencilRef");
         private static readonly int ForwardStencilWriteMaskId = Shader.PropertyToID("_ForwardStencilWriteMask");
         private static readonly int ForwardStencilCompId = Shader.PropertyToID("_ForwardStencilComp");
@@ -17,6 +18,11 @@ namespace ToonRP.Editor.ShaderGUI
 
         protected override void DrawProperties()
         {
+            DrawSurfaceProperties();
+            DrawOutlinesStencilLayer();
+
+            EditorGUILayout.Space();
+
             DrawProperty(PropertyNames.MainColor);
             DrawProperty(PropertyNames.MainTexture);
             DrawProperty(PropertyNames.EmissionColor);
@@ -36,30 +42,6 @@ namespace ToonRP.Editor.ShaderGUI
 
             DrawProperty("_ReceiveBlobShadows");
 
-            if (DrawProperty("_OutlinesStencilLayer", out MaterialProperty drawOutlines))
-            {
-                var stencilLayer = (StencilLayer) drawOutlines.floatValue;
-                var outlinesStencilLayerKeyword = new LocalKeyword(Material.shader, "_HAS_OUTLINES_STENCIL_LAYER");
-
-                if (stencilLayer != StencilLayer.None)
-                {
-                    byte reference = stencilLayer.ToReference();
-                    Material.SetInteger(ForwardStencilRefId, reference);
-                    Material.SetInteger(ForwardStencilWriteMaskId, reference);
-                    Material.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
-                    Material.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
-                    Material.EnableKeyword(outlinesStencilLayerKeyword);
-                }
-                else
-                {
-                    Material.SetInteger(ForwardStencilRefId, 0);
-                    Material.SetInteger(ForwardStencilWriteMaskId, 0);
-                    Material.SetInteger(ForwardStencilCompId, 0);
-                    Material.SetInteger(ForwardStencilPassId, 0);
-                    Material.DisableKeyword(outlinesStencilLayerKeyword);
-                }
-            }
-
             EditorGUILayout.Space();
 
             DrawProperty("_OverrideRamp", out MaterialProperty overrideRamp);
@@ -76,6 +58,47 @@ namespace ToonRP.Editor.ShaderGUI
             }
         }
 
+        private void DrawOutlinesStencilLayer()
+        {
+            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer());
+
+            if (DrawProperty(OutlinesStencilLayerPropertyName))
+            {
+                UpdateStencil();
+            }
+
+            EditorGUI.EndDisabledGroup();
+        }
+
+        protected override void OnSetZWrite(bool zWrite)
+        {
+            base.OnSetZWrite(zWrite);
+            UpdateStencil();
+        }
+
+        private void UpdateStencil()
+        {
+            var stencilLayer = (StencilLayer) FindProperty(OutlinesStencilLayerPropertyName).floatValue;
+
+            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer())
+            {
+                byte reference = stencilLayer.ToReference();
+                Material.SetInteger(ForwardStencilRefId, reference);
+                Material.SetInteger(ForwardStencilWriteMaskId, reference);
+                Material.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
+                Material.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+            }
+            else
+            {
+                Material.SetInteger(ForwardStencilRefId, 0);
+                Material.SetInteger(ForwardStencilWriteMaskId, 0);
+                Material.SetInteger(ForwardStencilCompId, 0);
+                Material.SetInteger(ForwardStencilPassId, 0);
+            }
+        }
+
+        private bool CanUseOutlinesStencilLayer() => IsZWriteOn();
+
         private void DrawNormalMap()
         {
             if (!DrawProperty("_NormalMap", out MaterialProperty normalMap))
@@ -87,10 +110,6 @@ namespace ToonRP.Editor.ShaderGUI
             EditorUtility.SetDirty(Material);
         }
 
-        protected override RenderQueue GetRenderQueue()
-        {
-            bool alphaClipping = AlphaClippingEnabled();
-            return alphaClipping ? RenderQueue.AlphaTest : RenderQueue.Geometry;
-        }
+        protected override RenderQueue GetRenderQueue() => GetRenderQueueWithAlphaTestAndTransparency();
     }
 }

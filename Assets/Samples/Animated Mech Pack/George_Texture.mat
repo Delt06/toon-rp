@@ -9,9 +9,9 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: George_Texture
   m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _HAS_OUTLINES_STENCIL_LAYER
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -74,6 +74,9 @@ Material:
     m_Floats:
     - _AlphaClipThreshold: 0.5
     - _AlphaClipping: 0
+    - _BlendDst: 0
+    - _BlendMode: 0
+    - _BlendSrc: 1
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -95,9 +98,11 @@ Material:
     - _Parallax: 0.02
     - _QueueOffset: 0
     - _ReceiveBlobShadows: 0
+    - _RenderFace: 2
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _SurfaceType: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

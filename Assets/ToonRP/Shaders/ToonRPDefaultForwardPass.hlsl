@@ -184,8 +184,12 @@ float4 PS(const v2f IN) : SV_TARGET
 
     float diffuseRamp = ComputeRampDiffuse(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
-    const float4 albedo = SampleAlbedo(IN.uv);
+    float4 albedo = SampleAlbedo(IN.uv);
     AlphaClip(albedo);
+
+    #ifdef _ALPHAPREMULTIPLY_ON
+    albedo.rgb *= albedo.a;
+    #endif // _ALPHAPREMULTIPLY_ON
 
     const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
     const float3 diffuse = ApplyRamp(albedo.rgb, mixedShadowColor, diffuseRamp);
@@ -202,10 +206,10 @@ float4 PS(const v2f IN) : SV_TARGET
 
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
 
-    float3 outputColor = light.color * (diffuse + specular) + rim + ambient + _EmissionColor;
+    float3 outputColor = light.color * (diffuse + specular) + rim + ambient + _EmissionColor * albedo.a;
     TOON_RP_FOG_MIX(IN, outputColor);
 
-    return float4(outputColor, 1.0f);
+    return float4(outputColor, albedo.a);
 }
 
 #endif // TOON_RP_DEFAULT_FORWARD_PASS

@@ -175,6 +175,9 @@ namespace DELTation.ToonRP
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
+            
+            _rtWidth = _camera.pixelWidth;
+            _rtHeight = _camera.pixelHeight;
 
             if (_renderToTexture)
             {

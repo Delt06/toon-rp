@@ -63,7 +63,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
-            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
+            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings, ssaoSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
             _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
                                         postProcessingSettings.Outline.Mode ==
@@ -162,7 +162,7 @@ namespace DELTation.ToonRP
         }
 
         private void Setup(in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings, in ToonSsaoSettings ssaoSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
@@ -171,7 +171,7 @@ namespace DELTation.ToonRP
                 GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
             _cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
-            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled;
+            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled || ssaoSettings.Enabled;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
@@ -181,8 +181,6 @@ namespace DELTation.ToonRP
 
             if (_renderToTexture)
             {
-                _rtWidth = _camera.pixelWidth;
-                _rtHeight = _camera.pixelHeight;
                 _cmd.GetTemporaryRT(
                     CameraColorBufferId, _rtWidth, _rtHeight, 0,
                     FilterMode.Bilinear, _colorFormat,

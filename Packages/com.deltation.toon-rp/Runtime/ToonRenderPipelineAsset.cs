@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
 {
-    [CreateAssetMenu(menuName = "Rendering/Toon Render Pipeline")]
+    [CreateAssetMenu(menuName = "Rendering/Toon Render Pipeline Asset")]
     public sealed class ToonRenderPipelineAsset : RenderPipelineAsset
     {
         private static readonly string[] ForceIncludedShaderNames =

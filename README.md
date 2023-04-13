@@ -12,10 +12,38 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ### Table of Contents
 
+- [Installation](#installation)
 - [Features](#features)
 - [References](#references)  
 - [Used Assets](#used-assets)  
 
+
+## Installation
+
+### 1. Add the package
+
+#### Option 1
+- Open Package Manager through Window/Package Manager
+- Click "+" and choose "Add package from git URL..."
+- Insert the URL:
+
+```
+https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp
+```
+
+#### Option 2
+Add the following line to `Packages/manifest.json`:
+```
+"com.deltation.toon-rp": "https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp",
+```
+
+### 2. Create a pipeline asset
+
+Inside the Project window, right click and select `Create/Rendering/Toon Render Pipeline Asset`.
+
+### 3. Set the pipeline asset
+
+Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipeline Settings` with the newly created pipeline asset.
 
 ## Features
 

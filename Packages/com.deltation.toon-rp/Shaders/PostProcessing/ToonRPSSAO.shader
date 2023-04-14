@@ -97,7 +97,12 @@
                 const float3 normalWs = SampleNormalsTexture(uv);
 
                 const float zNdc = SampleDepthTexture(uv);
-                if (zNdc > 0.99)
+                
+                #ifdef UNITY_REVERSED_Z
+                if (zNdc == 0.0)
+                #else // !UNITY_REVERSED_Z
+                if (zNdc == 1.0)
+                #endif // UNITY_REVERSED_Z
                 {
                     return 1;
                 }

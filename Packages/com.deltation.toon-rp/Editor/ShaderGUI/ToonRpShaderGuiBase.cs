@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums;
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -13,8 +14,10 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     public abstract class ToonRpShaderGuiBase : UnityEditor.ShaderGUI
     {
         private const string ShadowCasterPassName = "ShadowCaster";
+        private static readonly Dictionary<string, bool> Foldouts = new();
         private GUIStyle _headerStyle;
         private MaterialEditor _materialEditor;
+
         private MaterialProperty[] Properties { get; set; }
 
         protected Object[] Targets => _materialEditor.targets;
@@ -43,12 +46,14 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
                 EditorGUILayout.Space();
 
-                DrawHeader("Misc");
-                materialEditor.EnableInstancingField();
-                DrawQueueOffset();
-                if (EditorGUI.EndChangeCheck())
+                if (DrawFoldout(HeaderNames.Misc))
                 {
-                    UpdateQueue();
+                    materialEditor.EnableInstancingField();
+                    DrawQueueOffset();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        UpdateQueue();
+                    }
                 }
             }
 
@@ -59,6 +64,18 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         protected static void DrawHeader(string text)
         {
             CoreEditorUtils.DrawHeader(text);
+        }
+
+        protected bool DrawFoldout(string text, bool openByDefault = true)
+        {
+            if (!Foldouts.TryGetValue(text, out bool wasOpen))
+            {
+                Foldouts[text] = wasOpen = openByDefault;
+            }
+
+            bool isOpenNow = CoreEditorUtils.DrawHeaderFoldout(text, wasOpen);
+            Foldouts[text] = isOpenNow;
+            return isOpenNow;
         }
 
         protected abstract void DrawProperties();
@@ -126,15 +143,15 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
         }
 
-        protected void DrawSurfaceProperties()
+        protected bool DrawSurfaceProperties()
         {
-            DrawHeader(HeaderNames.Surface);
+            bool isFoldoutOpen = DrawFoldout(HeaderNames.Surface);
 
             bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceTypeProperty);
             DrawAlphaClipping();
             if (surfaceTypeProperty.hasMixedValue)
             {
-                return;
+                return isFoldoutOpen;
             }
 
             SurfaceType surfaceTypeValue = GetSurfaceType(GetFirstMaterial());
@@ -179,6 +196,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
 
             DrawProperty(PropertyNames.RenderFace);
+            return isFoldoutOpen;
         }
 
         private static SurfaceType GetSurfaceType(Material m) => (SurfaceType) m.GetFloat(PropertyNames.SurfaceType);

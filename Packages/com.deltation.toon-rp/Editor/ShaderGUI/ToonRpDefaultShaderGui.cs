@@ -27,25 +27,32 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         protected override void DrawProperties()
         {
-            DrawSurfaceProperties();
-            DrawOutlinesStencilLayer();
+            if (DrawSurfaceProperties())
+            {
+                DrawOutlinesStencilLayer();
+            }
 
             EditorGUILayout.Space();
 
-            DrawHeader(HeaderNames.Color);
-            DrawProperty(PropertyNames.MainColor);
-            DrawProperty(PropertyNames.MainTexture);
+            if (DrawFoldout(HeaderNames.Color))
+            {
+                DrawProperty(PropertyNames.MainColor);
+                DrawProperty(PropertyNames.MainTexture);
+            }
+
 
             EditorGUILayout.Space();
 
-            DrawHeader(HeaderNames.Lighting);
-            DrawProperty(ShadowColorPropertyName);
-            DrawProperty(SpecularColorPropertyName);
-            DrawProperty(RimColorPropertyName);
-            DrawProperty(PropertyNames.EmissionColor);
-            DrawNormalMap();
-            DrawProperty("_ReceiveBlobShadows");
-            DrawOverrideRamp();
+            if (DrawFoldout(HeaderNames.Lighting))
+            {
+                DrawProperty(ShadowColorPropertyName);
+                DrawProperty(SpecularColorPropertyName);
+                DrawProperty(RimColorPropertyName);
+                DrawProperty(PropertyNames.EmissionColor);
+                DrawNormalMap();
+                DrawProperty("_ReceiveBlobShadows");
+                DrawOverrideRamp();
+            }
 
             EditorGUILayout.Space();
 

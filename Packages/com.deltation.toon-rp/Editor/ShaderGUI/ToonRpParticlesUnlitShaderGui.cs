@@ -14,10 +14,12 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
             EditorGUILayout.Space();
 
-            DrawHeader(HeaderNames.Color);
-            DrawProperty(PropertyNames.MainColor);
-            DrawProperty(PropertyNames.MainTexture);
-            DrawProperty(PropertyNames.EmissionColor);
+            if (DrawFoldout(HeaderNames.Color))
+            {
+                DrawProperty(PropertyNames.MainColor);
+                DrawProperty(PropertyNames.MainTexture);
+                DrawProperty(PropertyNames.EmissionColor);
+            }
         }
 
         protected override RenderQueue GetRenderQueue(Material m) => GetRenderQueueWithAlphaTestAndTransparency(m);

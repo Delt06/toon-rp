@@ -22,11 +22,11 @@
 struct appdata
 {
     float3 vertex : POSITION;
-    float3 normal : NORMAL;
+    half3 normal : NORMAL;
     float2 uv : TEXCOORD0;
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
-    float4 tangent : TANGENT;
+    half4 tangent : TANGENT;
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -35,13 +35,13 @@ struct appdata
 struct v2f
 {
     float2 uv : TEXCOORD0;
-    float3 normalWs : NORMAL_WS;
+    half3 normalWs : NORMAL_WS;
     float4 positionWs : POSITION_WS;
     float depth : DEPTH_VS;
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
-    float3 tangentWs : TANGENT_WS;
-    float3 bitangentWs : BITANGENT_WS;
+    half3 tangentWs : TANGENT_WS;
+    half3 bitangentWs : BITANGENT_WS;
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
     TOON_RP_FOG_FACTOR_INTERPOLANT
@@ -56,7 +56,7 @@ v2f VS(const appdata IN)
     UNITY_SETUP_INSTANCE_ID(IN);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
-    const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
+    const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
@@ -165,10 +165,10 @@ float ComputeRampRim(const float fresnel)
 float4 PS(const v2f IN) : SV_TARGET
 {
     #ifdef _NORMAL_MAP
-    const float3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
-    float3 normalWs = TransformTangentToWorld(normalTs, float3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
+    const half3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
+    half3 normalWs = TransformTangentToWorld(normalTs, half3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
     #else // !_NORMAL_MAP
-    float3 normalWs = IN.normalWs;
+    half3 normalWs = IN.normalWs;
     #endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 

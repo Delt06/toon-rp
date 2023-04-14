@@ -74,10 +74,10 @@ float4 PS(const v2f IN) : SV_TARGET
     #endif // _ALPHATEST_ON
 
     #ifdef _NORMAL_MAP
-    const float3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
-    float3 normalWs = TransformTangentToWorld(normalTs, float3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
+    const half3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
+    half3 normalWs = TransformTangentToWorld(normalTs, half3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
     #else // !_NORMAL_MAP
-    float3 normalWs = IN.normalWs;
+    half3 normalWs = IN.normalWs;
     #endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 

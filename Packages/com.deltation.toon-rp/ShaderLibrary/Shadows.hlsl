@@ -87,10 +87,10 @@ uint ComputeShadowTileIndex(const float3 positionWs)
         const float distanceSqr = DistanceSquared(positionWs, sphere.xyz);
         if (distanceSqr < sphere.w)
         {
-            break;
+            return i;
         }
     }
-    return i;
+    return _ToonRP_CascadeCount - 1;
 
     #else // !_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
 

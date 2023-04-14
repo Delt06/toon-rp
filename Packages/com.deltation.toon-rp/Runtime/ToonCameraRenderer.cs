@@ -64,7 +64,9 @@ namespace DELTation.ToonRP
             }
 
             Setup(globalRampSettings, toonShadowSettings, postProcessingSettings, ssaoSettings);
-            _postProcessing.Setup(_context, postProcessingSettings, _colorFormat, _camera, _rtWidth, _rtHeight);
+            _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
+                _rtHeight
+            );
             _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
                                         postProcessingSettings.Outline.Mode ==
                                         ToonOutlineSettings.OutlineMode.InvertedHull;
@@ -172,9 +174,13 @@ namespace DELTation.ToonRP
                 GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
             _cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
+            float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
+
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
                                postProcessingSettings.HasFullScreenEffects() ||
-                               ssaoSettings.Enabled;
+                               ssaoSettings.Enabled ||
+                               !Mathf.Approximately(renderScale, 1.0f)
+                ;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
@@ -184,9 +190,11 @@ namespace DELTation.ToonRP
 
             if (_renderToTexture)
             {
+                _rtWidth = Mathf.CeilToInt(_rtWidth * renderScale);
+                _rtHeight = Mathf.CeilToInt(_rtHeight * renderScale);
                 _cmd.GetTemporaryRT(
                     CameraColorBufferId, _rtWidth, _rtHeight, 0,
-                    FilterMode.Bilinear, _colorFormat,
+                    _settings.RenderTextureFilterMode, _colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
                 );
 
@@ -283,7 +291,7 @@ namespace DELTation.ToonRP
                 _cmd.BeginSample(sampleName);
                 _cmd.GetTemporaryRT(
                     PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                    FilterMode.Point, _colorFormat,
+                    _settings.RenderTextureFilterMode, _colorFormat,
                     RenderTextureReadWrite.Default
                 );
                 _cmd.Blit(CameraColorBufferId, PostProcessingSourceId);

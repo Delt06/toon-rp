@@ -30,6 +30,7 @@ namespace DELTation.ToonRP.PostProcessing
         private static readonly int PatternEdgeId = Shader.PropertyToID("_ToonRP_Bloom_PatternEdge");
 
         private readonly int _bloomPyramidId;
+        private ToonCameraRendererSettings _cameraRendererSettings;
 
         private RenderTextureFormat _colorFormat;
 

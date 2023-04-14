@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace DELTation.ToonRP
 {
@@ -23,6 +24,9 @@ namespace DELTation.ToonRP
         public bool AllowHdr;
         public bool Stencil;
         public MsaaMode Msaa;
+        [Range(0.5f, 2.0f)]
+        public float RenderScale;
+        public FilterMode RenderTextureFilterMode;
         public DepthPrePassMode DepthPrePass;
 
         public bool UseSrpBatching;

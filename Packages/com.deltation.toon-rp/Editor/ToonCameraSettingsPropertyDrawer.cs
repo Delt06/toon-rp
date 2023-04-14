@@ -26,6 +26,12 @@ namespace DELTation.ToonRP.Editor
                 }
             );
 
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.RenderScale))));
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.RenderTextureFilterMode))
+                )
+            );
+
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.DepthPrePass)))
                 {
                     label = "Depth Pre-Pass Mode",

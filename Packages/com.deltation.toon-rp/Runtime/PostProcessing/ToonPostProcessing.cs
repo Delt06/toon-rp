@@ -12,6 +12,7 @@ namespace DELTation.ToonRP.PostProcessing
         private readonly CommandBuffer _cmd = new() { name = BufferName };
         private ToonBloom _bloom;
         private Camera _camera;
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private int _rtHeight;
@@ -22,11 +23,13 @@ namespace DELTation.ToonRP.PostProcessing
             _settings.HasFullScreenEffects() && _camera.cameraType <= CameraType.SceneView;
 
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
+            in ToonCameraRendererSettings cameraRendererSettings,
             RenderTextureFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
             _colorFormat = colorFormat;
             _context = context;
             _settings = settings;
+            _cameraRendererSettings = cameraRendererSettings;
             _camera = camera;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
@@ -55,7 +58,8 @@ namespace DELTation.ToonRP.PostProcessing
 
             RenderTargetIdentifier currentBuffer = sourceId;
 
-            _cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0, FilterMode.Point, format,
+            _cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0,
+                _cameraRendererSettings.RenderTextureFilterMode, format,
                 RenderTextureReadWrite.Linear
             );
 

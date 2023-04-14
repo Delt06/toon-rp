@@ -18,7 +18,8 @@ namespace DELTation.ToonRP.PostProcessing
         private int _rtWidth;
         private ToonPostProcessingSettings _settings;
 
-        public bool IsActive => _settings.Enabled && _camera.cameraType <= CameraType.SceneView;
+        public bool HasFullScreenEffects =>
+            _settings.HasFullScreenEffects() && _camera.cameraType <= CameraType.SceneView;
 
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
             RenderTextureFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
@@ -44,10 +45,10 @@ namespace DELTation.ToonRP.PostProcessing
             _bloom.Setup(_settings.Bloom, _colorFormat, _rtWidth, _rtHeight);
         }
 
-        public void Render(int width, int height, RenderTextureFormat format, int sourceId,
+        public void RenderFullScreenEffects(int width, int height, RenderTextureFormat format, int sourceId,
             RenderTargetIdentifier destination)
         {
-            if (!IsActive)
+            if (!HasFullScreenEffects)
             {
                 return;
             }

@@ -98,7 +98,7 @@ namespace DELTation.ToonRP
             DrawUnsupportedShaders();
             DrawGizmos();
 
-            if (_postProcessing.IsActive)
+            if (_postProcessing.HasFullScreenEffects)
             {
                 RenderPostProcessing();
             }
@@ -162,7 +162,8 @@ namespace DELTation.ToonRP
         }
 
         private void Setup(in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings, in ToonSsaoSettings ssaoSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings,
+            in ToonSsaoSettings ssaoSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
@@ -171,11 +172,13 @@ namespace DELTation.ToonRP
                 GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
             _cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
-            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 || postProcessingSettings.Enabled || ssaoSettings.Enabled;
+            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
+                               postProcessingSettings.HasFullScreenEffects() ||
+                               ssaoSettings.Enabled;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
-            
+
             _rtWidth = _camera.pixelWidth;
             _rtHeight = _camera.pixelHeight;
 
@@ -294,7 +297,7 @@ namespace DELTation.ToonRP
             }
 
             ExecuteBuffer();
-            _postProcessing.Render(
+            _postProcessing.RenderFullScreenEffects(
                 _rtWidth, _rtHeight, _colorFormat,
                 sourceId, BuiltinRenderTextureType.CameraTarget
             );

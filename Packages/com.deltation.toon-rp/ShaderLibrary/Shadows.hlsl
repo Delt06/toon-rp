@@ -134,11 +134,18 @@ float ComputeShadowRamp(const float shadowAttenuation)
     return ramp;
 }
 
-float ComputeShadowRamp(const float shadowAttenuation, const float depth)
+float ComputeShadowDistanceFade(const float3 positionWs)
+{
+    const float distanceCamToPixel2 = DistanceSquared(positionWs, _WorldSpaceCameraPos);
+    const float fade = DistanceFade(distanceCamToPixel2, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
+    return fade;
+}
+
+float ComputeShadowRamp(const float shadowAttenuation, const float3 positionWs)
 {
     const float ramp = ComputeShadowRamp(shadowAttenuation);
-    const float fade = DistanceFade(depth, _ToonRP_ShadowDistanceFade.x, _ToonRP_ShadowDistanceFade.y);
-    return max(ramp, fade);
+    const float fade = ComputeShadowDistanceFade(positionWs);
+    return lerp(ramp, 1, fade);
 }
 
 #endif // TOON_RP_SHADOWS

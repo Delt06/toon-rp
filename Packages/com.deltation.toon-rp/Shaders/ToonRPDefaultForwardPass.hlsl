@@ -13,9 +13,9 @@
 #define REQUIRE_TANGENT_INTERPOLANT
 #endif // _NORMAL_MAP
 
-#if defined(_TOON_RP_ANY_SHADOWS) || defined(TOON_RP_SSAO_ANY)
+#if defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
-#endif // _TOON_RP_ANY_SHADOWS || TOON_RP_SSAO_ANY
+#endif // TOON_RP_SSAO_ANY
 
 #include "ToonRPDefaultInput.hlsl"
 
@@ -90,7 +90,7 @@ float GetShadowAttenuation(const v2f IN, const Light light)
 {
     #if defined(_TOON_RP_ANY_SHADOWS) || defined(_RECEIVE_BLOB_SHADOWS)
     
-    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.depth);
+    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionWs);
     return shadowAttenuation;
 
     #else // !_TOON_RP_ANY_SHADOWS && !_TOON_RP_BLOB_SHADOWS

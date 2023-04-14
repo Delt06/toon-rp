@@ -64,7 +64,7 @@ namespace DELTation.ToonRP.Shadows
 
                 _cmd.SetGlobalVector(ShadowDistanceFadeId,
                     new Vector4(
-                        1.0f / _settings.MaxDistance,
+                        1.0f / (_settings.MaxDistance * _settings.MaxDistance),
                         1.0f / _settings.DistanceFade
                     )
                 );

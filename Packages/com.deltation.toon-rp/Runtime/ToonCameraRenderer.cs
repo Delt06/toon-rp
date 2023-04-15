@@ -63,7 +63,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
-            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings, ssaoSettings);
+            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight
             );
@@ -164,8 +164,7 @@ namespace DELTation.ToonRP
         }
 
         private void Setup(in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings,
-            in ToonSsaoSettings ssaoSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
         {
             SetupLighting(globalRampSettings, toonShadowSettings);
 
@@ -178,7 +177,6 @@ namespace DELTation.ToonRP
 
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
                                postProcessingSettings.HasFullScreenEffects() ||
-                               ssaoSettings.Enabled ||
                                !Mathf.Approximately(renderScale, 1.0f)
                 ;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;

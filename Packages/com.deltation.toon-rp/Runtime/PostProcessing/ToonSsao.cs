@@ -37,7 +37,7 @@ namespace DELTation.ToonRP.PostProcessing
         private int _height;
         private Texture _noiseTexture;
         private ToonSsaoSettings _settings;
-        private Material _traceMaterial;
+        private Material _material;
         private int _width;
 
         public ToonSsao()
@@ -140,10 +140,10 @@ namespace DELTation.ToonRP.PostProcessing
                 _noiseTexture = GenerateNoiseTexture();
             }
 
-            if (_traceMaterial == null)
+            if (_material == null)
             {
                 var shader = Shader.Find("Hidden/Toon RP/SSAO");
-                _traceMaterial = new Material(shader);
+                _material = new Material(shader);
             }
 
             const FilterMode filterMode = FilterMode.Bilinear;
@@ -229,7 +229,7 @@ namespace DELTation.ToonRP.PostProcessing
 
         private void Draw(int shaderPass)
         {
-            _cmd.DrawProcedural(Matrix4x4.identity, _traceMaterial, shaderPass, MeshTopology.Triangles, 3, 1);
+            _cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
         }
 
         public void Cleanup()

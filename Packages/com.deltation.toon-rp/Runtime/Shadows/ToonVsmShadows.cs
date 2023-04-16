@@ -5,8 +5,8 @@ namespace DELTation.ToonRP.Shadows
 {
     public class ToonVsmShadows
     {
-        private const string CmdName = "Shadows";
-        private const string BlurCmdName = "Blur";
+        private const string RenderShadowsSample = "Render Shadows";
+        private const string BlurSample = "Blur";
 
         private const int MaxShadowedDirectionalLightCount = 1;
         private const int DepthBits = 32;
@@ -29,10 +29,8 @@ namespace DELTation.ToonRP.Shadows
             Shader.PropertyToID("_ToonRP_CascadeCullingSpheres");
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
-        private readonly CommandBuffer _blurCmd = new() { name = BlurCmdName };
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
 
-        private readonly CommandBuffer _cmd = new() { name = CmdName };
         private readonly Matrix4x4[] _directionalShadowMatricesV =
             new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
@@ -65,13 +63,11 @@ namespace DELTation.ToonRP.Shadows
         }
 
 
-        private void ExecuteBuffer(CommandBuffer commandBuffer)
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(commandBuffer);
-            commandBuffer.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
-
-        private void ExecuteBuffer() => ExecuteBuffer(_cmd);
 
         public void Setup(in ScriptableRenderContext context,
             in CullingResults cullingResults,
@@ -101,53 +97,63 @@ namespace DELTation.ToonRP.Shadows
 
         public void Render()
         {
-            if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
-            {
-                bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
-                _cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
-                _cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
-                _cmd.SetKeyword(ToonShadows.VsmGlobalKeyword, _vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None);
-                _cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
+            CommandBuffer cmd = CommandBufferPool.Get();
 
-                EnsureMaterialIsCreated();
-                RenderDirectionalShadows();
-            }
-            else
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.VsmShadows)))
             {
-                _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, 1, 1,
-                    DepthBits,
-                    ShadowmapFiltering,
-                    RenderTextureFormat.Shadowmap
-                );
-                _cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
-                _cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
-                _cmd.DisableKeyword(ToonShadows.VsmGlobalKeyword);
-                _cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
+                if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
+                {
+                    bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
+                    cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
+                    cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
+                    cmd.SetKeyword(ToonShadows.VsmGlobalKeyword,
+                        _vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None
+                    );
+                    cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
+
+                    EnsureMaterialIsCreated();
+                    RenderDirectionalShadows(cmd);
+                }
+                else
+                {
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasId, 1, 1,
+                        DepthBits,
+                        ShadowmapFiltering,
+                        RenderTextureFormat.Shadowmap
+                    );
+                    cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
+                    cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
+                    cmd.DisableKeyword(ToonShadows.VsmGlobalKeyword);
+                    cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
+                }
             }
 
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public void Cleanup()
         {
-            _cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasId);
-            _cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasTempId);
-            ExecuteBuffer();
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasId);
+            cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasTempId);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
-        private void RenderDirectionalShadows()
+        private void RenderDirectionalShadows(CommandBuffer cmd)
         {
             int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
 
 
             if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
             {
-                _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
+                cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
                     DepthBits,
                     ShadowmapFiltering,
                     VsmShadowmapFormat
                 );
-                _cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
+                cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
                     0,
                     ShadowmapFiltering,
                     VsmShadowmapFormat
@@ -155,18 +161,17 @@ namespace DELTation.ToonRP.Shadows
             }
             else
             {
-                _cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
+                cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
                     RenderTextureFormat.Shadowmap
                 );
             }
 
-            _cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+            cmd.SetRenderTarget(DirectionalShadowsAtlasId,
                 RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store
             );
-            _cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
-            _cmd.BeginSample(CmdName);
-            ExecuteBuffer();
+            cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
+            ExecuteBuffer(cmd);
 
             int tiles = _shadowedDirectionalLightCount * _vsmSettings.Directional.CascadeCount;
             int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
@@ -174,15 +179,15 @@ namespace DELTation.ToonRP.Shadows
 
             for (int i = 0; i < _shadowedDirectionalLightCount; ++i)
             {
-                RenderDirectionalShadows(i, split, tileSize);
+                RenderDirectionalShadows(cmd, i, split, tileSize);
             }
 
-            _cmd.SetGlobalInteger(CascadeCountId, _vsmSettings.Directional.CascadeCount);
-            _cmd.SetGlobalVectorArray(CascadeCullingSpheresId, _cascadeCullingSpheres);
-            _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
-            _cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
-            _cmd.EndSample(CmdName);
-            ExecuteBuffer();
+            cmd.SetGlobalInteger(CascadeCountId, _vsmSettings.Directional.CascadeCount);
+            cmd.SetGlobalVectorArray(CascadeCullingSpheresId, _cascadeCullingSpheres);
+            cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
+            cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
+
+            ExecuteBuffer(cmd);
         }
 
         private static Color GetShadowmapClearColor()
@@ -197,7 +202,7 @@ namespace DELTation.ToonRP.Shadows
             return color;
         }
 
-        private void RenderDirectionalShadows(int index, int split, int tileSize)
+        private void RenderDirectionalShadows(CommandBuffer cmd, int index, int split, int tileSize)
         {
             ShadowedDirectionalLight light = _shadowedDirectionalLights[index];
             var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.VisibleLightIndex);
@@ -205,8 +210,9 @@ namespace DELTation.ToonRP.Shadows
             int tileOffset = index * cascadeCount;
             Vector3 ratios = _vsmSettings.Directional.GetRatios();
 
-            _cmd.SetGlobalDepthBias(0.0f, _vsmSettings.Directional.SlopeBias);
-            _cmd.SetGlobalVector(ShadowBiasId,
+            cmd.BeginSample(RenderShadowsSample);
+            cmd.SetGlobalDepthBias(0.0f, _vsmSettings.Directional.SlopeBias);
+            cmd.SetGlobalVector(ShadowBiasId,
                 new Vector4(-_vsmSettings.Directional.DepthBias, _vsmSettings.Directional.NormalBias)
             );
 
@@ -225,37 +231,45 @@ namespace DELTation.ToonRP.Shadows
                 }
 
                 int tileIndex = tileOffset + i;
-                SetTileViewport(tileIndex, split, tileSize, out Vector2 offset);
+                SetTileViewport(cmd, tileIndex, split, tileSize, out Vector2 offset);
                 _directionalShadowMatricesVp[tileIndex] =
                     ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
                 _directionalShadowMatricesV[tileIndex] = viewMatrix;
-                _cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
-                ExecuteBuffer();
+                ExecuteBuffer(cmd);
 
                 _context.DrawShadows(ref shadowSettings);
             }
 
-            _cmd.SetGlobalDepthBias(0f, 0.0f);
-            ExecuteBuffer();
+            cmd.SetGlobalDepthBias(0f, 0.0f);
+            cmd.EndSample(RenderShadowsSample);
+            ExecuteBuffer(cmd);
 
+            ExecuteBlur(cmd);
+        }
+
+        private void ExecuteBlur(CommandBuffer cmd)
+        {
             // TODO: try using _blurCmd.SetKeyword
             if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
             {
+                cmd.BeginSample(BlurSample);
                 bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.HighQuality;
                 _blurMaterial.SetKeyword(_highQualityBlurKeyword, highQualityBlur);
-                _blurCmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
-                _blurCmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+                cmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
+                cmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+                cmd.EndSample(BlurSample);
             }
 
-            ExecuteBuffer(_blurCmd);
+            ExecuteBuffer(cmd);
         }
 
-        private void SetTileViewport(int index, int split, int tileSize, out Vector2 offset)
+        private static void SetTileViewport(CommandBuffer cmd, int index, int split, int tileSize, out Vector2 offset)
         {
             // ReSharper disable once PossibleLossOfFraction
             offset = new Vector2(index % split, index / split);
-            _cmd.SetViewport(new Rect(
+            cmd.SetViewport(new Rect(
                     offset.x * tileSize,
                     offset.y * tileSize,
                     tileSize,

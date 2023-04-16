@@ -30,6 +30,8 @@ MonoBehaviour:
     AllowHdr: 1
     Stencil: 0
     Msaa: 1
+    RenderScale: 1
+    RenderTextureFilterMode: 1
     DepthPrePass: 2
     UseSrpBatching: 1
     UseDynamicBatching: 0
@@ -41,10 +43,10 @@ MonoBehaviour:
     MaxDistance: 25
     DistanceFade: 0.354
     Vsm:
-      Blur: 1
+      Blur: 2
       Directional:
         Enabled: 1
-        AtlasSize: 2048
+        AtlasSize: 4096
         CascadeCount: 4
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
@@ -60,7 +62,7 @@ MonoBehaviour:
     Enabled: 1
     Radius: 0.15
     Power: 10
-    KernelSize: 2
+    KernelSize: 1
     HalfResolution: 1
     Threshold: 0.6
     Smoothness: 0.2

@@ -8,7 +8,6 @@ namespace DELTation.ToonRP.PostProcessing
     {
         public const int MaxIterations = 16;
 
-        private const string BaseSampleName = "Bloom";
         private const string DownsampleSampleName = "Downsample";
         private const string CombineSampleName = "Combine";
         private const string PrefilterSampleName = "Prefilter";
@@ -74,33 +73,32 @@ namespace DELTation.ToonRP.PostProcessing
         {
             EnsureMaterialIsCreated();
 
-            cmd.BeginSample(BaseSampleName);
-
-            int width = _rtWidth / 2, height = _rtHeight / 2;
-
-            int downscaleLimit = _settings.DownsampleLimit * 2;
-
-            if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
-                height < downscaleLimit || width < downscaleLimit)
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Bloom)))
             {
-                cmd.Blit(sourceId, destination);
-                cmd.EndSample(BaseSampleName);
-                return;
+                int width = _rtWidth / 2, height = _rtHeight / 2;
+
+                int downscaleLimit = _settings.DownsampleLimit * 2;
+
+                if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
+                    height < downscaleLimit || width < downscaleLimit)
+                {
+                    cmd.Blit(sourceId, destination);
+                    return;
+                }
+
+
+                Prefilter(cmd, sourceId, width, height);
+
+                width /= 2;
+                height /= 2;
+
+                int fromId = PrefilterSourceId, toId = _bloomPyramidId + 1;
+
+                int i = Downsample(cmd, height, width, ref toId, ref fromId);
+                Combine(cmd, sourceId, destination, i, fromId, toId);
+
+                cmd.ReleaseTemporaryRT(PrefilterSourceId);
             }
-
-
-            Prefilter(cmd, sourceId, width, height);
-
-            width /= 2;
-            height /= 2;
-
-            int fromId = PrefilterSourceId, toId = _bloomPyramidId + 1;
-
-            int i = Downsample(cmd, height, width, ref toId, ref fromId);
-            Combine(cmd, sourceId, destination, i, fromId, toId);
-
-            cmd.ReleaseTemporaryRT(PrefilterSourceId);
-            cmd.EndSample(BaseSampleName);
         }
 
         private void Prefilter(CommandBuffer cmd, int sourceId, int width, int height)

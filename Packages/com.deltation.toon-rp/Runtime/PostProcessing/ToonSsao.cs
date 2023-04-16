@@ -26,18 +26,14 @@ namespace DELTation.ToonRP.PostProcessing
         private static readonly int BlurDirectionId = Shader.PropertyToID("_ToonRP_SSAO_Blur_Direction");
         private static readonly int BlurSourceId = Shader.PropertyToID("_ToonRP_SSAO_Blur_SourceTex");
 
-        private readonly CommandBuffer _cmd = new()
-        {
-            name = "SSAO",
-        };
         private readonly Vector4[] _samples;
         private readonly GlobalKeyword _ssaoKeyword;
         private readonly GlobalKeyword _ssaoPatternKeyword;
         private ScriptableRenderContext _context;
         private int _height;
+        private Material _material;
         private Texture _noiseTexture;
         private ToonSsaoSettings _settings;
-        private Material _material;
         private int _width;
 
         public ToonSsao()
@@ -87,7 +83,7 @@ namespace DELTation.ToonRP.PostProcessing
         {
             Random.State oldState = Random.state;
             Random.InitState(0);
-            
+
             var samples = new Vector4[samplesCount];
 
             for (int i = 0; i < samplesCount; ++i)
@@ -107,7 +103,7 @@ namespace DELTation.ToonRP.PostProcessing
 
                 samples[i] = sample;
             }
-            
+
             Random.state = oldState;
 
             return samples;
@@ -127,86 +123,94 @@ namespace DELTation.ToonRP.PostProcessing
                 _height /= 2;
             }
 
+            CommandBuffer cmd = CommandBufferPool.Get();
             bool patternEnabled = _settings.Pattern.Enabled;
-            _cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
-            _cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
-            ExecuteBuffer();
+            cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
+            cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public void Render()
         {
-            if (_noiseTexture == null)
+            CommandBuffer cmd = CommandBufferPool.Get();
+
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Ssao)))
             {
-                _noiseTexture = GenerateNoiseTexture();
+                if (_noiseTexture == null)
+                {
+                    _noiseTexture = GenerateNoiseTexture();
+                }
+
+                if (_material == null)
+                {
+                    var shader = Shader.Find("Hidden/Toon RP/SSAO");
+                    _material = new Material(shader);
+                }
+
+                const FilterMode filterMode = FilterMode.Bilinear;
+                cmd.GetTemporaryRT(RtId, _width, _height, 0, filterMode, RtFormat);
+                cmd.GetTemporaryRT(RtTempId, _width, _height, 0, filterMode, RtFormat);
+
+                {
+                    const string sampleName = "SSAO (Trace)";
+                    cmd.BeginSample(sampleName);
+                    cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    RenderMainPass(cmd);
+                    cmd.EndSample(sampleName);
+                }
+
+                {
+                    const string sampleName = "SSAO (Blur)";
+                    cmd.BeginSample(sampleName);
+                    cmd.SetRenderTarget(RtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    RenderBlur(cmd, Vector2.right, RtId);
+                    cmd.SetRenderTarget(RtId);
+                    RenderBlur(cmd, Vector2.up, RtTempId);
+                    cmd.EndSample(sampleName);
+                }
+
+                {
+                    float effectiveThreshold = 1 - _settings.Threshold;
+                    cmd.SetGlobalVector(RampId,
+                        new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
+                    );
+                }
+
+                if (_settings.Pattern.Enabled)
+                {
+                    cmd.SetGlobalVector(PatternScaleId, _settings.Pattern.Scale);
+                    float threshold = _settings.Pattern.Thickness;
+                    cmd.SetGlobalVector(PatternRampId,
+                        new Vector4(threshold, threshold + _settings.Pattern.Smoothness)
+                    );
+                    cmd.SetGlobalVector(PatternDistanceFade, new Vector4(
+                            1.0f / _settings.Pattern.MaxDistance,
+                            1.0f / _settings.Pattern.DistanceFade
+                        )
+                    );
+                }
             }
 
-            if (_material == null)
-            {
-                var shader = Shader.Find("Hidden/Toon RP/SSAO");
-                _material = new Material(shader);
-            }
-
-            const FilterMode filterMode = FilterMode.Bilinear;
-            _cmd.GetTemporaryRT(RtId, _width, _height, 0, filterMode, RtFormat);
-            _cmd.GetTemporaryRT(RtTempId, _width, _height, 0, filterMode, RtFormat);
-
-            {
-                const string sampleName = "SSAO";
-                _cmd.BeginSample(sampleName);
-                _cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                RenderMainPass();
-                _cmd.EndSample(sampleName);
-            }
-
-            {
-                const string sampleName = "Blur";
-                _cmd.BeginSample(sampleName);
-                _cmd.SetRenderTarget(RtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                RenderBlur(Vector2.right, RtId);
-                _cmd.SetRenderTarget(RtId);
-                RenderBlur(Vector2.up, RtTempId);
-                _cmd.EndSample(sampleName);
-            }
-
-            {
-                float effectiveThreshold = 1 - _settings.Threshold;
-                _cmd.SetGlobalVector(RampId,
-                    new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
-                );
-            }
-
-            if (_settings.Pattern.Enabled)
-            {
-                _cmd.SetGlobalVector(PatternScaleId, _settings.Pattern.Scale);
-                float threshold = _settings.Pattern.Thickness;
-                _cmd.SetGlobalVector(PatternRampId,
-                    new Vector4(threshold, threshold + _settings.Pattern.Smoothness)
-                );
-                _cmd.SetGlobalVector(PatternDistanceFade, new Vector4(
-                        1.0f / _settings.Pattern.MaxDistance,
-                        1.0f / _settings.Pattern.DistanceFade
-                    )
-                );
-            }
-
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
 
-        private void RenderMainPass()
+        private void RenderMainPass(CommandBuffer cmd)
         {
-            _cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-            _cmd.SetGlobalTexture(NoiseTextureId, _noiseTexture);
+            cmd.SetGlobalTexture(NoiseTextureId, _noiseTexture);
 
-            _cmd.SetGlobalFloat(RadiusId, GetRadius());
-            _cmd.SetGlobalFloat(PowerId, _settings.Power);
-            _cmd.SetGlobalVector(NoiseScaleId,
+            cmd.SetGlobalFloat(RadiusId, GetRadius());
+            cmd.SetGlobalFloat(PowerId, _settings.Power);
+            cmd.SetGlobalVector(NoiseScaleId,
                 new Vector4((float) _width / _noiseTexture.width, (float) _height / _noiseTexture.height)
             );
-            _cmd.SetGlobalInteger(KernelSizeId, _settings.KernelSize);
-            _cmd.SetGlobalVectorArray(SamplesId, _samples);
-            Draw(MainPass);
+            cmd.SetGlobalInteger(KernelSizeId, _settings.KernelSize);
+            cmd.SetGlobalVectorArray(SamplesId, _samples);
+            Draw(cmd, MainPass);
         }
 
         private float GetRadius()
@@ -220,37 +224,41 @@ namespace DELTation.ToonRP.PostProcessing
             return radius;
         }
 
-        private void RenderBlur(Vector2 direction, in RenderTargetIdentifier source)
+        private void RenderBlur(CommandBuffer cmd, Vector2 direction, in RenderTargetIdentifier source)
         {
-            _cmd.SetGlobalVector(BlurDirectionId, direction);
-            _cmd.SetGlobalTexture(BlurSourceId, source);
-            Draw(BlurPass);
+            cmd.SetGlobalVector(BlurDirectionId, direction);
+            cmd.SetGlobalTexture(BlurSourceId, source);
+            Draw(cmd, BlurPass);
         }
 
-        private void Draw(int shaderPass)
+        private void Draw(CommandBuffer cmd, int shaderPass)
         {
-            _cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
+            cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
         }
 
         public void Cleanup()
         {
-            _cmd.ReleaseTemporaryRT(RtId);
-            _cmd.ReleaseTemporaryRT(RtTempId);
-            ExecuteBuffer();
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.ReleaseTemporaryRT(RtId);
+            cmd.ReleaseTemporaryRT(RtTempId);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         public void SetupDisabled(in ScriptableRenderContext context)
         {
             _context = context;
-            _cmd.DisableKeyword(_ssaoKeyword);
-            _cmd.DisableKeyword(_ssaoPatternKeyword);
-            ExecuteBuffer();
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.DisableKeyword(_ssaoKeyword);
+            cmd.DisableKeyword(_ssaoPatternKeyword);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }

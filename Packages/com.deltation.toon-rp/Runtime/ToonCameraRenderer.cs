@@ -21,14 +21,12 @@ namespace DELTation.ToonRP
         private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
-        private readonly CommandBuffer _cmd = new() { name = DefaultCmdName };
         private readonly DepthPrePass _depthPrePass = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonInvertedHullOutline _invertedHullOutline = new();
         private readonly ToonLighting _lighting = new();
         private readonly ToonPostProcessing _postProcessing = new();
-        private readonly CommandBuffer _prepareRtCmd = new() { name = "Prepare Render Targets" };
         private readonly ToonShadows _shadows = new();
         private readonly ToonSsao _ssao = new();
 
@@ -54,8 +52,11 @@ namespace DELTation.ToonRP
             _camera = camera;
             _settings = settings;
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+            PrepareBufferName();
+            cmd.BeginSample(_cmdName);
+
             PrepareMsaa(camera);
-            PrepareBuffer();
             PrepareForSceneWindow();
 
             if (!Cull(toonShadowSettings))
@@ -63,7 +64,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
-            Setup(globalRampSettings, toonShadowSettings, postProcessingSettings);
+            Setup(cmd, globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight
             );
@@ -93,44 +94,48 @@ namespace DELTation.ToonRP
                 _ssao.SetupDisabled(_context);
             }
 
-            SetRenderTargets();
-            ClearRenderTargets();
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
+            {
+                SetRenderTargets(cmd);
+                ClearRenderTargets(cmd);
+            }
 
-            DrawVisibleGeometry();
+            DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();
             DrawGizmos();
 
             if (_postProcessing.HasFullScreenEffects)
             {
-                RenderPostProcessing();
+                RenderPostProcessing(cmd);
             }
             else
             {
                 BlitToCameraTarget();
             }
 
-            Cleanup();
-            Submit();
+            Cleanup(cmd);
+            Submit(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
-        private void SetRenderTargets()
+        private void SetRenderTargets(CommandBuffer cmd)
         {
             if (_renderToTexture)
             {
-                _cmd.SetRenderTarget(
+                cmd.SetRenderTarget(
                     CameraColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     CameraDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                 );
             }
             else
             {
-                _cmd.SetRenderTarget(
+                cmd.SetRenderTarget(
                     BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store
                 );
             }
 
-            ExecuteBuffer(_cmd);
+            ExecuteBuffer(cmd);
         }
 
 
@@ -143,7 +148,7 @@ namespace DELTation.ToonRP
             _msaaSamples = camera.allowMSAA ? _msaaSamples : 1;
         }
 
-        partial void PrepareBuffer();
+        partial void PrepareBufferName();
 
         partial void PrepareForSceneWindow();
 
@@ -163,15 +168,15 @@ namespace DELTation.ToonRP
             return true;
         }
 
-        private void Setup(in ToonRampSettings globalRampSettings,
+        private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
             in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
         {
-            SetupLighting(globalRampSettings, toonShadowSettings);
+            SetupLighting(cmd, globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
             Matrix4x4 gpuProjectionMatrix =
                 GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
-            _cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
+            cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
 
@@ -190,7 +195,7 @@ namespace DELTation.ToonRP
             {
                 _rtWidth = Mathf.CeilToInt(_rtWidth * renderScale);
                 _rtHeight = Mathf.CeilToInt(_rtHeight * renderScale);
-                _cmd.GetTemporaryRT(
+                cmd.GetTemporaryRT(
                     CameraColorBufferId, _rtWidth, _rtHeight, 0,
                     _settings.RenderTextureFilterMode, _colorFormat,
                     RenderTextureReadWrite.Default, _msaaSamples
@@ -203,12 +208,10 @@ namespace DELTation.ToonRP
                 {
                     msaaSamples = _msaaSamples,
                 };
-                _cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
+                cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
             }
 
-            _cmd.BeginSample(_cmdName);
-
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
         }
 
         private static bool InvertedHullOutlinesRequireStencil(in ToonPostProcessingSettings postProcessingSettings)
@@ -229,10 +232,10 @@ namespace DELTation.ToonRP
             return false;
         }
 
-        private void SetupLighting(ToonRampSettings globalRampSettings, ToonShadowSettings shadowSettings)
+        private void SetupLighting(CommandBuffer cmd, ToonRampSettings globalRampSettings,
+            ToonShadowSettings shadowSettings)
         {
-            _cmd.BeginSample(_cmdName);
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
 
             _globalRamp.Setup(_context, globalRampSettings);
 
@@ -245,15 +248,13 @@ namespace DELTation.ToonRP
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
                 _shadows.Render(visibleLight.light);
             }
-
-            _cmd.EndSample(_cmdName);
         }
 
-        private void ClearRenderTargets()
+        private void ClearRenderTargets(CommandBuffer cmd)
         {
             const string sampleName = "Clear Render Targets";
 
-            _prepareRtCmd.BeginSample(sampleName);
+            cmd.BeginSample(sampleName);
 
             CameraClearFlags cameraClearFlags = _camera.clearFlags;
             bool clearDepth = cameraClearFlags <= CameraClearFlags.Depth;
@@ -274,27 +275,28 @@ namespace DELTation.ToonRP
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
             }
 
-            _prepareRtCmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
+            cmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
-            _prepareRtCmd.EndSample(sampleName);
-            ExecuteBuffer(_prepareRtCmd);
+            cmd.EndSample(sampleName);
+            ExecuteBuffer(cmd);
         }
 
-        private void RenderPostProcessing()
+        private void RenderPostProcessing(CommandBuffer cmd)
         {
             int sourceId;
             if (_msaaSamples > 1)
             {
-                const string sampleName = "Resolve Camera Color";
-                _cmd.BeginSample(sampleName);
-                _cmd.GetTemporaryRT(
-                    PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                    _settings.RenderTextureFilterMode, _colorFormat,
-                    RenderTextureReadWrite.Default
-                );
-                _cmd.Blit(CameraColorBufferId, PostProcessingSourceId);
-                _cmd.EndSample(sampleName);
-                ExecuteBuffer();
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ResolveCameraColor)))
+                {
+                    cmd.GetTemporaryRT(
+                        PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
+                        _settings.RenderTextureFilterMode, _colorFormat,
+                        RenderTextureReadWrite.Default
+                    );
+                    cmd.Blit(CameraColorBufferId, PostProcessingSourceId);
+                }
+
+                ExecuteBuffer(cmd);
                 sourceId = PostProcessingSourceId;
             }
             else
@@ -302,7 +304,7 @@ namespace DELTation.ToonRP
                 sourceId = CameraColorBufferId;
             }
 
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
             _postProcessing.RenderFullScreenEffects(
                 _rtWidth, _rtHeight, _colorFormat,
                 sourceId, BuiltinRenderTextureType.CameraTarget
@@ -319,7 +321,7 @@ namespace DELTation.ToonRP
             }
         }
 
-        private void Cleanup()
+        private void Cleanup(CommandBuffer cmd)
         {
             _shadows.Cleanup();
 
@@ -332,17 +334,17 @@ namespace DELTation.ToonRP
 
             if (_renderToTexture)
             {
-                _cmd.ReleaseTemporaryRT(CameraColorBufferId);
-                _cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+                cmd.ReleaseTemporaryRT(CameraColorBufferId);
+                cmd.ReleaseTemporaryRT(CameraDepthBufferId);
             }
 
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
         }
 
-        private void Submit()
+        private void Submit(CommandBuffer cmd)
         {
-            _cmd.EndSample(_cmdName);
-            ExecuteBuffer();
+            cmd.EndSample(_cmdName);
+            ExecuteBuffer(cmd);
             _context.Submit();
         }
 
@@ -352,20 +354,28 @@ namespace DELTation.ToonRP
             cmd.Clear();
         }
 
-        private void ExecuteBuffer() => ExecuteBuffer(_cmd);
-
-        private void DrawVisibleGeometry()
+        private void DrawVisibleGeometry(CommandBuffer cmd)
         {
-            _cmd.SetGlobalVector(ScreenParamsId, new Vector4(
+            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
                     1.0f / _rtWidth,
                     1.0f / _rtHeight,
                     _rtWidth,
                     _rtHeight
                 )
             );
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
 
-            DrawGeometry(RenderQueueRange.opaque);
+            {
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
+                {
+                    ExecuteBuffer(cmd);
+                    DrawGeometry(RenderQueueRange.opaque);
+                }
+
+                ExecuteBuffer(cmd);
+            }
+
+
             if (_drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Render();
@@ -373,7 +383,15 @@ namespace DELTation.ToonRP
 
             _context.DrawSkybox(_camera);
 
-            DrawGeometry(RenderQueueRange.transparent);
+            {
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
+                {
+                    ExecuteBuffer(cmd);
+                    DrawGeometry(RenderQueueRange.transparent);
+                }
+
+                ExecuteBuffer(cmd);
+            }
         }
 
         private void DrawGeometry(RenderQueueRange renderQueueRange)

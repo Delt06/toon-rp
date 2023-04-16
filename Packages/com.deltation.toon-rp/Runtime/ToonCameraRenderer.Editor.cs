@@ -41,10 +41,9 @@ namespace DELTation.ToonRP
         [CanBeNull]
         private static Material _errorMaterial;
 
-        partial void PrepareBuffer()
+        partial void PrepareBufferName()
         {
             _cmdName = _camera.name;
-            _cmd.name = _cmdName;
         }
 
         partial void DrawUnsupportedShaders()

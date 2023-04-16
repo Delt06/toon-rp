@@ -6,17 +6,12 @@ namespace DELTation.ToonRP
 {
     public class DepthPrePass
     {
-        private const string SampleName = "Depth Pre-Pass";
         private const int DepthBufferBits = 32;
         private static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
         private static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");
         private static readonly ShaderTagId DepthOnlyShaderTagId = new("ToonRPDepthOnly");
         private static readonly ShaderTagId DepthNormalsShaderTagId = new("ToonRPDepthNormals");
 
-        private readonly CommandBuffer _cmd = new()
-        {
-            name = SampleName,
-        };
         private Camera _camera;
         private ScriptableRenderContext _context;
 
@@ -40,49 +35,53 @@ namespace DELTation.ToonRP
 
         public void Render()
         {
-            _cmd.GetTemporaryRT(DepthTextureId, _rtWidth, _rtHeight, DepthBufferBits, FilterMode.Point,
-                RenderTextureFormat.Depth
-            );
-            if (_normals)
+            CommandBuffer cmd = CommandBufferPool.Get();
+
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.DepthPrePass)))
             {
-                _cmd.GetTemporaryRT(NormalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
-                    RenderTextureFormat.RGB565
+                cmd.GetTemporaryRT(DepthTextureId, _rtWidth, _rtHeight, DepthBufferBits, FilterMode.Point,
+                    RenderTextureFormat.Depth
                 );
-                _cmd.SetRenderTarget(
-                    NormalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
-                _cmd.ClearRenderTarget(true, true, Color.grey);
+                if (_normals)
+                {
+                    cmd.GetTemporaryRT(NormalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
+                        RenderTextureFormat.RGB565
+                    );
+                    cmd.SetRenderTarget(
+                        NormalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                        DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                    );
+                    cmd.ClearRenderTarget(true, true, Color.grey);
+                }
+                else
+                {
+                    cmd.SetRenderTarget(
+                        DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                    );
+                    cmd.ClearRenderTarget(true, false, Color.clear);
+                }
+
+
+                ExecuteBuffer(cmd);
+
+                DrawRenderers();
             }
-            else
-            {
-                _cmd.SetRenderTarget(
-                    DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
-                _cmd.ClearRenderTarget(true, false, Color.clear);
-            }
 
-
-            _cmd.BeginSample(SampleName);
-            ExecuteBuffer();
-
-            DrawRenderers();
-
-            _cmd.EndSample(SampleName);
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public void Cleanup()
         {
-            _cmd.BeginSample(SampleName);
-            _cmd.ReleaseTemporaryRT(DepthTextureId);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.ReleaseTemporaryRT(DepthTextureId);
             if (_normals)
             {
-                _cmd.ReleaseTemporaryRT(NormalsTextureId);
+                cmd.ReleaseTemporaryRT(NormalsTextureId);
             }
 
-            _cmd.EndSample(SampleName);
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         private void DrawRenderers()
@@ -103,10 +102,10 @@ namespace DELTation.ToonRP
             );
         }
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
     }
 }

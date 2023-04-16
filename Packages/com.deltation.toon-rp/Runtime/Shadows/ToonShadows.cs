@@ -11,7 +11,6 @@ namespace DELTation.ToonRP.Shadows
             Shader.PropertyToID("_ToonRP_ShadowRamp");
         private static readonly int ShadowDistanceFadeId =
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
-        private readonly CommandBuffer _cmd = new() { name = "Toon Shadows" };
         private ToonBlobShadows _blobShadows;
         private ScriptableRenderContext _context;
         private ToonShadowSettings _settings;
@@ -38,31 +37,33 @@ namespace DELTation.ToonRP.Shadows
             _context = context;
             _settings = settings;
 
+            CommandBuffer cmd = CommandBufferPool.Get();
+
             if (settings.Mode != ToonShadowSettings.ShadowMode.Vsm)
             {
-                _cmd.DisableKeyword(DirectionalShadowsGlobalKeyword);
-                _cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
-                _cmd.DisableKeyword(VsmGlobalKeyword);
+                cmd.DisableKeyword(DirectionalShadowsGlobalKeyword);
+                cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
+                cmd.DisableKeyword(VsmGlobalKeyword);
             }
 
-            _cmd.SetKeyword(BlobShadowsGlobalKeyword, settings.Mode == ToonShadowSettings.ShadowMode.Blobs);
+            cmd.SetKeyword(BlobShadowsGlobalKeyword, settings.Mode == ToonShadowSettings.ShadowMode.Blobs);
 
             if (settings.Mode == ToonShadowSettings.ShadowMode.Off)
             {
-                _cmd.DisableKeyword(ShadowsRampCrisp);
+                cmd.DisableKeyword(ShadowsRampCrisp);
             }
             else
             {
-                _cmd.SetKeyword(ShadowsRampCrisp, _settings.CrispAntiAliased);
+                cmd.SetKeyword(ShadowsRampCrisp, _settings.CrispAntiAliased);
 
-                _cmd.SetGlobalVector(ShadowRampId,
+                cmd.SetGlobalVector(ShadowRampId,
                     new Vector4(
                         _settings.Threshold,
                         _settings.Threshold + _settings.Smoothness
                     )
                 );
 
-                _cmd.SetGlobalVector(ShadowDistanceFadeId,
+                cmd.SetGlobalVector(ShadowDistanceFadeId,
                     new Vector4(
                         1.0f / (_settings.MaxDistance * _settings.MaxDistance),
                         1.0f / _settings.DistanceFade
@@ -70,7 +71,8 @@ namespace DELTation.ToonRP.Shadows
                 );
             }
 
-            ExecuteBuffer();
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
 
             switch (settings.Mode)
             {
@@ -89,10 +91,10 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
-        private void ExecuteBuffer()
+        private void ExecuteBuffer(CommandBuffer cmd)
         {
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         public void Render([CanBeNull] Light mainLight)

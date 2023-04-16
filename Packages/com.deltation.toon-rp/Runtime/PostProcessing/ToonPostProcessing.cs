@@ -5,11 +5,7 @@ namespace DELTation.ToonRP.PostProcessing
 {
     public class ToonPostProcessing
     {
-        private const string BufferName = "Post-Processing";
-
         private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
-
-        private readonly CommandBuffer _cmd = new() { name = BufferName };
         private ToonBloom _bloom;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
@@ -56,31 +52,37 @@ namespace DELTation.ToonRP.PostProcessing
                 return;
             }
 
-            RenderTargetIdentifier currentBuffer = sourceId;
+            CommandBuffer cmd = CommandBufferPool.Get();
 
-            _cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0,
-                _cameraRendererSettings.RenderTextureFilterMode, format,
-                RenderTextureReadWrite.Linear
-            );
-
-            if (_settings.Bloom.Enabled)
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessing)))
             {
-                _bloom.Render(_cmd, sourceId, PostProcessingBufferId);
-                currentBuffer = PostProcessingBufferId;
+                RenderTargetIdentifier currentBuffer = sourceId;
+
+                cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0,
+                    _cameraRendererSettings.RenderTextureFilterMode, format,
+                    RenderTextureReadWrite.Linear
+                );
+
+                if (_settings.Bloom.Enabled)
+                {
+                    _bloom.Render(cmd, sourceId, PostProcessingBufferId);
+                    currentBuffer = PostProcessingBufferId;
+                }
+
+                if (currentBuffer != destination)
+                {
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.BlitPostProcessingResults)
+                           ))
+                    {
+                        cmd.Blit(currentBuffer, destination);
+                    }
+                }
             }
 
-            if (currentBuffer != destination)
-            {
-                const string sampleName = "Blit Post-Processing Result";
-                _cmd.BeginSample(sampleName);
-                _cmd.Blit(currentBuffer, destination);
-                _cmd.EndSample(sampleName);
-            }
+            cmd.ReleaseTemporaryRT(PostProcessingBufferId);
 
-            _cmd.ReleaseTemporaryRT(PostProcessingBufferId);
-
-            _context.ExecuteCommandBuffer(_cmd);
-            _cmd.Clear();
+            _context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
     }
 }

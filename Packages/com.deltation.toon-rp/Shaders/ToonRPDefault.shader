@@ -95,7 +95,7 @@
 			#pragma multi_compile_instancing
 
 			// Global Ramp
-			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP
+			#pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP _TOON_RP_GLOBAL_RAMP_TEXTURE
 
 			// Shadows
 			#pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS _TOON_RP_BLOB_SHADOWS

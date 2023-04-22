@@ -13,25 +13,31 @@ namespace DELTation.ToonRP.Editor
 
             root.Add(new ToonRpHeaderLabel("Global Ramp"));
 
-            SerializedProperty crispAntiAliasedProperty =
-                property.FindPropertyRelative(nameof(ToonRampSettings.CrispAntiAliased));
-            var crispAntiAliasedField =
-                new PropertyField(crispAntiAliasedProperty);
+            SerializedProperty modeProperty =
+                property.FindPropertyRelative(nameof(ToonRampSettings.Mode));
+            var modeField = new PropertyField(modeProperty);
+            var thresholdField = new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Threshold)));
+            var rampTextureField =
+                new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.RampTexture)));
             var smoothnessField =
                 new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Smoothness)));
 
-            void RefreshSmoothness()
+            void Refresh()
             {
-                bool showSmoothness = !crispAntiAliasedProperty.boolValue;
-                smoothnessField.SetEnabled(showSmoothness);
+                var mode = (ToonGlobalRampMode) modeProperty.intValue;
+
+                thresholdField.SetVisible(mode != ToonGlobalRampMode.Texture);
+                rampTextureField.SetVisible(mode == ToonGlobalRampMode.Texture);
+                smoothnessField.SetVisible(mode == ToonGlobalRampMode.Default);
             }
 
-            RefreshSmoothness();
+            Refresh();
 
-            crispAntiAliasedField.RegisterValueChangeCallback(_ => RefreshSmoothness());
+            modeField.RegisterValueChangeCallback(_ => Refresh());
 
-            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.Threshold))));
-            root.Add(crispAntiAliasedField);
+            root.Add(modeField);
+            root.Add(thresholdField);
+            root.Add(rampTextureField);
             root.Add(smoothnessField);
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularThreshold))));
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularSmoothness))));

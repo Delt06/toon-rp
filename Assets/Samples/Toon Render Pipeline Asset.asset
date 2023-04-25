@@ -22,14 +22,17 @@ MonoBehaviour:
     Threshold: 0
     SpecularThreshold: 0.992
     RimThreshold: 0.5
-    CrispAntiAliased: 1
+    Mode: 1
     Smoothness: 0.083
     SpecularSmoothness: 0.005
     RimSmoothness: 0.1
+    RampTexture: {fileID: 0}
   CameraRendererSettings:
     AllowHdr: 1
     Stencil: 0
     Msaa: 1
+    RenderScale: 1
+    RenderTextureFilterMode: 1
     DepthPrePass: 2
     UseSrpBatching: 1
     UseDynamicBatching: 0

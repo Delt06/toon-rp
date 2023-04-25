@@ -209,7 +209,8 @@
                 bool atEndPositive = abs(lumaGradientPositive) >= gradientThreshold;
 
                 uint i;
-                [unroll]
+                
+                UNITY_UNROLL
                 for (i = 0; i < EDGE_SEARCH_STEPS && !atEndPositive; ++i)
                 {
                     uvPositive += uvStep * EdgeStepSizes[i];
@@ -226,7 +227,7 @@
                 float lumaGradientNegative = GetSceneLuminance(uvNegative) - edgeLuminance;
                 bool atEndNegative = abs(lumaGradientNegative) >= gradientThreshold;
 
-                [unroll]
+                UNITY_UNROLL
                 for (i = 0; i < EDGE_SEARCH_STEPS && !atEndNegative; ++i)
                 {
                     uvNegative -= uvStep * EdgeStepSizes[i];
@@ -268,10 +269,8 @@
                 {
                     return 0.0;
                 }
-                else
-                {
-                    return 0.5 - distanceToNearestEnd / (distanceToEndPositive + distanceToEndNegative);
-                }
+                
+                return 0.5 - distanceToNearestEnd / (distanceToEndPositive + distanceToEndNegative);
             }
 
 			float4 PS(const v2f IN) : SV_TARGET

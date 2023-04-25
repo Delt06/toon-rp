@@ -6,6 +6,7 @@ namespace DELTation.ToonRP.PostProcessing
     public struct ToonPostProcessingSettings
     {
         public bool Enabled;
+        public ToonFxaaSettings Fxaa;
         public ToonBloomSettings Bloom;
         public ToonOutlineSettings Outline;
     }

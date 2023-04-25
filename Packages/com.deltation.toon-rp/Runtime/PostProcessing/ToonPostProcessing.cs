@@ -37,6 +37,7 @@ namespace DELTation.ToonRP.PostProcessing
             _allFullScreenPasses ??= new List<IToonPostProcessingPass>
             {
                 new ToonBloom(),
+                new ToonFxaa(),
             };
 
             foreach (IToonPostProcessingPass pass in _allFullScreenPasses)

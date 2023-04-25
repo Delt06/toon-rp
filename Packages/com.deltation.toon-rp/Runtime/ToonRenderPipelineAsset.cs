@@ -13,6 +13,7 @@ namespace DELTation.ToonRP
         {
             "Hidden/Toon RP/VSM Blur",
             "Hidden/Toon RP/Bloom",
+            "Hidden/Toon RP/FXAA",
             "Hidden/Toon RP/Outline (Inverted Hull)",
             "Hidden/Toon RP/SSAO",
             "Hidden/Toon RP/Blob Shadow Pass",
@@ -86,6 +87,12 @@ namespace DELTation.ToonRP
 
         public ToonPostProcessingSettings PostProcessing = new()
         {
+            Fxaa =  new ToonFxaaSettings
+            {
+                FixedContrastThresholdId = 0.0833f,
+                RelativeContrastThreshold = 0.166f,
+                SubpixelBlendingFactor = 0.75f,
+            },
             Bloom = new ToonBloomSettings
             {
                 Intensity = 1.0f,

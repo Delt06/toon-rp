@@ -6,6 +6,7 @@
 	}
 	SubShader
 	{
+	    // https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
 		Pass
 		{
 		    Name "Toon RP FXAA"

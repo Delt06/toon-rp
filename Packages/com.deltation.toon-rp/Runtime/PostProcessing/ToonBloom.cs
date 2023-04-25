@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 namespace DELTation.ToonRP.PostProcessing
 {
     // https://catlikecoding.com/unity/tutorials/custom-srp/post-processing/
-    public class ToonBloom
+    public class ToonBloom : ToonPostProcessingPassBase
     {
         public const int MaxIterations = 16;
 
@@ -31,11 +31,7 @@ namespace DELTation.ToonRP.PostProcessing
         private readonly int _bloomPyramidId;
         private ToonCameraRendererSettings _cameraRendererSettings;
 
-        private RenderTextureFormat _colorFormat;
-
         private Material _material;
-        private int _rtHeight;
-        private int _rtWidth;
         private ToonBloomSettings _settings;
 
         public ToonBloom()
@@ -61,33 +57,38 @@ namespace DELTation.ToonRP.PostProcessing
             };
         }
 
-        public void Setup(in ToonBloomSettings settings, RenderTextureFormat colorFormat, int rtWidth, int rtHeight)
+        public override bool IsEnabled(in ToonPostProcessingSettings settings) => settings.Bloom.Enabled;
+
+        public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
-            _settings = settings;
-            _colorFormat = colorFormat;
-            _rtWidth = rtWidth;
-            _rtHeight = rtHeight;
+            base.Setup(cmd, in context);
+            _settings = context.Settings.Bloom;
         }
 
-        public void Render(CommandBuffer cmd, int sourceId, RenderTargetIdentifier destination)
+        public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
+            RenderTargetIdentifier destination)
         {
             EnsureMaterialIsCreated();
 
+            int rtWidth = Context.RtWidth;
+            int rtHeight = Context.RtHeight;
+
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Bloom)))
             {
-                int width = _rtWidth / 2, height = _rtHeight / 2;
+                int width = rtWidth / 2, height = rtHeight / 2;
+
 
                 int downscaleLimit = _settings.DownsampleLimit * 2;
 
                 if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
                     height < downscaleLimit || width < downscaleLimit)
                 {
-                    cmd.Blit(sourceId, destination);
+                    cmd.Blit(source, destination);
                     return;
                 }
 
 
-                Prefilter(cmd, sourceId, width, height);
+                Prefilter(cmd, source, width, height);
 
                 width /= 2;
                 height /= 2;
@@ -95,16 +96,16 @@ namespace DELTation.ToonRP.PostProcessing
                 int fromId = PrefilterSourceId, toId = _bloomPyramidId + 1;
 
                 int i = Downsample(cmd, height, width, ref toId, ref fromId);
-                Combine(cmd, sourceId, destination, i, fromId, toId);
+                Combine(cmd, source, destination, i, fromId, toId);
 
                 cmd.ReleaseTemporaryRT(PrefilterSourceId);
             }
         }
 
-        private void Prefilter(CommandBuffer cmd, int sourceId, int width, int height)
+        private void Prefilter(CommandBuffer cmd, RenderTargetIdentifier source, int width, int height)
         {
             cmd.BeginSample(PrefilterSampleName);
-            cmd.GetTemporaryRT(PrefilterSourceId, width, height, 0, FilterMode.Bilinear, _colorFormat);
+            cmd.GetTemporaryRT(PrefilterSourceId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
 
             {
                 Vector4 threshold;
@@ -116,7 +117,7 @@ namespace DELTation.ToonRP.PostProcessing
                 cmd.SetGlobalVector(ThresholdId, threshold);
             }
 
-            cmd.Blit(sourceId, PrefilterSourceId, _material, PrefilterPass);
+            cmd.Blit(source, PrefilterSourceId, _material, PrefilterPass);
             cmd.EndSample(PrefilterSampleName);
         }
 
@@ -132,8 +133,8 @@ namespace DELTation.ToonRP.PostProcessing
                 }
 
                 int midId = toId - 1;
-                cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Point, _colorFormat);
-                cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Point, _colorFormat);
+                cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Point, Context.ColorFormat);
+                cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Point, Context.ColorFormat);
 
                 cmd.Blit(fromId, midId, _material, HorizontalBlurPass);
                 cmd.Blit(midId, toId, _material, VerticalBlurPass);
@@ -148,7 +149,8 @@ namespace DELTation.ToonRP.PostProcessing
             return i;
         }
 
-        private void Combine(CommandBuffer cmd, int sourceId, RenderTargetIdentifier destination, int i, int fromId,
+        private void Combine(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination,
+            int i, int fromId,
             int toId)
         {
             cmd.BeginSample(CombineSampleName);
@@ -184,7 +186,7 @@ namespace DELTation.ToonRP.PostProcessing
                 cmd.SetGlobalInteger(UsePatternId, 1);
 
                 {
-                    float minPatternScale = Mathf.Min(_rtWidth, _rtHeight) / MinPatternSize;
+                    float minPatternScale = Mathf.Min(Context.RtWidth, Context.RtHeight) / MinPatternSize;
                     float patternScale = Mathf.Min(_settings.Pattern.Scale, minPatternScale);
                     cmd.SetGlobalFloat(PatternScaleId, patternScale);
                 }
@@ -194,7 +196,7 @@ namespace DELTation.ToonRP.PostProcessing
                 cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);
             }
 
-            cmd.SetGlobalTexture(MainTex2Id, sourceId);
+            cmd.SetGlobalTexture(MainTex2Id, source);
             cmd.Blit(fromId, destination, _material, CombinePass);
             cmd.ReleaseTemporaryRT(fromId);
 

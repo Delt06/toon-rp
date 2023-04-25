@@ -64,6 +64,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
+            _postProcessing.UpdatePasses(camera, postProcessingSettings);
             Setup(cmd, globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight
@@ -104,7 +105,7 @@ namespace DELTation.ToonRP
             DrawUnsupportedShaders();
             DrawGizmos();
 
-            if (_postProcessing.HasFullScreenEffects)
+            if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
                 RenderPostProcessing(cmd);
             }
@@ -181,7 +182,7 @@ namespace DELTation.ToonRP
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
 
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
-                               postProcessingSettings.HasFullScreenEffects() ||
+                               _postProcessing.AnyFullScreenEffectsEnabled ||
                                !Mathf.Approximately(renderScale, 1.0f)
                 ;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
@@ -331,6 +332,7 @@ namespace DELTation.ToonRP
             }
 
             _ssao.Cleanup();
+            _postProcessing.Cleanup();
 
             if (_renderToTexture)
             {

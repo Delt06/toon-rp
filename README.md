@@ -76,6 +76,11 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 ![MSAA](./Documentation/features_msaa.jpg?raw=true)
 
+- FXAA
+    - _Optional_: low quality variant, about 1.5-2 times faster
+
+![FXAA](./Documentation/features_fxaa.jpg?raw=true)
+
 - HDR
 - Bloom
   - _Optional_: stylized pattern

@@ -79,6 +79,7 @@ MonoBehaviour:
     Enabled: 1
     Fxaa:
       Enabled: 1
+      HighQuality: 1
       FixedContrastThresholdId: 0.0833
       RelativeContrastThreshold: 0.166
       SubpixelBlendingFactor: 0.75

@@ -87,8 +87,9 @@ namespace DELTation.ToonRP
 
         public ToonPostProcessingSettings PostProcessing = new()
         {
-            Fxaa =  new ToonFxaaSettings
+            Fxaa = new ToonFxaaSettings
             {
+                HighQuality = true,
                 FixedContrastThresholdId = 0.0833f,
                 RelativeContrastThreshold = 0.166f,
                 SubpixelBlendingFactor = 0.75f,

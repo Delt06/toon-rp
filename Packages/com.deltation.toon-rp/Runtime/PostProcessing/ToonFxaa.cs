@@ -32,18 +32,25 @@ namespace DELTation.ToonRP.PostProcessing
             _fxaaSettings = context.Settings.Fxaa;
         }
 
+        private int SelectPass() => _fxaaSettings.HighQuality ? 0 : 1;
+
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)
         {
             EnsureMaterialIsCreated();
 
-            _material.SetFloat(FixedContrastThresholdId, _fxaaSettings.FixedContrastThresholdId);
-            _material.SetFloat(RelativeContrastThresholdId, _fxaaSettings.RelativeContrastThreshold);
-            _material.SetFloat(SubpixelBlendingFactorId, _fxaaSettings.SubpixelBlendingFactor);
+            if (_fxaaSettings.HighQuality)
+            {
+                _material.SetFloat(FixedContrastThresholdId, _fxaaSettings.FixedContrastThresholdId);
+                _material.SetFloat(RelativeContrastThresholdId, _fxaaSettings.RelativeContrastThreshold);
+                _material.SetFloat(SubpixelBlendingFactorId, _fxaaSettings.SubpixelBlendingFactor);
+            }
+
+            int pass = SelectPass();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Fxaa)))
             {
-                cmd.Blit(source, destination, _material);
+                cmd.Blit(source, destination, _material, pass);
             }
         }
     }

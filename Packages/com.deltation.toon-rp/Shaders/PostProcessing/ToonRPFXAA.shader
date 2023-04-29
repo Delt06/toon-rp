@@ -76,17 +76,15 @@
                 const float3 colorNe = SampleSource(uv, float2(1, 0));
                 const float3 colorSw = SampleSource(uv, float2(0, 1));
                 const float3 colorSe = SampleSource(uv, float2(1, 1));
-                const float3 colorM = SampleSource(uv, float2(0.5, 0.5));
 
                 // Compute the luminance of samples
                 const float lumaNw = Luminance(colorNw);
                 const float lumaNe = Luminance(colorNe);
                 const float lumaSw = Luminance(colorSw);
                 const float lumaSe = Luminance(colorSe);
-                const float lumaM = Luminance(colorM);
                 
-                const float lumaMin = min(lumaM, min(lumaNw, min(lumaNe, min(lumaSw, lumaSe))));
-                const float lumaMax = max(lumaM, max(lumaNw, max(lumaNe, max(lumaSw, lumaSe))));
+                const float lumaMin = min(lumaNw, min(lumaNe, min(lumaSw, lumaSe)));
+                const float lumaMax = max(lumaNw, max(lumaNe, max(lumaSw, lumaSe)));
 
                 // Find the direction along which to make the final samples
                 float2 dir;

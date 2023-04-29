@@ -15,6 +15,7 @@ MonoBehaviour:
   ForceIncludedShaders:
   - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
   - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
+  - {fileID: 4800000, guid: d72fefac260143d79ae4517e9d12353e, type: 3}
   - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
   - {fileID: 4800000, guid: b9380af3e4224cabbf4b789b6a3f87d0, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
@@ -76,6 +77,12 @@ MonoBehaviour:
       DistanceFade: 0.5
   PostProcessing:
     Enabled: 1
+    Fxaa:
+      Enabled: 1
+      HighQuality: 1
+      FixedContrastThresholdId: 0.0833
+      RelativeContrastThreshold: 0.166
+      SubpixelBlendingFactor: 0.75
     Bloom:
       Enabled: 1
       Intensity: 1

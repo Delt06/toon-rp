@@ -76,6 +76,11 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 ![MSAA](./Documentation/features_msaa.jpg?raw=true)
 
+- FXAA
+    - _Optional_: low quality variant, about 1.5-2 times faster
+
+![FXAA](./Documentation/features_fxaa.jpg?raw=true)
+
 - HDR
 - Bloom
   - _Optional_: stylized pattern
@@ -106,6 +111,7 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 - [Catlike Coding](https://catlikecoding.com/)
 - [LearnOpenGL - SSAO](https://learnopengl.com/Advanced-Lighting/SSAO)
 - [Ronja's tutorials - Partial Derivatives (fwidth)](https://www.ronja-tutorials.com/post/046-fwidth/)
+- [Geeks 3D - Fast Approximate Anti-Aliasing (FXAA) Demo](https://www.geeks3d.com/20110405/fxaa-fast-approximate-anti-aliasing-demo-glsl-opengl-test-radeon-geforce/3/)
 
 ## Used Assets
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)

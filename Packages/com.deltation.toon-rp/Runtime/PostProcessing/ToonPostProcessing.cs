@@ -8,14 +8,10 @@ namespace DELTation.ToonRP.PostProcessing
     {
         private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
         private List<IToonPostProcessingPass> _allFullScreenPasses;
-        private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
-        private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private List<IToonPostProcessingPass> _enabledFullScreenPasses;
-        private int _rtHeight;
-        private int _rtWidth;
-        private ToonPostProcessingSettings _settings;
+        private ToonPostProcessingContext _postProcessingContext;
 
         public bool AnyFullScreenEffectsEnabled => _enabledFullScreenPasses.Count > 0;
 
@@ -43,7 +39,7 @@ namespace DELTation.ToonRP.PostProcessing
 
             foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
             {
-                if (pass.IsEnabled(_settings))
+                if (pass.IsEnabled(settings))
                 {
                     _enabledFullScreenPasses.Add(pass);
                 }
@@ -54,13 +50,17 @@ namespace DELTation.ToonRP.PostProcessing
             in ToonCameraRendererSettings cameraRendererSettings,
             RenderTextureFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
-            _colorFormat = colorFormat;
             _context = context;
-            _settings = settings;
             _cameraRendererSettings = cameraRendererSettings;
-            _camera = camera;
-            _rtWidth = rtWidth;
-            _rtHeight = rtHeight;
+
+            _postProcessingContext = new ToonPostProcessingContext
+            {
+                Settings = settings,
+                ColorFormat = colorFormat,
+                RtWidth = rtWidth,
+                RtHeight = rtHeight,
+                Camera = camera,
+            };
 
             SetupPasses();
         }
@@ -76,18 +76,9 @@ namespace DELTation.ToonRP.PostProcessing
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessing)))
             {
-                var context = new ToonPostProcessingContext
-                {
-                    Settings = _settings,
-                    ColorFormat = _colorFormat,
-                    RtWidth = _rtWidth,
-                    RtHeight = _rtHeight,
-                    Camera = _camera,
-                };
-
                 foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
                 {
-                    pass.Setup(cmd, context);
+                    pass.Setup(cmd, _postProcessingContext);
                 }
             }
 

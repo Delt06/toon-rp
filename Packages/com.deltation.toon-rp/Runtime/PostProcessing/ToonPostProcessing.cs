@@ -36,6 +36,7 @@ namespace DELTation.ToonRP.PostProcessing
 
             _allFullScreenPasses ??= new List<IToonPostProcessingPass>
             {
+                new ToonScreenSpaceOutline(),
                 new ToonBloom(),
                 new ToonFxaa(),
             };
@@ -70,7 +71,7 @@ namespace DELTation.ToonRP.PostProcessing
             {
                 return;
             }
-            
+
             CommandBuffer cmd = CommandBufferPool.Get();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessing)))

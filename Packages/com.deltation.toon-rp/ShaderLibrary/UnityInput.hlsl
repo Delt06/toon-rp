@@ -32,6 +32,7 @@ float4x4 unity_MatrixInvP;
 float4x4 glstate_matrix_projection;
 
 float3 _WorldSpaceCameraPos;
+float4 _ZBufferParams;
 
 // x = orthographic camera's width
 // y = orthographic camera's height

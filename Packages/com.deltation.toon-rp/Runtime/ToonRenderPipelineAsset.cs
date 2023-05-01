@@ -127,6 +127,16 @@ namespace DELTation.ToonRP
                         },
                     },
                 },
+                ScreenSpace =
+                {
+                    ColorThreshold = 0.75f,
+                    UseColor = false,
+                    DepthThreshold = 1.0f,
+                    UseDepth = true,
+                    NormalsThreshold = 5.0f,
+                    UseNormals = true,
+                    UseFog = true,
+                },
             },
         };
 

@@ -22,11 +22,14 @@ namespace DELTation.ToonRP.Editor
             var modeField = new PropertyField(modeProperty);
             var invertedHullField =
                 new PropertyField(property.FindPropertyRelative(nameof(ToonOutlineSettings.InvertedHull)));
+            var screenSpaceField =
+                new PropertyField(property.FindPropertyRelative(nameof(ToonOutlineSettings.ScreenSpace)));
 
             void RefreshFields()
             {
                 var outlineMode = (ToonOutlineSettings.OutlineMode) modeProperty.intValue;
                 invertedHullField.SetVisible(outlineMode == ToonOutlineSettings.OutlineMode.InvertedHull);
+                screenSpaceField.SetVisible(outlineMode == ToonOutlineSettings.OutlineMode.ScreenSpace);
             }
 
             RefreshFields();
@@ -35,6 +38,7 @@ namespace DELTation.ToonRP.Editor
 
             foldout.Add(modeField);
             foldout.Add(invertedHullField);
+            foldout.Add(screenSpaceField);
             root.Add(foldout);
 
             return root;

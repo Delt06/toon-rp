@@ -22,6 +22,7 @@
             #include "../../ShaderLibrary/DepthNormals.hlsl"
             #include "../../ShaderLibrary/Fog.hlsl"
             #include "../../ShaderLibrary/Math.hlsl"
+            #include "../../ShaderLibrary/Ramp.hlsl"
             #include "../../ShaderLibrary/Textures.hlsl"
 
 			#pragma enable_d3d11_debug_symbols
@@ -45,9 +46,9 @@
 			
 			DECLARE_TEXEL_SIZE(_MainTex);
 			float3 _OutlineColor;
-			float _ColorThreshold;
-			float _DepthThreshold;
-			float _NormalsThreshold;
+			float2 _ColorRamp;
+			float2 _DepthRamp;
+			float2 _NormalsRamp;
 			float2 _DistanceFade;
 			
 			CBUFFER_END
@@ -138,23 +139,23 @@
 			    return kernel;
 			}
 
-			float ComputeSobelStrength3(const in Kernel3 kernel, const float threshold)
+			float ComputeSobelStrength3(const in Kernel3 kernel, const float2 ramp)
 			{
 			    const float3 sobelEdgeH = SOBEL_EDGE_H(kernel);
 			    const float3 sobelEdgeV = SOBEL_EDGE_V(kernel);
                 const float3 sobel = sqrt(sobelEdgeH * sobelEdgeH + sobelEdgeV * sobelEdgeV);
 
 			    const float sobelTotal = sobel.x + sobel.y + sobel.z;
-			    return step(threshold, sobelTotal);
+			    return ComputeRamp(sobelTotal, ramp);
 			}
 
-			float ComputeSobelStrength(const in Kernel kernel, const float threshold)
+			float ComputeSobelStrength(const in Kernel kernel, const float2 ramp)
 			{
 			    const float sobelEdgeH = SOBEL_EDGE_H(kernel);
 			    const float sobelEdgeV = SOBEL_EDGE_V(kernel);
                 const float sobel = length(float2(sobelEdgeH, sobelEdgeV));
-			    
-			    return step(threshold, sobel);
+
+			    return ComputeRamp(sobel, ramp);
 			}
 
 			float4 PS(const v2f IN) : SV_TARGET
@@ -168,7 +169,7 @@
                     #ifdef _COLOR
 			        const Kernel3 colorKernel = SampleColorKernel(uv);
 			        sceneColor = colorKernel.values[4];
-			        sobelStrength = max(sobelStrength, ComputeSobelStrength3(colorKernel, _ColorThreshold));
+			        sobelStrength = max(sobelStrength, ComputeSobelStrength3(colorKernel, _ColorRamp));
 			        #else // !_COLOR
 			        sceneColor = float4(SampleSceneColor(uv), 1);
 			        #endif // _COLOR
@@ -177,7 +178,7 @@
                 {
                     #ifdef _NORMALS
                     const Kernel3 normalKernel = SampleNormalsKernel(uv);
-			        sobelStrength += max(sobelStrength, ComputeSobelStrength3(normalKernel, _NormalsThreshold));
+			        sobelStrength += max(sobelStrength, ComputeSobelStrength3(normalKernel, _NormalsRamp));
                     #endif // _NORMALS
                 }
 
@@ -185,7 +186,7 @@
                     #ifdef _DEPTH
                     const Kernel depthKernel = SampleDepthKernel(uv);
                     sceneDepth = depthKernel.values[4];
-                    sobelStrength += max(sobelStrength, ComputeSobelStrength(depthKernel, _DepthThreshold));
+                    sobelStrength += max(sobelStrength, ComputeSobelStrength(depthKernel, _DepthRamp));
                     #else // !_DEPTH
                     sceneDepth = SampleLinearDepth(uv);
                     #endif // _DEPTH

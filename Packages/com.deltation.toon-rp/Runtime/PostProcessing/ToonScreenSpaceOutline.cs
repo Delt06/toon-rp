@@ -6,9 +6,9 @@ namespace DELTation.ToonRP.PostProcessing
     public class ToonScreenSpaceOutline : ToonPostProcessingPassBase
     {
         private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
-        private static readonly int ColorThresholdId = Shader.PropertyToID("_ColorThreshold");
-        private static readonly int DepthThresholdId = Shader.PropertyToID("_DepthThreshold");
-        private static readonly int NormalsThresholdId = Shader.PropertyToID("_NormalsThreshold");
+        private static readonly int ColorRampId = Shader.PropertyToID("_ColorRamp");
+        private static readonly int DepthRampId = Shader.PropertyToID("_DepthRamp");
+        private static readonly int NormalsRampId = Shader.PropertyToID("_NormalsRamp");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
 
         private Material _material;
@@ -54,14 +54,9 @@ namespace DELTation.ToonRP.PostProcessing
         {
             _material.SetVector(OutlineColorId, _settings.Color);
 
-            _material.SetFloat(ColorThresholdId, _settings.ColorThreshold);
-            _material.SetKeyword(new LocalKeyword(_shader, "_COLOR"), _settings.UseColor);
-
-            _material.SetFloat(DepthThresholdId, _settings.DepthThreshold);
-            _material.SetKeyword(new LocalKeyword(_shader, "_DEPTH"), _settings.UseDepth);
-
-            _material.SetFloat(NormalsThresholdId, _settings.NormalsThreshold);
-            _material.SetKeyword(new LocalKeyword(_shader, "_NORMALS"), _settings.UseNormals);
+            UpdateMaterialFilter(_settings.ColorFilter, ColorRampId, "_COLOR");
+            UpdateMaterialFilter(_settings.NormalsFilter, NormalsRampId, "_NORMALS");
+            UpdateMaterialFilter(_settings.DepthFilter, DepthRampId, "_DEPTH");
 
             _material.SetKeyword(new LocalKeyword(_shader, "_USE_FOG"), _settings.UseFog);
 
@@ -71,6 +66,14 @@ namespace DELTation.ToonRP.PostProcessing
                     1.0f / _settings.DistanceFade
                 )
             );
+        }
+
+        private void UpdateMaterialFilter(in ToonScreenSpaceOutlineSettings.OutlineFilter filter, int rampId,
+            string keyword)
+        {
+            var ramp = new Vector4(filter.Threshold, filter.Threshold + filter.Smoothness);
+            _material.SetVector(rampId, ramp);
+            _material.SetKeyword(new LocalKeyword(_shader, keyword), filter.Enabled);
         }
     }
 }

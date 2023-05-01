@@ -129,12 +129,25 @@ namespace DELTation.ToonRP
                 },
                 ScreenSpace =
                 {
-                    ColorThreshold = 0.75f,
-                    UseColor = false,
-                    DepthThreshold = 1.0f,
-                    UseDepth = true,
-                    NormalsThreshold = 5.0f,
-                    UseNormals = true,
+                    Color = Color.black,
+                    ColorFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
+                    {
+                        Enabled = false,
+                        Threshold = 0.75f,
+                        Smoothness = 0.5f,
+                    },
+                    DepthFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
+                    {
+                        Enabled = true,
+                        Threshold = 1.0f,
+                        Smoothness = 0.5f,
+                    },
+                    NormalsFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
+                    {
+                        Enabled = true,
+                        Smoothness = 5.0f,
+                        Threshold = 0.5f,
+                    },
                     UseFog = true,
                     MaxDistance = 100.0f,
                     DistanceFade = 0.1f,

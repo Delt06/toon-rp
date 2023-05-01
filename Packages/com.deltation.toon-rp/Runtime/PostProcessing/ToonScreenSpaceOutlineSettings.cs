@@ -9,22 +9,24 @@ namespace DELTation.ToonRP.PostProcessing
         [ColorUsage(false, true)]
         public Color Color;
 
-        public bool UseDepth;
-        [Min(0.05f)]
-        public float DepthThreshold;
-
-        public bool UseNormals;
-        [Min(0.05f)]
-        public float NormalsThreshold;
-
-        public bool UseColor;
-        [Min(0.05f)]
-        public float ColorThreshold;
+        public OutlineFilter ColorFilter;
+        public OutlineFilter DepthFilter;
+        public OutlineFilter NormalsFilter;
 
         public bool UseFog;
         [Min(0f)]
         public float MaxDistance;
         [Range(0.001f, 1f)]
         public float DistanceFade;
+
+        [Serializable]
+        public struct OutlineFilter
+        {
+            public bool Enabled;
+            [Min(0.05f)]
+            public float Threshold;
+            [Min(0.01f)]
+            public float Smoothness;
+        }
     }
 }

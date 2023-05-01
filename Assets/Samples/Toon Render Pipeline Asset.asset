@@ -112,3 +112,20 @@ MonoBehaviour:
           DepthBias: 0
           MaxDistance: 15
           DistanceFade: 0.1
+      ScreenSpace:
+        Color: {r: 0, g: 0, b: 0, a: 0}
+        ColorFilter:
+          Enabled: 1
+          Threshold: 0.35
+          Smoothness: 0.5
+        DepthFilter:
+          Enabled: 1
+          Threshold: 5.18
+          Smoothness: 0.01
+        NormalsFilter:
+          Enabled: 1
+          Threshold: 1.28
+          Smoothness: 1
+        UseFog: 0
+        MaxDistance: 9
+        DistanceFade: 0.1

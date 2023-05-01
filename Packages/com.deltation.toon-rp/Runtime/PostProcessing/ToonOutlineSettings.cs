@@ -14,5 +14,6 @@ namespace DELTation.ToonRP.PostProcessing
 
         public OutlineMode Mode;
         public ToonInvertedHullOutlineSettings InvertedHull;
+        public ToonScreenSpaceOutlineSettings ScreenSpace;
     }
 }

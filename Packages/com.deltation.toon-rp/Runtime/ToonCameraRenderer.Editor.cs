@@ -16,16 +16,26 @@ namespace DELTation.ToonRP
             }
         }
 
-        partial void DrawGizmos()
+        partial void DrawGizmosPreImageEffects()
         {
             if (!Handles.ShouldRenderGizmos())
             {
                 return;
             }
 
-            _context.DrawGizmos(_camera, GizmoSubset.PreImageEffects);
             _context.DrawGizmos(_camera, GizmoSubset.PostImageEffects);
         }
+
+        partial void DrawGizmosPostImageEffects()
+        {
+            if (!Handles.ShouldRenderGizmos())
+            {
+                return;
+            }
+
+            _context.DrawGizmos(_camera, GizmoSubset.PostImageEffects);
+        }
+
 #endif // UNITY_EDITOR
 
 #if UNITY_EDITOR || DEBUG

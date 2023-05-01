@@ -2,6 +2,7 @@
 #define TOON_RP_DEPTH_NORMALS
 
 #include "Textures.hlsl"
+#include "UnityInput.hlsl"
 
 TEXTURE2D(_ToonRP_DepthTexture);
 DECLARE_TEXEL_SIZE(_ToonRP_DepthTexture);

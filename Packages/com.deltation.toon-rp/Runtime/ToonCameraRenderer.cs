@@ -103,7 +103,7 @@ namespace DELTation.ToonRP
 
             DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();
-            DrawGizmos();
+            DrawGizmosPreImageEffects();
 
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
@@ -113,6 +113,8 @@ namespace DELTation.ToonRP
             {
                 BlitToCameraTarget();
             }
+
+            DrawGizmosPostImageEffects();
 
             Cleanup(cmd);
             Submit(cmd);
@@ -418,7 +420,8 @@ namespace DELTation.ToonRP
             _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
         }
 
-        partial void DrawGizmos();
+        partial void DrawGizmosPreImageEffects();
+        partial void DrawGizmosPostImageEffects();
 
         partial void DrawUnsupportedShaders();
     }

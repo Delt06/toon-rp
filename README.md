@@ -92,9 +92,14 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
   - _Optional_: get normals from a custom UV channel to improve outlines quality. Comes with a utility to bake these custom normals.
   - _Optional_: remove inner outlines via stencil.
 
-![Outline](./Documentation/features_outlines.jpg?raw=true)
+![Outline (Inverted Hull)](./Documentation/features_outlines_inverted_hull.jpg?raw=true)
 
 ![Outline Fade](./Documentation/features_outlines_fade.gif?raw=true)
+
+- Outline (Screen Space)
+  - Based on colors, normals, and depth.
+
+![Outline (Screen Space)](./Documentation/features_outlines_screen_space.jpg?raw=true)
 
 - SSAO
   - _Optional_: stylized pattern

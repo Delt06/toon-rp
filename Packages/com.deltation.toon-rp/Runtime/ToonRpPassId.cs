@@ -9,6 +9,7 @@
         public const string PrepareRenderTargets = "Prepare Render Targets";
         public const string OpaqueGeometry = "Opaque Geometry";
         public const string InvertedHullOutlines = "Outlines (Inverted Hull)";
+        public const string ScreenSpaceOutlines = "Outlines (Screen Space)";
         public const string TransparentGeometry = "Transparent Geometry";
         public const string ResolveCameraColor = "Resolve Camera Color";
         public const string PostProcessing = "Post-Processing";

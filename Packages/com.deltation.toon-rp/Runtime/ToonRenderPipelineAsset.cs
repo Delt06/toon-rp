@@ -100,6 +100,7 @@ namespace DELTation.ToonRP
                 Threshold = 0.95f,
                 ThresholdKnee = 0.5f,
                 MaxIterations = ToonBloom.MaxIterations,
+                ResolutionFactor = 2,
                 DownsampleLimit = 2,
                 Pattern = new ToonBloomSettings.PatternSettings
                 {

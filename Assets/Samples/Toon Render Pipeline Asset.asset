@@ -89,6 +89,7 @@ MonoBehaviour:
       Threshold: 1.66
       ThresholdKnee: 0.715
       MaxIterations: 3
+      ResolutionFactor: 2
       DownsampleLimit: 2
       BicubicUpsampling: 0
       Pattern:

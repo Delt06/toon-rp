@@ -72,13 +72,12 @@ namespace DELTation.ToonRP.PostProcessing
 
             int rtWidth = Context.RtWidth;
             int rtHeight = Context.RtHeight;
+            int resolutionFactor = _settings.ResolutionFactor;
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Bloom)))
             {
-                int width = rtWidth / 2, height = rtHeight / 2;
-
-
-                int downscaleLimit = _settings.DownsampleLimit * 2;
+                int width = rtWidth / resolutionFactor, height = rtHeight / resolutionFactor;
+                int downscaleLimit = _settings.DownsampleLimit;
 
                 if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
                     height < downscaleLimit || width < downscaleLimit)

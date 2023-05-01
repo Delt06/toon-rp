@@ -21,12 +21,14 @@ namespace DELTation.ToonRP.PostProcessing
         public int MaxIterations;
 
         [Min(1)]
+        public int ResolutionFactor;
+        [Min(1)]
         public int DownsampleLimit;
 
         public bool BicubicUpsampling;
-        
+
         public PatternSettings Pattern;
-    
+
         [Serializable]
         public struct PatternSettings
         {

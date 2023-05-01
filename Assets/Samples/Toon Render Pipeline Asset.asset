@@ -127,5 +127,5 @@ MonoBehaviour:
           Threshold: 1.28
           Smoothness: 1
         UseFog: 0
-        MaxDistance: 24.36
+        MaxDistance: 9
         DistanceFade: 0.1

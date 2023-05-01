@@ -21,6 +21,7 @@
             #include "../../ShaderLibrary/Common.hlsl"
             #include "../../ShaderLibrary/DepthNormals.hlsl"
             #include "../../ShaderLibrary/Fog.hlsl"
+            #include "../../ShaderLibrary/Math.hlsl"
             #include "../../ShaderLibrary/Textures.hlsl"
 
 			#pragma enable_d3d11_debug_symbols
@@ -41,11 +42,14 @@
             SAMPLER(POINT_SAMPLER);
 
 			CBUFFER_START(UnityPerMaterial)
+			
+			DECLARE_TEXEL_SIZE(_MainTex);
 			float3 _OutlineColor;
 			float _ColorThreshold;
 			float _DepthThreshold;
 			float _NormalsThreshold;
-			DECLARE_TEXEL_SIZE(_MainTex);
+			float2 _DistanceFade;
+			
 			CBUFFER_END
 
             struct appdata
@@ -186,6 +190,11 @@
                     sceneDepth = SampleLinearDepth(uv);
                     #endif // _DEPTH
                 }
+
+			    sobelStrength = saturate(sobelStrength);
+
+			    const float distanceFade = 1 - DistanceFade(sceneDepth, _DistanceFade.x, _DistanceFade.y);
+			    sobelStrength *= distanceFade;
 
 			    float3 outlineColor = _OutlineColor;
 			    #if defined(FOG_ANY) && defined(_USE_FOG)

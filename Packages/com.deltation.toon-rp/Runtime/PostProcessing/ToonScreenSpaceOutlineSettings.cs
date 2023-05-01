@@ -20,6 +20,11 @@ namespace DELTation.ToonRP.PostProcessing
         public bool UseColor;
         [Min(0.05f)]
         public float ColorThreshold;
+
         public bool UseFog;
+        [Min(0f)]
+        public float MaxDistance;
+        [Range(0.001f, 1f)]
+        public float DistanceFade;
     }
 }

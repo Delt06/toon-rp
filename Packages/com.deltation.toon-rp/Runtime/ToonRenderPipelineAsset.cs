@@ -136,6 +136,8 @@ namespace DELTation.ToonRP
                     NormalsThreshold = 5.0f,
                     UseNormals = true,
                     UseFog = true,
+                    MaxDistance = 100.0f,
+                    DistanceFade = 0.1f,
                 },
             },
         };

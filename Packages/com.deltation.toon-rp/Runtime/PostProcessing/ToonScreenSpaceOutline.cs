@@ -9,6 +9,7 @@ namespace DELTation.ToonRP.PostProcessing
         private static readonly int ColorThresholdId = Shader.PropertyToID("_ColorThreshold");
         private static readonly int DepthThresholdId = Shader.PropertyToID("_DepthThreshold");
         private static readonly int NormalsThresholdId = Shader.PropertyToID("_NormalsThreshold");
+        private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
 
         private Material _material;
         private ToonScreenSpaceOutlineSettings _settings;
@@ -41,7 +42,16 @@ namespace DELTation.ToonRP.PostProcessing
             RenderTargetIdentifier destination)
         {
             EnsureMaterialIsCreated();
+            UpdateMaterial();
 
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ScreenSpaceOutlines)))
+            {
+                cmd.Blit(source, destination, _material);
+            }
+        }
+
+        private void UpdateMaterial()
+        {
             _material.SetVector(OutlineColorId, _settings.Color);
 
             _material.SetFloat(ColorThresholdId, _settings.ColorThreshold);
@@ -55,10 +65,12 @@ namespace DELTation.ToonRP.PostProcessing
 
             _material.SetKeyword(new LocalKeyword(_shader, "_USE_FOG"), _settings.UseFog);
 
-            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ScreenSpaceOutlines)))
-            {
-                cmd.Blit(source, destination, _material);
-            }
+            _material.SetVector(DistanceFadeId,
+                new Vector4(
+                    1.0f / _settings.MaxDistance,
+                    1.0f / _settings.DistanceFade
+                )
+            );
         }
     }
 }

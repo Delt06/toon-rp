@@ -14,13 +14,22 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     public abstract class ToonRpShaderGuiBase : UnityEditor.ShaderGUI
     {
         private const string ShadowCasterPassName = "ShadowCaster";
+
+        private const string OutlinesStencilLayerPropertyName = "_OutlinesStencilLayer";
         private static readonly Dictionary<string, bool> Foldouts = new();
+        private static readonly int ForwardStencilRefId = Shader.PropertyToID("_ForwardStencilRef");
+        private static readonly int ForwardStencilWriteMaskId = Shader.PropertyToID("_ForwardStencilWriteMask");
+        private static readonly int ForwardStencilCompId = Shader.PropertyToID("_ForwardStencilComp");
+        private static readonly int ForwardStencilPassId = Shader.PropertyToID("_ForwardStencilPass");
+        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(OutlinesStencilLayerPropertyName);
         private GUIStyle _headerStyle;
         private MaterialEditor _materialEditor;
 
         private MaterialProperty[] Properties { get; set; }
 
         protected Object[] Targets => _materialEditor.targets;
+
+        public virtual bool OutlinesStencilLayer => false;
 
         protected void ForEachMaterial(Action<Material> action)
         {
@@ -196,6 +205,12 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
 
             DrawProperty(PropertyNames.RenderFace);
+
+            if (OutlinesStencilLayer)
+            {
+                DrawOutlinesStencilLayer();
+            }
+
             return isFoldoutOpen;
         }
 
@@ -214,6 +229,12 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         private void SetZWrite(bool zWrite)
         {
             ForEachMaterial(m => m.SetFloat(PropertyNames.ZWrite, zWrite ? 1.0f : 0.0f));
+
+            if (OutlinesStencilLayer)
+            {
+                ForEachMaterial(UpdateStencil);
+            }
+
             OnSetZWrite(zWrite);
         }
 
@@ -233,5 +254,50 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 _ => throw new ArgumentOutOfRangeException(),
             };
         }
+
+        private void DrawOutlinesStencilLayer()
+        {
+            if (IsCanUseOutlinesStencilLayerMixed())
+            {
+                return;
+            }
+
+            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer(GetFirstMaterial()));
+
+            if (DrawProperty(OutlinesStencilLayerPropertyName))
+            {
+                ForEachMaterial(UpdateStencil);
+            }
+
+            EditorGUI.EndDisabledGroup();
+        }
+
+        protected void UpdateStencil(Material m)
+        {
+            var stencilLayer = (StencilLayer) m.GetFloat(OutlinesStencilLayerId);
+
+            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, "_HAS_OUTLINES_STENCIL_LAYER");
+            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
+            {
+                byte reference = stencilLayer.ToReference();
+                m.SetInteger(ForwardStencilRefId, reference);
+                m.SetInteger(ForwardStencilWriteMaskId, reference);
+                m.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
+                m.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+                m.EnableKeyword(hasOutlinesStencilLayerKeyword);
+            }
+            else
+            {
+                m.SetInteger(ForwardStencilRefId, 0);
+                m.SetInteger(ForwardStencilWriteMaskId, 0);
+                m.SetInteger(ForwardStencilCompId, 0);
+                m.SetInteger(ForwardStencilPassId, 0);
+                m.DisableKeyword(hasOutlinesStencilLayerKeyword);
+            }
+        }
+
+        private static bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
+
+        private bool IsCanUseOutlinesStencilLayerMixed() => FindProperty(PropertyNames.ZWrite).hasMixedValue;
     }
 }

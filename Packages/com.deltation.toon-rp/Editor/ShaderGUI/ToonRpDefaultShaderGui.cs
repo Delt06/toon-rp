@@ -8,29 +8,21 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     [UsedImplicitly]
     public sealed class ToonRpDefaultShaderGui : ToonRpShaderGuiBase
     {
-        private const string OutlinesStencilLayerPropertyName = "_OutlinesStencilLayer";
         private const string ShadowColorPropertyName = "_ShadowColor";
         private const string SpecularColorPropertyName = "_SpecularColor";
         private const string RimColorPropertyName = "_RimColor";
         private const string NormalMapPropertyName = "_NormalMap";
 
-        private static readonly int ForwardStencilRefId = Shader.PropertyToID("_ForwardStencilRef");
-        private static readonly int ForwardStencilWriteMaskId = Shader.PropertyToID("_ForwardStencilWriteMask");
-        private static readonly int ForwardStencilCompId = Shader.PropertyToID("_ForwardStencilComp");
-        private static readonly int ForwardStencilPassId = Shader.PropertyToID("_ForwardStencilPass");
         private static readonly int ShadowColorId = Shader.PropertyToID(ShadowColorPropertyName);
         private static readonly int SpecularColorId = Shader.PropertyToID(SpecularColorPropertyName);
         private static readonly int RimColorId = Shader.PropertyToID(RimColorPropertyName);
         private static readonly int NormalMapId = Shader.PropertyToID(NormalMapPropertyName);
-        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(OutlinesStencilLayerPropertyName);
 
+        public override bool OutlinesStencilLayer => true;
 
         protected override void DrawProperties()
         {
-            if (DrawSurfaceProperties())
-            {
-                DrawOutlinesStencilLayer();
-            }
+            DrawSurfaceProperties();
 
             EditorGUILayout.Space();
 
@@ -77,56 +69,12 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             EditorGUI.indentLevel--;
         }
 
-        private void DrawOutlinesStencilLayer()
-        {
-            if (IsCanUseOutlinesStencilLayerMixed())
-            {
-                return;
-            }
-
-            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer(GetFirstMaterial()));
-
-            if (DrawProperty(OutlinesStencilLayerPropertyName))
-            {
-                ForEachMaterial(UpdateStencil);
-            }
-
-            EditorGUI.EndDisabledGroup();
-        }
-
         protected override void OnSetZWrite(bool zWrite)
         {
             base.OnSetZWrite(zWrite);
             ForEachMaterial(UpdateStencil);
         }
 
-        private void UpdateStencil(Material m)
-        {
-            var stencilLayer = (StencilLayer) m.GetFloat(OutlinesStencilLayerId);
-
-            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, "_HAS_OUTLINES_STENCIL_LAYER");
-            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
-            {
-                byte reference = stencilLayer.ToReference();
-                m.SetInteger(ForwardStencilRefId, reference);
-                m.SetInteger(ForwardStencilWriteMaskId, reference);
-                m.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
-                m.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
-                m.EnableKeyword(hasOutlinesStencilLayerKeyword);
-            }
-            else
-            {
-                m.SetInteger(ForwardStencilRefId, 0);
-                m.SetInteger(ForwardStencilWriteMaskId, 0);
-                m.SetInteger(ForwardStencilCompId, 0);
-                m.SetInteger(ForwardStencilPassId, 0);
-                m.DisableKeyword(hasOutlinesStencilLayerKeyword);
-            }
-        }
-
-        private static bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
-
-        private bool IsCanUseOutlinesStencilLayerMixed() => FindProperty(PropertyNames.ZWrite).hasMixedValue;
 
         private void DrawNormalMap()
         {

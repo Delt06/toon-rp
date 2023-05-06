@@ -9,20 +9,22 @@
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
-#if defined(_NORMAL_MAP)
-#define REQUIRE_TANGENT_INTERPOLANT
-#endif // _NORMAL_MAP
-
 #if defined(TOON_RP_SSAO_ANY)
 #define REQUIRE_DEPTH_INTERPOLANT
 #endif // TOON_RP_SSAO_ANY
 
+#ifdef UNLIT
+#include "ToonRPUnlitInput.hlsl"
+#else // !UNLIT
 #include "ToonRPDefaultInput.hlsl"
+#endif // UNLIT
 
 struct appdata
 {
     float3 vertex : POSITION;
+    #if !defined(UNLIT)
     half3 normal : NORMAL;
+    #endif // !UNLIT
     float2 uv : TEXCOORD0;
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
@@ -35,9 +37,11 @@ struct appdata
 struct v2f
 {
     float2 uv : TEXCOORD0;
+    #if !defined(UNLIT)
     half3 normalWs : NORMAL_WS;
     float4 positionWs : POSITION_WS;
     float depth : DEPTH_VS;
+    #endif // !UNLIT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
     half3 tangentWs : TANGENT_WS;
@@ -56,10 +60,12 @@ v2f VS(const appdata IN)
     UNITY_SETUP_INSTANCE_ID(IN);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
+    const float3 positionWs = TransformObjectToWorld(IN.vertex);
+
+    #if !defined(UNLIT)
+
     const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
-
-    const float3 positionWs = TransformObjectToWorld(IN.vertex);
     OUT.positionWs = float4(positionWs, 1.0f);
 
     #ifdef REQUIRE_DEPTH_INTERPOLANT
@@ -67,6 +73,8 @@ v2f VS(const appdata IN)
     #else // !REQUIRE_DEPTH_INTERPOLANT
     OUT.depth = 0.0f;
     #endif // REQUIRE_DEPTH_INTERPOLANT
+
+    #endif // !UNLIT
 
     const float4 positionCs = TransformWorldToHClip(positionWs);
     OUT.positionCs = positionCs;
@@ -79,6 +87,8 @@ v2f VS(const appdata IN)
 
     return OUT;
 }
+
+#if !defined(UNLIT)
 
 float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const float3 lightDirectionWs)
 {
@@ -162,7 +172,7 @@ float ComputeRampRim(const float fresnel)
     #endif // _OVERRIDE_RAMP
 }
 
-float4 PS(const v2f IN) : SV_TARGET
+float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 {
     #ifdef _NORMAL_MAP
     const half3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
@@ -172,9 +182,10 @@ float4 PS(const v2f IN) : SV_TARGET
     #endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 
+    const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
     const Light light = GetMainLight(IN);
     const float nDotL = dot(normalWs, light.direction);
-
+    float diffuseRamp = ComputeRampDiffuse(nDotL);
     float shadowAttenuation = GetShadowAttenuation(IN, light);
 
     #ifdef TOON_RP_SSAO_ANY
@@ -182,16 +193,7 @@ float4 PS(const v2f IN) : SV_TARGET
     shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs, IN.depth);
     #endif // TOON_RP_SSAO_ANY
 
-    float diffuseRamp = ComputeRampDiffuse(nDotL);
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
-    float4 albedo = SampleAlbedo(IN.uv);
-    AlphaClip(albedo);
-
-    #ifdef _ALPHAPREMULTIPLY_ON
-    albedo.rgb *= albedo.a;
-    #endif // _ALPHAPREMULTIPLY_ON
-
-    const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
     const float3 diffuse = ApplyRamp(albedo.rgb, mixedShadowColor, diffuseRamp);
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
@@ -206,7 +208,27 @@ float4 PS(const v2f IN) : SV_TARGET
 
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
 
-    float3 outputColor = light.color * (diffuse + specular) + rim + ambient + _EmissionColor * albedo.a;
+    const float3 outputColor = light.color * (diffuse + specular) + rim + ambient + _EmissionColor * albedo.a;
+    return outputColor;
+}
+
+#endif // !UNLIT
+
+float4 PS(const v2f IN) : SV_TARGET
+{
+    float4 albedo = SampleAlbedo(IN.uv);
+    AlphaClip(albedo);
+
+    #ifdef _ALPHAPREMULTIPLY_ON
+    albedo.rgb *= albedo.a;
+    #endif // _ALPHAPREMULTIPLY_ON
+
+    #ifdef UNLIT
+    float3 outputColor = albedo.rgb;
+    #else // !UNLIT
+    float3 outputColor = ComputeLitOutputColor(IN, albedo);
+    #endif // UNLIT
+
     TOON_RP_FOG_MIX(IN, outputColor);
 
     return float4(outputColor, albedo.a);

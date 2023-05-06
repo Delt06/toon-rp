@@ -116,16 +116,16 @@ MonoBehaviour:
       ScreenSpace:
         Color: {r: 0, g: 0, b: 0, a: 0}
         ColorFilter:
-          Enabled: 1
+          Enabled: 0
           Threshold: 0.35
           Smoothness: 0.5
         DepthFilter:
           Enabled: 1
-          Threshold: 5.18
+          Threshold: 0.6
           Smoothness: 0.01
         NormalsFilter:
           Enabled: 1
-          Threshold: 1.28
+          Threshold: 3.23
           Smoothness: 1
         UseFog: 0
         MaxDistance: 9

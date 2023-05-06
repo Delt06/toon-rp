@@ -1,5 +1,10 @@
 # Toon Render Pipeline (Unity SRP)
 
+![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/Delt06/toon-rp?include_prereleases)
+![GitHub license](https://img.shields.io/github/license/Delt06/toon-rp)
+
+
+
 A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
 > The project is in its very **early** stages and has **not** been tested in production.

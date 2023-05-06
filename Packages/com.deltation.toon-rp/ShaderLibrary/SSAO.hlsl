@@ -32,7 +32,8 @@ float GetAmbientOcclusionPattern(const float3 positionWs, const float depth)
     const float3 scaledPosition = positionWs * _ToonRP_SSAO_Pattern_Scale;
     const float seed = scaledPosition.x + scaledPosition.y + scaledPosition.z;
     const float patternBase = abs(frac(seed) - 0.5) * 2;
-    const float pattern = ComputeRamp(patternBase, _ToonRP_SSAO_Pattern_Ramp);
+    float pattern = ComputeRamp(patternBase, _ToonRP_SSAO_Pattern_Ramp);
+    pattern = lerp(pattern, _ToonRP_SSAO_Pattern_Ramp.x, saturate(fwidth(seed) * 2));
     const float distanceFade = DistanceFade(depth, _ToonRP_SSAO_Pattern_DistanceFade.x,
                                             _ToonRP_SSAO_Pattern_DistanceFade.y);
     return pattern * (1 - distanceFade);

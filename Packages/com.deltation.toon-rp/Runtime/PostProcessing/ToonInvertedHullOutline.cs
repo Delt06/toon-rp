@@ -47,61 +47,66 @@ namespace DELTation.ToonRP.PostProcessing
 
                 foreach (ToonInvertedHullOutlineSettings.Pass pass in _outlineSettings.Passes)
                 {
-                    cmd.SetGlobalFloat(ThicknessId, pass.Thickness);
-                    cmd.SetGlobalVector(ColorId, pass.Color);
-                    cmd.SetGlobalDepthBias(pass.DepthBias, 0);
-                    cmd.SetGlobalVector(DistanceFadeId,
-                        new Vector4(
-                            1.0f / pass.MaxDistance,
-                            1.0f / pass.DistanceFade
-                        )
-                    );
-                    ExecuteBuffer(cmd);
+                    string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
+                    {
+                        cmd.SetGlobalFloat(ThicknessId, pass.Thickness);
+                        cmd.SetGlobalVector(ColorId, pass.Color);
+                        cmd.SetGlobalDepthBias(pass.DepthBias, 0);
+                        cmd.SetGlobalVector(DistanceFadeId,
+                            new Vector4(
+                                1.0f / pass.MaxDistance,
+                                1.0f / pass.DistanceFade
+                            )
+                        );
+                        ExecuteBuffer(cmd);
 
-                    var sortingSettings = new SortingSettings(_camera)
-                    {
-                        criteria = SortingCriteria.CommonOpaque,
-                    };
-                    var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
-                    {
-                        enableDynamicBatching = _settings.UseDynamicBatching,
-                        overrideMaterial = _outlineMaterial,
-                        overrideMaterialPassIndex = pass.UseNormalsFromUV2 ? UvNormalsPassId : DefaultPassId,
-                    };
+                        var sortingSettings = new SortingSettings(_camera)
+                        {
+                            criteria = SortingCriteria.CommonOpaque,
+                        };
+                        var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
+                        {
+                            enableDynamicBatching = _settings.UseDynamicBatching,
+                            overrideMaterial = _outlineMaterial,
+                            overrideMaterialPassIndex = pass.UseNormalsFromUV2 ? UvNormalsPassId : DefaultPassId,
+                        };
 
-                    for (int i = 0; i < ShaderTagIds.Length; i++)
-                    {
-                        drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
+                        for (int i = 0; i < ShaderTagIds.Length; i++)
+                        {
+                            drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
+                        }
+
+                        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque)
+                        {
+                            layerMask = pass.LayerMask,
+                        };
+                        var renderStateBlock = new RenderStateBlock
+                        {
+                            mask = RenderStateMask.Raster | RenderStateMask.Stencil,
+                            rasterState = new RasterState(CullMode.Front, 0, pass.DepthBias),
+                        };
+                        if (pass.StencilLayer != StencilLayer.None)
+                        {
+                            byte reference = pass.StencilLayer.ToReference();
+                            renderStateBlock.stencilReference = reference;
+                            renderStateBlock.stencilState =
+                                new StencilState(true, reference, 0, CompareFunction.NotEqual);
+                        }
+                        else
+                        {
+                            renderStateBlock.stencilState = new StencilState(false);
+                        }
+
+
+                        _context.DrawRenderers(_cullingResults,
+                            ref drawingSettings, ref filteringSettings, ref renderStateBlock
+                        );
+
+
+                        cmd.SetGlobalDepthBias(0, 0);
+                        ExecuteBuffer(cmd);
                     }
-
-                    var filteringSettings = new FilteringSettings(RenderQueueRange.opaque)
-                    {
-                        layerMask = pass.LayerMask,
-                    };
-                    var renderStateBlock = new RenderStateBlock
-                    {
-                        mask = RenderStateMask.Raster | RenderStateMask.Stencil,
-                        rasterState = new RasterState(CullMode.Front, 0, pass.DepthBias),
-                    };
-                    if (pass.StencilLayer != StencilLayer.None)
-                    {
-                        byte reference = pass.StencilLayer.ToReference();
-                        renderStateBlock.stencilReference = reference;
-                        renderStateBlock.stencilState = new StencilState(true, reference, 0, CompareFunction.NotEqual);
-                    }
-                    else
-                    {
-                        renderStateBlock.stencilState = new StencilState(false);
-                    }
-
-
-                    _context.DrawRenderers(_cullingResults,
-                        ref drawingSettings, ref filteringSettings, ref renderStateBlock
-                    );
-
-
-                    cmd.SetGlobalDepthBias(0, 0);
-                    ExecuteBuffer(cmd);
                 }
             }
 

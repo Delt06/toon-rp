@@ -50,99 +50,47 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
         ///     The smoothing angle. Note that triangles that already share
         ///     the same vertex will be smooth regardless of the angle!
         /// </param>
-        public static void RecalculateNormals(this Mesh mesh, float angle)
+        private static void RecalculateNormals(this Mesh mesh, float angle)
         {
             float cosineThreshold = Mathf.Cos(angle * Mathf.Deg2Rad);
 
             Vector3[] vertices = mesh.vertices;
-            var normals = new Vector3[vertices.Length];
+            Vector3[] normals = mesh.normals;
+            var resultingNormals = new Vector3[vertices.Length];
 
-            // Holds the normal of each triangle in each sub mesh.
-            var triNormals = new Vector3[mesh.subMeshCount][];
+            var vertexGroups = new Dictionary<VertexKey, List<VertexEntry>>(vertices.Length);
 
-            var dictionary = new Dictionary<VertexKey, List<VertexEntry>>(vertices.Length);
-
-            for (int subMeshIndex = 0; subMeshIndex < mesh.subMeshCount; ++subMeshIndex)
+            for (int index = 0; index < vertices.Length; index++)
             {
-                int[] triangles = mesh.GetTriangles(subMeshIndex);
-
-                triNormals[subMeshIndex] = new Vector3[triangles.Length / 3];
-
-                for (int i = 0; i < triangles.Length; i += 3)
+                var key = new VertexKey(vertices[index]);
+                if (!vertexGroups.TryGetValue(key, out List<VertexEntry> entries))
                 {
-                    int i1 = triangles[i];
-                    int i2 = triangles[i + 1];
-                    int i3 = triangles[i + 2];
-
-                    // Calculate the normal of the triangle
-                    var p1 = Vector3.Normalize(vertices[i2] - vertices[i1]);
-                    var p2 = Vector3.Normalize(vertices[i3] - vertices[i1]);
-                    Vector3 normal = Vector3.Cross(p1, p2).normalized;
-                    int triIndex = i / 3;
-                    triNormals[subMeshIndex][triIndex] = normal;
-
-                    VertexKey key;
-
-                    if (!dictionary.TryGetValue(key = new VertexKey(vertices[i1]), out List<VertexEntry> entry))
-                    {
-                        entry = new List<VertexEntry>(4);
-                        dictionary.Add(key, entry);
-                    }
-
-                    entry.Add(new VertexEntry(subMeshIndex, triIndex, i1));
-
-                    if (!dictionary.TryGetValue(key = new VertexKey(vertices[i2]), out entry))
-                    {
-                        entry = new List<VertexEntry>();
-                        dictionary.Add(key, entry);
-                    }
-
-                    entry.Add(new VertexEntry(subMeshIndex, triIndex, i2));
-
-                    if (!dictionary.TryGetValue(key = new VertexKey(vertices[i3]), out entry))
-                    {
-                        entry = new List<VertexEntry>();
-                        dictionary.Add(key, entry);
-                    }
-
-                    entry.Add(new VertexEntry(subMeshIndex, triIndex, i3));
+                    vertexGroups[key] = entries = new List<VertexEntry>();
                 }
+
+                entries.Add(new VertexEntry(index, normals[index].normalized));
             }
 
-            // Each entry in the dictionary represents a unique vertex position.
-
-            foreach (List<VertexEntry> vertList in dictionary.Values)
+            foreach (List<VertexEntry> vertexGroup in vertexGroups.Values)
             {
-                foreach (VertexEntry v1 in vertList)
+                foreach (VertexEntry entry1 in vertexGroup)
                 {
-                    var sum = new Vector3();
+                    Vector3 sum = Vector3.zero;
 
-                    foreach (VertexEntry v2 in vertList)
+                    foreach (VertexEntry entry2 in vertexGroup)
                     {
-                        if (v1.VertexIndex == v2.VertexIndex)
+                        float dot = Vector3.Dot(entry1.Normal, entry2.Normal);
+                        if (dot >= cosineThreshold)
                         {
-                            sum += triNormals[v2.MeshIndex][v2.TriangleIndex];
-                        }
-                        else
-                        {
-                            // The dot product is the cosine of the angle between the two triangles.
-                            // A larger cosine means a smaller angle.
-                            float dot = Vector3.Dot(
-                                triNormals[v1.MeshIndex][v1.TriangleIndex],
-                                triNormals[v2.MeshIndex][v2.TriangleIndex]
-                            );
-                            if (dot >= cosineThreshold)
-                            {
-                                sum += triNormals[v2.MeshIndex][v2.TriangleIndex];
-                            }
+                            sum += entry2.Normal;
                         }
                     }
 
-                    normals[v1.VertexIndex] = sum.normalized;
+                    resultingNormals[entry1.VertexIndex] = sum.normalized;
                 }
             }
 
-            mesh.normals = normals;
+            mesh.normals = resultingNormals;
         }
 
         private readonly struct VertexKey
@@ -192,15 +140,13 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
 
         private struct VertexEntry
         {
-            public readonly int MeshIndex;
-            public readonly int TriangleIndex;
             public readonly int VertexIndex;
+            public readonly Vector3 Normal;
 
-            public VertexEntry(int meshIndex, int triIndex, int vertIndex)
+            public VertexEntry(int vertexIndex, Vector3 normal)
             {
-                MeshIndex = meshIndex;
-                TriangleIndex = triIndex;
-                VertexIndex = vertIndex;
+                VertexIndex = vertexIndex;
+                Normal = normal;
             }
         }
     }

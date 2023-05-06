@@ -11,14 +11,26 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
     {
         public const int UvChannel = 2;
         public const float MaxSmoothingAngle = 180f;
+
+        [SerializeField]
+        private Mesh _sourceMesh;
+
+        [SerializeField]
         private float _smoothingAngle = MaxSmoothingAngle;
 
-        private Mesh _sourceMesh;
+        [SerializeField]
+        private Channel _channel = Channel.UV2;
 
         private void OnGUI()
         {
             _sourceMesh = (Mesh) EditorGUILayout.ObjectField("Source Mesh", _sourceMesh, typeof(Mesh), false);
             _smoothingAngle = EditorGUILayout.Slider("Smoothing Angle", _smoothingAngle, 0, MaxSmoothingAngle);
+            _channel = (Channel) EditorGUILayout.EnumPopup("Channel", _channel);
+
+            EditorGUILayout.HelpBox(
+                "Skinned should always use the Tangents channel for correct skinning.\nThis, however, makes using normal maps impossible.",
+                MessageType.Info
+            );
 
             if (_sourceMesh == null)
             {
@@ -32,16 +44,31 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
                 return;
             }
 
-            var uvs = new List<Vector4>();
-            _sourceMesh.GetUVs(UvChannel, uvs);
-            if (uvs.Count > 0)
+
+            if (_channel == Channel.UV2)
             {
-                EditorGUILayout.HelpBox($"UV{UvChannel} is busy, it will be overwritten.", MessageType.Warning);
+                var uvs = new List<Vector4>();
+                _sourceMesh.GetUVs(UvChannel, uvs);
+                if (uvs.Count > 0)
+                {
+                    EditorGUILayout.HelpBox($"UV{UvChannel} is busy, it will be overwritten.", MessageType.Warning);
+                }
+
+                var boneWeights = new List<BoneWeight>();
+                _sourceMesh.GetBoneWeights(boneWeights);
+
+                if (boneWeights.Count > 0)
+                {
+                    EditorGUILayout.HelpBox(
+                        "The mesh seems to be a skinned mesh. Change the Channel to Tangents for correct behavior.",
+                        MessageType.Warning
+                    );
+                }
             }
 
             if (GUILayout.Button("Compute Smoothed Normals"))
             {
-                ComputedSmoothedNormals();
+                ComputeSmoothedNormals();
             }
         }
 
@@ -53,7 +80,7 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
             window.ShowUtility();
         }
 
-        private void ComputedSmoothedNormals()
+        private void ComputeSmoothedNormals()
         {
             Close();
 
@@ -62,7 +89,7 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
 
             Mesh smoothedMesh = Instantiate(_sourceMesh);
             smoothedMesh.name = _sourceMesh.name + "_SmoothedNormals";
-            smoothedMesh.CalculateNormalsAndWriteToUv(_smoothingAngle, UvChannel);
+            smoothedMesh.CalculateNormalsAndWriteToChannel(_smoothingAngle, _channel == Channel.UV2 ? UvChannel : null);
             CreateMeshAsset(smoothedMesh);
         }
 
@@ -81,6 +108,12 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
             AssetDatabase.SaveAssets();
 
             Selection.activeObject = mesh;
+        }
+
+        private enum Channel
+        {
+            UV2,
+            Tangents,
         }
     }
 }

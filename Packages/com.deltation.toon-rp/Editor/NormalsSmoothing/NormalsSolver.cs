@@ -17,19 +17,28 @@
 // Further adapted from https://github.com/Delt06/urp-toon-shader/blob/master/Packages/com.deltation.toon-shader/Assets/DELTation/ToonShader/Editor/NormalsSmoothing/NormalsSolver.cs
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Editor.NormalsSmoothing
 {
     internal static class NormalSolver
     {
-        public static void CalculateNormalsAndWriteToUv(this Mesh mesh, float smoothingAngle, int uvChannel)
+        public static void CalculateNormalsAndWriteToChannel(this Mesh mesh, float smoothingAngle, int? uvChannel)
         {
             Vector3[] oldNormals = mesh.normals;
             mesh.RecalculateNormals(smoothingAngle);
             Vector3[] smoothedNormals = mesh.normals;
             mesh.normals = oldNormals;
-            mesh.SetUVs(uvChannel, smoothedNormals);
+
+            if (uvChannel.HasValue)
+            {
+                mesh.SetUVs(uvChannel.Value, smoothedNormals);
+            }
+            else
+            {
+                mesh.SetTangents(smoothedNormals.Select(v => (Vector4) v).ToArray());
+            }
         }
 
         /// <summary>

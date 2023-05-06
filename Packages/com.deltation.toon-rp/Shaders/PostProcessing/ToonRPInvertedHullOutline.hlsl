@@ -9,14 +9,14 @@
 // https://forum.unity.com/threads/ignoring-some-triangles-in-a-vertex-shader.170834/
 //#define USE_CLIP_DISTANCE
 
+#if !defined(NORMAL_SEMANTIC)
+#define NORMAL_SEMANTIC NORMAL
+#endif // !NORMAL_SEMANTIC
+
 struct appdata
 {
     float3 vertex : POSITION;
-    #ifdef TOON_RP_USE_TEXCOORD2_NORMALS
-    float3 normal : TEXCOORD2;
-    #else // !TOON_RP_USE_TEXCOORD2_NORMALS
-    float3 normal : NORMAL;
-    #endif // TOON_RP_USE_TEXCOORD2_NORMALS
+    float3 normal : NORMAL_SEMANTIC;
 };
 
 struct v2f
@@ -49,7 +49,7 @@ v2f VS(const appdata IN)
     #endif // USE_CLIP_DISTANCE
 
     const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness) * distanceFade;
-    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness); 
+    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
     OUT.positionCs = positionCs;
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);

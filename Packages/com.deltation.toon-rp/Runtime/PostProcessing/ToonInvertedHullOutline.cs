@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRenderer;
 
@@ -8,6 +9,7 @@ namespace DELTation.ToonRP.PostProcessing
     {
         private const int DefaultPassId = 0;
         private const int UvNormalsPassId = 1;
+        private const int TangentNormalsPassId = 2;
         private static readonly int ThicknessId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Thickness");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_ToonRP_Outline_DistanceFade");
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Color");
@@ -69,7 +71,13 @@ namespace DELTation.ToonRP.PostProcessing
                         {
                             enableDynamicBatching = _settings.UseDynamicBatching,
                             overrideMaterial = _outlineMaterial,
-                            overrideMaterialPassIndex = pass.UseNormalsFromUV2 ? UvNormalsPassId : DefaultPassId,
+                            overrideMaterialPassIndex = pass.NormalsSource switch
+                            {
+                                ToonInvertedHullOutlineSettings.NormalsSource.Normals => DefaultPassId,
+                                ToonInvertedHullOutlineSettings.NormalsSource.UV2 => UvNormalsPassId,
+                                ToonInvertedHullOutlineSettings.NormalsSource.Tangents => TangentNormalsPassId,
+                                _ => throw new ArgumentOutOfRangeException(),
+                            },
                         };
 
                         for (int i = 0; i < ShaderTagIds.Length; i++)

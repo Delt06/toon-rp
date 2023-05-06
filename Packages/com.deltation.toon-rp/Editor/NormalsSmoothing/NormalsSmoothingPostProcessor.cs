@@ -13,14 +13,39 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
 {
     public class NormalsSmoothingPostProcessor : AssetPostprocessor
     {
-        private const string Tag = "SmoothedNormals";
+        private const string Tag = "=SmoothedNormals=";
+        private const string UvTag = "=UV=";
+        private const string TangentsTag = "=Tangents=";
 
         [UsedImplicitly]
         private void OnPostprocessModel(GameObject gameObject)
         {
-            if (gameObject.name.Contains(Tag))
+            string name = gameObject.name;
+
+            if (name.Contains(Tag))
             {
-                Apply(gameObject);
+                bool? toUv = null;
+
+                bool hasUvTag = name.Contains(UvTag);
+                bool hasTangentsTag = name.Contains(TangentsTag);
+
+                if (hasUvTag && hasTangentsTag)
+                {
+                    Debug.LogWarning($"{name} has both {UvTag} and {TangentsTag}. Falling back to the default mode...");
+                }
+                else
+                {
+                    if (hasUvTag)
+                    {
+                        toUv = true;
+                    }
+                    else if (hasTangentsTag)
+                    {
+                        toUv = false;
+                    }
+                }
+
+                Apply(gameObject, toUv);
             }
         }
 
@@ -49,26 +74,40 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
         }
 
         [UsedImplicitly]
-        private void Apply(GameObject gameObject)
+        private void Apply(GameObject gameObject, bool? toUv)
         {
-            var meshes = new HashSet<Mesh>();
+            var meshes = new HashSet<(Mesh, bool)>();
             float smoothingAngle = GetSmoothingAngle(gameObject);
 
             const bool includeInactive = true;
             foreach (MeshFilter meshFilter in gameObject.GetComponentsInChildren<MeshFilter>(includeInactive))
             {
-                meshes.Add(meshFilter.sharedMesh);
+                meshes.Add((meshFilter.sharedMesh, false));
             }
 
             foreach (SkinnedMeshRenderer skinnedMeshRenderer in
                      gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(includeInactive))
             {
-                meshes.Add(skinnedMeshRenderer.sharedMesh);
+                meshes.Add((skinnedMeshRenderer.sharedMesh, true));
             }
 
-            foreach (Mesh mesh in meshes)
+            foreach ((Mesh mesh, bool isSkinned) in meshes)
             {
-                mesh.CalculateNormalsAndWriteToUv(smoothingAngle, UvChannel);
+                int? uvChannel = toUv switch
+                {
+                    true => UvChannel,
+                    false => null,
+                    null => isSkinned ? null : UvChannel,
+                };
+
+                if (isSkinned && uvChannel.HasValue)
+                {
+                    Debug.LogError(
+                        $"{gameObject.name}: exporting normals to UV even though it is a skinned mesh. The outlines won't look correctly. Skinned meshes should use tangents for custom normals."
+                    );
+                }
+
+                mesh.CalculateNormalsAndWriteToChannel(smoothingAngle, uvChannel);
             }
         }
     }

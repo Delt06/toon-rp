@@ -6,6 +6,13 @@ namespace DELTation.ToonRP.PostProcessing
     [Serializable]
     public struct ToonInvertedHullOutlineSettings
     {
+        public enum NormalsSource
+        {
+            Normals,
+            UV2,
+            Tangents,
+        }
+
         public Pass[] Passes;
 
         [Serializable]
@@ -18,7 +25,7 @@ namespace DELTation.ToonRP.PostProcessing
             public Color Color;
             [Min(0f)]
             public float Thickness;
-            public bool UseNormalsFromUV2;
+            public NormalsSource NormalsSource;
             public float DepthBias;
             [Min(0f)]
             public float MaxDistance;

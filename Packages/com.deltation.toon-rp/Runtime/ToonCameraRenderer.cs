@@ -36,6 +36,7 @@ namespace DELTation.ToonRP
         private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+        private DepthPrePassMode _depthPrePassMode;
         private GraphicsFormat _depthStencilFormat;
         private bool _drawInvertedHullOutlines;
         private int _msaaSamples;
@@ -43,6 +44,34 @@ namespace DELTation.ToonRP
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
+
+        public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
+            in ToonPostProcessingSettings postProcessingSettings,
+            in ToonSsaoSettings ssaoSettings)
+        {
+            DepthPrePassMode mode = settings.DepthPrePass;
+
+            if (postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.ScreenSpace)
+            {
+                // depth is always used for distance fade
+                mode = CombineDepthPrePassModes(mode, DepthPrePassMode.Depth);
+
+                if (postProcessingSettings.Outline.ScreenSpace.NormalsFilter.Enabled)
+                {
+                    mode = CombineDepthPrePassModes(mode, DepthPrePassMode.DepthNormals);
+                }
+            }
+
+            if (ssaoSettings.Enabled)
+            {
+                mode = CombineDepthPrePassModes(mode, DepthPrePassMode.DepthNormals);
+            }
+
+            return mode;
+        }
+
+        private static DepthPrePassMode CombineDepthPrePassModes(DepthPrePassMode mode1, DepthPrePassMode mode2) =>
+            mode1 > mode2 ? mode1 : mode2;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
@@ -64,6 +93,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
+            _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, ssaoSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
             Setup(cmd, globalRampSettings, toonShadowSettings, postProcessingSettings);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
@@ -79,9 +109,10 @@ namespace DELTation.ToonRP
                 );
             }
 
-            if (settings.DepthPrePass != DepthPrePassMode.Off)
+            if (_depthPrePassMode != DepthPrePassMode.Off)
             {
-                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _rtWidth, _rtHeight);
+                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode, _rtWidth, _rtHeight
+                );
                 _depthPrePass.Render();
             }
 
@@ -328,7 +359,7 @@ namespace DELTation.ToonRP
         {
             _shadows.Cleanup();
 
-            if (_settings.DepthPrePass != DepthPrePassMode.Off)
+            if (_depthPrePassMode != DepthPrePassMode.Off)
             {
                 _depthPrePass.Cleanup();
             }

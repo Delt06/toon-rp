@@ -170,6 +170,9 @@ namespace DELTation.ToonRP
             }
         }
 
+        public ToonCameraRendererSettings.DepthPrePassMode GetEffectiveDepthPrePassMode() =>
+            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Ssao);
+
         protected override RenderPipeline CreatePipeline() =>
             new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing, Ssao);
     }

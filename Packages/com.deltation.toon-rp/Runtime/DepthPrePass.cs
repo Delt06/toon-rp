@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
@@ -22,15 +23,17 @@ namespace DELTation.ToonRP
         private ToonCameraRendererSettings _settings;
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            in ToonCameraRendererSettings settings, int rtWidth, int rtHeight)
+            in ToonCameraRendererSettings settings, DepthPrePassMode mode, int rtWidth, int rtHeight)
         {
+            Assert.IsTrue(mode != DepthPrePassMode.Off, "mode != DepthPrePassMode.Off");
+
             _context = context;
             _cullingResults = cullingResults;
             _camera = camera;
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
-            _normals = _settings.DepthPrePass == DepthPrePassMode.DepthNormals;
+            _normals = mode == DepthPrePassMode.DepthNormals;
         }
 
         public void Render()

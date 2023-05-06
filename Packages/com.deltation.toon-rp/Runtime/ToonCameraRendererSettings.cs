@@ -24,8 +24,12 @@ namespace DELTation.ToonRP
         public bool AllowHdr;
         public bool Stencil;
         public MsaaMode Msaa;
-        [Range(0.5f, 2.0f)]
+        [Range(0.25f, 2.0f)]
         public float RenderScale;
+        [Min(0)]
+        public int MaxRenderTextureWidth;
+        [Min(0)]
+        public int MaxRenderTextureHeight;
         public FilterMode RenderTextureFilterMode;
         public DepthPrePassMode DepthPrePass;
 

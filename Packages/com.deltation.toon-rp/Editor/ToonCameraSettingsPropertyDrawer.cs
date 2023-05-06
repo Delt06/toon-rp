@@ -29,6 +29,14 @@ namespace DELTation.ToonRP.Editor
 
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.RenderScale))));
             root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MaxRenderTextureWidth))
+                )
+            );
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MaxRenderTextureHeight))
+                )
+            );
+            root.Add(new PropertyField(
                     property.FindPropertyRelative(nameof(ToonCameraRendererSettings.RenderTextureFilterMode))
                 )
             );

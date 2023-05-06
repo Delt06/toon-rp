@@ -36,6 +36,8 @@ namespace DELTation.ToonRP
         {
             Msaa = ToonCameraRendererSettings.MsaaMode.Off,
             RenderScale = 1.0f,
+            MaxRenderTextureHeight = 0,
+            MaxRenderTextureWidth = 0,
             RenderTextureFilterMode = FilterMode.Bilinear,
             UseSrpBatching = true,
             UseDynamicBatching = false,

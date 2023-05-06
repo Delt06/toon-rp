@@ -213,22 +213,56 @@ namespace DELTation.ToonRP
             cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
+            int maxRtWidth = int.MaxValue;
+            int maxRtHeight = int.MaxValue;
+            if (_camera.cameraType == CameraType.Game)
+            {
+                if (_settings.MaxRenderTextureWidth > 0)
+                {
+                    maxRtWidth = _settings.MaxRenderTextureWidth;
+                }
+
+                if (_settings.MaxRenderTextureHeight > 0)
+                {
+                    maxRtHeight = _settings.MaxRenderTextureHeight;
+                }
+            }
+
+            _rtWidth = _camera.pixelWidth;
+            _rtHeight = _camera.pixelHeight;
 
             _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
                                _postProcessing.AnyFullScreenEffectsEnabled ||
-                               !Mathf.Approximately(renderScale, 1.0f)
+                               !Mathf.Approximately(renderScale, 1.0f) ||
+                               _rtWidth > maxRtWidth ||
+                               _rtHeight > maxRtHeight
                 ;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
 
-            _rtWidth = _camera.pixelWidth;
-            _rtHeight = _camera.pixelHeight;
 
             if (_renderToTexture)
             {
                 _rtWidth = Mathf.CeilToInt(_rtWidth * renderScale);
                 _rtHeight = Mathf.CeilToInt(_rtHeight * renderScale);
+                float aspectRatio = (float) _rtWidth / _rtHeight;
+
+                if (_rtWidth > maxRtWidth || _rtHeight > maxRtHeight)
+                {
+                    _rtWidth = maxRtWidth;
+                    _rtHeight = maxRtHeight;
+
+                    if (aspectRatio > 1)
+                    {
+                        _rtHeight = Mathf.CeilToInt(_rtWidth / aspectRatio);
+                    }
+                    else
+                    {
+                        _rtWidth = Mathf.CeilToInt(_rtHeight * aspectRatio);
+                    }
+                }
+
                 cmd.GetTemporaryRT(
                     CameraColorBufferId, _rtWidth, _rtHeight, 0,
                     _settings.RenderTextureFilterMode, _colorFormat,

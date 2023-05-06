@@ -25,7 +25,7 @@ namespace DELTation.ToonRP.PostProcessing
             public bool Enabled;
             [Min(0.05f)]
             public float Threshold;
-            [Min(0.01f)]
+            [Min(0.0f)]
             public float Smoothness;
         }
     }

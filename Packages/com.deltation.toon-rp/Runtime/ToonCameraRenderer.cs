@@ -99,7 +99,8 @@ namespace DELTation.ToonRP
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight
             );
-            _drawInvertedHullOutlines = postProcessingSettings.Enabled &&
+            _drawInvertedHullOutlines = camera.cameraType <= CameraType.SceneView &&
+                                        postProcessingSettings.Enabled &&
                                         postProcessingSettings.Outline.Mode ==
                                         ToonOutlineSettings.OutlineMode.InvertedHull;
             if (_drawInvertedHullOutlines)

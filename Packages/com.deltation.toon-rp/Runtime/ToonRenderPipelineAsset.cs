@@ -160,7 +160,7 @@ namespace DELTation.ToonRP
 
         public override Material defaultMaterial => new(defaultShader);
 
-        public override Shader defaultShader => Shader.Find("Toon RP/Default");
+        public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 
         protected override void OnValidate()
         {

@@ -26,6 +26,8 @@ namespace DELTation.ToonRP
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
         }
 
+        public static Shader GetDefaultShader() => Shader.Find("Toon RP/Default");
+
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             foreach (Camera camera in cameras)

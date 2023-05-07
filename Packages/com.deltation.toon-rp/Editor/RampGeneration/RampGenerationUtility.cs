@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Editor.RampGeneration
@@ -31,53 +32,53 @@ namespace DELTation.ToonRP.Editor.RampGeneration
 
             if (GUILayout.Button("Generate"))
             {
-                var rampTexture = new Texture2D(Size, 1, TextureFormat.R8, MipMaps, true)
+                // for compression
+                const int height = 4;
+
+                var rampTexture = new Texture2D(Size, height, TextureFormat.R8, MipMaps, true)
                 {
                     name = "New Ramp",
-                    wrapMode = TextureWrapMode.Clamp,
                 };
 
-                var pixels = new Color[Size];
+                var pixels = new Color[Size * height];
 
-                for (int i = 0; i < Size; i++)
+                for (int yi = 0; yi < height; yi++)
                 {
-                    float t = (float) i / (Size - 1);
-                    pixels[i] = Ramp.Evaluate(t);
+                    for (int xi = 0; xi < Size; xi++)
+                    {
+                        float t = (float) xi / (Size - 1);
+                        pixels[xi + yi * Size] = Ramp.Evaluate(t);
+                    }
                 }
 
                 rampTexture.SetPixels(pixels);
-                rampTexture.Apply(MipMaps, false);
 
                 CreateRampAsset(rampTexture);
             }
         }
 
-        private static void CreateRampAsset(Texture2D texture)
+        private void CreateRampAsset(Texture2D texture)
         {
-            string path = EditorUtility.SaveFilePanelInProject("Save mesh", texture.name, "asset",
+            string path = EditorUtility.SaveFilePanelInProject("Save mesh", texture.name, "png",
                 "Select ramp asset path"
             );
-            if (string.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
-                DestroyImmediate(texture);
-                return;
+                byte[] bytes = texture.EncodeToPNG();
+                File.WriteAllBytes(Path.Combine(Application.dataPath, "..", path), bytes);
+
+                AssetDatabase.Refresh();
+
+                var importer = (TextureImporter) AssetImporter.GetAtPath(path);
+                importer.mipmapEnabled = MipMaps;
+                importer.sRGBTexture = false;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.filterMode = FilterMode;
+
+                AssetDatabase.SaveAssets();
             }
 
-            Texture2D existingTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-
-            if (existingTexture == null)
-            {
-                AssetDatabase.CreateAsset(texture, path);
-            }
-            else
-            {
-                EditorUtility.CopySerialized(texture, existingTexture);
-                DestroyImmediate(texture);
-            }
-
-            AssetDatabase.SaveAssets();
-
-            Selection.activeObject = texture;
+            DestroyImmediate(texture);
         }
 
         [MenuItem("Window/Toon RP/Ramp Generation Utility")]

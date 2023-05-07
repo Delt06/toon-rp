@@ -21,13 +21,13 @@ MonoBehaviour:
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:
     Threshold: 0
-    SpecularThreshold: 0.992
-    RimThreshold: 0.5
-    Mode: 1
+    SpecularThreshold: 0.809
+    RimThreshold: -0.328
+    Mode: 2
     Smoothness: 0.083
-    SpecularSmoothness: 0.005
-    RimSmoothness: 0.1
-    RampTexture: {fileID: 0}
+    SpecularSmoothness: 0.367
+    RimSmoothness: 1.65
+    RampTexture: {fileID: 2800000, guid: 752a48c13df68ea4aae97103de1292d2, type: 3}
   CameraRendererSettings:
     AllowHdr: 1
     Stencil: 0

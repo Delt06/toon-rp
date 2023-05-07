@@ -72,7 +72,8 @@ namespace DELTation.ToonRP.Editor.RampGeneration
                 var importer = (TextureImporter) AssetImporter.GetAtPath(path);
                 importer.mipmapEnabled = MipMaps;
                 importer.sRGBTexture = false;
-                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.wrapModeU = TextureWrapMode.Clamp;
+                importer.wrapModeV = TextureWrapMode.Repeat;
                 importer.filterMode = FilterMode;
 
                 AssetDatabase.SaveAssets();

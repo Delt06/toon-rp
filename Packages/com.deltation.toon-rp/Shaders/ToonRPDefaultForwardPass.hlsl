@@ -130,7 +130,7 @@ Light GetMainLight(const v2f IN)
     return light;
 }
 
-float ComputeRampDiffuse(const float nDotL)
+float ComputeRampDiffuse(const float nDotL, const v2f IN)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -139,12 +139,12 @@ float ComputeRampDiffuse(const float nDotL)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampDiffuse(nDotL);
+    return ComputeGlobalRampDiffuse(nDotL, IN.uv);
 
     #endif // _OVERRIDE_RAMP
 }
 
-float ComputeRampSpecular(const float nDotH)
+float ComputeRampSpecular(const float nDotH, const v2f IN)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -153,12 +153,12 @@ float ComputeRampSpecular(const float nDotH)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampSpecular(nDotH);
+    return ComputeGlobalRampSpecular(nDotH, IN.uv);
 
     #endif // _OVERRIDE_RAMP
 }
 
-float ComputeRampRim(const float fresnel)
+float ComputeRampRim(const float fresnel, const v2f IN)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -167,7 +167,7 @@ float ComputeRampRim(const float fresnel)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampRim(fresnel);
+    return ComputeGlobalRampRim(fresnel, IN.uv);
 
     #endif // _OVERRIDE_RAMP
 }
@@ -185,7 +185,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
     const Light light = GetMainLight(IN);
     const float nDotL = dot(normalWs, light.direction);
-    float diffuseRamp = ComputeRampDiffuse(nDotL);
+    float diffuseRamp = ComputeRampDiffuse(nDotL, IN);
     float shadowAttenuation = GetShadowAttenuation(IN, light);
 
     #ifdef TOON_RP_SSAO_ANY
@@ -198,12 +198,12 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
     const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH);
+    float specularRamp = ComputeRampSpecular(nDotH, IN);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = _SpecularColor * specularRamp;
 
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
-    const float rimRamp = ComputeRampRim(fresnel);
+    const float rimRamp = ComputeRampRim(fresnel, IN);
     const float3 rim = _RimColor * rimRamp;
 
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;

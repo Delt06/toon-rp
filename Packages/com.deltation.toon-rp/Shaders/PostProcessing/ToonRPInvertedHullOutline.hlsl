@@ -17,6 +17,7 @@ struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL_SEMANTIC;
+    float2 uv : TEXCOORD0;
 };
 
 struct v2f
@@ -32,6 +33,8 @@ CBUFFER_START(_ToonRpInvertedHullOutline)
 float _ToonRP_Outline_InvertedHull_Thickness;
 float3 _ToonRP_Outline_InvertedHull_Color;
 float2 _ToonRP_Outline_DistanceFade;
+float _ToonRP_Outline_NoiseFrequency;
+float _ToonRP_Outline_NoiseAmplitude;
 CBUFFER_END
 
 v2f VS(const appdata IN)
@@ -48,7 +51,8 @@ v2f VS(const appdata IN)
     OUT.clipDistance = distanceFade > 0 ? 0 : -1;
     #endif // USE_CLIP_DISTANCE
 
-    const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness) * distanceFade;
+    const float noise = _ToonRP_Outline_NoiseAmplitude * frac(_ToonRP_Outline_NoiseFrequency * (IN.uv.x + IN.uv.y));
+    const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness + noise) * distanceFade;
     const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
     OUT.positionCs = positionCs;
 

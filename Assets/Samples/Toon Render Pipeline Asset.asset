@@ -110,7 +110,9 @@ MonoBehaviour:
             m_Bits: 55
           StencilLayer: 8
           Color: {r: 0, g: 0, b: 0, a: 0}
-          Thickness: 0.025
+          Thickness: 0.02
+          NoiseAmplitude: 0.02
+          NoiseFrequency: 1000
           NormalsSource: 0
           DepthBias: 0
           MaxDistance: 15
@@ -122,6 +124,8 @@ MonoBehaviour:
           StencilLayer: 0
           Color: {r: 0, g: 0, b: 0, a: 0}
           Thickness: 0.0125
+          NoiseAmplitude: 0
+          NoiseFrequency: 0
           NormalsSource: 0
           DepthBias: -1.5
           MaxDistance: 15

@@ -13,6 +13,8 @@ namespace DELTation.ToonRP.PostProcessing
         private static readonly int ThicknessId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Thickness");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_ToonRP_Outline_DistanceFade");
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Color");
+        private static readonly int NoiseFrequencyId = Shader.PropertyToID("_ToonRP_Outline_NoiseFrequency");
+        private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_ToonRP_Outline_NoiseAmplitude");
         private Camera _camera;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
@@ -61,6 +63,8 @@ namespace DELTation.ToonRP.PostProcessing
                                 1.0f / pass.DistanceFade
                             )
                         );
+                        cmd.SetGlobalFloat(NoiseFrequencyId, pass.NoiseFrequency);
+                        cmd.SetGlobalFloat(NoiseAmplitudeId, pass.NoiseAmplitude);
                         ExecuteBuffer(cmd);
 
                         var sortingSettings = new SortingSettings(_camera)

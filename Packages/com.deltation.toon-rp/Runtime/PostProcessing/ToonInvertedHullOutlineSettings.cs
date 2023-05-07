@@ -25,6 +25,10 @@ namespace DELTation.ToonRP.PostProcessing
             public Color Color;
             [Min(0f)]
             public float Thickness;
+            [Min(0f)]
+            public float NoiseAmplitude;
+            [Min(0f)]
+            public float NoiseFrequency;
             public NormalsSource NormalsSource;
             public float DepthBias;
             [Min(0f)]

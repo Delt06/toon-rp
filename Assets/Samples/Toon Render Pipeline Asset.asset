@@ -33,6 +33,8 @@ MonoBehaviour:
     Stencil: 0
     Msaa: 1
     RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
     DepthPrePass: 2
     UseSrpBatching: 1
@@ -102,15 +104,26 @@ MonoBehaviour:
       Mode: 1
       InvertedHull:
         Passes:
-        - Name: Default
+        - Name: Thick (Outer)
           LayerMask:
             serializedVersion: 2
             m_Bits: 55
           StencilLayer: 8
           Color: {r: 0, g: 0, b: 0, a: 0}
           Thickness: 0.025
-          UseNormalsFromUV2: 0
+          NormalsSource: 0
           DepthBias: 0
+          MaxDistance: 15
+          DistanceFade: 0.1
+        - Name: Thin (Inner)
+          LayerMask:
+            serializedVersion: 2
+            m_Bits: 55
+          StencilLayer: 0
+          Color: {r: 0, g: 0, b: 0, a: 0}
+          Thickness: 0.0125
+          NormalsSource: 0
+          DepthBias: -1.5
           MaxDistance: 15
           DistanceFade: 0.1
       ScreenSpace:

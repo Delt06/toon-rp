@@ -132,8 +132,8 @@ namespace DELTation.ToonRP.PostProcessing
                 }
 
                 int midId = toId - 1;
-                cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Point, Context.ColorFormat);
-                cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Point, Context.ColorFormat);
+                cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
+                cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
 
                 cmd.Blit(fromId, midId, _material, HorizontalBlurPass);
                 cmd.Blit(midId, toId, _material, VerticalBlurPass);

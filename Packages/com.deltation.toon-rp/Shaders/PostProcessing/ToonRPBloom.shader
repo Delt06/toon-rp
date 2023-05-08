@@ -17,14 +17,10 @@
         #include "../../ShaderLibrary/Textures.hlsl"
 
         TEXTURE2D(_MainTex);
+        SAMPLER(sampler_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
 
         bool _ToonRP_Bloom_UseBicubicUpsampling;
-
-        #define LINEAR_SAMPLER sampler_linear_clamp
-        SAMPLER(LINEAR_SAMPLER);
-        #define POINT_SAMPLER sampler_point_clamp
-        SAMPLER(POINT_SAMPLER);
 
         struct appdata
         {
@@ -70,7 +66,7 @@
 	            for (int i = 0; i < 9; i++)
 	            {
                     const float offset = offsets[i] * 2.0 * _MainTex_TexelSize.x;
-		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv + float2(offset, 0.0), 0).rgb * weights[i];
+		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv + float2(offset, 0.0), 0).rgb * weights[i];
 	            }
                 return color;
             }
@@ -103,7 +99,7 @@
 	            for (int i = 0; i < 5; i++)
 	            {
                     const float offset = offsets[i] * _MainTex_TexelSize.y;
-		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv + float2(0.0, offset), 0).rgb * weights[i];
+		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv + float2(0.0, offset), 0).rgb * weights[i];
 	            }
                 return color;
             }
@@ -141,7 +137,7 @@
                 const float2 gridUv = ceil(patternUv) / scale2;
                 patternUv %= 1;
 			
-                const float3 gridSample = SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, gridUv, 0).rgb;
+                const float3 gridSample = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, gridUv, 0).rgb;
                 const float luminance = Luminance(gridSample);
 
 			    // scale pattern based on how bright the bloom in that area is
@@ -160,11 +156,11 @@
                 float3 source1;
                 if (_ToonRP_Bloom_UseBicubicUpsampling)
                 {
-                    source1 = SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTex, LINEAR_SAMPLER), IN.uv, _MainTex_TexelSize.zwxy, 1.0, 0.0).rgb;
+                    source1 = SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTex, sampler_MainTex), IN.uv, _MainTex_TexelSize.zwxy, 1.0, 0.0).rgb;
                 }
                 else
                 {
-                    source1 = SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, IN.uv, 0).rgb;    
+                    source1 = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, IN.uv, 0).rgb;    
                 }
 
                 if (_ToonRP_Bloom_UsePattern)
@@ -172,7 +168,7 @@
                     source1 *= ComputePattern(IN.uv);
                 }
                  
-                const float3 source2 = SAMPLE_TEXTURE2D_LOD(_MainTex2, POINT_SAMPLER, IN.uv, 0).rgb;
+                const float3 source2 = SAMPLE_TEXTURE2D_LOD(_MainTex2, sampler_MainTex, IN.uv, 0).rgb;
                 return float4(source1 * _ToonRP_Bloom_Intensity + source2, 1.0f);
             }
 
@@ -200,7 +196,7 @@
 			
 			float4 PS(const v2f IN) : SV_TARGET
             {
-                float3 color = ApplyBloomThreshold(SAMPLE_TEXTURE2D_LOD(_MainTex, POINT_SAMPLER, IN.uv, 0).rgb);
+                float3 color = ApplyBloomThreshold(SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, IN.uv, 0).rgb);
                 return float4(color, 1.0f);
             }
 

@@ -75,6 +75,7 @@ namespace DELTation.ToonRP.Editor.RampGeneration
                 importer.wrapModeU = TextureWrapMode.Clamp;
                 importer.wrapModeV = TextureWrapMode.Repeat;
                 importer.filterMode = FilterMode;
+                importer.SaveAndReimport();
 
                 AssetDatabase.SaveAssets();
             }

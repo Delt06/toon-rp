@@ -20,10 +20,8 @@
         #include "../../ShaderLibrary/DepthNormals.hlsl"
 
         TEXTURE2D(_MainTex);
+	    SAMPLER(sampler_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
-
-	    #define LINEAR_SAMPLER sampler_linear_clamp
-        SAMPLER(LINEAR_SAMPLER);
 
 	    CBUFFER_START(UnityPerMaterial)
 		float2 _Center;
@@ -55,7 +53,7 @@
 
         float3 SampleSource(const float2 uv)
         {
-            return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0);
+            return SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv, 0);
         }
 	    
 	    ENDHLSL

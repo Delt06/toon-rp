@@ -8,15 +8,10 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     [UsedImplicitly]
     public sealed class ToonRpDefaultShaderGui : ToonRpShaderGuiBase
     {
-        private const string ShadowColorPropertyName = "_ShadowColor";
-        private const string SpecularColorPropertyName = "_SpecularColor";
-        private const string RimColorPropertyName = "_RimColor";
-        private const string NormalMapPropertyName = "_NormalMap";
-
-        private static readonly int ShadowColorId = Shader.PropertyToID(ShadowColorPropertyName);
-        private static readonly int SpecularColorId = Shader.PropertyToID(SpecularColorPropertyName);
-        private static readonly int RimColorId = Shader.PropertyToID(RimColorPropertyName);
-        private static readonly int NormalMapId = Shader.PropertyToID(NormalMapPropertyName);
+        private static readonly int ShadowColorId = Shader.PropertyToID(PropertyNames.ShadowColorPropertyName);
+        private static readonly int SpecularColorId = Shader.PropertyToID(PropertyNames.SpecularColorPropertyName);
+        private static readonly int RimColorId = Shader.PropertyToID(PropertyNames.RimColorPropertyName);
+        private static readonly int NormalMapId = Shader.PropertyToID(PropertyNames.NormalMapPropertyName);
 
         public override bool OutlinesStencilLayer => true;
 
@@ -37,9 +32,9 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
             if (DrawFoldout(HeaderNames.Lighting))
             {
-                DrawProperty(ShadowColorPropertyName);
-                DrawProperty(SpecularColorPropertyName);
-                DrawProperty(RimColorPropertyName);
+                DrawProperty(PropertyNames.ShadowColorPropertyName);
+                DrawProperty(PropertyNames.SpecularColorPropertyName);
+                DrawProperty(PropertyNames.RimColorPropertyName);
                 DrawProperty(PropertyNames.EmissionColor);
                 DrawNormalMap();
                 DrawProperty("_ReceiveBlobShadows");
@@ -78,7 +73,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         private void DrawNormalMap()
         {
-            if (DrawProperty(NormalMapPropertyName))
+            if (DrawProperty(PropertyNames.NormalMapPropertyName))
             {
                 OnNormalMapUpdated();
             }
@@ -86,7 +81,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         private void OnNormalMapUpdated()
         {
-            ForEachMaterial(m => m.SetKeyword("_NORMAL_MAP", m.GetTexture(NormalMapId) != null));
+            ForEachMaterial(m => m.SetKeyword(ShaderKeywords.NormalMap, m.GetTexture(NormalMapId) != null));
         }
 
         protected override RenderQueue GetRenderQueue(Material m) => GetRenderQueueWithAlphaTestAndTransparency(m);

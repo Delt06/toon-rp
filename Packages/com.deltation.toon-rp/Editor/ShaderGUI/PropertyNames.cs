@@ -15,6 +15,11 @@
         public const string RenderFace = "_RenderFace";
         public const string EmissionColor = "_EmissionColor";
 
+        public const string ShadowColorPropertyName = "_ShadowColor";
+        public const string SpecularColorPropertyName = "_SpecularColor";
+        public const string RimColorPropertyName = "_RimColor";
+        public const string NormalMapPropertyName = "_NormalMap";
+
         public const string QueueOffset = "_QueueOffset";
     }
 }

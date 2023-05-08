@@ -14,7 +14,9 @@ namespace DELTation.ToonRP
             "Hidden/Toon RP/VSM Blur",
             "Hidden/Toon RP/Bloom",
             "Hidden/Toon RP/FXAA",
+            "Hidden/Toon RP/Light Scattering",
             "Hidden/Toon RP/Outline (Inverted Hull)",
+            "Hidden/Toon RP/Outline (Screen Space)",
             "Hidden/Toon RP/SSAO",
             "Hidden/Toon RP/Blob Shadow Pass",
         };
@@ -95,6 +97,14 @@ namespace DELTation.ToonRP
                 FixedContrastThresholdId = 0.0833f,
                 RelativeContrastThreshold = 0.166f,
                 SubpixelBlendingFactor = 0.75f,
+            },
+            LightScattering = new ToonLightScatteringSettings
+            {
+                Intensity = 0.25f,
+                Threshold = 0.8f,
+                ResolutionFactor = 4,
+                Samples = 100,
+                BlurWidth = 0.8f,
             },
             Bloom = new ToonBloomSettings
             {

@@ -90,7 +90,11 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 - Bloom
   - _Optional_: stylized pattern
 
-![MSAA](./Documentation/features_bloom.jpg?raw=true)
+![Bloom](./Documentation/features_bloom.jpg?raw=true)
+
+- Light Scattering (Post FX)
+
+![Light Scattering](./Documentation/features_light_scattering.jpg?raw=true)
 
 - Outline (Inverted Hull)
   - Distance fade

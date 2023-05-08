@@ -33,6 +33,7 @@ namespace DELTation.ToonRP.PostProcessing
             _allFullScreenPasses ??= new List<IToonPostProcessingPass>
             {
                 new ToonScreenSpaceOutline(),
+                new ToonLightScattering(),
                 new ToonBloom(),
                 new ToonFxaa(),
             };
@@ -108,8 +109,15 @@ namespace DELTation.ToonRP.PostProcessing
 
                 foreach (IToonPostProcessingPass pass in _enabledFullScreenPasses)
                 {
-                    pass.Render(cmd, currentSource, currentDestination);
-                    (currentSource, currentDestination) = (currentDestination, currentSource);
+                    if (pass.NeedsDistinctSourceAndDestination())
+                    {
+                        pass.Render(cmd, currentSource, currentDestination);
+                        (currentSource, currentDestination) = (currentDestination, currentSource);
+                    }
+                    else
+                    {
+                        pass.Render(cmd, currentSource, currentSource);
+                    }
                 }
 
                 if (currentSource != destination)

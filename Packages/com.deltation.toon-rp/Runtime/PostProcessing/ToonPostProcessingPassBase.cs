@@ -7,6 +7,7 @@ namespace DELTation.ToonRP.PostProcessing
         protected ToonPostProcessingContext Context;
 
         public virtual bool IsEnabled(in ToonPostProcessingSettings settings) => true;
+        public virtual bool NeedsDistinctSourceAndDestination() => true;
 
         public virtual void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {

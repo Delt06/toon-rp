@@ -30,6 +30,9 @@ namespace DELTation.ToonRP.Editor
                 new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Fxaa)))
             );
             settingsContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.LightScattering)))
+            );
+            settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Bloom)))
             );
             settingsContainer.Add(

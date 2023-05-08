@@ -7,6 +7,7 @@ namespace DELTation.ToonRP.PostProcessing
     {
         public bool Enabled;
         public ToonFxaaSettings Fxaa;
+        public ToonLightScatteringSettings LightScattering;
         public ToonBloomSettings Bloom;
         public ToonOutlineSettings Outline;
     }

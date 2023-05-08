@@ -98,8 +98,9 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 - Outline (Inverted Hull)
   - Distance fade
-  - _Optional_: get normals from a custom UV channel to improve outlines quality. Comes with a utility to bake these custom normals.
+  - _Optional_: get normals from a custom channel to improve outlines quality. Comes with a utility to bake these custom normals.
   - _Optional_: remove inner outlines via stencil.
+  - _Optional_: randomize thickness.
 
 ![Outline (Inverted Hull)](./Documentation/features_outlines_inverted_hull.jpg?raw=true)
 

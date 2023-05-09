@@ -1,13 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     [Serializable]
     public struct ToonBloomSettings
     {
-        public bool Enabled;
-
         [Min(0f)]
         public float Intensity;
 

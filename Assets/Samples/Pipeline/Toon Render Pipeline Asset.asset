@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
+  - {fileID: 4800000, guid: d72fefac260143d79ae4517e9d12353e, type: 3}
+  - {fileID: 4800000, guid: 365539a884014974bb27c4a53ef41b86, type: 3}
+  - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
+  - {fileID: 4800000, guid: e9b4a97aaeee49ce9093d98b22f74188, type: 3}
+  - {fileID: 4800000, guid: b9380af3e4224cabbf4b789b6a3f87d0, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  GlobalRampSettings:
+    Threshold: 0
+    SpecularThreshold: 0.809
+    RimThreshold: -0.328
+    Mode: 2
+    Smoothness: 0.083
+    SpecularSmoothness: 0.367
+    RimSmoothness: 1.65
+    RampTexture: {fileID: 2800000, guid: 752a48c13df68ea4aae97103de1292d2, type: 3}
+  CameraRendererSettings:
+    AllowHdr: 1
+    Stencil: 0
+    Msaa: 1
+    RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 1
+    DepthPrePass: 2
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+  ShadowSettings:
+    Mode: 1
+    Threshold: 0.757
+    CrispAntiAliased: 1
+    Smoothness: 0.416
+    MaxDistance: 25
+    DistanceFade: 0.354
+    Vsm:
+      Blur: 1
+      Directional:
+        Enabled: 1
+        AtlasSize: 2048
+        CascadeCount: 4
+        CascadeRatio1: 0.1
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
+        DepthBias: 0.01
+        NormalBias: 0
+        SlopeBias: 0
+    Blobs:
+      AtlasSize: 128
+      Mode: 0
+      Saturation: 1
+  Ssao:
+    Enabled: 1
+    Radius: 0.15
+    Power: 10
+    KernelSize: 2
+    HalfResolution: 1
+    Threshold: 0.6
+    Smoothness: 0.2
+    Pattern:
+      Enabled: 1
+      Scale: {x: 15, y: 15, z: 15}
+      Thickness: 0.5
+      Smoothness: 0.1
+      MaxDistance: 15
+      DistanceFade: 0.5
+  PostProcessing:
+    Enabled: 1
+    Passes:
+    - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
+    - {fileID: 11400000, guid: 5c2906742c275b64eab14138e67abe61, type: 2}
+    - {fileID: 11400000, guid: bc0b779cb20cc1b4ab1a514f27b18c27, type: 2}
+    Outline:
+      Mode: 1
+      InvertedHull:
+        Passes:
+        - Name: Thick (Outer)
+          LayerMask:
+            serializedVersion: 2
+            m_Bits: 55
+          StencilLayer: 8
+          Color: {r: 0, g: 0, b: 0, a: 0}
+          Thickness: 0.02
+          NoiseAmplitude: 0.02
+          NoiseFrequency: 1000
+          NormalsSource: 0
+          DepthBias: 0
+          MaxDistance: 15
+          DistanceFade: 0.1
+        - Name: Thin (Inner)
+          LayerMask:
+            serializedVersion: 2
+            m_Bits: 55
+          StencilLayer: 0
+          Color: {r: 0, g: 0, b: 0, a: 0}
+          Thickness: 0.0125
+          NoiseAmplitude: 0
+          NoiseFrequency: 0
+          NormalsSource: 0
+          DepthBias: -1.5
+          MaxDistance: 15
+          DistanceFade: 0.1
+      ScreenSpace:
+        Color: {r: 0, g: 0, b: 0, a: 0}
+        ColorFilter:
+          Enabled: 0
+          Threshold: 0.35
+          Smoothness: 0.5
+        DepthFilter:
+          Enabled: 1
+          Threshold: 0.6
+          Smoothness: 0.01
+        NormalsFilter:
+          Enabled: 1
+          Threshold: 3.23
+          Smoothness: 1
+        UseFog: 0
+        MaxDistance: 9
+        DistanceFade: 0.1

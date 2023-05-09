@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRenderer;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonInvertedHullOutline
     {

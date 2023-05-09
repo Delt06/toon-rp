@@ -2,7 +2,7 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonSsao
     {

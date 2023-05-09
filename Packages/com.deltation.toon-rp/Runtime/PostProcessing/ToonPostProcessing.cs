@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using DELTation.ToonRP.PostProcessing.BuiltIn;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -30,13 +32,25 @@ namespace DELTation.ToonRP.PostProcessing
                 return;
             }
 
-            _allFullScreenPasses ??= new List<IToonPostProcessingPass>
+            if (_allFullScreenPasses == null)
             {
-                new ToonScreenSpaceOutline(),
-                new ToonLightScattering(),
-                new ToonBloom(),
-                new ToonFxaa(),
-            };
+                _allFullScreenPasses = new List<IToonPostProcessingPass>
+                {
+                    new ToonScreenSpaceOutline(),
+                };
+
+                if (settings.Passes != null)
+                {
+                    foreach (ToonPostProcessingPassAsset passAsset in settings.Passes
+                                 .Where(p => p != null)
+                                 .OrderBy(p => p.Order())
+                            )
+                    {
+                        IToonPostProcessingPass pass = passAsset.CreatePass();
+                        _allFullScreenPasses.Add(pass);
+                    }
+                }
+            }
 
             foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
             {

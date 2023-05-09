@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonLightScattering : ToonPostProcessingPassBase
     {
         private const int ComputePass = 0;
         private const int CombinePass = 1;
+        public const string ShaderName = "Hidden/Toon RP/Light Scattering";
 
         private static readonly int ScatteringTextureId = Shader.PropertyToID("_ToonRP_ScatteringTexture");
         private static readonly int CenterId = Shader.PropertyToID("_Center");
@@ -24,7 +25,7 @@ namespace DELTation.ToonRP.PostProcessing
                 return;
             }
 
-            _material = new Material(Shader.Find("Hidden/Toon RP/Light Scattering"))
+            _material = new Material(Shader.Find(ShaderName))
             {
                 name = "Toon RP Light Scattering",
             };
@@ -35,10 +36,8 @@ namespace DELTation.ToonRP.PostProcessing
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            _lightScatteringSettings = context.Settings.LightScattering;
+            _lightScatteringSettings = context.Settings.Find<ToonLightScatteringSettings>();
         }
-
-        public override bool IsEnabled(in ToonPostProcessingSettings settings) => settings.LightScattering.Enabled;
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     [Serializable]
     public struct ToonOutlineSettings

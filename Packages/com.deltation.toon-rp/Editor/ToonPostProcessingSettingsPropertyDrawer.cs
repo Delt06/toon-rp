@@ -27,13 +27,7 @@ namespace DELTation.ToonRP.Editor
             enabledField.RegisterValueChangeCallback(_ => RefreshFields());
 
             settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Fxaa)))
-            );
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.LightScattering)))
-            );
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Bloom)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Passes)))
             );
             settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Outline)))

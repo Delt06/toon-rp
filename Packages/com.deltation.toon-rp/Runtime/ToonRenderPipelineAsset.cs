@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using DELTation.ToonRP.PostProcessing;
+using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -91,37 +92,6 @@ namespace DELTation.ToonRP
 
         public ToonPostProcessingSettings PostProcessing = new()
         {
-            Fxaa = new ToonFxaaSettings
-            {
-                HighQuality = true,
-                FixedContrastThresholdId = 0.0833f,
-                RelativeContrastThreshold = 0.166f,
-                SubpixelBlendingFactor = 0.75f,
-            },
-            LightScattering = new ToonLightScatteringSettings
-            {
-                Intensity = 0.25f,
-                Threshold = 0.8f,
-                ResolutionFactor = 4,
-                Samples = 100,
-                BlurWidth = 0.8f,
-            },
-            Bloom = new ToonBloomSettings
-            {
-                Intensity = 1.0f,
-                Threshold = 0.95f,
-                ThresholdKnee = 0.5f,
-                MaxIterations = ToonBloom.MaxIterations,
-                ResolutionFactor = 2,
-                DownsampleLimit = 2,
-                Pattern = new ToonBloomSettings.PatternSettings
-                {
-                    Scale = 350,
-                    Power = 2,
-                    Multiplier = 4,
-                    Smoothness = 0.5f,
-                },
-            },
             Outline = new ToonOutlineSettings
             {
                 Mode = ToonOutlineSettings.OutlineMode.Off,

@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonFxaa : ToonPostProcessingPassBase
     {
+        public const string ShaderName = "Hidden/Toon RP/FXAA";
+
         private static readonly int FixedContrastThresholdId = Shader.PropertyToID("_FixedContrastThreshold");
         private static readonly int RelativeContrastThresholdId = Shader.PropertyToID("_RelativeContrastThreshold");
         private static readonly int SubpixelBlendingFactorId = Shader.PropertyToID("_SubpixelBlendingFactor");
         private ToonFxaaSettings _fxaaSettings;
         private Material _material;
-
-        public override bool IsEnabled(in ToonPostProcessingSettings settings) => settings.Fxaa.Enabled;
 
         private void EnsureMaterialIsCreated()
         {
@@ -20,7 +20,7 @@ namespace DELTation.ToonRP.PostProcessing
                 return;
             }
 
-            _material = new Material(Shader.Find("Hidden/Toon RP/FXAA"))
+            _material = new Material(Shader.Find(ShaderName))
             {
                 name = "Toon RP FXAA",
             };
@@ -29,7 +29,7 @@ namespace DELTation.ToonRP.PostProcessing
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            _fxaaSettings = context.Settings.Fxaa;
+            _fxaaSettings = context.Settings.Find<ToonFxaaSettings>();
         }
 
         private int SelectPass() => _fxaaSettings.HighQuality ? 0 : 1;

@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     // https://catlikecoding.com/unity/tutorials/custom-srp/post-processing/
     public class ToonBloom : ToonPostProcessingPassBase
     {
         public const int MaxIterations = 16;
+        public const string ShaderName = "Hidden/Toon RP/Bloom";
 
         private const string DownsampleSampleName = "Downsample";
         private const string CombineSampleName = "Combine";
@@ -17,6 +18,7 @@ namespace DELTation.ToonRP.PostProcessing
         private const int CombinePass = 2;
         private const int PrefilterPass = 3;
         private const float MinPatternSize = 3;
+
         private static readonly int MainTex2Id = Shader.PropertyToID("_MainTex2");
         private static readonly int UseBicubicUpsamplingId = Shader.PropertyToID("_ToonRP_Bloom_UseBicubicUpsampling");
         private static readonly int PrefilterSourceId = Shader.PropertyToID("_ToonRP_Bloom_Prefilter");
@@ -51,18 +53,16 @@ namespace DELTation.ToonRP.PostProcessing
                 return;
             }
 
-            _material = new Material(Shader.Find("Hidden/Toon RP/Bloom"))
+            _material = new Material(Shader.Find(ShaderName))
             {
                 name = "Toon RP Bloom",
             };
         }
 
-        public override bool IsEnabled(in ToonPostProcessingSettings settings) => settings.Bloom.Enabled;
-
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            _settings = context.Settings.Bloom;
+            _settings = context.Settings.Find<ToonBloomSettings>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,

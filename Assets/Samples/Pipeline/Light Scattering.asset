@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2a90e3a9504da3ba185504e1821633, type: 3}
+  m_Name: Light Scattering
+  m_EditorClassIdentifier: 
+  _forceIncludedShaders:
+  - {fileID: 4800000, guid: 365539a884014974bb27c4a53ef41b86, type: 3}
+  Settings:
+    Threshold: 1.5
+    BlurWidth: 0.944
+    Intensity: 0.25
+    Samples: 200
+    ResolutionFactor: 16
+    ScissorRadius: 0.446

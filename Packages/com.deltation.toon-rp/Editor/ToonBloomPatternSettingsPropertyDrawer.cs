@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
-using static DELTation.ToonRP.PostProcessing.ToonBloomSettings;
+using static DELTation.ToonRP.PostProcessing.BuiltIn.ToonBloomSettings;
 
 namespace DELTation.ToonRP.Editor
 {

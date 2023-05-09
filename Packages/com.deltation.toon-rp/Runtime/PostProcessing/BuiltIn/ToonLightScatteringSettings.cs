@@ -1,12 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.PostProcessing
+namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     [Serializable]
     public struct ToonLightScatteringSettings
     {
-        public bool Enabled;
         [Min(0.0f)]
         public float Threshold;
         [Range(0.0f, 0.999f)]

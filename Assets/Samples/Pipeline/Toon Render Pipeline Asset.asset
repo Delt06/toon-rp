@@ -84,7 +84,6 @@ MonoBehaviour:
     Passes:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 5c2906742c275b64eab14138e67abe61, type: 2}
-    - {fileID: 11400000, guid: bc0b779cb20cc1b4ab1a514f27b18c27, type: 2}
     Outline:
       Mode: 1
       InvertedHull:

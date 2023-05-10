@@ -8,7 +8,7 @@ namespace DELTation.ToonRP.PostProcessing
     {
         public bool Enabled;
         public ToonPostProcessingPassAsset[] Passes;
-        public ToonOutlineSettings Outline;
+        public ToonInvertedHullOutlineSettings InvertedHullOutlines;
     }
 
     public static class ToonPostProcessingSettingsExt
@@ -17,13 +17,30 @@ namespace DELTation.ToonRP.PostProcessing
         {
             foreach (ToonPostProcessingPassAsset passAsset in settings.Passes)
             {
-                if (passAsset is ToonPostProcessingPassAsset<TSettings> casedPassAsset)
+                if (passAsset is ToonPostProcessingPassAsset<TSettings> castedPassAsset)
                 {
-                    return casedPassAsset.Settings;
+                    return castedPassAsset.Settings;
                 }
             }
 
             throw new ArgumentException($"Could not find pass {typeof(TSettings)}.");
+        }
+
+        public static bool TryFind<TSettings>(this in ToonPostProcessingSettings settings, out TSettings foundSettings)
+        {
+            foreach (ToonPostProcessingPassAsset passAsset in settings.Passes)
+            {
+                if (passAsset is not ToonPostProcessingPassAsset<TSettings> casted)
+                {
+                    continue;
+                }
+
+                foundSettings = casted.Settings;
+                return true;
+            }
+
+            foundSettings = default;
+            return false;
         }
     }
 }

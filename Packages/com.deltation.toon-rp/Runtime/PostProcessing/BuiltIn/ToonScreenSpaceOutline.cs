@@ -5,6 +5,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonScreenSpaceOutline : ToonPostProcessingPassBase
     {
+        public const string ShaderName = "Hidden/Toon RP/Outline (Screen Space)";
         private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
         private static readonly int ColorRampId = Shader.PropertyToID("_ColorRamp");
         private static readonly int DepthRampId = Shader.PropertyToID("_DepthRamp");
@@ -15,9 +16,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private ToonScreenSpaceOutlineSettings _settings;
         private Shader _shader;
 
-        public override bool IsEnabled(in ToonPostProcessingSettings settings) =>
-            settings.Outline.Mode == ToonOutlineSettings.OutlineMode.ScreenSpace;
-
         private void EnsureMaterialIsCreated()
         {
             if (_material != null && _shader != null)
@@ -25,7 +23,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 return;
             }
 
-            _shader = Shader.Find("Hidden/Toon RP/Outline (Screen Space)");
+            _shader = Shader.Find(ShaderName);
             _material = new Material(_shader)
             {
                 name = "Toon RP Outline (Screen Space)",
@@ -35,7 +33,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            _settings = context.Settings.Outline.ScreenSpace;
+            _settings = context.Settings.Find<ToonScreenSpaceOutlineSettings>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,

@@ -6,7 +6,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     [Serializable]
     public struct ToonScreenSpaceOutlineSettings
     {
-        [ColorUsage(false, true)]
+        [ColorUsage(true, true)]
         public Color Color;
 
         public OutlineFilter ColorFilter;

@@ -45,7 +45,7 @@
 			CBUFFER_START(UnityPerMaterial)
 			
 			DECLARE_TEXEL_SIZE(_MainTex);
-			float3 _OutlineColor;
+			float4 _OutlineColor;
 			float2 _ColorRamp;
 			float2 _DepthRamp;
 			float2 _NormalsRamp;
@@ -197,13 +197,15 @@
 			    const float distanceFade = 1 - DistanceFade(sceneDepth, _DistanceFade.x, _DistanceFade.y);
 			    sobelStrength *= distanceFade;
 
-			    float3 outlineColor = _OutlineColor;
+			    float3 outlineColor = _OutlineColor.rgb;
+			    
 			    #if defined(FOG_ANY) && defined(_USE_FOG)
 			    const float fogFactor = ComputeFogFactorZ0ToFar(sceneDepth);
 			    outlineColor = MixFog(outlineColor, fogFactor);
 			    #endif // FOG_ANY && _USE_FOG
 
-			    const float3 finalColor = lerp(sceneColor, outlineColor, saturate(sobelStrength));
+                const float outlineAlpha = _OutlineColor.a;
+			    const float3 finalColor = lerp(sceneColor, outlineColor, saturate(sobelStrength) * outlineAlpha);
 			    return float4(finalColor, 1);
 			}
 

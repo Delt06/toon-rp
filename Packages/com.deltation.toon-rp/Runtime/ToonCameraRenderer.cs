@@ -52,14 +52,16 @@ namespace DELTation.ToonRP
         {
             DepthPrePassMode mode = settings.DepthPrePass;
 
-            if (postProcessingSettings.Outline.Mode == ToonOutlineSettings.OutlineMode.ScreenSpace)
+            if (postProcessingSettings.Passes != null)
             {
-                // depth is always used for distance fade
-                mode = CombineDepthPrePassModes(mode, DepthPrePassMode.Depth);
-
-                if (postProcessingSettings.Outline.ScreenSpace.NormalsFilter.Enabled)
+                foreach (ToonPostProcessingPassAsset pass in postProcessingSettings.Passes)
                 {
-                    mode = CombineDepthPrePassModes(mode, DepthPrePassMode.DepthNormals);
+                    if (pass == null)
+                    {
+                        continue;
+                    }
+
+                    mode = CombineDepthPrePassModes(mode, pass.RequiredDepthPrePassMode());
                 }
             }
 
@@ -102,12 +104,11 @@ namespace DELTation.ToonRP
             );
             _drawInvertedHullOutlines = camera.cameraType <= CameraType.SceneView &&
                                         postProcessingSettings.Enabled &&
-                                        postProcessingSettings.Outline.Mode ==
-                                        ToonOutlineSettings.OutlineMode.InvertedHull;
+                                        postProcessingSettings.InvertedHullOutlines.Enabled;
             if (_drawInvertedHullOutlines)
             {
                 _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
-                    postProcessingSettings.Outline.InvertedHull
+                    postProcessingSettings.InvertedHullOutlines
                 );
             }
 
@@ -286,12 +287,12 @@ namespace DELTation.ToonRP
 
         private static bool InvertedHullOutlinesRequireStencil(in ToonPostProcessingSettings postProcessingSettings)
         {
-            if (postProcessingSettings.Outline.Mode != ToonOutlineSettings.OutlineMode.InvertedHull)
+            if (!postProcessingSettings.InvertedHullOutlines.Enabled)
             {
                 return false;
             }
 
-            foreach (ToonInvertedHullOutlineSettings.Pass pass in postProcessingSettings.Outline.InvertedHull.Passes)
+            foreach (ToonInvertedHullOutlineSettings.Pass pass in postProcessingSettings.InvertedHullOutlines.Passes)
             {
                 if (pass.StencilLayer != StencilLayer.None)
                 {
@@ -308,7 +309,6 @@ namespace DELTation.ToonRP
             ExecuteBuffer(cmd);
 
             _globalRamp.Setup(_context, globalRampSettings);
-
 
             VisibleLight visibleLight =
                 _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;

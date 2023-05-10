@@ -17,7 +17,6 @@ namespace DELTation.ToonRP
             "Hidden/Toon RP/FXAA",
             "Hidden/Toon RP/Light Scattering",
             "Hidden/Toon RP/Outline (Inverted Hull)",
-            "Hidden/Toon RP/Outline (Screen Space)",
             "Hidden/Toon RP/SSAO",
             "Hidden/Toon RP/Blob Shadow Pass",
         };
@@ -92,48 +91,19 @@ namespace DELTation.ToonRP
 
         public ToonPostProcessingSettings PostProcessing = new()
         {
-            Outline = new ToonOutlineSettings
+            InvertedHullOutlines = new ToonInvertedHullOutlineSettings
             {
-                Mode = ToonOutlineSettings.OutlineMode.Off,
-                InvertedHull = new ToonInvertedHullOutlineSettings
+                Passes = new[]
                 {
-                    Passes = new[]
+                    new ToonInvertedHullOutlineSettings.Pass
                     {
-                        new ToonInvertedHullOutlineSettings.Pass
-                        {
-                            Name = "Outline",
-                            Color = Color.black,
-                            Thickness = 0.02f,
-                            LayerMask = int.MaxValue,
-                            MaxDistance = 100.0f,
-                            DistanceFade = 0.1f,
-                        },
+                        Name = "Outline",
+                        Color = Color.black,
+                        Thickness = 0.02f,
+                        LayerMask = int.MaxValue,
+                        MaxDistance = 100.0f,
+                        DistanceFade = 0.1f,
                     },
-                },
-                ScreenSpace =
-                {
-                    Color = Color.black,
-                    ColorFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
-                    {
-                        Enabled = false,
-                        Threshold = 0.75f,
-                        Smoothness = 0.5f,
-                    },
-                    DepthFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
-                    {
-                        Enabled = true,
-                        Threshold = 1.0f,
-                        Smoothness = 0.5f,
-                    },
-                    NormalsFilter = new ToonScreenSpaceOutlineSettings.OutlineFilter
-                    {
-                        Enabled = true,
-                        Smoothness = 5.0f,
-                        Threshold = 0.5f,
-                    },
-                    UseFog = true,
-                    MaxDistance = 100.0f,
-                    DistanceFade = 0.1f,
                 },
             },
         };

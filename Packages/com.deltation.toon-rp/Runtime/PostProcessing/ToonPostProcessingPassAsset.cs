@@ -6,6 +6,7 @@ namespace DELTation.ToonRP.PostProcessing
     public abstract class ToonPostProcessingPassAsset : ScriptableObject
     {
         public const string Path = "Toon RP/Post-Processing/";
+
         [SerializeField] [HideInInspector] private Shader[] _forceIncludedShaders;
 
         protected virtual void OnValidate()
@@ -17,6 +18,9 @@ namespace DELTation.ToonRP.PostProcessing
         }
 
         public virtual int Order() => 0;
+
+        public virtual ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
+            ToonCameraRendererSettings.DepthPrePassMode.Off;
 
         public abstract IToonPostProcessingPass CreatePass();
 

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46738dd723dc49908c6996cfaf8ac0bd, type: 3}
   m_Name: FXAA
   m_EditorClassIdentifier: 
-  _forceIncludedShaders: []
+  _forceIncludedShaders:
+  - {fileID: 4800000, guid: d72fefac260143d79ae4517e9d12353e, type: 3}
   Settings:
     HighQuality: 1
     FixedContrastThresholdId: 0.0833

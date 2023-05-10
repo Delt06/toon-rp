@@ -30,7 +30,8 @@ namespace DELTation.ToonRP.Editor
                 new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Passes)))
             );
             settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.Outline)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonPostProcessingSettings.InvertedHullOutlines))
+                )
             );
 
             root.Add(new ToonRpHeaderLabel("Post-Processing"));

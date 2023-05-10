@@ -18,7 +18,6 @@ MonoBehaviour:
   - {fileID: 4800000, guid: d72fefac260143d79ae4517e9d12353e, type: 3}
   - {fileID: 4800000, guid: 365539a884014974bb27c4a53ef41b86, type: 3}
   - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
-  - {fileID: 4800000, guid: e9b4a97aaeee49ce9093d98b22f74188, type: 3}
   - {fileID: 4800000, guid: b9380af3e4224cabbf4b789b6a3f87d0, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:
@@ -84,50 +83,33 @@ MonoBehaviour:
     Passes:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 5c2906742c275b64eab14138e67abe61, type: 2}
-    Outline:
-      Mode: 1
-      InvertedHull:
-        Passes:
-        - Name: Thick (Outer)
-          LayerMask:
-            serializedVersion: 2
-            m_Bits: 55
-          StencilLayer: 8
-          Color: {r: 0, g: 0, b: 0, a: 0}
-          Thickness: 0.02
-          NoiseAmplitude: 0.02
-          NoiseFrequency: 1000
-          NormalsSource: 0
-          DepthBias: 0
-          MaxDistance: 15
-          DistanceFade: 0.1
-        - Name: Thin (Inner)
-          LayerMask:
-            serializedVersion: 2
-            m_Bits: 55
-          StencilLayer: 0
-          Color: {r: 0, g: 0, b: 0, a: 0}
-          Thickness: 0.0125
-          NoiseAmplitude: 0
-          NoiseFrequency: 0
-          NormalsSource: 0
-          DepthBias: -1.5
-          MaxDistance: 15
-          DistanceFade: 0.1
-      ScreenSpace:
+    - {fileID: 11400000, guid: b9995397bc4c75a4c8099a1bc0829d3a, type: 2}
+    InvertedHullOutlines:
+      Enabled: 1
+      Passes:
+      - Name: Thick (Outer)
+        LayerMask:
+          serializedVersion: 2
+          m_Bits: 55
+        StencilLayer: 8
         Color: {r: 0, g: 0, b: 0, a: 0}
-        ColorFilter:
-          Enabled: 0
-          Threshold: 0.35
-          Smoothness: 0.5
-        DepthFilter:
-          Enabled: 1
-          Threshold: 0.6
-          Smoothness: 0.01
-        NormalsFilter:
-          Enabled: 1
-          Threshold: 3.23
-          Smoothness: 1
-        UseFog: 0
-        MaxDistance: 9
+        Thickness: 0.02
+        NoiseAmplitude: 0.02
+        NoiseFrequency: 1000
+        NormalsSource: 0
+        DepthBias: 0
+        MaxDistance: 15
+        DistanceFade: 0.1
+      - Name: Thin (Inner)
+        LayerMask:
+          serializedVersion: 2
+          m_Bits: 55
+        StencilLayer: 0
+        Color: {r: 0, g: 0, b: 0, a: 0}
+        Thickness: 0.0125
+        NoiseAmplitude: 0
+        NoiseFrequency: 0
+        NormalsSource: 0
+        DepthBias: -1.5
+        MaxDistance: 15
         DistanceFade: 0.1

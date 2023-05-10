@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using DELTation.ToonRP.PostProcessing.BuiltIn;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -34,10 +33,7 @@ namespace DELTation.ToonRP.PostProcessing
 
             if (_allFullScreenPasses == null)
             {
-                _allFullScreenPasses = new List<IToonPostProcessingPass>
-                {
-                    new ToonScreenSpaceOutline(),
-                };
+                _allFullScreenPasses = new List<IToonPostProcessingPass>();
 
                 if (settings.Passes != null)
                 {

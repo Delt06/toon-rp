@@ -51,6 +51,7 @@ namespace DELTation.ToonRP
             Threshold = 0.5f, Smoothness = 0.075f,
             MaxDistance = 100.0f,
             DistanceFade = 0.1f,
+            PatternScale = new Vector3(1, 0, 1),
             Vsm = new ToonVsmShadowSettings
             {
                 Blur = ToonVsmShadowSettings.BlurMode.LowQuality,

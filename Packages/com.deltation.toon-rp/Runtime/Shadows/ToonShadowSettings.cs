@@ -25,6 +25,9 @@ namespace DELTation.ToonRP.Shadows
         [Range(0.001f, 1f)]
         public float DistanceFade;
 
+        public Texture2D Pattern;
+        public Vector3 PatternScale;
+
         public ToonVsmShadowSettings Vsm;
         public ToonBlobShadowsSettings Blobs;
     }

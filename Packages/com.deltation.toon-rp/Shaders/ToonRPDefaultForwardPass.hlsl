@@ -98,88 +98,91 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
 
 float GetShadowAttenuation(const v2f IN, const Light light)
 {
-    #if defined(_TOON_RP_ANY_SHADOWS) || defined(_RECEIVE_BLOB_SHADOWS)
+#if defined(_TOON_RP_ANY_SHADOWS) || defined(_RECEIVE_BLOB_SHADOWS)
     
-    const float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionWs);
+    float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionWs);
+#ifdef _TOON_RP_SHADOWS_PATTERN
+    shadowAttenuation = lerp(SampleShadowPattern(IN.positionWs), 1, light.shadowAttenuation);
+#endif // _TOON_RP_SHADOWS_PATTERN
     return shadowAttenuation;
 
-    #else // !_TOON_RP_ANY_SHADOWS && !_TOON_RP_BLOB_SHADOWS
+#else // !_TOON_RP_ANY_SHADOWS && !_TOON_RP_BLOB_SHADOWS
 
     return 1.0f;
 
-    #endif  // _TOON_RP_ANY_SHADOWS || _TOON_RP_BLOB_SHADOWS
+#endif  // _TOON_RP_ANY_SHADOWS || _TOON_RP_BLOB_SHADOWS
 }
 
 Light GetMainLight(const v2f IN)
 {
-    #ifdef _TOON_RP_VSM_SHADOWS
+#ifdef _TOON_RP_VSM_SHADOWS
     const uint tileIndex = ComputeShadowTileIndex(IN.positionWs);
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs, tileIndex);
     Light light = GetMainLight(shadowCoords);
-    #else // !_TOON_RP_VSM_SHADOWS
+#else // !_TOON_RP_VSM_SHADOWS
     Light light = GetMainLight();
-    #endif // _TOON_RP_VSM_SHADOWS
+#endif // _TOON_RP_VSM_SHADOWS
 
-    #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
+#if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 
     const float blobShadowAttenuation = SampleBlobShadowAttenuation(IN.positionWs);
     light.shadowAttenuation = blobShadowAttenuation;
 
-    #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
+#endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
 
     return light;
 }
 
 float ComputeRampDiffuse(const float nDotL, const v2f IN)
 {
-    #ifdef _OVERRIDE_RAMP
+#ifdef _OVERRIDE_RAMP
 
     const float2 ramp = ConstructOverrideRampDiffuse();
     return ComputeRamp(nDotL, ramp);
     
-    #else // !_OVERRIDE_RAMP
+#else // !_OVERRIDE_RAMP
 
     return ComputeGlobalRampDiffuse(nDotL, IN.uv);
 
-    #endif // _OVERRIDE_RAMP
+#endif // _OVERRIDE_RAMP
 }
 
 float ComputeRampSpecular(const float nDotH, const v2f IN)
 {
-    #ifdef _OVERRIDE_RAMP
+#ifdef _OVERRIDE_RAMP
 
     const float2 ramp = ConstructOverrideRampSpecular();
     return ComputeRamp(nDotH, ramp);
     
-    #else // !_OVERRIDE_RAMP
+#else // !_OVERRIDE_RAMP
 
     return ComputeGlobalRampSpecular(nDotH, IN.uv);
 
-    #endif // _OVERRIDE_RAMP
+#endif // _OVERRIDE_RAMP
 }
 
 float ComputeRampRim(const float fresnel, const v2f IN)
 {
-    #ifdef _OVERRIDE_RAMP
+#ifdef _OVERRIDE_RAMP
 
     const float2 ramp = ConstructOverrideRampRim();
     return ComputeRamp(fresnel, ramp);
     
-    #else // !_OVERRIDE_RAMP
+#else // !_OVERRIDE_RAMP
 
     return ComputeGlobalRampRim(fresnel, IN.uv);
 
-    #endif // _OVERRIDE_RAMP
+#endif // _OVERRIDE_RAMP
 }
 
 float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 {
-    #ifdef _NORMAL_MAP
+#ifdef _NORMAL_MAP
     const half3 normalTs = SampleNormal(IN.uv, _NormalMap, sampler_NormalMap);
     half3 normalWs = TransformTangentToWorld(normalTs, half3x3(IN.tangentWs, IN.bitangentWs, IN.normalWs));
-    #else // !_NORMAL_MAP
+#else // !_NORMAL_MAP
     half3 normalWs = IN.normalWs;
-    #endif // _NORMAL_MAP
+#endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 
     const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
@@ -188,10 +191,10 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     float diffuseRamp = ComputeRampDiffuse(nDotL, IN);
     float shadowAttenuation = GetShadowAttenuation(IN, light);
 
-    #ifdef TOON_RP_SSAO_ANY
+#ifdef TOON_RP_SSAO_ANY
     const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
     shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs, IN.depth);
-    #endif // TOON_RP_SSAO_ANY
+#endif // TOON_RP_SSAO_ANY
 
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 diffuse = ApplyRamp(albedo.rgb, mixedShadowColor, diffuseRamp);

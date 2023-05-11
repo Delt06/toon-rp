@@ -29,6 +29,9 @@ SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
 SAMPLER_CMP(sampler_ToonRP_DirectionalShadowAtlas);
 #endif //_TOON_RP_VSM
 
+TEXTURE2D(_ToonRP_ShadowPattern);
+SAMPLER(sampler_ToonRP_ShadowPattern);
+
 CBUFFER_START(_ToonRpShadows)
 float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
 float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
@@ -37,6 +40,7 @@ float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
 float2 _ToonRP_ShadowRamp;
 float2 _ToonRP_ShadowDistanceFade;
 float2 _ToonRP_ShadowBias; // x - depth, y - normal
+float3 _ToonRP_ShadowPatternScale;
 CBUFFER_END
 
 float3 ApplyShadowBias(float3 positionWs, const float3 normalWs, const float3 lightDirection)
@@ -74,6 +78,14 @@ float SampleShadowAttenuation(const float3 shadowCoords)
     return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
                                    shadowCoords).r;
     #endif // _TOON_RP_VSM
+}
+
+float SampleShadowPattern(const float3 positionWs)
+{
+    const float2 uv = positionWs.xx * _ToonRP_ShadowPatternScale.x +
+        positionWs.yy * _ToonRP_ShadowPatternScale.y +
+        positionWs.zz * _ToonRP_ShadowPatternScale.z;
+    return SAMPLE_TEXTURE2D(_ToonRP_ShadowPattern, sampler_ToonRP_ShadowPattern, uv).r;
 }
 
 uint ComputeShadowTileIndex(const float3 positionWs)

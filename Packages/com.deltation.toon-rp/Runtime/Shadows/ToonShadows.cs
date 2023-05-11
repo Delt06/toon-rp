@@ -11,6 +11,10 @@ namespace DELTation.ToonRP.Shadows
             Shader.PropertyToID("_ToonRP_ShadowRamp");
         private static readonly int ShadowDistanceFadeId =
             Shader.PropertyToID("_ToonRP_ShadowDistanceFade");
+        private static readonly int ShadowPatternId =
+            Shader.PropertyToID("_ToonRP_ShadowPattern");
+        private static readonly int ShadowPatternScaleId =
+            Shader.PropertyToID("_ToonRP_ShadowPatternScale");
         private ToonBlobShadows _blobShadows;
         private ScriptableRenderContext _context;
         private ToonShadowSettings _settings;
@@ -23,6 +27,7 @@ namespace DELTation.ToonRP.Shadows
             VsmGlobalKeyword = GlobalKeyword.Create("_TOON_RP_VSM");
             BlobShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_BLOB_SHADOWS");
             ShadowsRampCrisp = GlobalKeyword.Create("_TOON_RP_SHADOWS_RAMP_CRISP");
+            ShadowsPattern = GlobalKeyword.Create("_TOON_RP_SHADOWS_PATTERN");
         }
 
         public static GlobalKeyword DirectionalShadowsGlobalKeyword { get; private set; }
@@ -30,6 +35,7 @@ namespace DELTation.ToonRP.Shadows
         public static GlobalKeyword VsmGlobalKeyword { get; private set; }
         public static GlobalKeyword BlobShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
+        public static GlobalKeyword ShadowsPattern { get; private set; }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults,
             in ToonShadowSettings settings, Camera camera)
@@ -51,6 +57,7 @@ namespace DELTation.ToonRP.Shadows
             if (settings.Mode == ToonShadowSettings.ShadowMode.Off)
             {
                 cmd.DisableKeyword(ShadowsRampCrisp);
+                cmd.DisableKeyword(ShadowsPattern);
             }
             else
             {
@@ -69,6 +76,14 @@ namespace DELTation.ToonRP.Shadows
                         1.0f / _settings.DistanceFade
                     )
                 );
+
+
+                {
+                    bool patternEnabled = _settings.Pattern != null;
+                    cmd.SetKeyword(ShadowsPattern, patternEnabled);
+                    cmd.SetGlobalTexture(ShadowPatternId, patternEnabled ? _settings.Pattern : Texture2D.blackTexture);
+                    cmd.SetGlobalVector(ShadowPatternScaleId, _settings.PatternScale);
+                }
             }
 
             ExecuteBuffer(cmd);

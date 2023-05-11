@@ -55,6 +55,12 @@ namespace DELTation.ToonRP.Editor
                 enabledContainer.Add(
                     new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.DistanceFade)))
                 );
+                enabledContainer.Add(
+                    new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Pattern)))
+                );
+                enabledContainer.Add(
+                    new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.PatternScale)))
+                );
             }
 
             {

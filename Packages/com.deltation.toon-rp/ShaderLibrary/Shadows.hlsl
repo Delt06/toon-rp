@@ -82,9 +82,9 @@ float SampleShadowAttenuation(const float3 shadowCoords)
 
 float SampleShadowPattern(const float3 positionWs)
 {
-    const float2 uv = positionWs.xx * _ToonRP_ShadowPatternScale.x +
-        positionWs.yy * _ToonRP_ShadowPatternScale.y +
-        positionWs.zz * _ToonRP_ShadowPatternScale.z;
+    const float2 uv = positionWs.xy * _ToonRP_ShadowPatternScale.x +
+        positionWs.yz * _ToonRP_ShadowPatternScale.y +
+        positionWs.zx * _ToonRP_ShadowPatternScale.z;
     return SAMPLE_TEXTURE2D(_ToonRP_ShadowPattern, sampler_ToonRP_ShadowPattern, uv).r;
 }
 

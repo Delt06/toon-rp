@@ -63,10 +63,11 @@ namespace DELTation.ToonRP.Shadows
             {
                 cmd.SetKeyword(ShadowsRampCrisp, _settings.CrispAntiAliased);
 
+                float effectiveThreshold = 1 - _settings.Threshold;
                 cmd.SetGlobalVector(ShadowRampId,
                     new Vector4(
-                        _settings.Threshold,
-                        _settings.Threshold + _settings.Smoothness
+                        effectiveThreshold,
+                        effectiveThreshold + _settings.Smoothness
                     )
                 );
 

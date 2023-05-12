@@ -9,10 +9,6 @@
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
 
-#if defined(TOON_RP_SSAO_ANY)
-#define REQUIRE_DEPTH_INTERPOLANT
-#endif // TOON_RP_SSAO_ANY
-
 #ifdef UNLIT
 #include "ToonRPUnlitInput.hlsl"
 #else // !UNLIT
@@ -40,7 +36,6 @@ struct v2f
     #if !defined(UNLIT)
     half3 normalWs : NORMAL_WS;
     float4 positionWs : POSITION_WS;
-    float depth : DEPTH_VS;
     #endif // !UNLIT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
@@ -67,12 +62,6 @@ v2f VS(const appdata IN)
     const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
     OUT.positionWs = float4(positionWs, 1.0f);
-
-    #ifdef REQUIRE_DEPTH_INTERPOLANT
-    OUT.depth = GetLinearDepth(positionWs);
-    #else // !REQUIRE_DEPTH_INTERPOLANT
-    OUT.depth = 0.0f;
-    #endif // REQUIRE_DEPTH_INTERPOLANT
 
     #endif // !UNLIT
 
@@ -193,7 +182,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 
 #ifdef TOON_RP_SSAO_ANY
     const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
-    shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs, IN.depth);
+    shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs);
 #endif // TOON_RP_SSAO_ANY
 
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);

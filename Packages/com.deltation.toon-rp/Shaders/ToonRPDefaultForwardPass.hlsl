@@ -91,7 +91,8 @@ float GetShadowAttenuation(const v2f IN, const Light light)
     
     float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, IN.positionWs);
 #ifdef _TOON_RP_SHADOWS_PATTERN
-    shadowAttenuation = lerp(SampleShadowPattern(IN.positionWs), 1, light.shadowAttenuation);
+    const float pattern = SampleShadowPattern(IN.positionWs);
+    shadowAttenuation = lerp(shadowAttenuation, 1, pattern);
 #endif // _TOON_RP_SHADOWS_PATTERN
     return shadowAttenuation;
 

@@ -16,6 +16,8 @@ namespace DELTation.ToonRP.Shadows
         private const RenderTextureFormat VsmShadowmapFormat = RenderTextureFormat.RGFloat;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
 
+        private static readonly string[] CascadeProfilingNames;
+
         private static readonly int DirectionalShadowsAtlasId = Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas");
         private static readonly int DirectionalShadowsAtlasTempId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas_Temp");
@@ -46,6 +48,16 @@ namespace DELTation.ToonRP.Shadows
         private int _shadowedDirectionalLightCount;
 
         private ToonVsmShadowSettings _vsmSettings;
+
+        static ToonVsmShadows()
+        {
+            CascadeProfilingNames = new string[MaxCascades];
+
+            for (int i = 0; i < MaxCascades; i++)
+            {
+                CascadeProfilingNames[i] = $"Cascade {i}";
+            }
+        }
 
         private void EnsureMaterialIsCreated()
         {
@@ -146,31 +158,35 @@ namespace DELTation.ToonRP.Shadows
             int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
 
 
-            if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Prepare Shadowmaps")))
             {
-                cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
-                    DepthBits,
-                    ShadowmapFiltering,
-                    VsmShadowmapFormat
+                if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+                {
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
+                        DepthBits,
+                        ShadowmapFiltering,
+                        VsmShadowmapFormat
+                    );
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
+                        0,
+                        ShadowmapFiltering,
+                        VsmShadowmapFormat
+                    );
+                }
+                else
+                {
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
+                        RenderTextureFormat.Shadowmap
+                    );
+                }
+
+                cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                    RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store
                 );
-                cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
-                    0,
-                    ShadowmapFiltering,
-                    VsmShadowmapFormat
-                );
-            }
-            else
-            {
-                cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
-                    RenderTextureFormat.Shadowmap
-                );
+                cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
             }
 
-            cmd.SetRenderTarget(DirectionalShadowsAtlasId,
-                RenderBufferLoadAction.DontCare,
-                RenderBufferStoreAction.Store
-            );
-            cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
             ExecuteBuffer(cmd);
 
             int tiles = _shadowedDirectionalLightCount * _vsmSettings.Directional.CascadeCount;
@@ -218,28 +234,31 @@ namespace DELTation.ToonRP.Shadows
 
             for (int i = 0; i < cascadeCount; i++)
             {
-                _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                    light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, light.NearPlaneOffset,
-                    out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
-                );
-                shadowSettings.splitData = splitData;
-                if (index == 0)
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get(CascadeProfilingNames[i])))
                 {
-                    Vector4 cullingSphere = splitData.cullingSphere;
-                    cullingSphere.w *= cullingSphere.w;
-                    _cascadeCullingSpheres[i] = cullingSphere;
+                    _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
+                        light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, light.NearPlaneOffset,
+                        out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
+                    );
+                    shadowSettings.splitData = splitData;
+                    if (index == 0)
+                    {
+                        Vector4 cullingSphere = splitData.cullingSphere;
+                        cullingSphere.w *= cullingSphere.w;
+                        _cascadeCullingSpheres[i] = cullingSphere;
+                    }
+
+                    int tileIndex = tileOffset + i;
+                    SetTileViewport(cmd, tileIndex, split, tileSize, out Vector2 offset);
+                    _directionalShadowMatricesVp[tileIndex] =
+                        ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
+                    _directionalShadowMatricesV[tileIndex] = viewMatrix;
+                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+
+                    ExecuteBuffer(cmd);
+
+                    _context.DrawShadows(ref shadowSettings);
                 }
-
-                int tileIndex = tileOffset + i;
-                SetTileViewport(cmd, tileIndex, split, tileSize, out Vector2 offset);
-                _directionalShadowMatricesVp[tileIndex] =
-                    ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
-                _directionalShadowMatricesV[tileIndex] = viewMatrix;
-                cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
-                ExecuteBuffer(cmd);
-
-                _context.DrawShadows(ref shadowSettings);
             }
 
             cmd.SetGlobalDepthBias(0f, 0.0f);

@@ -67,14 +67,14 @@ MonoBehaviour:
       Saturation: 1
   Ssao:
     Enabled: 1
-    Radius: 0.15
+    Radius: 0.2
     Power: 10
     KernelSize: 2
-    HalfResolution: 1
-    Threshold: 0.624
-    Smoothness: 0.2
+    ResolutionFactor: 4
+    Threshold: 0.526
+    Smoothness: 0.364
     Pattern: {fileID: 2800000, guid: f6b3576444e532b4ca4c2d369e2e8232, type: 3}
-    PatternScale: {x: 2, y: 0, z: -2}
+    PatternScale: {x: 2, y: 2, z: -2}
   PostProcessing:
     Enabled: 1
     Passes:

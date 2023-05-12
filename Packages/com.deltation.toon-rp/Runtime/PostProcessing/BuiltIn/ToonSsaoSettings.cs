@@ -20,21 +20,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public float Threshold;
         [Range(0.0f, 1.0f)]
         public float Smoothness;
-        public PatternSettings Pattern;
 
-        [Serializable]
-        public struct PatternSettings
-        {
-            public bool Enabled;
-            public Vector3 Scale;
-            [Range(0.0f, 1.0f)]
-            public float Thickness;
-            [Range(0.0f, 1.0f)]
-            public float Smoothness;
-            [Min(0f)]
-            public float MaxDistance;
-            [Range(0.001f, 1f)]
-            public float DistanceFade;
-        }
+        public Texture2D Pattern;
+        public Vector3 PatternScale;
     }
 }

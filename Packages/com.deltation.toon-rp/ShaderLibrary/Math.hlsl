@@ -28,4 +28,11 @@ float DistanceSquared(const float3 point1, const float3 point2)
     return dot(point1 - point2, point1 - point2);
 }
 
+float2 EncodePositionToUv(const float3 position, const float3 scale)
+{
+    return position.xy * scale.x +
+        position.yz * scale.y +
+        position.zx * scale.z;
+}
+
 #endif // TOON_RP_MATH

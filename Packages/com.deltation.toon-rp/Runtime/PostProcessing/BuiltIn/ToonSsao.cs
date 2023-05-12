@@ -14,9 +14,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int RtId = Shader.PropertyToID("_ToonRP_SSAOTexture");
         private static readonly int RtTempId = Shader.PropertyToID("_ToonRP_SSAOTexture_Temp");
         private static readonly int RampId = Shader.PropertyToID("_ToonRP_SSAO_Ramp");
-        private static readonly int PatternScaleId = Shader.PropertyToID("_ToonRP_SSAO_Pattern_Scale");
-        private static readonly int PatternRampId = Shader.PropertyToID("_ToonRP_SSAO_Pattern_Ramp");
-        private static readonly int PatternDistanceFade = Shader.PropertyToID("_ToonRP_SSAO_Pattern_DistanceFade");
+        private static readonly int PatternId = Shader.PropertyToID("_ToonRP_SSAO_Pattern");
+        private static readonly int PatternScaleId = Shader.PropertyToID("_ToonRP_SSAO_PatternScale");
         private static readonly int NoiseTextureId = Shader.PropertyToID("_ToonRP_SSAO_NoiseTexture");
         private static readonly int RadiusId = Shader.PropertyToID("_ToonRP_SSAO_Radius");
         private static readonly int PowerId = Shader.PropertyToID("_ToonRP_SSAO_Power");
@@ -124,7 +123,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             }
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            bool patternEnabled = _settings.Pattern.Enabled;
+            bool patternEnabled = _settings.Pattern != null;
             cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
             cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
             ExecuteBuffer(cmd);
@@ -177,19 +176,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     );
                 }
 
-                if (_settings.Pattern.Enabled)
-                {
-                    cmd.SetGlobalVector(PatternScaleId, _settings.Pattern.Scale);
-                    float threshold = _settings.Pattern.Thickness;
-                    cmd.SetGlobalVector(PatternRampId,
-                        new Vector4(threshold, threshold + _settings.Pattern.Smoothness)
-                    );
-                    cmd.SetGlobalVector(PatternDistanceFade, new Vector4(
-                            1.0f / _settings.Pattern.MaxDistance,
-                            1.0f / _settings.Pattern.DistanceFade
-                        )
-                    );
-                }
+                Texture2D patternTexture = _settings.Pattern != null ? _settings.Pattern : Texture2D.blackTexture;
+                cmd.SetGlobalTexture(PatternId, patternTexture);
+                cmd.SetGlobalVector(PatternScaleId, _settings.PatternScale);
             }
 
             ExecuteBuffer(cmd);

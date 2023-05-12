@@ -51,6 +51,9 @@ namespace DELTation.ToonRP.Editor
             settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.Pattern)))
             );
+            settingsContainer.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.PatternScale)))
+            );
 
             foldout.Add(enabledField);
             foldout.Add(settingsContainer);

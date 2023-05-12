@@ -71,15 +71,10 @@ MonoBehaviour:
     Power: 10
     KernelSize: 2
     HalfResolution: 1
-    Threshold: 0.6
+    Threshold: 0.624
     Smoothness: 0.2
-    Pattern:
-      Enabled: 1
-      Scale: {x: 15, y: 15, z: 15}
-      Thickness: 0.5
-      Smoothness: 0.1
-      MaxDistance: 15
-      DistanceFade: 0.5
+    Pattern: {fileID: 2800000, guid: f6b3576444e532b4ca4c2d369e2e8232, type: 3}
+    PatternScale: {x: 2, y: 0, z: -2}
   PostProcessing:
     Enabled: 1
     Passes:

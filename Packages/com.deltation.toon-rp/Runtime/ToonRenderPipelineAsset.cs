@@ -79,15 +79,7 @@ namespace DELTation.ToonRP
             KernelSize = 4,
             Threshold = 0.6f,
             Smoothness = 0.2f,
-            Pattern = new ToonSsaoSettings.PatternSettings
-            {
-                Enabled = true,
-                Scale = Vector3.one * 15.0f,
-                Thickness = 0.5f,
-                Smoothness = 0.1f,
-                MaxDistance = 15.0f,
-                DistanceFade = 0.5f,
-            },
+            PatternScale = new Vector3(1, 0, 1),
         };
 
         public ToonPostProcessingSettings PostProcessing = new()

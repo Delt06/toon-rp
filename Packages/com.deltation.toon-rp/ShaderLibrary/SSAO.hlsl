@@ -11,9 +11,9 @@
 TEXTURE2D(_ToonRP_SSAOTexture);
 SAMPLER(sampler_ToonRP_SSAOTexture);
 float2 _ToonRP_SSAO_Ramp;
-float3 _ToonRP_SSAO_Pattern_Scale;
-float2 _ToonRP_SSAO_Pattern_Ramp;
-float2 _ToonRP_SSAO_Pattern_DistanceFade;
+TEXTURE2D(_ToonRP_SSAO_Pattern);
+SAMPLER(sampler_ToonRP_SSAO_Pattern);
+float3 _ToonRP_SSAO_PatternScale;
 
 float SampleAmbientOcclusionRaw(float2 screenUv)
 {
@@ -29,15 +29,8 @@ float SampleAmbientOcclusionRaw(float2 screenUv)
 
 float GetAmbientOcclusionPattern(const float3 positionWs, const float depth)
 {
-    const float3 scaledPosition = positionWs * _ToonRP_SSAO_Pattern_Scale;
-    const float seed = scaledPosition.x + scaledPosition.y + scaledPosition.z;
-    const float patternBase = abs(frac(seed) - 0.5) * 2;
-    float pattern = ComputeRamp(patternBase, _ToonRP_SSAO_Pattern_Ramp);
-    // aliasing fix: if the seed changes too fast, fade the pattern it into a constant value
-    pattern = lerp(pattern, _ToonRP_SSAO_Pattern_Ramp.x, saturate(fwidth(seed) * 2));
-    const float distanceFade = DistanceFade(depth, _ToonRP_SSAO_Pattern_DistanceFade.x,
-                                            _ToonRP_SSAO_Pattern_DistanceFade.y);
-    return pattern * (1 - distanceFade);
+    const float2 uv = EncodePositionToUv(positionWs, _ToonRP_SSAO_PatternScale);
+    return SAMPLE_TEXTURE2D(_ToonRP_SSAO_Pattern, sampler_ToonRP_SSAO_Pattern, uv);
 }
 
 float SampleAmbientOcclusion(const float2 screenUv, const float3 positionWs, const float depth)

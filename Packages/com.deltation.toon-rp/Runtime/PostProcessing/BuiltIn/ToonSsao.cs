@@ -116,11 +116,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             _height = rtHeight;
             _width = rtWidth;
 
-            if (_settings.HalfResolution)
-            {
-                _width /= 2;
-                _height /= 2;
-            }
+            _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
+            _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
 
             CommandBuffer cmd = CommandBufferPool.Get();
             bool patternEnabled = _settings.Pattern != null;

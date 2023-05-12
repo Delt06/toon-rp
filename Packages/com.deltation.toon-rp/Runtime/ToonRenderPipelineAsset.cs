@@ -79,6 +79,7 @@ namespace DELTation.ToonRP
             KernelSize = 4,
             Threshold = 0.6f,
             Smoothness = 0.2f,
+            ResolutionFactor = 2,
             PatternScale = new Vector3(1, 0, 1),
         };
 

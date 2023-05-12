@@ -13,7 +13,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public float Power;
         [Range(1, ToonSsao.MaxSamplesCount)]
         public int KernelSize;
-        public bool HalfResolution;
+        [Min(1)]
+        public int ResolutionFactor;
 
         // Represents the opposite of the actual threshold, for more intuitive tweaking
         [Range(0.3f, 1.0f)]

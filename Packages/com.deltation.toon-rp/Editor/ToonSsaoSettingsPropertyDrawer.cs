@@ -40,7 +40,7 @@ namespace DELTation.ToonRP.Editor
                 new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.KernelSize)))
             );
             settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.HalfResolution)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.ResolutionFactor)))
             );
             settingsContainer.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonSsaoSettings.Threshold)))

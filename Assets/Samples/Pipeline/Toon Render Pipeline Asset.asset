@@ -42,9 +42,9 @@ MonoBehaviour:
     UseDynamicBatching: 0
   ShadowSettings:
     Mode: 1
-    Threshold: 0.757
+    Threshold: 0.887
     CrispAntiAliased: 1
-    Smoothness: 0.416
+    Smoothness: 1
     MaxDistance: 25
     DistanceFade: 0.354
     Pattern: {fileID: 2800000, guid: 370591c24596965498bac30a92b5a7cf, type: 3}
@@ -53,13 +53,13 @@ MonoBehaviour:
       Blur: 1
       Directional:
         Enabled: 1
-        AtlasSize: 2048
+        AtlasSize: 1024
         CascadeCount: 4
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
-        DepthBias: 0.01
-        NormalBias: 0
+        DepthBias: 0.102
+        NormalBias: 0.025
         SlopeBias: 0
     Blobs:
       AtlasSize: 128

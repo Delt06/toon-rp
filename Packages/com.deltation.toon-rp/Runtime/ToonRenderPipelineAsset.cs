@@ -95,7 +95,7 @@ namespace DELTation.ToonRP
                         Color = Color.black,
                         Thickness = 0.02f,
                         LayerMask = int.MaxValue,
-                        MaxDistance = 100.0f,
+                        MaxDistance = 0.0f,
                         DistanceFade = 0.1f,
                     },
                 },

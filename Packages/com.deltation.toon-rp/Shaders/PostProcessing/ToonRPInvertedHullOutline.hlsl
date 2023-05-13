@@ -7,7 +7,9 @@
 
 // TODO: figure out if this works on all hardware (most likely it doesn't)
 // https://forum.unity.com/threads/ignoring-some-triangles-in-a-vertex-shader.170834/
+#ifdef _DISTANCE_FADE
 //#define USE_CLIP_DISTANCE
+#endif // _DISTANCE_FADE
 
 #if !defined(NORMAL_SEMANTIC)
 #define NORMAL_SEMANTIC NORMAL
@@ -29,12 +31,12 @@ struct v2f
     TOON_RP_FOG_FACTOR_INTERPOLANT
 };
 
-CBUFFER_START(_ToonRpInvertedHullOutline)
-float _ToonRP_Outline_InvertedHull_Thickness;
-float3 _ToonRP_Outline_InvertedHull_Color;
-float2 _ToonRP_Outline_DistanceFade;
-float _ToonRP_Outline_NoiseFrequency;
-float _ToonRP_Outline_NoiseAmplitude;
+CBUFFER_START(UnityPerMaterial)
+float _Thickness;
+float3 _Color;
+float2 _DistanceFade;
+float _NoiseFrequency;
+float _NoiseAmplitude;
 CBUFFER_END
 
 v2f VS(const appdata IN)
@@ -43,18 +45,29 @@ v2f VS(const appdata IN)
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
+    float rawThickness = _Thickness;
+
+    #ifdef _NOISE
+    const float noise = _NoiseAmplitude * frac(_NoiseFrequency * (IN.uv.x + IN.uv.y));
+    rawThickness += noise;
+    #endif // _NOISE
+
+    #ifdef _DISTANCE_FADE
+
     const float depth = GetLinearDepth(positionWs);
-    const float distanceFade = 1 - DistanceFade(depth, _ToonRP_Outline_DistanceFade.x, _ToonRP_Outline_DistanceFade.y);
+    const float distanceFade = 1 - DistanceFade(depth, _DistanceFade.x, _DistanceFade.y);
+    rawThickness *= distanceFade;
+
+    #endif // _DISTANCE_FADE
+
+    const float thickness = max(0, rawThickness);
+    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
+    OUT.positionCs = positionCs;
 
     #ifdef USE_CLIP_DISTANCE
     // 0 - keep, -1 - discard 
     OUT.clipDistance = distanceFade > 0 ? 0 : -1;
     #endif // USE_CLIP_DISTANCE
-
-    const float noise = _ToonRP_Outline_NoiseAmplitude * frac(_ToonRP_Outline_NoiseFrequency * (IN.uv.x + IN.uv.y));
-    const float thickness = max(0, _ToonRP_Outline_InvertedHull_Thickness + noise) * distanceFade;
-    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
-    OUT.positionCs = positionCs;
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 
@@ -63,7 +76,7 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
-    float3 outputColor = _ToonRP_Outline_InvertedHull_Color;
+    float3 outputColor = _Color;
     TOON_RP_FOG_MIX(IN, outputColor);
     return float4(outputColor, 1);
 }

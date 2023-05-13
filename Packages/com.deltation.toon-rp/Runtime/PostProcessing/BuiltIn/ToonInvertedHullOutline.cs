@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRenderer;
@@ -10,15 +11,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private const int DefaultPassId = 0;
         private const int UvNormalsPassId = 1;
         private const int TangentNormalsPassId = 2;
-        private static readonly int ThicknessId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Thickness");
-        private static readonly int DistanceFadeId = Shader.PropertyToID("_ToonRP_Outline_DistanceFade");
-        private static readonly int ColorId = Shader.PropertyToID("_ToonRP_Outline_InvertedHull_Color");
-        private static readonly int NoiseFrequencyId = Shader.PropertyToID("_ToonRP_Outline_NoiseFrequency");
-        private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_ToonRP_Outline_NoiseAmplitude");
+        private static readonly int ThicknessId = Shader.PropertyToID("_Thickness");
+        private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
+        private static readonly int NoiseFrequencyId = Shader.PropertyToID("_NoiseFrequency");
+        private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_NoiseAmplitude");
+        private readonly List<Material> _materials = new();
         private Camera _camera;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private Material _outlineMaterial;
         private ToonInvertedHullOutlineSettings _outlineSettings;
         private ToonCameraRendererSettings _settings;
 
@@ -33,7 +34,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             _context = context;
             _cullingResults = cullingResults;
             _outlineSettings = outlineSettings;
-            EnsureMaterialIsCreated();
+            EnsureMaterialsAreCreated();
         }
 
         public void Render()
@@ -49,22 +50,33 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 ExecuteBuffer(cmd);
 
-                foreach (ToonInvertedHullOutlineSettings.Pass pass in _outlineSettings.Passes)
+                for (int passIndex = 0; passIndex < _outlineSettings.Passes.Length; passIndex++)
                 {
+                    ToonInvertedHullOutlineSettings.Pass pass = _outlineSettings.Passes[passIndex];
                     string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
                     {
-                        cmd.SetGlobalFloat(ThicknessId, pass.Thickness);
-                        cmd.SetGlobalVector(ColorId, pass.Color);
-                        cmd.SetGlobalDepthBias(pass.DepthBias, 0);
-                        cmd.SetGlobalVector(DistanceFadeId,
+                        Material material = _materials[passIndex];
+                        material.SetFloat(ThicknessId, pass.Thickness);
+                        material.SetVector(ColorId, pass.Color);
+                        material.SetVector(DistanceFadeId,
                             new Vector4(
                                 1.0f / pass.MaxDistance,
                                 1.0f / pass.DistanceFade
                             )
                         );
-                        cmd.SetGlobalFloat(NoiseFrequencyId, pass.NoiseFrequency);
-                        cmd.SetGlobalFloat(NoiseAmplitudeId, pass.NoiseAmplitude);
+
+                        bool noiseEnabled = pass.NoiseAmplitude > 0.0f && pass.NoiseFrequency > 0.0f;
+                        material.SetKeyword("_NOISE", noiseEnabled);
+                        if (noiseEnabled)
+                        {
+                            material.SetFloat(NoiseFrequencyId, pass.NoiseFrequency);
+                            material.SetFloat(NoiseAmplitudeId, pass.NoiseAmplitude);
+                        }
+
+                        material.SetKeyword("_DISTANCE_FADE", pass.MaxDistance > 0.0f);
+
+                        cmd.SetGlobalDepthBias(pass.DepthBias, 0);
                         ExecuteBuffer(cmd);
 
                         var sortingSettings = new SortingSettings(_camera)
@@ -74,7 +86,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
                         {
                             enableDynamicBatching = _settings.UseDynamicBatching,
-                            overrideMaterial = _outlineMaterial,
+                            overrideMaterial = material,
                             overrideMaterialPassIndex = pass.NormalsSource switch
                             {
                                 ToonInvertedHullOutlineSettings.NormalsSource.Normals => DefaultPassId,
@@ -132,15 +144,23 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             cmd.Clear();
         }
 
-        private void EnsureMaterialIsCreated()
+        private void EnsureMaterialsAreCreated()
         {
-            if (_outlineMaterial != null)
+            while (_materials.Count < _outlineSettings.Passes.Length)
             {
-                return;
+                _materials.Add(CreateMaterial());
             }
 
+            for (int i = 0; i < _materials.Count; i++)
+            {
+                _materials[i] ??= CreateMaterial();
+            }
+        }
+
+        private static Material CreateMaterial()
+        {
             var shader = Shader.Find("Hidden/Toon RP/Outline (Inverted Hull)");
-            _outlineMaterial = new Material(shader)
+            return new Material(shader)
             {
                 name = "Toon RP Outline (Inverted Hull)",
             };

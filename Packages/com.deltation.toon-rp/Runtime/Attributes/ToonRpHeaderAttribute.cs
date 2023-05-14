@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace DELTation.ToonRP
+namespace DELTation.ToonRP.Attributes
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class ToonRpHeaderAttribute : PropertyAttribute

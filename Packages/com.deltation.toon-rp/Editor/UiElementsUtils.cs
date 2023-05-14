@@ -37,7 +37,10 @@ namespace DELTation.ToonRP.Editor
             }
 
             DisplayStyle styleDisplay = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            visualElement.style.display = styleDisplay;
+            if (visualElement.style.display != styleDisplay)
+            {
+                visualElement.style.display = styleDisplay;
+            }
         }
     }
 }

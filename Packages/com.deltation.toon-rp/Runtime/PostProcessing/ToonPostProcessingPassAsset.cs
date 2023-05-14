@@ -29,7 +29,7 @@ namespace DELTation.ToonRP.PostProcessing
 
     public abstract class ToonPostProcessingPassAsset<TSettings> : ToonPostProcessingPassAsset
     {
-        [ToonRpHeader("Settings")]
+        [ToonRpHeader("Settings", Size = ToonRpHeaderAttribute.DefaultSize + 6)]
         public TSettings Settings;
     }
 }

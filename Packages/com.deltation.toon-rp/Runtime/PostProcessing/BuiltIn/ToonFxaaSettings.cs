@@ -6,6 +6,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     [Serializable]
     public struct ToonFxaaSettings
     {
+        public bool Enabled;
         public bool HighQuality;
         [Min(0.0f)]
         public float FixedContrastThresholdId;

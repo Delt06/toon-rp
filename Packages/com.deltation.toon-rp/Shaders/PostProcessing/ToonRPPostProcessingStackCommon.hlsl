@@ -1,5 +1,5 @@
-﻿#ifndef TOON_RP_FXAA_COMMON
-#define TOON_RP_FXAA_COMMON
+﻿#ifndef TOON_RP_POST_PROCESSING_STACK_COMMON
+#define TOON_RP_POST_PROCESSING_STACK_COMMON
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
@@ -12,25 +12,11 @@ DECLARE_TEXEL_SIZE(_MainTex);
 #define LINEAR_SAMPLER sampler_linear_clamp
 SAMPLER(LINEAR_SAMPLER);
 
-struct appdata
-{
-    float3 position : POSITION;
-    float2 uv : TEXCOORD0;
-};
-
-struct v2f
-{
-    float4 positionCs : SV_POSITION;
-    float2 uv : TEXCOORD0;
-};
-
-v2f VS(const appdata IN)
-{
-    v2f OUT;
-    OUT.uv = IN.uv;
-    OUT.positionCs = TransformObjectToHClip(IN.position);
-    return OUT;
-}
+CBUFFER_START(UnityPerMaterial)
+float _FXAA_FixedContrastThreshold;
+float _FXAA_RelativeContrastThreshold;
+float _FXAA_SubpixelBlendingFactor;
+CBUFFER_END
 
 float3 SampleSource(const float2 uv)
 {
@@ -43,4 +29,4 @@ float3 SampleSource(const float2 uv, const float2 pixelOffset)
     return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, offsetUv, 0);
 }
 
-#endif // TOON_RP_FXAA_COMMON
+#endif // TOON_RP_POST_PROCESSING_STACK_COMMON

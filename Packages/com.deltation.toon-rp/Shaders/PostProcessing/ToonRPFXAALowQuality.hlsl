@@ -1,18 +1,17 @@
 ﻿#ifndef TOON_RP_FXAA_LOW_QUALITY
 #define TOON_RP_FXAA_LOW_QUALITY
 
-// https://www.geeks3d.com/20110405/fxaa-fast-approximate-anti-aliasing-demo-glsl-opengl-test-radeon-geforce/3/
+#include "ToonRPPostProcessingStackCommon.hlsl"
 
-#include "ToonRPFXAACommon.hlsl"
+// https://www.geeks3d.com/20110405/fxaa-fast-approximate-anti-aliasing-demo-glsl-opengl-test-radeon-geforce/3/
 
 static const float SpanMax = 8.0;
 static const float ReduceMul = 1.0 / 8.0;
 static const float ReduceMin = 1.0 / 128.0;
 
-float4 PS(const v2f IN) : SV_TARGET
+float3 ApplyFxaa(const float2 uv)
 {
     // Sample colors
-    const float2 uv = IN.uv;
     const float3 colorNw = SampleSource(uv);
     const float3 colorNe = SampleSource(uv, float2(1, 0));
     const float3 colorSw = SampleSource(uv, float2(0, 1));
@@ -48,10 +47,10 @@ float4 PS(const v2f IN) : SV_TARGET
     const float lumaB = Luminance(colorB);
     if (lumaB < lumaMin || lumaB > lumaMax)
     {
-        return float4(colorA, 1.0);
+        return colorA;
     }
 
-    return float4(colorB, 1.0);
+    return colorB;
 }
 
 #endif // TOON_RP_FXAA_LOW_QUALITY

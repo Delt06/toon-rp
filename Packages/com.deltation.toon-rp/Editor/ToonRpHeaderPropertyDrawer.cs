@@ -42,7 +42,10 @@ namespace DELTation.ToonRP.Editor
         {
             var toonRpHeaderAttribute = (ToonRpHeaderAttribute) attribute;
             var root = new VisualElement();
-            root.Add(new ToonRpHeaderLabel(toonRpHeaderAttribute.Text ?? property.displayName));
+            root.Add(new ToonRpHeaderLabel(toonRpHeaderAttribute.Text ?? property.displayName,
+                    toonRpHeaderAttribute.Size
+                )
+            );
 
             foreach (SerializedProperty child in GetDirectChildren(property))
             {

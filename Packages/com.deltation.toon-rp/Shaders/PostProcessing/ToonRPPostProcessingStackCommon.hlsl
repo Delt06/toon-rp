@@ -16,7 +16,15 @@ CBUFFER_START(UnityPerMaterial)
 float _FXAA_FixedContrastThreshold;
 float _FXAA_RelativeContrastThreshold;
 float _FXAA_SubpixelBlendingFactor;
+
+float _FilmGrain_Intensity;
+float _FilmGrain_LuminanceThreshold0;
+float _FilmGrain_LuminanceThreshold1;
 CBUFFER_END
+
+TEXTURE2D(_FilmGrain_Texture);
+SAMPLER(sampler_FilmGrain_Texture);
+DECLARE_TEXEL_SIZE(_FilmGrain_Texture);
 
 float3 SampleSource(const float2 uv)
 {

@@ -29,6 +29,8 @@ v2f VS(const appdata IN)
 #include "ToonRPFXAAHighQuality.hlsl"
 #endif
 
+#include "ToonRPFilmGrain.hlsl"
+
 float4 PS(const v2f IN) : SV_TARGET
 {
     float3 color;
@@ -39,6 +41,10 @@ float4 PS(const v2f IN) : SV_TARGET
     #else // !_FXAA
     color = SampleSource(uv);
     #endif // _FXAA
+
+    #ifdef _FILM_GRAIN
+    color = ApplyFilmGrain(uv, color);
+    #endif // _FILM_GRAIN
 
     return float4(color, 1.0f);
 }

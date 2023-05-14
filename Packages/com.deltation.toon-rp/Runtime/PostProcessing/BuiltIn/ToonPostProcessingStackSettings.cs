@@ -10,5 +10,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         [ToonRpHeader("FXAA", Size = HeaderSize)]
         public ToonFxaaSettings Fxaa;
+
+        [ToonRpHeader("Film Grain", Size = HeaderSize)]
+        public ToonFilmGrainSettings FilmGrain;
     }
 }

@@ -31,6 +31,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             };
 
 #if UNITY_EDITOR
+            Settings.LookupTable.Texture =
+                AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.deltation.toon-rp/Assets/DefaultLUT.png");
+
             Settings.FilmGrain.Texture =
                 AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.deltation.toon-rp/Assets/FilmGrain.png");
 #endif // UNITY_EDITOR

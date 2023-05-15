@@ -12,6 +12,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             Shader.PropertyToID("_FXAA_RelativeContrastThreshold");
         private static readonly int FxaaSubpixelBlendingFactorId = Shader.PropertyToID("_FXAA_SubpixelBlendingFactor");
         private static readonly int ToneMappingExposureId = Shader.PropertyToID("_ToneMapping_Exposure");
+        private static readonly int LookupTableTextureId = Shader.PropertyToID("_LookupTable_Texture");
         private static readonly int FilmGrainTextureId = Shader.PropertyToID("_FilmGrain_Texture");
         private static readonly int FilmGrainIntensityId = Shader.PropertyToID("_FilmGrain_Intensity");
         private static readonly int FilmGrainLuminanceThreshold0Id =
@@ -20,6 +21,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             Shader.PropertyToID("_FilmGrain_LuminanceThreshold1");
         private ToonFilmGrainSettings _filmGrainSettings;
         private ToonFxaaSettings _fxaaSettings;
+        private ToonLookupTableSettings _lookupTable;
         private Material _material;
         private ToonToneMappingSettings _toneMapping;
 
@@ -51,6 +53,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             ToonPostProcessingStackSettings stackSettings = context.Settings.Find<ToonPostProcessingStackSettings>();
             _fxaaSettings = stackSettings.Fxaa;
             _toneMapping = stackSettings.ToneMapping;
+            _lookupTable = stackSettings.LookupTable;
             _filmGrainSettings = stackSettings.FilmGrain;
         }
 
@@ -61,6 +64,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             HandleFxaaProperties();
             HandleToneMappingProperties();
+            HandleLookupTextureProperties();
             HandleFilmGrainProperties();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
@@ -95,6 +99,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 _material.SetFloat(ToneMappingExposureId, _toneMapping.Exposure);
             }
+        }
+
+        private void HandleLookupTextureProperties()
+        {
+            _material.SetKeyword("_LOOKUP_TABLE", _lookupTable.Enabled);
+            _material.SetTexture(LookupTableTextureId, _lookupTable.Enabled ? _lookupTable.Texture : null);
         }
 
         private void HandleFilmGrainProperties()

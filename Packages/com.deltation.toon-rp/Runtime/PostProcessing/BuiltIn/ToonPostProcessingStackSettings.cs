@@ -14,6 +14,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         [ToonRpHeader("Tone Mapping", Size = HeaderSize)]
         public ToonToneMappingSettings ToneMapping;
 
+        [ToonRpHeader("LUT", Size = HeaderSize)]
+        public ToonLookupTableSettings LookupTable;
+
         [ToonRpHeader("Film Grain", Size = HeaderSize)]
         public ToonFilmGrainSettings FilmGrain;
     }

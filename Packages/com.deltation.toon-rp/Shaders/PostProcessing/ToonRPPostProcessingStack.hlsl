@@ -30,6 +30,7 @@ v2f VS(const appdata IN)
 #endif
 
 #include "ToonRPToneMapping.hlsl"
+#include "ToonRPLookupTable.hlsl"
 #include "ToonRPFilmGrain.hlsl"
 
 float4 PS(const v2f IN) : SV_TARGET
@@ -45,7 +46,13 @@ float4 PS(const v2f IN) : SV_TARGET
 
     #ifdef _TONE_MAPPING
     color = ApplyToneMapping(color);
+    #else // !_TONE_MAPPING
+    color = saturate(color);
     #endif // _TONE_MAPPING
+
+    #ifdef _LOOKUP_TABLE
+    color = ApplyLookupTable(color);
+    #endif // _LOOKUP_TABLE
 
     #ifdef _FILM_GRAIN
     color = ApplyFilmGrain(uv, color);

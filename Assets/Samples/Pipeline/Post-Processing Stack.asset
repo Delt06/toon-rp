@@ -22,8 +22,11 @@ MonoBehaviour:
       RelativeContrastThreshold: 0.166
       SubpixelBlendingFactor: 0.75
     ToneMapping:
-      Enabled: 1
+      Enabled: 0
       Exposure: 1.5
+    LookupTable:
+      Enabled: 0
+      Texture: {fileID: 2800000, guid: 52f25900988ad0e43b275b1e48c27c9d, type: 3}
     FilmGrain:
       Enabled: 0
       Texture: {fileID: 2800000, guid: 17149fce36cf8664b98054a576d73f35, type: 3}

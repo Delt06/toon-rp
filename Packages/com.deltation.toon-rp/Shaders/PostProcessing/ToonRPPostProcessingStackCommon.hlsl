@@ -28,6 +28,10 @@ TEXTURE2D(_FilmGrain_Texture);
 SAMPLER(sampler_FilmGrain_Texture);
 DECLARE_TEXEL_SIZE(_FilmGrain_Texture);
 
+TEXTURE2D(_LookupTable_Texture);
+SAMPLER(sampler_LookupTable_Texture);
+DECLARE_TEXEL_SIZE(_LookupTable_Texture);
+
 float3 SampleSource(const float2 uv)
 {
     return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0);

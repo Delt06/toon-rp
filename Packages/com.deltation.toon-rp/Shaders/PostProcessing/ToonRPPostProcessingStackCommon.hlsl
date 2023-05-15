@@ -20,6 +20,8 @@ float _FXAA_SubpixelBlendingFactor;
 float _FilmGrain_Intensity;
 float _FilmGrain_LuminanceThreshold0;
 float _FilmGrain_LuminanceThreshold1;
+
+float _ToneMapping_Exposure;
 CBUFFER_END
 
 TEXTURE2D(_FilmGrain_Texture);

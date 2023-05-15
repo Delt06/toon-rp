@@ -19,6 +19,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     RelativeContrastThreshold = 0.166f,
                     SubpixelBlendingFactor = 0.75f,
                 },
+                ToneMapping = new ToonToneMappingSettings
+                {
+                    Exposure = 1.5f,
+                },
                 FilmGrain = new ToonFilmGrainSettings
                 {
                     Intensity = 0.01f,

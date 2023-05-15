@@ -11,6 +11,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int FxaaRelativeContrastThresholdId =
             Shader.PropertyToID("_FXAA_RelativeContrastThreshold");
         private static readonly int FxaaSubpixelBlendingFactorId = Shader.PropertyToID("_FXAA_SubpixelBlendingFactor");
+        private static readonly int ToneMappingExposureId = Shader.PropertyToID("_ToneMapping_Exposure");
         private static readonly int FilmGrainTextureId = Shader.PropertyToID("_FilmGrain_Texture");
         private static readonly int FilmGrainIntensityId = Shader.PropertyToID("_FilmGrain_Intensity");
         private static readonly int FilmGrainLuminanceThreshold0Id =
@@ -20,6 +21,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private ToonFilmGrainSettings _filmGrainSettings;
         private ToonFxaaSettings _fxaaSettings;
         private Material _material;
+        private ToonToneMappingSettings _toneMapping;
 
         private void EnsureMaterialIsCreated()
         {
@@ -38,6 +40,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonPostProcessingStackSettings stackSettings = settings.Find<ToonPostProcessingStackSettings>();
             return stackSettings.Fxaa.Enabled ||
+                   stackSettings.ToneMapping.Enabled ||
                    stackSettings.FilmGrain.Enabled
                 ;
         }
@@ -47,6 +50,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             base.Setup(cmd, in context);
             ToonPostProcessingStackSettings stackSettings = context.Settings.Find<ToonPostProcessingStackSettings>();
             _fxaaSettings = stackSettings.Fxaa;
+            _toneMapping = stackSettings.ToneMapping;
             _filmGrainSettings = stackSettings.FilmGrain;
         }
 
@@ -56,6 +60,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             EnsureMaterialIsCreated();
 
             HandleFxaaProperties();
+            HandleToneMappingProperties();
             HandleFilmGrainProperties();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
@@ -81,6 +86,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             };
             _material.SetKeyword("_FXAA_LOW", fxaaLow);
             _material.SetKeyword("_FXAA_HIGH", fxaaHigh);
+        }
+
+        private void HandleToneMappingProperties()
+        {
+            _material.SetKeyword("_TONE_MAPPING", _toneMapping.Enabled);
+            if (_toneMapping.Enabled)
+            {
+                _material.SetFloat(ToneMappingExposureId, _toneMapping.Exposure);
+            }
         }
 
         private void HandleFilmGrainProperties()

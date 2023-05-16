@@ -17,11 +17,17 @@ float _FXAA_FixedContrastThreshold;
 float _FXAA_RelativeContrastThreshold;
 float _FXAA_SubpixelBlendingFactor;
 
+float _ToneMapping_Exposure;
+
+float2 _Vignette_Center;
+float _Vignette_Intensity;
+float _Vignette_Roundness;
+float _Vignette_Smoothness;
+float3 _Vignette_Color;
+
 float _FilmGrain_Intensity;
 float _FilmGrain_LuminanceThreshold0;
 float _FilmGrain_LuminanceThreshold1;
-
-float _ToneMapping_Exposure;
 CBUFFER_END
 
 TEXTURE2D(_FilmGrain_Texture);

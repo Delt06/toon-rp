@@ -14,6 +14,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         [ToonRpHeader("Tone Mapping", Size = HeaderSize)]
         public ToonToneMappingSettings ToneMapping;
 
+        [ToonRpHeader("Vignette", Size = HeaderSize)]
+        public ToonVignetteSettings Vignette;
+
         [ToonRpHeader("LUT", Size = HeaderSize)]
         public ToonLookupTableSettings LookupTable;
 

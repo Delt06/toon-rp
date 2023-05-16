@@ -23,6 +23,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 {
                     Exposure = 1.5f,
                 },
+                Vignette = new ToonVignetteSettings
+                {
+                    CenterX = 0.5f,
+                    CenterY = 0.5f,
+                    Intensity = 1.0f,
+                    Roundness = 0.5f,
+                    Smoothness = 0.6f,
+                },
                 FilmGrain = new ToonFilmGrainSettings
                 {
                     Intensity = 0.01f,

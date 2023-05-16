@@ -13,7 +13,7 @@
         public const string TransparentGeometry = "Transparent Geometry";
         public const string ResolveCameraColor = "Resolve Camera Color";
         public const string PostProcessing = "Post-Processing";
-        public const string Fxaa = "FXAA";
+        public const string PostProcessingStack = "Stack";
         public const string Bloom = "Bloom";
         public const string LightScattering = "Light Scattering";
         public const string BlitPostProcessingResults = "Blit Post-Processing Results";

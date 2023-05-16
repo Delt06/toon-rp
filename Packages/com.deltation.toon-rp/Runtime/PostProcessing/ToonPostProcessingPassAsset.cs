@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using DELTation.ToonRP.Attributes;
 using UnityEngine;
 
 namespace DELTation.ToonRP.PostProcessing
@@ -29,7 +30,7 @@ namespace DELTation.ToonRP.PostProcessing
 
     public abstract class ToonPostProcessingPassAsset<TSettings> : ToonPostProcessingPassAsset
     {
-        [ToonRpHeader("Settings")]
+        [ToonRpHeader("Settings", Size = ToonRpHeaderAttribute.DefaultSize + 2)]
         public TSettings Settings;
     }
 }

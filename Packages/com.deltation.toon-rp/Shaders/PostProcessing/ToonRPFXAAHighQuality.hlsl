@@ -1,13 +1,9 @@
 ﻿#ifndef TOON_RP_FXAA_HIGH_QUALITY
 #define TOON_RP_FXAA_HIGH_QUALITY
 
+#include "ToonRPPostProcessingStackCommon.hlsl"
+
 // https://catlikecoding.com/unity/tutorials/advanced-rendering/fxaa/
-
-#include "ToonRPFXAACommon.hlsl"
-
-float _FixedContrastThreshold;
-float _RelativeContrastThreshold;
-float _SubpixelBlendingFactor;
 
 #define EDGE_SEARCH_STEPS 3
 #define EDGE_SEARCH_STEP_SIZES 1.5, 2.0, 2.0
@@ -15,15 +11,10 @@ float _SubpixelBlendingFactor;
 
 static const float EdgeStepSizes[EDGE_SEARCH_STEPS] = {EDGE_SEARCH_STEP_SIZES};
 
-float3 SampleSceneColor(const float2 uv)
-{
-    return SAMPLE_TEXTURE2D(_MainTex, LINEAR_SAMPLER, uv);
-}
-
 float GetSceneLuminance(float2 uv, float uOffset = 0.0, float vOffset = 0.0)
 {
     uv += float2(uOffset, vOffset) * _MainTex_TexelSize.xy;
-    return sqrt(Luminance(SampleSceneColor(uv).rgb));
+    return sqrt(Luminance(SampleSource(uv).rgb));
 }
 
 struct LuminanceNeighborhood
@@ -71,7 +62,7 @@ LuminanceNeighborhood GetLuminanceNeighborhood(float2 uv)
 
 bool CanSkipFXAA(in LuminanceNeighborhood luminance)
 {
-    return luminance.range < max(_FixedContrastThreshold, _RelativeContrastThreshold * luminance.highest);
+    return luminance.range < max(_FXAA_FixedContrastThreshold, _FXAA_RelativeContrastThreshold * luminance.highest);
 }
 
 float GetSubpixelBlendFactor(in LuminanceNeighborhood luminance)
@@ -82,7 +73,7 @@ float GetSubpixelBlendFactor(in LuminanceNeighborhood luminance)
     filter = abs(filter - luminance.center);
     filter = saturate(filter / luminance.range);
     filter = smoothstep(0, 1, filter);
-    return filter * filter * _SubpixelBlendingFactor;
+    return filter * filter * _FXAA_SubpixelBlendingFactor;
 }
 
 bool IsHorizontalEdge(const LuminanceNeighborhood luminance)
@@ -230,14 +221,13 @@ float GetEdgeBlendFactor(in LuminanceNeighborhood luminance, in Edge edge, float
     return 0.5 - distanceToNearestEnd / (distanceToEndPositive + distanceToEndNegative);
 }
 
-float4 PS(const v2f IN) : SV_TARGET
+float3 ApplyFxaa(const float2 uv)
 {
-    const float2 uv = IN.uv;
     const LuminanceNeighborhood luminance = GetLuminanceNeighborhood(uv);
 
     if (CanSkipFXAA(luminance))
     {
-        return float4(SampleSceneColor(uv), 1);
+        return SampleSource(uv);
     }
 
     const Edge edge = GetEdge(luminance);
@@ -255,7 +245,7 @@ float4 PS(const v2f IN) : SV_TARGET
         blendUv.x += blendFactor * edge.pixelStep;
     }
 
-    return float4(SampleSceneColor(blendUv), 1);
+    return SampleSource(blendUv);
 }
 
 #endif // TOON_RP_FXAA_HIGH_QUALITY

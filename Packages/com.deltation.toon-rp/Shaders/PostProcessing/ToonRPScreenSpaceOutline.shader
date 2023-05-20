@@ -80,7 +80,7 @@
 
 			struct Kernel
             {
-                float3 values[9];
+                float values[9];
             };
 
 			#define FILL_KERNEL(kernel, funcName, du, dv) \

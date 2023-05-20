@@ -13,8 +13,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Tangents,
         }
 
-        public bool Enabled;
-
         public Pass[] Passes;
 
         [Serializable]

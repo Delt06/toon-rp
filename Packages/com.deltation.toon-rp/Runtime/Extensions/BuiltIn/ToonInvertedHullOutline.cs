@@ -26,7 +26,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private ToonInvertedHullOutlineSettings _outlineSettings;
 
-        public override void Render(in ToonRenderingExtensionContext context)
+        public override void Render()
         {
             if (_outlineSettings.Passes.Length == 0)
             {

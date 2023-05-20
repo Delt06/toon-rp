@@ -2,7 +2,6 @@
 using DELTation.ToonRP.Attributes;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
-using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -18,7 +17,6 @@ namespace DELTation.ToonRP
             "Hidden/Toon RP/Bloom",
             "Hidden/Toon RP/FXAA",
             "Hidden/Toon RP/Light Scattering",
-            "Hidden/Toon RP/SSAO",
             "Hidden/Toon RP/Blob Shadow Pass",
         };
         // Hold references to all shaders access in runtime to ensure they get included to the build
@@ -73,17 +71,6 @@ namespace DELTation.ToonRP
             },
         };
 
-        public ToonSsaoSettings Ssao = new()
-        {
-            Power = 10.0f,
-            Radius = 0.1f,
-            KernelSize = 4,
-            Threshold = 0.6f,
-            Smoothness = 0.2f,
-            ResolutionFactor = 2,
-            PatternScale = new Vector3(1, 0, 1),
-        };
-
         [ToonRpHeader]
         public ToonRenderingExtensionSettings Extensions;
 
@@ -105,11 +92,11 @@ namespace DELTation.ToonRP
         }
 
         public ToonCameraRendererSettings.DepthPrePassMode GetEffectiveDepthPrePassMode() =>
-            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Extensions, Ssao);
+            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Extensions);
 
         protected override RenderPipeline CreatePipeline() =>
             new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing,
-                Extensions, Ssao
+                Extensions
             );
     }
 }

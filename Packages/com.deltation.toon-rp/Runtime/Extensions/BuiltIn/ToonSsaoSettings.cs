@@ -1,12 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.PostProcessing.BuiltIn
+namespace DELTation.ToonRP.Extensions.BuiltIn
 {
     [Serializable]
     public struct ToonSsaoSettings
     {
-        public bool Enabled;
         [Min(0.05f)]
         public float Radius;
         [Min(0.0001f)]

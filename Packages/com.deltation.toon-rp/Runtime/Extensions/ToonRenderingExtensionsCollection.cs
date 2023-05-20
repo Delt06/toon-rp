@@ -142,7 +142,7 @@ namespace DELTation.ToonRP.Extensions
 
             foreach (IToonRenderingExtension extension in extensions)
             {
-                extension.Render(_context);
+                extension.Render();
             }
         }
 
@@ -175,7 +175,7 @@ namespace DELTation.ToonRP.Extensions
 
                 foreach (IToonRenderingExtension extension in extensions)
                 {
-                    extension.Cleanup(_context);
+                    extension.Cleanup();
                 }
             }
         }

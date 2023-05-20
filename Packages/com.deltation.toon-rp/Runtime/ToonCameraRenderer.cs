@@ -1,6 +1,5 @@
 ﻿using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
-using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -30,7 +29,6 @@ namespace DELTation.ToonRP
         private readonly ToonLighting _lighting = new();
         private readonly ToonPostProcessing _postProcessing = new();
         private readonly ToonShadows _shadows = new();
-        private readonly ToonSsao _ssao = new();
 
         private Camera _camera;
 
@@ -49,8 +47,7 @@ namespace DELTation.ToonRP
 
         public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
-            in ToonRenderingExtensionSettings extensionSettings,
-            in ToonSsaoSettings ssaoSettings)
+            in ToonRenderingExtensionSettings extensionSettings)
         {
             DepthPrePassMode mode = settings.DepthPrePass;
 
@@ -80,11 +77,6 @@ namespace DELTation.ToonRP
                 }
             }
 
-            if (ssaoSettings.Enabled)
-            {
-                mode = CombineDepthPrePassModes(mode, DepthPrePassMode.DepthNormals);
-            }
-
             return mode;
         }
 
@@ -94,7 +86,7 @@ namespace DELTation.ToonRP
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
             in ToonPostProcessingSettings postProcessingSettings,
-            in ToonRenderingExtensionSettings extensionSettings, in ToonSsaoSettings ssaoSettings)
+            in ToonRenderingExtensionSettings extensionSettings)
         {
             _context = context;
             _camera = camera;
@@ -112,8 +104,7 @@ namespace DELTation.ToonRP
                 return;
             }
 
-            _depthPrePassMode =
-                GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings, ssaoSettings);
+            _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
             Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings);
             _extensionsCollection.Update(_extensionContext, extensionSettings);
@@ -124,19 +115,11 @@ namespace DELTation.ToonRP
 
             if (_depthPrePassMode != DepthPrePassMode.Off)
             {
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
                 _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode, _rtWidth, _rtHeight
                 );
                 _depthPrePass.Render();
-            }
-
-            if (ssaoSettings.Enabled)
-            {
-                _ssao.Setup(_context, ssaoSettings, _rtWidth, _rtHeight);
-                _ssao.Render();
-            }
-            else
-            {
-                _ssao.SetupDisabled(_context);
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
             }
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
@@ -293,7 +276,8 @@ namespace DELTation.ToonRP
 
             ExecuteBuffer(cmd);
 
-            _extensionContext = new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults);
+            _extensionContext =
+                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _rtWidth, _rtHeight);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
@@ -421,7 +405,6 @@ namespace DELTation.ToonRP
                 _depthPrePass.Cleanup();
             }
 
-            _ssao.Cleanup();
             _extensionsCollection.Cleanup();
             _postProcessing.Cleanup();
 

@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using DELTation.ToonRP.Attributes;
+using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
@@ -83,6 +85,9 @@ namespace DELTation.ToonRP
             PatternScale = new Vector3(1, 0, 1),
         };
 
+        [ToonRpHeader]
+        public ToonRenderingExtensionSettings Extensions;
+
         public ToonPostProcessingSettings PostProcessing = new()
         {
             InvertedHullOutlines = new ToonInvertedHullOutlineSettings
@@ -117,9 +122,11 @@ namespace DELTation.ToonRP
         }
 
         public ToonCameraRendererSettings.DepthPrePassMode GetEffectiveDepthPrePassMode() =>
-            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Ssao);
+            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Extensions, Ssao);
 
         protected override RenderPipeline CreatePipeline() =>
-            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing, Ssao);
+            new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing,
+                Extensions, Ssao
+            );
     }
 }

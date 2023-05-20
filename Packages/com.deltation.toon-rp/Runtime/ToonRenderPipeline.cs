@@ -1,4 +1,5 @@
-﻿using DELTation.ToonRP.PostProcessing;
+﻿using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace DELTation.ToonRP
     {
         private readonly ToonCameraRenderer _cameraRenderer = new();
         private readonly ToonCameraRendererSettings _cameraRendererSettings;
+        private readonly ToonRenderingExtensionSettings _extensions;
         private readonly ToonRampSettings _globalRampSettings;
         private readonly ToonPostProcessingSettings _postProcessingSettings;
         private readonly ToonShadowSettings _shadowSettings;
@@ -17,12 +19,14 @@ namespace DELTation.ToonRP
 
         public ToonRenderPipeline(in ToonCameraRendererSettings cameraRendererSettings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings,
-            in ToonPostProcessingSettings postProcessingSettings, in ToonSsaoSettings ssaoSettings)
+            in ToonPostProcessingSettings postProcessingSettings, ToonRenderingExtensionSettings extensions,
+            in ToonSsaoSettings ssaoSettings)
         {
             _cameraRendererSettings = cameraRendererSettings;
             _globalRampSettings = globalRampSettings;
             _shadowSettings = shadowSettings;
             _postProcessingSettings = postProcessingSettings;
+            _extensions = extensions;
             _ssaoSettings = ssaoSettings;
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
         }
@@ -38,6 +42,7 @@ namespace DELTation.ToonRP
                     _globalRampSettings,
                     _shadowSettings,
                     _postProcessingSettings,
+                    _extensions,
                     _ssaoSettings
                 );
             }

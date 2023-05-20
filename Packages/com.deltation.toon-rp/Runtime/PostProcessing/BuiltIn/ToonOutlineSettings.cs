@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Extensions.BuiltIn;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {

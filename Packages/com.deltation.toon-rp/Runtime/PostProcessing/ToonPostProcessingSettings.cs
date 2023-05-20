@@ -1,5 +1,4 @@
 ﻿using System;
-using DELTation.ToonRP.PostProcessing.BuiltIn;
 
 namespace DELTation.ToonRP.PostProcessing
 {
@@ -8,7 +7,6 @@ namespace DELTation.ToonRP.PostProcessing
     {
         public bool Enabled;
         public ToonPostProcessingPassAsset[] Passes;
-        public ToonInvertedHullOutlineSettings InvertedHullOutlines;
     }
 
     public static class ToonPostProcessingSettingsExt

@@ -18,7 +18,6 @@ namespace DELTation.ToonRP
             "Hidden/Toon RP/Bloom",
             "Hidden/Toon RP/FXAA",
             "Hidden/Toon RP/Light Scattering",
-            "Hidden/Toon RP/Outline (Inverted Hull)",
             "Hidden/Toon RP/SSAO",
             "Hidden/Toon RP/Blob Shadow Pass",
         };
@@ -88,24 +87,8 @@ namespace DELTation.ToonRP
         [ToonRpHeader]
         public ToonRenderingExtensionSettings Extensions;
 
-        public ToonPostProcessingSettings PostProcessing = new()
-        {
-            InvertedHullOutlines = new ToonInvertedHullOutlineSettings
-            {
-                Passes = new[]
-                {
-                    new ToonInvertedHullOutlineSettings.Pass
-                    {
-                        Name = "Outline",
-                        Color = Color.black,
-                        Thickness = 0.02f,
-                        LayerMask = int.MaxValue,
-                        MaxDistance = 0.0f,
-                        DistanceFade = 0.1f,
-                    },
-                },
-            },
-        };
+        [ToonRpHeader("Post-Processing")]
+        public ToonPostProcessingSettings PostProcessing;
 
         public override Material defaultMaterial => new(defaultShader);
 

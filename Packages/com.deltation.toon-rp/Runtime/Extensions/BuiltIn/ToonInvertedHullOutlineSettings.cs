@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.PostProcessing.BuiltIn
+namespace DELTation.ToonRP.Extensions.BuiltIn
 {
     [Serializable]
     public struct ToonInvertedHullOutlineSettings

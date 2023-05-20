@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace DELTation.ToonRP.Extensions
 {
-    public sealed class ToonRenderingExtensionsCollection
+    public sealed class ToonRenderingExtensionsCollection : IToonRenderingExtensionSettingsStorage
     {
         private static readonly int EventsCount;
         [ItemCanBeNull]
@@ -17,6 +17,32 @@ namespace DELTation.ToonRP.Extensions
         private bool _initialized;
 
         static ToonRenderingExtensionsCollection() => EventsCount = Enum.GetValues(typeof(ToonRenderingEvent)).Length;
+
+        public TSettings GetSettings<TSettings>(IToonRenderingExtension extension)
+        {
+            if (extension == null)
+            {
+                throw new ArgumentNullException(nameof(extension));
+            }
+
+            if (!_sourceAssets.TryGetValue(extension, out ToonRenderingExtensionAsset sourceAsset))
+            {
+                throw new ArgumentException(
+                    $"The provided extension of type {extension.GetType()} is not part of this settings provider.",
+                    nameof(extension)
+                );
+            }
+
+            if (sourceAsset is not ToonRenderingExtensionAsset<TSettings> castedSourceAsset)
+            {
+                throw new ArgumentException(
+                    $"The provided extension of type {extension.GetType()} is linked to an asset, but it does not store settings of type {typeof(TSettings)}.",
+                    nameof(extension)
+                );
+            }
+
+            return castedSourceAsset.Settings;
+        }
 
         public void Update(
             in ToonRenderingExtensionContext context,
@@ -133,7 +159,7 @@ namespace DELTation.ToonRP.Extensions
 
                 foreach (IToonRenderingExtension extension in extensions)
                 {
-                    extension.Setup(_context);
+                    extension.Setup(_context, this);
                 }
             }
         }

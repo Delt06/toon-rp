@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using DELTation.ToonRP.Attributes;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Extensions
@@ -9,6 +10,8 @@ namespace DELTation.ToonRP.Extensions
 
         [SerializeField] [HideInInspector] private Shader[] _forceIncludedShaders;
 
+        public abstract ToonRenderingEvent Event { get; }
+
         protected virtual void OnValidate()
         {
             if (_forceIncludedShaders == null || _forceIncludedShaders.Length != ForceIncludedShaderNames().Length)
@@ -16,8 +19,8 @@ namespace DELTation.ToonRP.Extensions
                 _forceIncludedShaders = ForceIncludedShaderNames().Select(Shader.Find).ToArray();
             }
         }
-        
-        public abstract ToonRenderingEvent Event { get; }
+
+        public virtual bool RequiresStencil() => false;
 
         public virtual ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
             ToonCameraRendererSettings.DepthPrePassMode.Off;
@@ -25,5 +28,11 @@ namespace DELTation.ToonRP.Extensions
         public abstract IToonRenderingExtension CreateExtension();
 
         protected abstract string[] ForceIncludedShaderNames();
+    }
+
+    public abstract class ToonRenderingExtensionAsset<TSettings> : ToonRenderingExtensionAsset
+    {
+        [ToonRpHeader("Settings", Size = ToonRpHeaderAttribute.DefaultSize + 2)]
+        public TSettings Settings;
     }
 }

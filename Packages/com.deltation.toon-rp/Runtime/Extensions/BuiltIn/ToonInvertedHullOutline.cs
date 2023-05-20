@@ -158,7 +158,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             for (int i = 0; i < _materials.Count; i++)
             {
-                _materials[i] ??= CreateMaterial();
+                if (_materials[i] == null)
+                {
+                    _materials[i] = CreateMaterial();
+                }
             }
         }
 

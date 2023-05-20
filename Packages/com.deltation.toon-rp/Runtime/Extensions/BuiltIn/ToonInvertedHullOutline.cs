@@ -4,42 +4,36 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRenderer;
 
-namespace DELTation.ToonRP.PostProcessing.BuiltIn
+namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public class ToonInvertedHullOutline
+    public class ToonInvertedHullOutline : ToonRenderingExtensionBase
     {
         private const int DefaultPassId = 0;
         private const int UvNormalsPassId = 1;
         private const int TangentNormalsPassId = 2;
+        public const string ShaderName = "Hidden/Toon RP/Outline (Inverted Hull)";
         private static readonly int ThicknessId = Shader.PropertyToID("_Thickness");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int NoiseFrequencyId = Shader.PropertyToID("_NoiseFrequency");
         private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_NoiseAmplitude");
         private readonly List<Material> _materials = new();
+
         private Camera _camera;
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+
         private ToonInvertedHullOutlineSettings _outlineSettings;
-        private ToonCameraRendererSettings _settings;
 
-        public void Setup(in ScriptableRenderContext context,
-            in CullingResults cullingResults,
-            Camera camera,
-            in ToonCameraRendererSettings settings,
-            in ToonInvertedHullOutlineSettings outlineSettings)
-        {
-            _settings = settings;
-            _camera = camera;
-            _context = context;
-            _cullingResults = cullingResults;
-            _outlineSettings = outlineSettings;
-            EnsureMaterialsAreCreated();
-        }
-
-        public void Render()
+        public override void Render()
         {
             if (_outlineSettings.Passes.Length == 0)
+            {
+                return;
+            }
+
+            if (_camera.cameraType > CameraType.SceneView)
             {
                 return;
             }
@@ -85,7 +79,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         };
                         var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
                         {
-                            enableDynamicBatching = _settings.UseDynamicBatching,
+                            enableDynamicBatching = _cameraRendererSettings.UseDynamicBatching,
                             overrideMaterial = material,
                             overrideMaterialPassIndex = pass.NormalsSource switch
                             {
@@ -138,6 +132,17 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             CommandBufferPool.Release(cmd);
         }
 
+        public override void Setup(in ToonRenderingExtensionContext context,
+            IToonRenderingExtensionSettingsStorage settingsStorage)
+        {
+            _cameraRendererSettings = context.CameraRendererSettings;
+            _camera = context.Camera;
+            _context = context.ScriptableRenderContext;
+            _cullingResults = context.CullingResults;
+            _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
+            EnsureMaterialsAreCreated();
+        }
+
         private void ExecuteBuffer(CommandBuffer cmd)
         {
             _context.ExecuteCommandBuffer(cmd);
@@ -159,7 +164,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private static Material CreateMaterial()
         {
-            var shader = Shader.Find("Hidden/Toon RP/Outline (Inverted Hull)");
+            var shader = Shader.Find(ShaderName);
             return new Material(shader)
             {
                 name = "Toon RP Outline (Inverted Hull)",

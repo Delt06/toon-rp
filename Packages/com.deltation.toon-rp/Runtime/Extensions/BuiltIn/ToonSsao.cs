@@ -2,15 +2,16 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.PostProcessing.BuiltIn
+namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public class ToonSsao
+    public class ToonSsao : ToonRenderingExtensionBase
     {
         public const int MaxSamplesCount = 64;
 
         private const GraphicsFormat RtFormat = GraphicsFormat.R8_UNorm;
         private const int MainPass = 0;
         private const int BlurPass = 1;
+        public const string ShaderName = "Hidden/Toon RP/SSAO";
         private static readonly int RtId = Shader.PropertyToID("_ToonRP_SSAOTexture");
         private static readonly int RtTempId = Shader.PropertyToID("_ToonRP_SSAOTexture_Temp");
         private static readonly int RampId = Shader.PropertyToID("_ToonRP_SSAO_Ramp");
@@ -40,6 +41,91 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             _samples = GenerateRandomSamples(MaxSamplesCount);
             _ssaoKeyword = GlobalKeyword.Create("_TOON_RP_SSAO");
             _ssaoPatternKeyword = GlobalKeyword.Create("_TOON_RP_SSAO_PATTERN");
+        }
+
+        public override void Setup(in ToonRenderingExtensionContext context,
+            IToonRenderingExtensionSettingsStorage settingsStorage)
+        {
+            _context = context.ScriptableRenderContext;
+            _settings = settingsStorage.GetSettings<ToonSsaoSettings>(this);
+            _width = context.RtWidth;
+            _height = context.RtHeight;
+
+            _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
+            _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
+
+            CommandBuffer cmd = CommandBufferPool.Get();
+            bool patternEnabled = _settings.Pattern != null;
+            cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
+            cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        public override void Render()
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Ssao)))
+            {
+                if (_noiseTexture == null)
+                {
+                    _noiseTexture = GenerateNoiseTexture();
+                }
+
+                if (_material == null)
+                {
+                    var shader = Shader.Find(ShaderName);
+                    _material = new Material(shader);
+                }
+
+                const FilterMode filterMode = FilterMode.Bilinear;
+                cmd.GetTemporaryRT(RtId, _width, _height, 0, filterMode, RtFormat);
+                cmd.GetTemporaryRT(RtTempId, _width, _height, 0, filterMode, RtFormat);
+
+                {
+                    const string sampleName = "SSAO (Trace)";
+                    cmd.BeginSample(sampleName);
+                    cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    RenderMainPass(cmd);
+                    cmd.EndSample(sampleName);
+                }
+
+                {
+                    const string sampleName = "SSAO (Blur)";
+                    cmd.BeginSample(sampleName);
+                    cmd.SetRenderTarget(RtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    RenderBlur(cmd, Vector2.right, RtId);
+                    cmd.SetRenderTarget(RtId);
+                    RenderBlur(cmd, Vector2.up, RtTempId);
+                    cmd.EndSample(sampleName);
+                }
+
+                {
+                    float effectiveThreshold = 1 - _settings.Threshold;
+                    cmd.SetGlobalVector(RampId,
+                        new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
+                    );
+                }
+
+                Texture2D patternTexture = _settings.Pattern != null ? _settings.Pattern : Texture2D.blackTexture;
+                cmd.SetGlobalTexture(PatternId, patternTexture);
+                cmd.SetGlobalVector(PatternScaleId, _settings.PatternScale);
+            }
+
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        public override void Cleanup()
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+            cmd.ReleaseTemporaryRT(RtId);
+            cmd.ReleaseTemporaryRT(RtTempId);
+            cmd.DisableKeyword(_ssaoKeyword);
+            cmd.DisableKeyword(_ssaoPatternKeyword);
+            ExecuteBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         private static Texture2D GenerateNoiseTexture()
@@ -108,80 +194,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             return samples;
         }
 
-        public void Setup(in ScriptableRenderContext context,
-            in ToonSsaoSettings toonSsaoSettings, int rtWidth, int rtHeight)
-        {
-            _context = context;
-            _settings = toonSsaoSettings;
-            _height = rtHeight;
-            _width = rtWidth;
-
-            _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
-            _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
-
-            CommandBuffer cmd = CommandBufferPool.Get();
-            bool patternEnabled = _settings.Pattern != null;
-            cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
-            cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
-            ExecuteBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
-        public void Render()
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Ssao)))
-            {
-                if (_noiseTexture == null)
-                {
-                    _noiseTexture = GenerateNoiseTexture();
-                }
-
-                if (_material == null)
-                {
-                    var shader = Shader.Find("Hidden/Toon RP/SSAO");
-                    _material = new Material(shader);
-                }
-
-                const FilterMode filterMode = FilterMode.Bilinear;
-                cmd.GetTemporaryRT(RtId, _width, _height, 0, filterMode, RtFormat);
-                cmd.GetTemporaryRT(RtTempId, _width, _height, 0, filterMode, RtFormat);
-
-                {
-                    const string sampleName = "SSAO (Trace)";
-                    cmd.BeginSample(sampleName);
-                    cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    RenderMainPass(cmd);
-                    cmd.EndSample(sampleName);
-                }
-
-                {
-                    const string sampleName = "SSAO (Blur)";
-                    cmd.BeginSample(sampleName);
-                    cmd.SetRenderTarget(RtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    RenderBlur(cmd, Vector2.right, RtId);
-                    cmd.SetRenderTarget(RtId);
-                    RenderBlur(cmd, Vector2.up, RtTempId);
-                    cmd.EndSample(sampleName);
-                }
-
-                {
-                    float effectiveThreshold = 1 - _settings.Threshold;
-                    cmd.SetGlobalVector(RampId,
-                        new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
-                    );
-                }
-
-                Texture2D patternTexture = _settings.Pattern != null ? _settings.Pattern : Texture2D.blackTexture;
-                cmd.SetGlobalTexture(PatternId, patternTexture);
-                cmd.SetGlobalVector(PatternScaleId, _settings.PatternScale);
-            }
-
-            ExecuteBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
 
         private void RenderMainPass(CommandBuffer cmd)
         {
@@ -222,29 +234,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
         }
 
-        public void Cleanup()
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.ReleaseTemporaryRT(RtId);
-            cmd.ReleaseTemporaryRT(RtTempId);
-            ExecuteBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
         private void ExecuteBuffer(CommandBuffer cmd)
         {
             _context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-        }
-
-        public void SetupDisabled(in ScriptableRenderContext context)
-        {
-            _context = context;
-            CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.DisableKeyword(_ssaoKeyword);
-            cmd.DisableKeyword(_ssaoPatternKeyword);
-            ExecuteBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

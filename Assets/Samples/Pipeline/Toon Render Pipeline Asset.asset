@@ -15,10 +15,8 @@ MonoBehaviour:
   ForceIncludedShaders:
   - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
   - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
-  - {fileID: 4800000, guid: d72fefac260143d79ae4517e9d12353e, type: 3}
+  - {fileID: 0}
   - {fileID: 4800000, guid: 365539a884014974bb27c4a53ef41b86, type: 3}
-  - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
-  - {fileID: 4800000, guid: b9380af3e4224cabbf4b789b6a3f87d0, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:
     Threshold: 0
@@ -65,48 +63,13 @@ MonoBehaviour:
       AtlasSize: 128
       Mode: 0
       Saturation: 1
-  Ssao:
-    Enabled: 1
-    Radius: 0.2
-    Power: 10
-    KernelSize: 2
-    ResolutionFactor: 4
-    Threshold: 0.526
-    Smoothness: 0.364
-    Pattern: {fileID: 2800000, guid: f6b3576444e532b4ca4c2d369e2e8232, type: 3}
-    PatternScale: {x: 2, y: 2, z: -2}
+  Extensions:
+    Extensions:
+    - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
+    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 444443e987af20941be3a8f1b36ba921, type: 2}
     - {fileID: 11400000, guid: b9995397bc4c75a4c8099a1bc0829d3a, type: 2}
-    InvertedHullOutlines:
-      Enabled: 1
-      Passes:
-      - Name: Thick (Outer)
-        LayerMask:
-          serializedVersion: 2
-          m_Bits: 55
-        StencilLayer: 8
-        Color: {r: 0, g: 0, b: 0, a: 0}
-        Thickness: 0.02
-        NoiseAmplitude: 0.02
-        NoiseFrequency: 1000
-        NormalsSource: 0
-        DepthBias: 0
-        MaxDistance: 15
-        DistanceFade: 0.1
-      - Name: Thin (Inner)
-        LayerMask:
-          serializedVersion: 2
-          m_Bits: 55
-        StencilLayer: 0
-        Color: {r: 0, g: 0, b: 0, a: 0}
-        Thickness: 0.0125
-        NoiseAmplitude: 0
-        NoiseFrequency: 0
-        NormalsSource: 0
-        DepthBias: -1.5
-        MaxDistance: 15
-        DistanceFade: 0.1

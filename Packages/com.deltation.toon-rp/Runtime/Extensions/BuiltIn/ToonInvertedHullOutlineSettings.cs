@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.PostProcessing.BuiltIn
+namespace DELTation.ToonRP.Extensions.BuiltIn
 {
     [Serializable]
     public struct ToonInvertedHullOutlineSettings
@@ -12,8 +12,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             UV2,
             Tangents,
         }
-
-        public bool Enabled;
 
         public Pass[] Passes;
 

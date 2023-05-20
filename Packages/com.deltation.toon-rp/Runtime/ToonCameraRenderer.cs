@@ -1,5 +1,5 @@
-﻿using DELTation.ToonRP.PostProcessing;
-using DELTation.ToonRP.PostProcessing.BuiltIn;
+﻿using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -23,13 +23,12 @@ namespace DELTation.ToonRP
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly DepthPrePass _depthPrePass = new();
+        private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
-        private readonly ToonInvertedHullOutline _invertedHullOutline = new();
         private readonly ToonLighting _lighting = new();
         private readonly ToonPostProcessing _postProcessing = new();
         private readonly ToonShadows _shadows = new();
-        private readonly ToonSsao _ssao = new();
 
         private Camera _camera;
 
@@ -39,7 +38,7 @@ namespace DELTation.ToonRP
         private CullingResults _cullingResults;
         private DepthPrePassMode _depthPrePassMode;
         private GraphicsFormat _depthStencilFormat;
-        private bool _drawInvertedHullOutlines;
+        private ToonRenderingExtensionContext _extensionContext;
         private int _msaaSamples;
         private bool _renderToTexture;
         private int _rtHeight;
@@ -48,7 +47,7 @@ namespace DELTation.ToonRP
 
         public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
-            in ToonSsaoSettings ssaoSettings)
+            in ToonRenderingExtensionSettings extensionSettings)
         {
             DepthPrePassMode mode = settings.DepthPrePass;
 
@@ -65,9 +64,17 @@ namespace DELTation.ToonRP
                 }
             }
 
-            if (ssaoSettings.Enabled)
+            if (extensionSettings.Extensions != null)
             {
-                mode = CombineDepthPrePassModes(mode, DepthPrePassMode.DepthNormals);
+                foreach (ToonRenderingExtensionAsset extension in extensionSettings.Extensions)
+                {
+                    if (extension == null)
+                    {
+                        continue;
+                    }
+
+                    mode = CombineDepthPrePassModes(mode, extension.RequiredDepthPrePassMode());
+                }
             }
 
             return mode;
@@ -78,7 +85,8 @@ namespace DELTation.ToonRP
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
-            in ToonPostProcessingSettings postProcessingSettings, in ToonSsaoSettings ssaoSettings)
+            in ToonPostProcessingSettings postProcessingSettings,
+            in ToonRenderingExtensionSettings extensionSettings)
         {
             _context = context;
             _camera = camera;
@@ -96,37 +104,22 @@ namespace DELTation.ToonRP
                 return;
             }
 
-            _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, ssaoSettings);
+            _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
-            Setup(cmd, globalRampSettings, toonShadowSettings, postProcessingSettings);
+            Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings);
+            _extensionsCollection.Update(extensionSettings);
+            _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight
             );
-            _drawInvertedHullOutlines = camera.cameraType <= CameraType.SceneView &&
-                                        postProcessingSettings.Enabled &&
-                                        postProcessingSettings.InvertedHullOutlines.Enabled;
-            if (_drawInvertedHullOutlines)
-            {
-                _invertedHullOutline.Setup(_context, _cullingResults, _camera, settings,
-                    postProcessingSettings.InvertedHullOutlines
-                );
-            }
 
             if (_depthPrePassMode != DepthPrePassMode.Off)
             {
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
                 _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode, _rtWidth, _rtHeight
                 );
                 _depthPrePass.Render();
-            }
-
-            if (ssaoSettings.Enabled)
-            {
-                _ssao.Setup(_context, ssaoSettings, _rtWidth, _rtHeight);
-                _ssao.Render();
-            }
-            else
-            {
-                _ssao.SetupDisabled(_context);
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
             }
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
@@ -206,7 +199,7 @@ namespace DELTation.ToonRP
         }
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings, in ToonPostProcessingSettings postProcessingSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
 
@@ -241,9 +234,8 @@ namespace DELTation.ToonRP
                                _rtHeight > maxRtHeight
                 ;
             _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-            bool requireStencil = _settings.Stencil || InvertedHullOutlinesRequireStencil(postProcessingSettings);
+            bool requireStencil = RequireStencil(extensionSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
-
 
             if (_renderToTexture)
             {
@@ -283,21 +275,31 @@ namespace DELTation.ToonRP
             }
 
             ExecuteBuffer(cmd);
+
+            _extensionContext =
+                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _rtWidth, _rtHeight);
         }
 
-        private static bool InvertedHullOutlinesRequireStencil(in ToonPostProcessingSettings postProcessingSettings)
+        private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
         {
-            if (!postProcessingSettings.InvertedHullOutlines.Enabled)
+            if (_settings.Stencil)
+            {
+                return true;
+            }
+
+            if (extensionSettings.Extensions == null)
             {
                 return false;
             }
 
-            foreach (ToonInvertedHullOutlineSettings.Pass pass in postProcessingSettings.InvertedHullOutlines.Passes)
+            foreach (ToonRenderingExtensionAsset extension in extensionSettings.Extensions)
             {
-                if (pass.StencilLayer != StencilLayer.None)
+                if (extension == null || !extension.RequiresStencil())
                 {
-                    return true;
+                    continue;
                 }
+
+                return true;
             }
 
             return false;
@@ -375,10 +377,13 @@ namespace DELTation.ToonRP
             }
 
             ExecuteBuffer(cmd);
+
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
             _postProcessing.RenderFullScreenEffects(
                 _rtWidth, _rtHeight, _colorFormat,
                 sourceId, BuiltinRenderTextureType.CameraTarget
             );
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPostProcessing);
         }
 
 
@@ -400,7 +405,7 @@ namespace DELTation.ToonRP
                 _depthPrePass.Cleanup();
             }
 
-            _ssao.Cleanup();
+            _extensionsCollection.Cleanup();
             _postProcessing.Cleanup();
 
             if (_renderToTexture)
@@ -437,6 +442,8 @@ namespace DELTation.ToonRP
             ExecuteBuffer(cmd);
 
             {
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
+
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
                     ExecuteBuffer(cmd);
@@ -444,17 +451,17 @@ namespace DELTation.ToonRP
                 }
 
                 ExecuteBuffer(cmd);
+
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
 
-
-            if (_drawInvertedHullOutlines)
-            {
-                _invertedHullOutline.Render();
-            }
-
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeSkybox);
             _context.DrawSkybox(_camera);
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             {
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
+
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
                     ExecuteBuffer(cmd);
@@ -462,6 +469,8 @@ namespace DELTation.ToonRP
                 }
 
                 ExecuteBuffer(cmd);
+
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterTransparent);
             }
         }
 

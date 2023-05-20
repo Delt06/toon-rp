@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace DELTation.ToonRP.Extensions
 {
@@ -44,18 +43,11 @@ namespace DELTation.ToonRP.Extensions
             return castedSourceAsset.Settings;
         }
 
-        public void Update(
-            in ToonRenderingExtensionContext context,
-            in ToonRenderingExtensionSettings settings)
+        public void Update(in ToonRenderingExtensionSettings settings)
         {
             CheckForReset();
 
             if (_initialized)
-            {
-                return;
-            }
-
-            if (context.Camera.cameraType < CameraType.SceneView)
             {
                 return;
             }

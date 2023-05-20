@@ -107,7 +107,7 @@ namespace DELTation.ToonRP
             _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
             Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings);
-            _extensionsCollection.Update(_extensionContext, extensionSettings);
+            _extensionsCollection.Update(extensionSettings);
             _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
                 _rtHeight

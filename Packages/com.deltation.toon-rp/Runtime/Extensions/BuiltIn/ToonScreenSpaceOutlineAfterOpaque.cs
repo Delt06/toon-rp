@@ -11,6 +11,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private int _rtWidth;
         private ToonScreenSpaceOutlineSettings _settings;
 
+        public override bool ShouldRender(in ToonRenderingExtensionContext context) => IsGameOrSceneView(context);
+
         public override void Setup(in ToonRenderingExtensionContext context,
             IToonRenderingExtensionSettingsStorage settingsStorage)
         {

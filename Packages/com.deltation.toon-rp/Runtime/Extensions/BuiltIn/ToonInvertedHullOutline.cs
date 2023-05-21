@@ -26,14 +26,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private ToonInvertedHullOutlineSettings _outlineSettings;
 
+        public override bool ShouldRender(in ToonRenderingExtensionContext context) => IsGameOrSceneView(context);
+
         public override void Render()
         {
             if (_outlineSettings.Passes.Length == 0)
-            {
-                return;
-            }
-
-            if (_camera.cameraType > CameraType.SceneView)
             {
                 return;
             }

@@ -10,6 +10,8 @@ namespace DELTation.ToonRP.Extensions
         private static readonly int EventsCount;
         [ItemCanBeNull]
         private readonly List<IToonRenderingExtension>[] _extensions = new List<IToonRenderingExtension>[EventsCount];
+        private readonly List<IToonRenderingExtension>[] _filteredExtensions =
+            new List<IToonRenderingExtension>[EventsCount];
         private readonly Dictionary<IToonRenderingExtension, ToonRenderingExtensionAsset> _sourceAssets = new();
         private ToonRenderingExtensionContext _context;
 
@@ -126,7 +128,7 @@ namespace DELTation.ToonRP.Extensions
 
         public void RenderEvent(ToonRenderingEvent @event)
         {
-            List<IToonRenderingExtension> extensions = GetExtensionListOrDefault(@event);
+            List<IToonRenderingExtension> extensions = _filteredExtensions[(int) @event];
             if (extensions == null)
             {
                 return;
@@ -142,8 +144,14 @@ namespace DELTation.ToonRP.Extensions
         {
             _context = context;
 
-            foreach (List<IToonRenderingExtension> extensions in _extensions)
+            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
             {
+                extensions?.Clear();
+            }
+
+            for (int index = 0; index < _extensions.Length; index++)
+            {
+                List<IToonRenderingExtension> extensions = _extensions[index];
                 if (extensions == null)
                 {
                     continue;
@@ -151,14 +159,21 @@ namespace DELTation.ToonRP.Extensions
 
                 foreach (IToonRenderingExtension extension in extensions)
                 {
+                    if (!extension.ShouldRender(_context))
+                    {
+                        continue;
+                    }
+
                     extension.Setup(_context, this);
+                    _filteredExtensions[index] ??= new List<IToonRenderingExtension>();
+                    _filteredExtensions[index].Add(extension);
                 }
             }
         }
 
         public void Cleanup()
         {
-            foreach (List<IToonRenderingExtension> extensions in _extensions)
+            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
             {
                 if (extensions == null)
                 {
@@ -175,9 +190,5 @@ namespace DELTation.ToonRP.Extensions
         [NotNull]
         private List<IToonRenderingExtension> GetOrCreateExtensionList(ToonRenderingEvent @event) =>
             _extensions[(int) @event] ??= new List<IToonRenderingExtension>();
-
-        [CanBeNull]
-        private List<IToonRenderingExtension> GetExtensionListOrDefault(ToonRenderingEvent @event) =>
-            _extensions[(int) @event];
     }
 }

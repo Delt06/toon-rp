@@ -67,9 +67,9 @@ MonoBehaviour:
     Extensions:
     - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
     - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
+    - {fileID: 11400000, guid: 30041836c268b614db8f6cfc9f36024b, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 444443e987af20941be3a8f1b36ba921, type: 2}
-    - {fileID: 11400000, guid: b9995397bc4c75a4c8099a1bc0829d3a, type: 2}

@@ -7,18 +7,25 @@
 	    _ColorThreshold ("Color Threshold", Float) = 0
 	    _DepthThreshold ("Depth Threshold", Float) = 0
 	    _NormalsThreshold ("Normals Threshold", Float) = 0
+	    _BlendSrc ("Blend Src", Float) = 1
+        _BlendDst ("Blend Dst", Float) = 0
 	}
 	SubShader
 	{
 		Pass
 		{
 		    Name "Toon RP Outline (Screen Space)"
+		    ZWrite Off
+		    ZTest Off
+		    Cull Off
+		    Blend [_BlendSrc] [_BlendDst]
 
 			HLSLPROGRAM
 
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
             #include "../../ShaderLibrary/Common.hlsl"
+			#include "../../ShaderLibrary/CustomBlit.hlsl"
             #include "../../ShaderLibrary/DepthNormals.hlsl"
             #include "../../ShaderLibrary/Fog.hlsl"
             #include "../../ShaderLibrary/Math.hlsl"
@@ -33,6 +40,7 @@
 			#pragma multi_compile_local_fragment _ _DEPTH
 			#pragma multi_compile_local_fragment _ _NORMALS
 			#pragma multi_compile_local_fragment _ _USE_FOG
+			#pragma multi_compile_local_fragment _ _ALPHA_BLENDING
 
 	        #pragma vertex VS
 	        #pragma fragment PS
@@ -52,26 +60,6 @@
 			float2 _DistanceFade;
 			
 			CBUFFER_END
-
-            struct appdata
-            {
-                float3 position : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float4 positionCs : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            v2f VS(const appdata IN)
-            {
-                v2f OUT;
-                OUT.uv = IN.uv;
-                OUT.positionCs = TransformObjectToHClip(IN.position);
-                return OUT;
-            }
 
 			struct Kernel3
             {
@@ -178,7 +166,7 @@
                 {
                     #ifdef _NORMALS
                     const Kernel3 normalKernel = SampleNormalsKernel(uv);
-			        sobelStrength += max(sobelStrength, ComputeSobelStrength3(normalKernel, _NormalsRamp));
+			        sobelStrength = max(sobelStrength, ComputeSobelStrength3(normalKernel, _NormalsRamp));
                     #endif // _NORMALS
                 }
 
@@ -186,7 +174,7 @@
                     #ifdef _DEPTH
                     const Kernel depthKernel = SampleDepthKernel(uv);
                     sceneDepth = depthKernel.values[4];
-                    sobelStrength += max(sobelStrength, ComputeSobelStrength(depthKernel, _DepthRamp));
+                    sobelStrength = max(sobelStrength, ComputeSobelStrength(depthKernel, _DepthRamp));
                     #else // !_DEPTH
                     sceneDepth = SampleLinearDepth(uv);
                     #endif // _DEPTH
@@ -204,9 +192,14 @@
 			    outlineColor = MixFog(outlineColor, fogFactor);
 			    #endif // FOG_ANY && _USE_FOG
 
-                const float outlineAlpha = _OutlineColor.a;
-			    const float3 finalColor = lerp(sceneColor, outlineColor, saturate(sobelStrength) * outlineAlpha);
+                const float outlineAlpha = _OutlineColor.a * saturate(sobelStrength);
+			    
+			    #ifdef _ALPHA_BLENDING
+			    return float4(outlineColor, outlineAlpha);
+			    #else // !_ALPHA_BLENDING
+			    const float3 finalColor = lerp(sceneColor, outlineColor, outlineAlpha);
 			    return float4(finalColor, 1);
+			    #endif // _ALPHA_BLENDING
 			}
 
 			ENDHLSL

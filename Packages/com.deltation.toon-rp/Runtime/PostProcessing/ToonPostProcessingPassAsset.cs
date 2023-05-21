@@ -20,8 +20,8 @@ namespace DELTation.ToonRP.PostProcessing
 
         public virtual int Order() => 0;
 
-        public virtual ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
-            ToonCameraRendererSettings.DepthPrePassMode.Off;
+        public virtual DepthPrePassMode RequiredDepthPrePassMode() =>
+            DepthPrePassMode.Off;
 
         public abstract IToonPostProcessingPass CreatePass();
 

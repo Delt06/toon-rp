@@ -22,8 +22,8 @@ namespace DELTation.ToonRP.Extensions
 
         public virtual bool RequiresStencil() => false;
 
-        public virtual ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
-            ToonCameraRendererSettings.DepthPrePassMode.Off;
+        public virtual DepthPrePassMode RequiredDepthPrePassMode() =>
+            DepthPrePassMode.Off;
 
         public abstract IToonRenderingExtension CreateExtension();
 

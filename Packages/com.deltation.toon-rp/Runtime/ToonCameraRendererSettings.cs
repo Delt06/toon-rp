@@ -6,13 +6,6 @@ namespace DELTation.ToonRP
     [Serializable]
     public struct ToonCameraRendererSettings
     {
-        public enum DepthPrePassMode
-        {
-            Off,
-            Depth,
-            DepthNormals,
-        }
-
         public enum MsaaMode
         {
             Off = 1,

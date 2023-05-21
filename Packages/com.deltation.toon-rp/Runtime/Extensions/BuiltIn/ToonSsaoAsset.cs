@@ -23,8 +23,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         public override IToonRenderingExtension CreateExtension() => new ToonSsao();
 
-        public override ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
-            ToonCameraRendererSettings.DepthPrePassMode.DepthNormals;
+        public override DepthPrePassMode RequiredDepthPrePassMode() =>
+            DepthPrePassMode.DepthNormals;
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {

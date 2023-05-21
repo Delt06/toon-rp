@@ -4,7 +4,6 @@ using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
@@ -60,7 +59,7 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode = CombineDepthPrePassModes(mode, pass.RequiredDepthPrePassMode());
+                    mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, pass.RequiredDepthPrePassMode());
                 }
             }
 
@@ -73,15 +72,12 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode = CombineDepthPrePassModes(mode, extension.RequiredDepthPrePassMode());
+                    mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, extension.RequiredDepthPrePassMode());
                 }
             }
 
             return mode;
         }
-
-        private static DepthPrePassMode CombineDepthPrePassModes(DepthPrePassMode mode1, DepthPrePassMode mode2) =>
-            mode1 > mode2 ? mode1 : mode2;
 
         public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,

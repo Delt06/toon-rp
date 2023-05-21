@@ -34,10 +34,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             };
         }
 
-        public override ToonCameraRendererSettings.DepthPrePassMode RequiredDepthPrePassMode() =>
-            Settings.NormalsFilter.Enabled
-                ? ToonCameraRendererSettings.DepthPrePassMode.DepthNormals
-                : ToonCameraRendererSettings.DepthPrePassMode.Depth;
+        public override DepthPrePassMode RequiredDepthPrePassMode() => RequiredDepthPrePassMode(Settings);
+
+        public static DepthPrePassMode RequiredDepthPrePassMode(in ToonScreenSpaceOutlineSettings settings)
+            => settings.NormalsFilter.Enabled
+                ? DepthPrePassMode.DepthNormals
+                : DepthPrePassMode.Depth;
 
         public override int Order() => ToonPostProcessingPassOrders.Outline;
 
@@ -45,7 +47,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {
-            ToonScreenSpaceOutline.ShaderName,
+            ToonScreenSpaceOutlineImpl.ShaderName,
         };
     }
 }

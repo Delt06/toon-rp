@@ -14,13 +14,20 @@ namespace DELTation.ToonRP.Shadows
             HighQuality,
         }
 
-        [ToonRpShowIf(nameof(ShowBlurMessage), Mode = ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox,
+        [ToonRpShowIf(nameof(IsBlurEnabled), Mode = ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox,
             HelpBoxMessage = "VSM blur requires a valid background. Make sure to add a shadow-casting ground mesh."
         )]
         public BlurMode Blur;
+        [ToonRpShowIf(nameof(IsBlurEarlyBailAllowed))]
+        public bool BlurEarlyBail;
+        [ToonRpShowIf(nameof(IsBlurEarlyBailEnabled))]
+        [Min(0.000001f)]
+        public float BlurEarlyBailThreshold;
         public DirectionalShadows Directional;
 
-        private bool ShowBlurMessage => Blur != BlurMode.None;
+        private bool IsBlurEnabled => Blur != BlurMode.None;
+        private bool IsBlurEarlyBailAllowed => Blur == BlurMode.HighQuality;
+        private bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
 
         [Serializable]
         public struct DirectionalShadows

@@ -12,6 +12,9 @@ namespace DELTation.ToonRP.Shadows
         private const int DepthBits = 32;
         public const int MaxCascades = 4;
 
+        // ShouldMirrorTheValue in VSM.hlsl
+        private const float DepthScale = 0.1f;
+
         // R - depth, G - depth^2
         private const RenderTextureFormat VsmShadowmapFormat = RenderTextureFormat.RGFloat;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
@@ -33,6 +36,7 @@ namespace DELTation.ToonRP.Shadows
             Shader.PropertyToID("_ToonRP_CascadeCullingSpheres");
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
+        private static readonly int EarlyBailThresholdId = Shader.PropertyToID("_EarlyBailThreshold");
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
 
         private readonly Matrix4x4[] _directionalShadowMatricesV =
@@ -293,6 +297,15 @@ namespace DELTation.ToonRP.Shadows
                 _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY"),
                     highQualityBlur
                 );
+
+                bool earlyBailEnabled = highQualityBlur && _vsmSettings.BlurEarlyBail;
+                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_EARLY_BAIL"),
+                    earlyBailEnabled
+                );
+                if (earlyBailEnabled)
+                {
+                    _blurMaterial.SetFloat(EarlyBailThresholdId, _vsmSettings.BlurEarlyBailThreshold * DepthScale);
+                }
 
                 // Horizontal
                 {

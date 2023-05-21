@@ -41,9 +41,9 @@ namespace DELTation.ToonRP.Shadows
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
         private Material _blurMaterial;
+        private Shader _blurShader;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private LocalKeyword _highQualityBlurKeyword;
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
 
@@ -61,17 +61,16 @@ namespace DELTation.ToonRP.Shadows
 
         private void EnsureMaterialIsCreated()
         {
-            if (_blurMaterial != null)
+            if (_blurMaterial != null && _blurShader != null)
             {
                 return;
             }
 
-            var blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
-            _blurMaterial = new Material(blurShader)
+            _blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
+            _blurMaterial = new Material(_blurShader)
             {
                 name = "Toon RP VSM Blur",
             };
-            _highQualityBlurKeyword = new LocalKeyword(blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY");
         }
 
 
@@ -275,7 +274,9 @@ namespace DELTation.ToonRP.Shadows
             {
                 cmd.BeginSample(BlurSample);
                 bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.HighQuality;
-                _blurMaterial.SetKeyword(_highQualityBlurKeyword, highQualityBlur);
+                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY"),
+                    highQualityBlur
+                );
                 cmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
                 cmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
                 cmd.EndSample(BlurSample);

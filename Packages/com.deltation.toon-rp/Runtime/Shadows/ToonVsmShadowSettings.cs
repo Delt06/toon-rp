@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Attributes;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows
@@ -13,8 +14,13 @@ namespace DELTation.ToonRP.Shadows
             HighQuality,
         }
 
+        [ToonRpShowIf(nameof(ShowBlurMessage), Mode = ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox,
+            HelpBoxMessage = "VSM blur requires a valid background. Make sure to add a shadow-casting ground mesh."
+        )]
         public BlurMode Blur;
         public DirectionalShadows Directional;
+
+        private bool ShowBlurMessage => Blur != BlurMode.None;
 
         [Serializable]
         public struct DirectionalShadows

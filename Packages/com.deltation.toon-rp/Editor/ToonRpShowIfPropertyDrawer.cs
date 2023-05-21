@@ -20,6 +20,8 @@ namespace DELTation.ToonRP.Editor
         private string _conditionPath;
         [CanBeNull]
         private Func<bool?> _getPropertyValue;
+        [CanBeNull]
+        private HelpBox _helpBox;
 
         private static IEnumerable<string> BuildPropertyPathPieces(string basePath, int lastSkips,
             params string[] appends)
@@ -46,6 +48,19 @@ namespace DELTation.ToonRP.Editor
             }
 
             return currentObject;
+        }
+
+        protected override void BeforeProperty(VisualElement root, SerializedProperty property)
+        {
+            base.BeforeProperty(root, property);
+            var showIfAttribute = (ToonRpShowIfAttribute) attribute;
+            if (showIfAttribute.Mode != ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox)
+            {
+                return;
+            }
+
+            _helpBox = new HelpBox(showIfAttribute.HelpBoxMessage, showIfAttribute.HelpBoxMessageType);
+            root.Add(_helpBox);
         }
 
         protected override VisualElement AddProperty(VisualElement root, SerializedProperty property)
@@ -100,7 +115,7 @@ namespace DELTation.ToonRP.Editor
                         bool? propertyValue = _getPropertyValue();
                         if (propertyValue.HasValue)
                         {
-                            visualElement.SetVisible(propertyValue.Value);
+                            SetTargetVisible(visualElement, propertyValue.Value);
                         }
 
                         return;
@@ -118,10 +133,16 @@ namespace DELTation.ToonRP.Editor
                     return;
                 }
 
-                visualElement.SetVisible(conditionProperty.boolValue);
+                SetTargetVisible(visualElement, conditionProperty.boolValue);
             };
 
             return visualElement;
+        }
+
+        private void SetTargetVisible(VisualElement visualElement, bool visible)
+        {
+            VisualElement target = _helpBox ?? visualElement;
+            target.SetVisible(visible);
         }
     }
 }

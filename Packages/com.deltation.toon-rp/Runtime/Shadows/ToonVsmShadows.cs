@@ -19,6 +19,10 @@ namespace DELTation.ToonRP.Shadows
         private const RenderTextureFormat VsmShadowmapFormat = RenderTextureFormat.RGFloat;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
 
+        public const string BlurShaderName = "Hidden/Toon RP/VSM Blur";
+        public const string BlurHighQualityKeywordName = "_TOON_RP_VSM_BLUR_HIGH_QUALITY";
+        public const string BlurEarlyBailKeywordName = "_TOON_RP_VSM_BLUR_EARLY_BAIL";
+
         private static readonly string[] CascadeProfilingNames;
 
         private static readonly int DirectionalShadowsAtlasId = Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas");
@@ -72,7 +76,7 @@ namespace DELTation.ToonRP.Shadows
                 return;
             }
 
-            _blurShader = Shader.Find("Hidden/Toon RP/VSM Blur");
+            _blurShader = Shader.Find(BlurShaderName);
             _blurMaterial = new Material(_blurShader)
             {
                 name = "Toon RP VSM Blur",
@@ -294,15 +298,14 @@ namespace DELTation.ToonRP.Shadows
             {
                 cmd.BeginSample(BlurSample);
                 bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.HighQuality;
-                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY"),
+                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
                     highQualityBlur
                 );
 
-                bool earlyBailEnabled = highQualityBlur && _vsmSettings.BlurEarlyBail;
-                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_EARLY_BAIL"),
-                    earlyBailEnabled
+                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
+                    _vsmSettings.IsBlurEarlyBailEnabled
                 );
-                if (earlyBailEnabled)
+                if (_vsmSettings.IsBlurEarlyBailEnabled)
                 {
                     _blurMaterial.SetFloat(EarlyBailThresholdId, _vsmSettings.BlurEarlyBailThreshold * DepthScale);
                 }

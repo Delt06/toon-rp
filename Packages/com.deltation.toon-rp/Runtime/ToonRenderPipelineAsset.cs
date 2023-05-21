@@ -13,12 +13,10 @@ namespace DELTation.ToonRP
     {
         private static readonly string[] ForceIncludedShaderNames =
         {
-            "Hidden/Toon RP/VSM Blur",
-            "Hidden/Toon RP/Bloom",
-            "Hidden/Toon RP/FXAA",
-            "Hidden/Toon RP/Light Scattering",
-            "Hidden/Toon RP/Blob Shadow Pass",
+            ToonVsmShadows.BlurShaderName,
+            ToonBlobShadows.ShaderName,
         };
+
         // Hold references to all shaders access in runtime to ensure they get included to the build
         [HideInInspector]
         public Shader[] ForceIncludedShaders;

@@ -8,6 +8,8 @@ namespace DELTation.ToonRP.Shadows
     {
         private const int SubmeshIndex = 0;
         private const int ShaderPass = 0;
+
+        public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
         private static readonly int SaturationId = Shader.PropertyToID("_Saturation");

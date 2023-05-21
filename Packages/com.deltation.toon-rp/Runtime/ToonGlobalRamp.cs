@@ -7,14 +7,17 @@ namespace DELTation.ToonRP
     public sealed class ToonGlobalRamp
     {
         private const string BufferName = "Global Ramp";
+        public const string GlobalRampCrispKeywordName = "_TOON_RP_GLOBAL_RAMP_CRISP";
+        public const string GlobalRampTextureKeywordName = "_TOON_RP_GLOBAL_RAMP_TEXTURE";
+
         private static readonly int GlobalRampId = Shader.PropertyToID("_ToonRP_GlobalRamp");
         private static readonly int GlobalRampSpecularId = Shader.PropertyToID("_ToonRP_GlobalRampSpecular");
         private static readonly int GlobalRampRimId = Shader.PropertyToID("_ToonRP_GlobalRampRim");
         private static readonly int GlobalRampTextureId = Shader.PropertyToID("_ToonRP_GlobalRampTexture");
 
         private readonly CommandBuffer _cmd = new() { name = BufferName };
-        private readonly GlobalKeyword _globalRampCrispKeyword = GlobalKeyword.Create("_TOON_RP_GLOBAL_RAMP_CRISP");
-        private readonly GlobalKeyword _globalRampTextureKeyword = GlobalKeyword.Create("_TOON_RP_GLOBAL_RAMP_TEXTURE");
+        private readonly GlobalKeyword _globalRampCrispKeyword = GlobalKeyword.Create(GlobalRampCrispKeywordName);
+        private readonly GlobalKeyword _globalRampTextureKeyword = GlobalKeyword.Create(GlobalRampTextureKeywordName);
 
         public void Setup(ScriptableRenderContext context, in ToonRampSettings rampSettings)
         {

@@ -7,6 +7,13 @@ namespace DELTation.ToonRP.Shadows
 {
     public sealed class ToonShadows
     {
+        public const string DirectionalShadowsKeywordName = "_TOON_RP_DIRECTIONAL_SHADOWS";
+        public const string DirectionalCascadedShadowsKeywordName = "_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS";
+        public const string VsmKeywordName = "_TOON_RP_VSM";
+        public const string BlobShadowsKeywordName = "_TOON_RP_BLOB_SHADOWS";
+        public const string ShadowsRampCrispKeywordName = "_TOON_RP_SHADOWS_RAMP_CRISP";
+        public const string ShadowsPatternKeywordName = "_TOON_RP_SHADOWS_PATTERN";
+
         private static readonly int ShadowRampId =
             Shader.PropertyToID("_ToonRP_ShadowRamp");
         private static readonly int ShadowDistanceFadeId =
@@ -22,12 +29,12 @@ namespace DELTation.ToonRP.Shadows
 
         public ToonShadows()
         {
-            DirectionalShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_SHADOWS");
-            DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS");
-            VsmGlobalKeyword = GlobalKeyword.Create("_TOON_RP_VSM");
-            BlobShadowsGlobalKeyword = GlobalKeyword.Create("_TOON_RP_BLOB_SHADOWS");
-            ShadowsRampCrisp = GlobalKeyword.Create("_TOON_RP_SHADOWS_RAMP_CRISP");
-            ShadowsPattern = GlobalKeyword.Create("_TOON_RP_SHADOWS_PATTERN");
+            DirectionalShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalShadowsKeywordName);
+            DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalCascadedShadowsKeywordName);
+            VsmGlobalKeyword = GlobalKeyword.Create(VsmKeywordName);
+            BlobShadowsGlobalKeyword = GlobalKeyword.Create(BlobShadowsKeywordName);
+            ShadowsRampCrisp = GlobalKeyword.Create(ShadowsRampCrispKeywordName);
+            ShadowsPattern = GlobalKeyword.Create(ShadowsPatternKeywordName);
         }
 
         public static GlobalKeyword DirectionalShadowsGlobalKeyword { get; private set; }

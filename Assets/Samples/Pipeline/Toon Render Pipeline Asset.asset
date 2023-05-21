@@ -49,6 +49,8 @@ MonoBehaviour:
     PatternScale: {x: 1, y: 0, z: 1}
     Vsm:
       Blur: 1
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.25
       Directional:
         Enabled: 1
         AtlasSize: 1024

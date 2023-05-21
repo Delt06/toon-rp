@@ -54,6 +54,8 @@ namespace DELTation.ToonRP
             Vsm = new ToonVsmShadowSettings
             {
                 Blur = ToonVsmShadowSettings.BlurMode.LowQuality,
+                BlurEarlyBail = true,
+                BlurEarlyBailThreshold = 0.01f,
                 Directional =
                 {
                     Enabled = true, AtlasSize = TextureSize._1024,

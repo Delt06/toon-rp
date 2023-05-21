@@ -11,13 +11,7 @@
 
 #include "Math.hlsl"
 #include "Ramp.hlsl"
-
-static const float ToonRp_Vsm_DepthScale = 0.1f;
-
-float PackVsmDepth(const float depth)
-{
-    return depth * ToonRp_Vsm_DepthScale;
-}
+#include "VSM.hlsl"
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 1
 #define MAX_CASCADE_COUNT 4

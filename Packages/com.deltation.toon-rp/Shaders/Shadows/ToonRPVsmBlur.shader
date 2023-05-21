@@ -6,6 +6,12 @@
 	}
 	SubShader
 	{
+	    // The mesh of Custom Blit  Z to the far clip value
+	    // We blur only if the shadowmap value is NOT the far clip value (i.e., clear value)
+	    ZTest NotEqual
+		ZWrite Off
+		ColorMask RG
+	    
         HLSLINCLUDE
 
         #pragma enable_d3d11_debug_symbols
@@ -17,12 +23,6 @@
 
         #include "../../ShaderLibrary/Common.hlsl"
         #include "../../ShaderLibrary/Textures.hlsl"
-
-        TEXTURE2D(_MainTex);
-        DECLARE_TEXEL_SIZE(_MainTex);
-
-        #define SOURCE_SAMPLER sampler_linear_clamp
-        SAMPLER(SOURCE_SAMPLER);
 
         // https://www.rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 
@@ -62,35 +62,16 @@
 
 #endif // _TOON_RP_VSM_BLUR_HIGH_QUALITY
 
-        struct appdata
-        {
-            float2 uv : TEXCOORD0;
-            float3 position : POSITION;
-        };
+        #include "../../ShaderLibrary/CustomBlit.hlsl"
 
-        struct v2f
-        {
-            float2 uv : TEXCOORD0;
-            float4 positionCs : SV_POSITION;
-        };
-
-        v2f VS(const appdata IN)
-        {
-            v2f OUT;
-            OUT.uv = IN.uv;
-            OUT.positionCs = TransformObjectToHClip(IN.position);
-            return OUT;
-        }
-
-        float2 Blur(const float2 uv, const float2 direction)
+        float2 Blur(TEXTURE2D_PARAM(tex, texSampler), float2 texelSize, const float2 uv, const float2 direction)
         {
             float2 value = 0;
-            const float2 texelSize = _MainTex_TexelSize.xy;
 
             for (uint i = 0; i < BlurKernelSize; ++i)
             {
                 const float2 uvOffset = uv + direction * BlurOffsets[i] * texelSize;
-                value += SAMPLE_TEXTURE2D(_MainTex, SOURCE_SAMPLER, uvOffset).rg * BlurWeights[i];
+                value += SAMPLE_TEXTURE2D(tex, texSampler, uvOffset).rg * BlurWeights[i];
             }
 
             return value;
@@ -101,15 +82,18 @@
 		Pass
 		{
 		    Name "Toon RP VSM Gaussian Blur (Horizontal)"
-		    ZTest Off
-		    ZWrite Off
-		    ColorMask RG
 			
 			HLSLPROGRAM
 
+			TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
+			SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
+			DECLARE_TEXEL_SIZE(_ToonRP_DirectionalShadowAtlas);
+
 			float2 PS(const v2f IN) : SV_TARGET
             {
-                return Blur(IN.uv, float2(1.0f, 0.0f));   
+                return Blur(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
+                    _ToonRP_DirectionalShadowAtlas_TexelSize.xy,
+                    IN.uv, float2(1.0f, 0.0f));   
             }
 
 			ENDHLSL
@@ -118,15 +102,19 @@
 	    Pass
 		{
 		    Name "Toon RP VSM Gaussian Blur (Vertical)"
-		    ZTest Off
-		    ZWrite Off
-		    ColorMask RG
 			
 			HLSLPROGRAM
 
+			TEXTURE2D(_ToonRP_DirectionalShadowAtlas_Temp);
+			SAMPLER(sampler_ToonRP_DirectionalShadowAtlas_Temp);
+			DECLARE_TEXEL_SIZE(_ToonRP_DirectionalShadowAtlas_Temp);
+
 			float2 PS(const v2f IN) : SV_TARGET
             {
-                return Blur(IN.uv, float2(0.0f, 1.0f));   
+                return Blur(
+                    _ToonRP_DirectionalShadowAtlas_Temp, sampler_ToonRP_DirectionalShadowAtlas_Temp,
+                    _ToonRP_DirectionalShadowAtlas_Temp_TexelSize.xy,
+                    IN.uv, float2(0.0f, 1.0f));   
             }
 
 			ENDHLSL

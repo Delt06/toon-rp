@@ -19,6 +19,8 @@ namespace DELTation.ToonRP.Shadows
         private static readonly string[] CascadeProfilingNames;
 
         private static readonly int DirectionalShadowsAtlasId = Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas");
+        private static readonly int DirectionalShadowsAtlasDepthId =
+            Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas_Depth");
         private static readonly int DirectionalShadowsAtlasTempId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas_Temp");
         private static readonly int DirectionalShadowsMatricesVpId =
@@ -147,6 +149,7 @@ namespace DELTation.ToonRP.Shadows
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasId);
+            cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasDepthId);
             cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasTempId);
             ExecuteBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -162,14 +165,26 @@ namespace DELTation.ToonRP.Shadows
                 if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
                 {
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
-                        DepthBits,
+                        0,
                         ShadowmapFiltering,
                         VsmShadowmapFormat
+                    );
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasDepthId, atlasSize, atlasSize,
+                        DepthBits,
+                        ShadowmapFiltering,
+                        RenderTextureFormat.Shadowmap
                     );
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
                         0,
                         ShadowmapFiltering,
                         VsmShadowmapFormat
+                    );
+                    cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store,
+                        DirectionalShadowsAtlasDepthId,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store
                     );
                 }
                 else
@@ -177,12 +192,13 @@ namespace DELTation.ToonRP.Shadows
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
                         RenderTextureFormat.Shadowmap
                     );
+                    cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store
+                    );
                 }
 
-                cmd.SetRenderTarget(DirectionalShadowsAtlasId,
-                    RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store
-                );
+
                 cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
             }
 
@@ -277,8 +293,34 @@ namespace DELTation.ToonRP.Shadows
                 _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, "_TOON_RP_VSM_BLUR_HIGH_QUALITY"),
                     highQualityBlur
                 );
-                cmd.Blit(DirectionalShadowsAtlasId, DirectionalShadowsAtlasTempId, _blurMaterial, 0);
-                cmd.Blit(DirectionalShadowsAtlasTempId, DirectionalShadowsAtlasId, _blurMaterial, 1);
+
+                // Horizontal
+                {
+                    cmd.SetRenderTarget(DirectionalShadowsAtlasTempId,
+                        RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store,
+                        DirectionalShadowsAtlasDepthId,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.Store
+                    );
+                    Color shadowmapClearColor = GetShadowmapClearColor();
+                    cmd.ClearRenderTarget(false, true, shadowmapClearColor);
+                    CustomBlitter.Blit(cmd, _blurMaterial);
+                }
+
+                // Vertical
+                {
+                    cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.Store,
+                        DirectionalShadowsAtlasDepthId,
+                        RenderBufferLoadAction.Load,
+                        RenderBufferStoreAction.Store
+                    );
+                    CustomBlitter.Blit(cmd, _blurMaterial, 1);
+                }
+
+
                 cmd.EndSample(BlurSample);
             }
 

@@ -1,8 +1,12 @@
 ﻿#if UNITY_EDITOR || !DEVELOPMENT_BUILD
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Extensions.BuiltIn;
+using DELTation.ToonRP.PostProcessing;
+using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -16,6 +20,7 @@ namespace DELTation.ToonRP.Editor.Stripping
     [UsedImplicitly]
     public class ToonShaderBuildPreprocessor : IPreprocessShaders
     {
+        private readonly List<ToonRenderPipelineAsset> _allToonRenderPipelineAssets;
         private readonly List<ShaderKeyword> _keywordsToStrip = new();
         private readonly List<(string shaderName, string keyword)> _localKeywordsToStrip = new();
         private readonly List<string> _shadersToStrip = new();
@@ -29,124 +34,154 @@ namespace DELTation.ToonRP.Editor.Stripping
             QualitySettings.GetAllRenderPipelineAssetsForPlatform(group.ToString(), ref renderPipelineAssets);
             renderPipelineAssets.Add(GraphicsSettings.currentRenderPipeline);
 
-            var allToonRenderPipelineAssets = renderPipelineAssets
+            _allToonRenderPipelineAssets = renderPipelineAssets
                 .OfType<ToonRenderPipelineAsset>()
                 .Distinct()
                 .ToList();
 
-            if (allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Blobs))
+            if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Blobs))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.BlobShadowsKeywordName));
                 _shadersToStrip.Add(ToonBlobShadows.ShaderName);
             }
 
-            if (allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Vsm))
+            if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Vsm))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                      a.ShadowSettings.Vsm.Blur != ToonVsmShadowSettings.BlurMode.None
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Blur != ToonVsmShadowSettings.BlurMode.None
                 ))
             {
                 _shadersToStrip.Add(ToonVsmShadows.BlurShaderName);
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                      a.ShadowSettings.Vsm.Blur ==
-                                                      ToonVsmShadowSettings.BlurMode.HighQuality
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Blur ==
+                                                       ToonVsmShadowSettings.BlurMode.HighQuality
                 ))
             {
                 _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                      a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
                 ))
             {
                 _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                      a.ShadowSettings.Vsm.Directional.Enabled &&
-                                                      a.ShadowSettings.Vsm.Directional.CascadeCount == 1
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Directional.Enabled &&
+                                                       a.ShadowSettings.Vsm.Directional.CascadeCount == 1
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                      a.ShadowSettings.Vsm.Directional.Enabled &&
-                                                      a.ShadowSettings.Vsm.Directional.CascadeCount > 1
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Directional.Enabled &&
+                                                       a.ShadowSettings.Vsm.Directional.CascadeCount > 1
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
-            if (allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.CrispAntiAliased))
+            if (_allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.CrispAntiAliased))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonGlobalRamp.GlobalRampCrispKeywordName));
             }
 
-            if (allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.Texture))
+            if (_allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.Texture))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonGlobalRamp.GlobalRampTextureKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
-                                                      a.ShadowSettings.CrispAntiAliased
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
+                                                       a.ShadowSettings.CrispAntiAliased
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.ShadowsRampCrispKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
-                                                      a.ShadowSettings.Pattern != null
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
+                                                       a.ShadowSettings.Pattern != null
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.ShadowsPatternKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.Extensions.Extensions.OfType<ToonSsaoAsset>().Any()))
+            if (!AnyExtension<ToonSsaoAsset>())
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a =>
-                    a.Extensions.Extensions.OfType<ToonSsaoAsset>().Any(ssao => ssao.Settings.Pattern == null)
-                ))
+            if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern == null))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a =>
-                    a.Extensions.Extensions.OfType<ToonSsaoAsset>().Any(ssao => ssao.Settings.Pattern != null)
-                ))
+            if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern != null))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.Extensions
-                    .Extensions.OfType<ToonInvertedHullOutlineAsset>().Any(e =>
-                        e.Settings.Passes.Any(p => p.IsNoiseEnabled)
-                    )
+            if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                    e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                 ))
             {
                 _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName)
                 );
             }
 
-            if (!allToonRenderPipelineAssets.Any(a => a.Extensions
-                    .Extensions.OfType<ToonInvertedHullOutlineAsset>().Any(e =>
-                        e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
-                    )
+            if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                    e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
                 ))
             {
                 _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName,
                         ToonInvertedHullOutline.DistanceFadeKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.ColorFilter.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.ColorKeywordName)
+                );
+            }
+
+            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.DepthFilter.Enabled) &&
+                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.DepthFilter.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.DepthKeywordName)
+                );
+            }
+
+            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.NormalsFilter.Enabled) &&
+                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.NormalsFilter.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.NormalsKeywordName)
+                );
+            }
+
+            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.UseFog) &&
+                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.UseFog))
+            {
+                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.UseFogKeywordName)
+                );
+            }
+
+            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>())
+            {
+                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName)
                 );
             }
         }
@@ -176,6 +211,23 @@ namespace DELTation.ToonRP.Editor.Stripping
                 Debug.Log(logMessage);
             }
         }
+
+        private bool AnyExtension<TExtension>(Func<TExtension, bool> condition)
+            where TExtension : ToonRenderingExtensionAsset =>
+            _allToonRenderPipelineAssets.Any(a =>
+                a.Extensions.Extensions.OfType<TExtension>().Any(condition)
+            );
+
+        private bool AnyExtension<TExtension>() where TExtension : ToonRenderingExtensionAsset =>
+            _allToonRenderPipelineAssets.Any(a =>
+                a.Extensions.Extensions.OfType<TExtension>().Any()
+            );
+
+        private bool AnyPostProcessingPass<TPass>(Func<TPass, bool> condition)
+            where TPass : ToonPostProcessingPassAsset =>
+            _allToonRenderPipelineAssets.Any(a =>
+                a.PostProcessing.Passes.OfType<TPass>().Any(condition)
+            );
 
         private bool ShouldStrip(Shader shader, ShaderCompilerData shaderCompilerData)
         {

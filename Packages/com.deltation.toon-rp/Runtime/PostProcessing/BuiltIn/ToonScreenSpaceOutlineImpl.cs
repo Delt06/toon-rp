@@ -6,6 +6,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     public class ToonScreenSpaceOutlineImpl
     {
         public const string ShaderName = "Hidden/Toon RP/Outline (Screen Space)";
+        public const string AlphaBlendingKeywordName = "_ALPHA_BLENDING";
+        public const string ColorKeywordName = "_COLOR";
+        public const string NormalsKeywordName = "_NORMALS";
+        public const string DepthKeywordName = "_DEPTH";
+        public const string UseFogKeywordName = "_USE_FOG";
 
         private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
         private static readonly int ColorRampId = Shader.PropertyToID("_ColorRamp");
@@ -30,7 +35,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public void EnableAlphaBlending(bool enable)
         {
-            Material.SetKeyword(new LocalKeyword(_shader, "_ALPHA_BLENDING"), enable);
+            Material.SetKeyword(new LocalKeyword(_shader, AlphaBlendingKeywordName), enable);
             (BlendMode srcBlend, BlendMode dstBlend) =
                 enable ? (BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha) : (BlendMode.One, BlendMode.Zero);
             Material.SetFloat(BlendSrcId, (float) srcBlend);
@@ -83,11 +88,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             _material.SetVector(OutlineColorId, settings.Color);
 
-            UpdateMaterialFilter(settings.ColorFilter, ColorRampId, "_COLOR");
-            UpdateMaterialFilter(settings.NormalsFilter, NormalsRampId, "_NORMALS");
-            UpdateMaterialFilter(settings.DepthFilter, DepthRampId, "_DEPTH");
+            UpdateMaterialFilter(settings.ColorFilter, ColorRampId, ColorKeywordName);
+            UpdateMaterialFilter(settings.NormalsFilter, NormalsRampId, NormalsKeywordName);
+            UpdateMaterialFilter(settings.DepthFilter, DepthRampId, DepthKeywordName);
 
-            _material.SetKeyword(new LocalKeyword(_shader, "_USE_FOG"), settings.UseFog);
+            _material.SetKeyword(new LocalKeyword(_shader, UseFogKeywordName), settings.UseFog);
 
             _material.SetVector(DistanceFadeId,
                 new Vector4(

@@ -32,7 +32,8 @@
             #include "../../ShaderLibrary/Ramp.hlsl"
             #include "../../ShaderLibrary/Textures.hlsl"
 
-			//#pragma enable_d3d11_debug_symbols
+			// commenting this out causes artifacts on Android (Vulkan), most likely due to a compiler bug
+			#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_fog
 

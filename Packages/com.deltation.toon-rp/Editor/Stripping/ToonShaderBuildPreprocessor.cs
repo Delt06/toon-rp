@@ -184,6 +184,62 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName)
                 );
             }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Fxaa.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaLowKeywordName)
+                );
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaHighKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
+                    s.Settings.Fxaa.Enabled && s.Settings.Fxaa.HighQuality
+                ))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaHighKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
+                    s.Settings.Fxaa.Enabled && !s.Settings.Fxaa.HighQuality
+                ))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaLowKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.ToneMapping.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.ToneMappingKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Vignette.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.VignetteKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.LookupTable.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.LookupTableKeywordName)
+                );
+            }
+
+            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.FilmGrain.Enabled))
+            {
+                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FilmGrainKeywordName)
+                );
+            }
         }
 
         public int callbackOrder => 0;

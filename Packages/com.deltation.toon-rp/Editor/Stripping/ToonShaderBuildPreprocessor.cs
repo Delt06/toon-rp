@@ -128,6 +128,27 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
             }
+
+            if (!allToonRenderPipelineAssets.Any(a => a.Extensions
+                    .Extensions.OfType<ToonInvertedHullOutlineAsset>().Any(e =>
+                        e.Settings.Passes.Any(p => p.IsNoiseEnabled)
+                    )
+                ))
+            {
+                _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName)
+                );
+            }
+
+            if (!allToonRenderPipelineAssets.Any(a => a.Extensions
+                    .Extensions.OfType<ToonInvertedHullOutlineAsset>().Any(e =>
+                        e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
+                    )
+                ))
+            {
+                _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.DistanceFadeKeywordName)
+                );
+            }
         }
 
         public int callbackOrder => 0;

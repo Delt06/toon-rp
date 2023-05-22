@@ -39,12 +39,14 @@ namespace DELTation.ToonRP.Editor.Stripping
                 .Distinct()
                 .ToList();
 
+            // Blob shadows
             if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Blobs))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.BlobShadowsKeywordName));
                 _shadersToStrip.Add(ToonBlobShadows.ShaderName);
             }
 
+            // VSM
             if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Vsm))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
@@ -52,28 +54,34 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Blur != ToonVsmShadowSettings.BlurMode.None
-                ))
+            // ToonRPVsmBlur
             {
-                _shadersToStrip.Add(ToonVsmShadows.BlurShaderName);
+                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                           a.ShadowSettings.Vsm.Blur !=
+                                                           ToonVsmShadowSettings.BlurMode.None
+                    ))
+                {
+                    _shadersToStrip.Add(ToonVsmShadows.BlurShaderName);
+                }
+
+                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                           a.ShadowSettings.Vsm.Blur ==
+                                                           ToonVsmShadowSettings.BlurMode.HighQuality
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName)
+                    );
+                }
+
+                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                           a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName));
+                }
             }
 
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Blur ==
-                                                       ToonVsmShadowSettings.BlurMode.HighQuality
-                ))
-            {
-                _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName));
-            }
-
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
-                ))
-            {
-                _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName));
-            }
-
+            // VSM without cascades
             if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                        a.ShadowSettings.Vsm.Directional.Enabled &&
                                                        a.ShadowSettings.Vsm.Directional.CascadeCount == 1
@@ -82,6 +90,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
             }
 
+            // VSM with cascades
             if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                        a.ShadowSettings.Vsm.Directional.Enabled &&
                                                        a.ShadowSettings.Vsm.Directional.CascadeCount > 1
@@ -90,16 +99,19 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
+            // Crisp Anti-Aliased Ramp
             if (_allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.CrispAntiAliased))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonGlobalRamp.GlobalRampCrispKeywordName));
             }
 
+            // Texture Ramp
             if (_allToonRenderPipelineAssets.All(a => a.GlobalRampSettings.Mode != ToonGlobalRampMode.Texture))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonGlobalRamp.GlobalRampTextureKeywordName));
             }
 
+            // Shadows Crisp Anti-Aliased Ramp
             if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
                                                        a.ShadowSettings.CrispAntiAliased
                 ))
@@ -107,6 +119,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.ShadowsRampCrispKeywordName));
             }
 
+            // Shadows Pattern
             if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Off &&
                                                        a.ShadowSettings.Pattern != null
                 ))
@@ -114,131 +127,138 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.ShadowsPatternKeywordName));
             }
 
-            if (!AnyExtension<ToonSsaoAsset>())
+            // SSAO for forward shaders
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoKeywordName));
-                _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
+                if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern == null))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoKeywordName));
+                }
+
+                if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern != null))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
+                }
             }
 
-            if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern == null))
+            // ToonRPInvertedHullOutline
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoKeywordName));
+                if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                        e.Settings.Passes.Any(p => p.IsNoiseEnabled)
+                    ))
+                {
+                    _localKeywordsToStrip.Add(
+                        (ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName)
+                    );
+                }
+
+                if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                        e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName,
+                            ToonInvertedHullOutline.DistanceFadeKeywordName)
+                    );
+                }
             }
 
-            if (!AnyExtension<ToonSsaoAsset>(ssao => ssao.Settings.Pattern != null))
+            // ToonRPScreenSpaceOutline
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonSsao.SsaoPatternKeywordName));
+                if (!AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.ColorFilter.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                            ToonScreenSpaceOutlineImpl.ColorKeywordName)
+                    );
+                }
+
+                if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.DepthFilter.Enabled) &&
+                    !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.DepthFilter.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                            ToonScreenSpaceOutlineImpl.DepthKeywordName)
+                    );
+                }
+
+                if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.NormalsFilter.Enabled) &&
+                    !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.NormalsFilter.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                            ToonScreenSpaceOutlineImpl.NormalsKeywordName)
+                    );
+                }
+
+                if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.UseFog) &&
+                    !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.UseFog))
+                {
+                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                            ToonScreenSpaceOutlineImpl.UseFogKeywordName)
+                    );
+                }
+
+                if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>())
+                {
+                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
+                            ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName)
+                    );
+                }
             }
 
-            if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
-                    e.Settings.Passes.Any(p => p.IsNoiseEnabled)
-                ))
+            // ToonRPPostProcessingStack
             {
-                _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Fxaa.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.FxaaLowKeywordName)
+                    );
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.FxaaHighKeywordName)
+                    );
+                }
 
-            if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
-                    e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
-                ))
-            {
-                _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.DistanceFadeKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
+                        s.Settings.Fxaa.Enabled && s.Settings.Fxaa.HighQuality
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.FxaaHighKeywordName)
+                    );
+                }
 
-            if (!AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.ColorFilter.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                        ToonScreenSpaceOutlineImpl.ColorKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
+                        s.Settings.Fxaa.Enabled && !s.Settings.Fxaa.HighQuality
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.FxaaLowKeywordName)
+                    );
+                }
 
-            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.DepthFilter.Enabled) &&
-                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.DepthFilter.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                        ToonScreenSpaceOutlineImpl.DepthKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.ToneMapping.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.ToneMappingKeywordName)
+                    );
+                }
 
-            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.NormalsFilter.Enabled) &&
-                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.NormalsFilter.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                        ToonScreenSpaceOutlineImpl.NormalsKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Vignette.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.VignetteKeywordName)
+                    );
+                }
 
-            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.UseFog) &&
-                !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.UseFog))
-            {
-                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                        ToonScreenSpaceOutlineImpl.UseFogKeywordName)
-                );
-            }
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.LookupTable.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.LookupTableKeywordName)
+                    );
+                }
 
-            if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>())
-            {
-                _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                        ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Fxaa.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.FxaaLowKeywordName)
-                );
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.FxaaHighKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
-                    s.Settings.Fxaa.Enabled && s.Settings.Fxaa.HighQuality
-                ))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.FxaaHighKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s =>
-                    s.Settings.Fxaa.Enabled && !s.Settings.Fxaa.HighQuality
-                ))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.FxaaLowKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.ToneMapping.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.ToneMappingKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Vignette.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.VignetteKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.LookupTable.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.LookupTableKeywordName)
-                );
-            }
-
-            if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.FilmGrain.Enabled))
-            {
-                _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                        ToonPostProcessingStack.FilmGrainKeywordName)
-                );
+                if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.FilmGrain.Enabled))
+                {
+                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
+                            ToonPostProcessingStack.FilmGrainKeywordName)
+                    );
+                }
             }
         }
 

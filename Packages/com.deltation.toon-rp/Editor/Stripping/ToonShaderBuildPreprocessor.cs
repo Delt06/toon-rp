@@ -276,7 +276,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     continue;
                 }
 
-                string keywords = string.Join(" ", data[i].shaderKeywordSet.GetShaderKeywords());
+                string keywords = string.Join(";", data[i].shaderKeywordSet.GetShaderKeywords());
                 logMessage += $"Toon RP: stripping {shader.name} ({keywords}).\n";
                 data.RemoveAt(i);
                 --i;

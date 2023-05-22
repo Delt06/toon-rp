@@ -30,7 +30,7 @@ float SampleAmbientOcclusionRaw(float2 screenUv)
 float GetAmbientOcclusionPattern(const float3 positionWs)
 {
     const float2 uv = EncodePositionToUv(positionWs, _ToonRP_SSAO_PatternScale);
-    return SAMPLE_TEXTURE2D(_ToonRP_SSAO_Pattern, sampler_ToonRP_SSAO_Pattern, uv);
+    return SAMPLE_TEXTURE2D(_ToonRP_SSAO_Pattern, sampler_ToonRP_SSAO_Pattern, uv).r;
 }
 
 float SampleAmbientOcclusion(const float2 screenUv, const float3 positionWs)

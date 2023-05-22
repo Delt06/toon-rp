@@ -8,7 +8,7 @@
 	{
 	    HLSLINCLUDE
 
-	    #pragma enable_d3d11_debug_symbols
+	    //#pragma enable_d3d11_debug_symbols
 
 	    #pragma vertex VS
 		#pragma fragment PS
@@ -53,7 +53,7 @@
 
         float3 SampleSource(const float2 uv)
         {
-            return SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv, 0);
+            return SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;
         }
 	    
 	    ENDHLSL
@@ -115,7 +115,7 @@
 
 			float3 SampleScattering(const float2 uv)
 			{
-			    return SAMPLE_TEXTURE2D(_ToonRP_ScatteringTexture, sampler_ToonRP_ScatteringTexture, uv);
+			    return SAMPLE_TEXTURE2D(_ToonRP_ScatteringTexture, sampler_ToonRP_ScatteringTexture, uv).rgb;
 			}
 
 			float3 SampleScatteringBlur(const float2 uv)

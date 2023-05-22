@@ -27,7 +27,7 @@ float ComputeRampAntiAliased(const float nDotL, const float2 ramp)
 float ComputeRampTextured(const float ramp, const float2 uv, TEXTURE2D_PARAM(tex, texSampler))
 {
     const float v = uv.x + uv.y;
-    return SAMPLE_TEXTURE2D(tex, texSampler, float2(ramp, v));
+    return SAMPLE_TEXTURE2D(tex, texSampler, float2(ramp, v)).r;
 }
 
 float ComputeGlobalRamp(const float nDotL, const float2 ramp)

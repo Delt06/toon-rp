@@ -62,7 +62,7 @@
 			
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
@@ -89,7 +89,7 @@
 			
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 
@@ -114,7 +114,7 @@
 			
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 
@@ -136,7 +136,7 @@
 			
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 

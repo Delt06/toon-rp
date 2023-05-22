@@ -40,13 +40,13 @@ DECLARE_TEXEL_SIZE(_LookupTable_Texture);
 
 float3 SampleSource(const float2 uv)
 {
-    return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0);
+    return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0).rgb;
 }
 
 float3 SampleSource(const float2 uv, const float2 pixelOffset)
 {
     const float2 offsetUv = uv + pixelOffset * _MainTex_TexelSize.xy;
-    return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, offsetUv, 0);
+    return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, offsetUv, 0).rgb;
 }
 
 #endif // TOON_RP_POST_PROCESSING_STACK_COMMON

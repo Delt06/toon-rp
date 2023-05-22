@@ -32,7 +32,7 @@
             #include "../../ShaderLibrary/Ramp.hlsl"
             #include "../../ShaderLibrary/Textures.hlsl"
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_fog
 
@@ -87,7 +87,7 @@
 
 			float3 SampleSceneColor(const float2 uv)
 			{
-			    return SAMPLE_TEXTURE2D_LOD(_MainTex, POINT_SAMPLER, uv, 0);
+			    return SAMPLE_TEXTURE2D_LOD(_MainTex, POINT_SAMPLER, uv, 0).rgb;
 			}
 
 			float SampleLinearDepth(const float2 uv)
@@ -159,7 +159,7 @@
 			        sceneColor = colorKernel.values[4];
 			        sobelStrength = max(sobelStrength, ComputeSobelStrength3(colorKernel, _ColorRamp));
 			        #else // !_COLOR
-			        sceneColor = float4(SampleSceneColor(uv), 1);
+			        sceneColor = SampleSceneColor(uv);
 			        #endif // _COLOR
                 }
 

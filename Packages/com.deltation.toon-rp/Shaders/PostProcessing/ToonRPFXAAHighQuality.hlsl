@@ -14,7 +14,7 @@ static const float EdgeStepSizes[EDGE_SEARCH_STEPS] = {EDGE_SEARCH_STEP_SIZES};
 float GetSceneLuminance(float2 uv, float uOffset = 0.0, float vOffset = 0.0)
 {
     uv += float2(uOffset, vOffset) * _MainTex_TexelSize.xy;
-    return sqrt(Luminance(SampleSource(uv).rgb));
+    return sqrt(Luminance(SampleSource(uv)));
 }
 
 struct LuminanceNeighborhood

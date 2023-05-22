@@ -11,7 +11,7 @@
 	    
 	    HLSLINCLUDE
 
-	    #pragma enable_d3d11_debug_symbols
+	    //#pragma enable_d3d11_debug_symbols
 
 	    #include "../../ShaderLibrary/Common.hlsl"
 
@@ -51,7 +51,7 @@
 			
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 			
             #include "../../ShaderLibrary/DepthNormals.hlsl"
 
@@ -164,7 +164,7 @@
 	        
 	        HLSLPROGRAM
 
-	        #pragma enable_d3d11_debug_symbols
+	        //#pragma enable_d3d11_debug_symbols
 
 	        #include "../../ShaderLibrary/Textures.hlsl"
 

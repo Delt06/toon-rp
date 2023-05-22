@@ -35,7 +35,7 @@ struct v2f
     float2 uv : TEXCOORD0;
     #if !defined(UNLIT)
     half3 normalWs : NORMAL_WS;
-    float4 positionWs : POSITION_WS;
+    float3 positionWs : POSITION_WS;
     #endif // !UNLIT
 
     #ifdef REQUIRE_TANGENT_INTERPOLANT
@@ -61,7 +61,7 @@ v2f VS(const appdata IN)
 
     const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
-    OUT.positionWs = float4(positionWs, 1.0f);
+    OUT.positionWs = positionWs;
 
     #endif // !UNLIT
 

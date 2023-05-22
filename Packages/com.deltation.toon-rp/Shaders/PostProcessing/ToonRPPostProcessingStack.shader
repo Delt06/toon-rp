@@ -12,7 +12,7 @@
 
 			HLSLPROGRAM
 
-			#pragma enable_d3d11_debug_symbols
+			//#pragma enable_d3d11_debug_symbols
 
 	        #pragma multi_compile_local_fragment _ _FXAA_LOW _FXAA_HIGH
 			#pragma multi_compile_local_fragment _ _TONE_MAPPING

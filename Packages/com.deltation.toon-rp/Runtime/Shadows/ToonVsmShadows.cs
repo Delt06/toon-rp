@@ -22,6 +22,7 @@ namespace DELTation.ToonRP.Shadows
         public const string BlurShaderName = "Hidden/Toon RP/VSM Blur";
         public const string BlurHighQualityKeywordName = "_TOON_RP_VSM_BLUR_HIGH_QUALITY";
         public const string BlurEarlyBailKeywordName = "_TOON_RP_VSM_BLUR_EARLY_BAIL";
+        private const RenderTextureFormat VsmShadowmapDepthFormat = RenderTextureFormat.Shadowmap;
 
         private static readonly string[] CascadeProfilingNames;
 
@@ -140,7 +141,7 @@ namespace DELTation.ToonRP.Shadows
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, 1, 1,
                         DepthBits,
                         ShadowmapFiltering,
-                        RenderTextureFormat.Shadowmap
+                        VsmShadowmapDepthFormat
                     );
                     cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
                     cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
@@ -180,7 +181,7 @@ namespace DELTation.ToonRP.Shadows
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasDepthId, atlasSize, atlasSize,
                         DepthBits,
                         ShadowmapFiltering,
-                        RenderTextureFormat.Shadowmap
+                        VsmShadowmapDepthFormat
                     );
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasTempId, atlasSize, atlasSize,
                         0,
@@ -198,7 +199,7 @@ namespace DELTation.ToonRP.Shadows
                 else
                 {
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
-                        RenderTextureFormat.Shadowmap
+                        VsmShadowmapDepthFormat
                     );
                     cmd.SetRenderTarget(DirectionalShadowsAtlasId,
                         RenderBufferLoadAction.DontCare,
@@ -223,10 +224,36 @@ namespace DELTation.ToonRP.Shadows
 
             cmd.SetGlobalInteger(CascadeCountId, _vsmSettings.Directional.CascadeCount);
             cmd.SetGlobalVectorArray(CascadeCullingSpheresId, _cascadeCullingSpheres);
+
+            if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+            {
+                BakeViewSpaceZIntoMatrix();
+            }
+
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
 
             ExecuteBuffer(cmd);
+        }
+
+        private void BakeViewSpaceZIntoMatrix()
+        {
+            for (int index = 0; index < _directionalShadowMatricesVp.Length; index++)
+            {
+                ref Matrix4x4 matrix = ref _directionalShadowMatricesVp[index];
+                ref readonly Matrix4x4 viewMatrix = ref _directionalShadowMatricesV[index];
+
+                float scale = DepthScale;
+                if (SystemInfo.usesReversedZBuffer)
+                {
+                    scale *= -1;
+                }
+
+                matrix.m20 = scale * viewMatrix.m20;
+                matrix.m21 = scale * viewMatrix.m21;
+                matrix.m22 = scale * viewMatrix.m22;
+                matrix.m23 = scale * viewMatrix.m23;
+            }
         }
 
         private static Color GetShadowmapClearColor()

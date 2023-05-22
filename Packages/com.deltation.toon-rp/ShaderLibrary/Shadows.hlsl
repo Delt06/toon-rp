@@ -106,23 +106,11 @@ uint ComputeShadowTileIndex(const float3 positionWs)
 float3 TransformWorldToShadowCoords(const float3 positionWs, uint tileIndex, const bool perspectiveProjection = false)
 {
     float4 shadowCoords = mul(_ToonRP_DirectionalShadowMatrices_VP[tileIndex], float4(positionWs, 1.0f));
-    #ifdef _TOON_RP_VSM
-    shadowCoords.z = mul(_ToonRP_DirectionalShadowMatrices_V[tileIndex], float4(positionWs, 1.0f)).z;
-    #endif // _TOON_RP_VSM
 
     if (perspectiveProjection)
     {
         shadowCoords.xyz /= shadowCoords.w;
     }
-
-    #ifdef _TOON_RP_VSM
-    shadowCoords.z = PackVsmDepth(shadowCoords.z);
-
-    #ifdef UNITY_REVERSED_Z
-    shadowCoords.z *= -1.0f;
-    #endif // UNITY_REVERSED_Z
-
-    #endif // _TOON_RP_VSM
 
     return shadowCoords.xyz;
 }

@@ -12,6 +12,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private const int MainPass = 0;
         private const int BlurPass = 1;
         public const string ShaderName = "Hidden/Toon RP/SSAO";
+        public const string SsaoKeywordName = "_TOON_RP_SSAO";
+        public const string SsaoPatternKeywordName = "_TOON_RP_SSAO_PATTERN";
         private static readonly int RtId = Shader.PropertyToID("_ToonRP_SSAOTexture");
         private static readonly int RtTempId = Shader.PropertyToID("_ToonRP_SSAOTexture_Temp");
         private static readonly int RampId = Shader.PropertyToID("_ToonRP_SSAO_Ramp");
@@ -39,8 +41,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         public ToonSsao()
         {
             _samples = GenerateRandomSamples(MaxSamplesCount);
-            _ssaoKeyword = GlobalKeyword.Create("_TOON_RP_SSAO");
-            _ssaoPatternKeyword = GlobalKeyword.Create("_TOON_RP_SSAO_PATTERN");
+            _ssaoKeyword = GlobalKeyword.Create(SsaoKeywordName);
+            _ssaoPatternKeyword = GlobalKeyword.Create(SsaoPatternKeywordName);
         }
 
         public override void Setup(in ToonRenderingExtensionContext context,

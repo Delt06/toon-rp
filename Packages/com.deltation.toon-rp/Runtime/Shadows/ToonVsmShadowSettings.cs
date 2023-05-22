@@ -26,8 +26,8 @@ namespace DELTation.ToonRP.Shadows
         public DirectionalShadows Directional;
 
         private bool IsBlurEnabled => Blur != BlurMode.None;
-        private bool IsBlurEarlyBailAllowed => Blur == BlurMode.HighQuality;
-        private bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
+        public bool IsBlurEarlyBailAllowed => Blur == BlurMode.HighQuality;
+        public bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
 
         [Serializable]
         public struct DirectionalShadows

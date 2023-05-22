@@ -12,6 +12,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private const int UvNormalsPassId = 1;
         private const int TangentNormalsPassId = 2;
         public const string ShaderName = "Hidden/Toon RP/Outline (Inverted Hull)";
+        public const string NoiseKeywordName = "_NOISE";
+        public const string DistanceFadeKeywordName = "_DISTANCE_FADE";
         private static readonly int ThicknessId = Shader.PropertyToID("_Thickness");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
@@ -57,15 +59,15 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             )
                         );
 
-                        bool noiseEnabled = pass.NoiseAmplitude > 0.0f && pass.NoiseFrequency > 0.0f;
-                        material.SetKeyword("_NOISE", noiseEnabled);
+                        bool noiseEnabled = pass.IsNoiseEnabled;
+                        material.SetKeyword(NoiseKeywordName, noiseEnabled);
                         if (noiseEnabled)
                         {
                             material.SetFloat(NoiseFrequencyId, pass.NoiseFrequency);
                             material.SetFloat(NoiseAmplitudeId, pass.NoiseAmplitude);
                         }
 
-                        material.SetKeyword("_DISTANCE_FADE", pass.MaxDistance > 0.0f);
+                        material.SetKeyword(DistanceFadeKeywordName, pass.IsDistanceFadeEnabled);
 
                         cmd.SetGlobalDepthBias(pass.DepthBias, 0);
                         ExecuteBuffer(cmd);

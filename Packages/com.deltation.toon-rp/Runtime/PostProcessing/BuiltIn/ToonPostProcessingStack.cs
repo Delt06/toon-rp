@@ -6,6 +6,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     public class ToonPostProcessingStack : ToonPostProcessingPassBase
     {
         public const string ShaderName = "Hidden/Toon RP/Post-Processing Stack";
+        public const string FxaaLowKeywordName = "_FXAA_LOW";
+        public const string FxaaHighKeywordName = "_FXAA_HIGH";
+        public const string ToneMappingKeywordName = "_TONE_MAPPING";
+        public const string VignetteKeywordName = "_VIGNETTE";
+        public const string LookupTableKeywordName = "_LOOKUP_TABLE";
+        public const string FilmGrainKeywordName = "_FILM_GRAIN";
 
         private static readonly int FxaaFixedContrastThresholdId = Shader.PropertyToID("_FXAA_FixedContrastThreshold");
         private static readonly int FxaaRelativeContrastThresholdId =
@@ -103,13 +109,13 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 (true, false) => (true, false),
                 (true, true) => (false, true),
             };
-            _material.SetKeyword("_FXAA_LOW", fxaaLow);
-            _material.SetKeyword("_FXAA_HIGH", fxaaHigh);
+            _material.SetKeyword(FxaaLowKeywordName, fxaaLow);
+            _material.SetKeyword(FxaaHighKeywordName, fxaaHigh);
         }
 
         private void HandleToneMappingProperties()
         {
-            _material.SetKeyword("_TONE_MAPPING", _toneMapping.Enabled);
+            _material.SetKeyword(ToneMappingKeywordName, _toneMapping.Enabled);
             if (_toneMapping.Enabled)
             {
                 _material.SetFloat(ToneMappingExposureId, _toneMapping.Exposure);
@@ -118,7 +124,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private void HandleVignetteProperties()
         {
-            _material.SetKeyword("_VIGNETTE", _vignette.Enabled);
+            _material.SetKeyword(VignetteKeywordName, _vignette.Enabled);
             if (!_vignette.Enabled)
             {
                 return;
@@ -133,13 +139,13 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private void HandleLookupTextureProperties()
         {
-            _material.SetKeyword("_LOOKUP_TABLE", _lookupTable.Enabled);
+            _material.SetKeyword(LookupTableKeywordName, _lookupTable.Enabled);
             _material.SetTexture(LookupTableTextureId, _lookupTable.Enabled ? _lookupTable.Texture : null);
         }
 
         private void HandleFilmGrainProperties()
         {
-            _material.SetKeyword("_FILM_GRAIN", _filmGrainSettings.Enabled);
+            _material.SetKeyword(FilmGrainKeywordName, _filmGrainSettings.Enabled);
             Texture2D texture = _filmGrainSettings.Enabled ? _filmGrainSettings.Texture : null;
             _material.SetTexture(FilmGrainTextureId, texture);
 

@@ -35,6 +35,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public float MaxDistance;
             [Range(0.001f, 1f)]
             public float DistanceFade;
+
+            public bool IsNoiseEnabled => NoiseAmplitude > 0.0f && NoiseFrequency > 0.0f;
+
+            public bool IsDistanceFadeEnabled => MaxDistance > 0.0f;
         }
     }
 }

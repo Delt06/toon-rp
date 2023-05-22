@@ -14,9 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ForceIncludedShaders:
   - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
-  - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
-  - {fileID: 0}
-  - {fileID: 4800000, guid: 365539a884014974bb27c4a53ef41b86, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:
     Threshold: 0

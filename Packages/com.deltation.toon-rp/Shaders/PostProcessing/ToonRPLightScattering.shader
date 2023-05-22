@@ -80,14 +80,8 @@
                 // Sample colors
                 const float2 uv = IN.uv;
                 const float2 ray = uv - _Center;
-
-                UNITY_BRANCH
-                // if (max(abs(ray.x), abs(ray.y)) < _BlurWidth)
-                //     return 0;
                 
                 float3 result = 0.0f;
-
-                
                 
                 for (int i = 0; i < _NumSamples; ++i)
                 {

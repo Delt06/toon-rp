@@ -23,11 +23,15 @@ namespace DELTation.ToonRP.Shadows
         [ToonRpShowIf(nameof(IsBlurEarlyBailEnabled))]
         [Min(0.000001f)]
         public float BlurEarlyBailThreshold;
+        [ToonRpShowIf(nameof(IsBlurDisabled))]
+        public bool SoftShadows;
         public DirectionalShadows Directional;
 
         private bool IsBlurEnabled => Blur != BlurMode.None;
         public bool IsBlurEarlyBailAllowed => Blur == BlurMode.HighQuality;
         public bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
+
+        private bool IsBlurDisabled => Blur == BlurMode.None;
 
         [Serializable]
         public struct DirectionalShadows

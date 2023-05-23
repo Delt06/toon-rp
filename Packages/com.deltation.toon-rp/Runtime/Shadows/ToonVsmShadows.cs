@@ -23,6 +23,8 @@ namespace DELTation.ToonRP.Shadows
         public const string BlurHighQualityKeywordName = "_TOON_RP_VSM_BLUR_HIGH_QUALITY";
         public const string BlurEarlyBailKeywordName = "_TOON_RP_VSM_BLUR_EARLY_BAIL";
         private const RenderTextureFormat VsmShadowmapDepthFormat = RenderTextureFormat.Shadowmap;
+        private static readonly int DirectionalShadowSamplingOffsetsId =
+            Shader.PropertyToID("_ToonRP_DirectionalShadowSamplingOffsets");
 
         private static readonly string[] CascadeProfilingNames;
 
@@ -48,6 +50,7 @@ namespace DELTation.ToonRP.Shadows
             new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
         private readonly Matrix4x4[] _directionalShadowMatricesVp =
             new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
+        private readonly Vector4[] _directionalShadowSamplingOffsets = new Vector4[4];
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
@@ -67,6 +70,17 @@ namespace DELTation.ToonRP.Shadows
             for (int i = 0; i < MaxCascades; i++)
             {
                 CascadeProfilingNames[i] = $"Cascade {i}";
+            }
+        }
+
+        private string PassName
+        {
+            get
+            {
+                string passName = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.None
+                    ? ToonRpPassId.Shadows
+                    : ToonRpPassId.VsmShadows;
+                return passName;
             }
         }
 
@@ -121,7 +135,7 @@ namespace DELTation.ToonRP.Shadows
         {
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.VsmShadows)))
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(PassName)))
             {
                 if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
                 {
@@ -130,6 +144,10 @@ namespace DELTation.ToonRP.Shadows
                     cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
                     cmd.SetKeyword(ToonShadows.VsmGlobalKeyword,
                         _vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None
+                    );
+                    cmd.SetKeyword(ToonShadows.PcfGlobalKeyword,
+                        _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.None &&
+                        _vsmSettings.SoftShadows
                     );
                     cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
 
@@ -146,6 +164,7 @@ namespace DELTation.ToonRP.Shadows
                     cmd.DisableKeyword(ToonShadows.DirectionalShadowsGlobalKeyword);
                     cmd.DisableKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword);
                     cmd.DisableKeyword(ToonShadows.VsmGlobalKeyword);
+                    cmd.DisableKeyword(ToonShadows.PcfGlobalKeyword);
                     cmd.DisableKeyword(ToonShadows.ShadowsRampCrisp);
                 }
             }
@@ -167,7 +186,6 @@ namespace DELTation.ToonRP.Shadows
         private void RenderDirectionalShadows(CommandBuffer cmd)
         {
             int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
-
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Prepare Shadowmaps")))
             {
@@ -229,6 +247,11 @@ namespace DELTation.ToonRP.Shadows
             {
                 BakeViewSpaceZIntoMatrix();
             }
+            else if (_vsmSettings.SoftShadows)
+            {
+                FillDirectionalShadowSamplingOffsets(atlasSize);
+                cmd.SetGlobalVectorArray(DirectionalShadowSamplingOffsetsId, _directionalShadowSamplingOffsets);
+            }
 
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
@@ -254,6 +277,15 @@ namespace DELTation.ToonRP.Shadows
                 matrix.m22 = scale * viewMatrix.m22;
                 matrix.m23 = scale * viewMatrix.m23;
             }
+        }
+
+        private void FillDirectionalShadowSamplingOffsets(int atlasSize)
+        {
+            float halfInvSize = 0.5f / atlasSize;
+            _directionalShadowSamplingOffsets[0] = new Vector4(-halfInvSize, -halfInvSize);
+            _directionalShadowSamplingOffsets[1] = new Vector4(halfInvSize, -halfInvSize);
+            _directionalShadowSamplingOffsets[2] = new Vector4(-halfInvSize, halfInvSize);
+            _directionalShadowSamplingOffsets[3] = new Vector4(halfInvSize, halfInvSize);
         }
 
         private static Color GetShadowmapClearColor()

@@ -10,6 +10,7 @@ namespace DELTation.ToonRP.Shadows
         public const string DirectionalShadowsKeywordName = "_TOON_RP_DIRECTIONAL_SHADOWS";
         public const string DirectionalCascadedShadowsKeywordName = "_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS";
         public const string VsmKeywordName = "_TOON_RP_VSM";
+        public const string PcfKeywordName = "_TOON_RP_PCF";
         public const string BlobShadowsKeywordName = "_TOON_RP_BLOB_SHADOWS";
         public const string ShadowsRampCrispKeywordName = "_TOON_RP_SHADOWS_RAMP_CRISP";
         public const string ShadowsPatternKeywordName = "_TOON_RP_SHADOWS_PATTERN";
@@ -32,6 +33,7 @@ namespace DELTation.ToonRP.Shadows
             DirectionalShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalShadowsKeywordName);
             DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalCascadedShadowsKeywordName);
             VsmGlobalKeyword = GlobalKeyword.Create(VsmKeywordName);
+            PcfGlobalKeyword = GlobalKeyword.Create(PcfKeywordName);
             BlobShadowsGlobalKeyword = GlobalKeyword.Create(BlobShadowsKeywordName);
             ShadowsRampCrisp = GlobalKeyword.Create(ShadowsRampCrispKeywordName);
             ShadowsPattern = GlobalKeyword.Create(ShadowsPatternKeywordName);
@@ -40,6 +42,7 @@ namespace DELTation.ToonRP.Shadows
         public static GlobalKeyword DirectionalShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword DirectionalCascadedShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword VsmGlobalKeyword { get; private set; }
+        public static GlobalKeyword PcfGlobalKeyword { get; private set; }
         public static GlobalKeyword BlobShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
         public static GlobalKeyword ShadowsPattern { get; private set; }
@@ -57,6 +60,7 @@ namespace DELTation.ToonRP.Shadows
                 cmd.DisableKeyword(DirectionalShadowsGlobalKeyword);
                 cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
                 cmd.DisableKeyword(VsmGlobalKeyword);
+                cmd.DisableKeyword(PcfGlobalKeyword);
             }
 
             cmd.SetKeyword(BlobShadowsGlobalKeyword, settings.Mode == ToonShadowSettings.ShadowMode.Blobs);

@@ -105,13 +105,13 @@ float GetShadowAttenuation(const v2f IN, const Light light)
 
 Light GetMainLight(const v2f IN)
 {
-#ifdef _TOON_RP_VSM_SHADOWS
+#ifdef _TOON_RP_SHADOW_MAPS
     const uint tileIndex = ComputeShadowTileIndex(IN.positionWs);
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs, tileIndex);
     Light light = GetMainLight(shadowCoords);
-#else // !_TOON_RP_VSM_SHADOWS
+#else // !_TOON_RP_SHADOW_MAPS
     Light light = GetMainLight();
-#endif // _TOON_RP_VSM_SHADOWS
+#endif // _TOON_RP_SHADOW_MAPS
 
 #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 

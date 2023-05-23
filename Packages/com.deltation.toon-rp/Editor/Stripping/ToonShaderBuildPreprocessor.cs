@@ -1,6 +1,4 @@
-﻿#if UNITY_EDITOR || !DEVELOPMENT_BUILD
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using DELTation.ToonRP.Extensions;
@@ -49,9 +47,25 @@ namespace DELTation.ToonRP.Editor.Stripping
             // VSM
             if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Vsm))
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
+            }
+
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Blur != ToonVsmShadowSettings.BlurMode.None
+                ))
+            {
+                _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
+            }
+
+            // PCF
+            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
+                                                       a.ShadowSettings.Vsm.Blur ==
+                                                       ToonVsmShadowSettings.BlurMode.None &&
+                                                       a.ShadowSettings.Vsm.SoftShadows
+                ))
+            {
+                _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PcfKeywordName));
             }
 
             // ToonRPVsmBlur
@@ -336,5 +350,3 @@ namespace DELTation.ToonRP.Editor.Stripping
         }
     }
 }
-
-#endif // UNITY_EDITOR || DEVELOPMENT_BUILD

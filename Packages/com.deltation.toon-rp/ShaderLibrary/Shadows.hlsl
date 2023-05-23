@@ -2,12 +2,12 @@
 #define TOON_RP_SHADOWS
 
 #if defined(_TOON_RP_DIRECTIONAL_SHADOWS) || defined(_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS)
-#define _TOON_RP_VSM_SHADOWS
+#define _TOON_RP_SHADOW_MAPS
 #endif // _TOON_RP_DIRECTIONAL_SHADOWS || _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS
 
-#if defined(_TOON_RP_VSM_SHADOWS) || defined(_TOON_RP_BLOB_SHADOWS)
+#if defined(_TOON_RP_SHADOW_MAPS) || defined(_TOON_RP_BLOB_SHADOWS)
 #define _TOON_RP_ANY_SHADOWS
-#endif // _TOON_RP_VSM_SHADOWS || _TOON_RP_BLOB_SHADOWS
+#endif // _TOON_RP_SHADOW_MAPS || _TOON_RP_BLOB_SHADOWS
 
 #include "Math.hlsl"
 #include "Ramp.hlsl"
@@ -15,6 +15,7 @@
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 1
 #define MAX_CASCADE_COUNT 4
+#define SHADOW_SAMPLING_OFFSET_COUNT 4
 
 TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
 #ifdef _TOON_RP_VSM
@@ -29,6 +30,7 @@ SAMPLER(sampler_ToonRP_ShadowPattern);
 CBUFFER_START(_ToonRpShadows)
 float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
 float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
+float4 _ToonRP_DirectionalShadowSamplingOffsets[SHADOW_SAMPLING_OFFSET_COUNT];
 int _ToonRP_CascadeCount;
 float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
 float2 _ToonRP_ShadowRamp;
@@ -48,9 +50,33 @@ float3 ApplyShadowBias(float3 positionWs, const float3 normalWs, const float3 li
     return positionWs;
 }
 
+#ifndef _TOON_RP_VSM
+
+float SampleShadowAttenuationNonVsm(const float3 shadowCoords)
+{
+    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
+                                   shadowCoords).r;
+}
+
+float SampleShadowAttenuationNonVsmFiltered(const float3 shadowCoords)
+{
+    float4 attenuation;
+    attenuation.x = SampleShadowAttenuationNonVsm(
+        shadowCoords + float3(_ToonRP_DirectionalShadowSamplingOffsets[0].xy, 0));
+    attenuation.y = SampleShadowAttenuationNonVsm(
+        shadowCoords + float3(_ToonRP_DirectionalShadowSamplingOffsets[1].xy, 0));
+    attenuation.z = SampleShadowAttenuationNonVsm(
+        shadowCoords + float3(_ToonRP_DirectionalShadowSamplingOffsets[2].xy, 0));
+    attenuation.w = SampleShadowAttenuationNonVsm(
+        shadowCoords + float3(_ToonRP_DirectionalShadowSamplingOffsets[3].xy, 0));
+    return dot(attenuation, 0.25);
+}
+
+#endif // !_TOON_RP_VSM
+
 float SampleShadowAttenuation(const float3 shadowCoords)
 {
-    #ifdef _TOON_RP_VSM
+    #if defined(_TOON_RP_VSM)
     const float2 varianceSample = SAMPLE_TEXTURE2D(_ToonRP_DirectionalShadowAtlas,
                                                    sampler_ToonRP_DirectionalShadowAtlas,
                                                    shadowCoords.xy).rg;
@@ -68,10 +94,11 @@ float SampleShadowAttenuation(const float3 shadowCoords)
     }
 
     return 1.0;
-    #else // !_TOON_RP_VSM
-    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
-                                   shadowCoords).r;
-    #endif // _TOON_RP_VSM
+    #elif defined(_TOON_RP_PCF)
+    return SampleShadowAttenuationNonVsmFiltered(shadowCoords);
+    #else // !_TOON_RP_VSM && !_TOON_RP_PCF
+    return SampleShadowAttenuationNonVsm(shadowCoords);
+    #endif
 }
 
 float SampleShadowPattern(const float3 positionWs)

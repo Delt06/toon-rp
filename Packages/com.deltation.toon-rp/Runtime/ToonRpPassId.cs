@@ -3,6 +3,7 @@
     public static class ToonRpPassId
     {
         public const string VsmShadows = "VSM Shadows";
+        public const string Shadows = "Shadows";
         public const string BlobShadows = "Blob Shadows";
         public const string DepthPrePass = "Depth Pre-Pass";
         public const string Ssao = "SSAO";

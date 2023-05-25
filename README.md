@@ -121,6 +121,15 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 ![Fog](./Documentation/features_fog.jpg?raw=true)
 
+- Matcap:
+  - Additive (e.g., fake lighting)
+  - Multiplicative: (e.g., fake reflections)
+
+![Matcap: Additive](./Documentation/features_matcap_additive.jpg?raw=true)
+
+
+![Matcap: Multiplicative](./Documentation/features_matcap_multiplicative.jpg?raw=true)
+
 
 ## References
 - [Catlike Coding](https://catlikecoding.com/)
@@ -131,3 +140,6 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 ## Used Assets
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)
 - [Quaternius - Ultimate Stylized Nature Pack](https://quaternius.com/packs/ultimatestylizednature.html)
+- [Aika: Sailor Uniform](https://assetstore.unity.com/packages/3d/characters/aika-sailor-uniform-222398)
+- [Stone](https://assetstore.unity.com/packages/3d/environments/landscapes/stone-62333)
+- [nidorx/matcaps: A huge library of MatCap textures in PNG and ZMT.](https://github.com/nidorx/matcaps)

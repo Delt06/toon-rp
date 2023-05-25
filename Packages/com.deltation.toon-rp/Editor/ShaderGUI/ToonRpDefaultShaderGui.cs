@@ -39,6 +39,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 DrawNormalMap();
                 DrawProperty("_ReceiveBlobShadows");
                 DrawOverrideRamp();
+                DrawMatcap();
             }
 
             EditorGUILayout.Space();
@@ -49,7 +50,8 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         private void DrawOverrideRamp()
         {
             DrawProperty("_OverrideRamp", out MaterialProperty overrideRamp);
-            if (overrideRamp.floatValue == 0)
+
+            if (overrideRamp.hasMixedValue || overrideRamp.floatValue == 0)
             {
                 return;
             }
@@ -61,6 +63,45 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             DrawProperty("_OverrideRamp_SpecularSmoothness");
             DrawProperty("_OverrideRamp_RimThreshold");
             DrawProperty("_OverrideRamp_RimSmoothness");
+            EditorGUI.indentLevel--;
+        }
+
+        private void DrawMatcap()
+        {
+            EditorGUI.BeginChangeCheck();
+            const string matcapMode = "_MatcapMode";
+            DrawProperty(matcapMode, out MaterialProperty matcapModeProperty);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                ForEachMaterial(m =>
+                    {
+                        var matcapModeValue = (MatcapMode) m.GetFloat(matcapMode);
+                        m.SetKeyword("_MATCAP_ADDITIVE", matcapModeValue == MatcapMode.Additive);
+                        m.SetKeyword("_MATCAP_MULTIPLICATIVE", matcapModeValue == MatcapMode.Multiplicative);
+                    }
+                );
+            }
+
+            if (matcapModeProperty.hasMixedValue || matcapModeProperty.floatValue == 0)
+            {
+                return;
+            }
+
+            EditorGUI.indentLevel++;
+            DrawProperty("_MatcapTexture");
+            DrawProperty("_MatcapTint");
+
+            const string matcapBlend = "_MatcapBlend";
+            if ((MatcapMode) matcapModeProperty.floatValue == MatcapMode.Additive)
+            {
+                DrawProperty(matcapBlend, "Matcap Shadow Blend");
+            }
+            else
+            {
+                DrawProperty(matcapBlend);
+            }
+
             EditorGUI.indentLevel--;
         }
 

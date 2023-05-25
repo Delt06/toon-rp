@@ -38,6 +38,14 @@
 	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 2)) = 0.005
 	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
 	    
+	    [Enum(DELTation.ToonRP.MatcapMode)]
+	    _MatcapMode ("Matcap Mode", Float) = 0
+	    [NoScaleOffset]
+	    _MatcapTexture ("Matcap", 2D) = "black" {}
+	    [HDR]
+	    _MatcapTint ("Matcap Tint", Color) = (1, 1, 1, 1)
+	    _MatcapBlend ("Matcap Blend", Range(0, 1)) = 1
+	    
 	    [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
         _SurfaceType ("Surface Type", Float) = 0
         [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode)]
@@ -112,6 +120,7 @@
 			#pragma shader_feature_local _NORMAL_MAP 
 			#pragma shader_feature_local_fragment _OVERRIDE_RAMP 
 			#pragma shader_feature_local_fragment _RECEIVE_BLOB_SHADOWS
+			#pragma shader_feature_local _ _MATCAP_ADDITIVE _MATCAP_MULTIPLICATIVE
 
 			// Bug workaround: stencil might not be set if don't create a separate shader variant for outlines
 			#pragma shader_feature_local_vertex _HAS_OUTLINES_STENCIL_LAYER

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using DELTation.ToonRP.Editor.ShaderGUI;
 using UnityEditor;
 using UnityEngine;
@@ -11,6 +12,11 @@ namespace DELTation.ToonRP.Editor.Conversion
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static readonly int CutoffId = Shader.PropertyToID("_Cutoff");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly HashSet<string> SupportedShaders = new()
+        {
+            "Standard",
+            "Hidden/InternalErrorShader",
+        };
 
         [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to Toon RP")]
         private static void Convert()
@@ -34,7 +40,7 @@ namespace DELTation.ToonRP.Editor.Conversion
                 return true;
             }
 
-            if (material.shader.name != "Standard")
+            if (!SupportedShaders.Contains(material.shader.name))
             {
                 Debug.LogWarning(
                     $"Could not convert {material}, its shader {material.shader} is not supported.",

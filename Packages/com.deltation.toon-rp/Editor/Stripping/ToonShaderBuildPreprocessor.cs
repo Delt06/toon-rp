@@ -26,14 +26,15 @@ namespace DELTation.ToonRP.Editor.Stripping
         public ToonShaderBuildPreprocessor()
         {
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
-            BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
 
-            var renderPipelineAssets = new List<RenderPipelineAsset>();
-            QualitySettings.GetAllRenderPipelineAssetsForPlatform(group.ToString(), ref renderPipelineAssets);
-            renderPipelineAssets.Add(GraphicsSettings.currentRenderPipeline);
+            var renderPipelineAssets = new List<ToonRenderPipelineAsset>();
+            if (!TryGetRenderPipelineAssetsForBuildTarget(target, renderPipelineAssets))
+            {
+                return;
+            }
 
             _allToonRenderPipelineAssets = renderPipelineAssets
-                .OfType<ToonRenderPipelineAsset>()
+                .Where(a => a != null)
                 .Distinct()
                 .ToList();
 
@@ -300,6 +301,72 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 Debug.Log(logMessage);
             }
+        }
+
+        private static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget,
+            List<ToonRenderPipelineAsset> pipelineAssets)
+        {
+            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (qualitySettings == null)
+            {
+                return false;
+            }
+
+            SerializedProperty property = qualitySettings.FindProperty("m_QualitySettings");
+            if (property == null)
+            {
+                return false;
+            }
+
+            BuildTargetGroup activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
+            string activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+
+            bool allQualityLevelsAreOverridden = true;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                bool isExcluded = false;
+
+                SerializedProperty excludedTargetPlatforms =
+                    property.GetArrayElementAtIndex(i).FindPropertyRelative("excludedTargetPlatforms");
+                if (excludedTargetPlatforms == null)
+                {
+                    return false;
+                }
+
+                foreach (SerializedProperty excludedTargetPlatform in excludedTargetPlatforms)
+                {
+                    string excludedBuildTargetGroupName = excludedTargetPlatform.stringValue;
+                    if (activeBuildTargetGroupName == excludedBuildTargetGroupName)
+                    {
+                        Debug.Log($"Excluding quality level {QualitySettings.names[i]} from stripping.");
+                        isExcluded = true;
+                        break;
+                    }
+                }
+
+                if (!isExcluded)
+                {
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is ToonRenderPipelineAsset pipelineAsset)
+                    {
+                        pipelineAssets.Add(pipelineAsset);
+                    }
+                    else
+                    {
+                        allQualityLevelsAreOverridden = false;
+                    }
+                }
+            }
+
+            if (!allQualityLevelsAreOverridden || pipelineAssets.Count == 0)
+            {
+                if (GraphicsSettings.defaultRenderPipeline is ToonRenderPipelineAsset pipelineAsset)
+                {
+                    pipelineAssets.Add(pipelineAsset);
+                }
+            }
+
+            return true;
         }
 
         private bool AnyExtension<TExtension>(Func<TExtension, bool> condition)

@@ -31,7 +31,8 @@ namespace DELTation.ToonRP.Shadows
                 Bounds2D bounds = ComputeBounds(radius, position);
 
 #if UNITY_EDITOR
-                if (PrefabStageUtility.GetCurrentPrefabStage().IsPartOfPrefabContents(renderer.gameObject))
+                PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                if (currentPrefabStage != null && currentPrefabStage.IsPartOfPrefabContents(renderer.gameObject))
                 {
                     return;
                 }

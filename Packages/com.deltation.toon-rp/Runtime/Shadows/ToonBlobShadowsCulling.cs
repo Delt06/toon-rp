@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif // UNITY_EDITOR
 using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows
@@ -26,6 +29,13 @@ namespace DELTation.ToonRP.Shadows
                 float radius = renderer.Radius;
                 Vector3 position = renderer.Position;
                 Bounds2D bounds = ComputeBounds(radius, position);
+
+#if UNITY_EDITOR
+                if (PrefabStageUtility.GetCurrentPrefabStage().IsPartOfPrefabContents(renderer.gameObject))
+                {
+                    return;
+                }
+#endif // UNITY_EDITOR
 
                 if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, bounds.AsXZ(0.0f, 0.01f)))
                 {

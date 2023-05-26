@@ -243,8 +243,21 @@ namespace DELTation.ToonRP
                 {
                     _rtWidth = maxRtWidth;
                     _rtHeight = maxRtHeight;
+                    bool fixWidth;
+                    if (_rtWidth == int.MaxValue)
+                    {
+                        fixWidth = false;
+                    }
+                    else if (_rtHeight == int.MaxValue)
+                    {
+                        fixWidth = true;
+                    }
+                    else
+                    {
+                        fixWidth = aspectRatio > 1;
+                    }
 
-                    if (aspectRatio > 1)
+                    if (fixWidth)
                     {
                         _rtHeight = Mathf.CeilToInt(_rtWidth / aspectRatio);
                     }

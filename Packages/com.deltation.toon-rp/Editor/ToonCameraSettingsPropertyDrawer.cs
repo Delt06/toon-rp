@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
-using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP.Editor
 {
@@ -65,6 +64,15 @@ namespace DELTation.ToonRP.Editor
                 {
                     label = "Depth Pre-Pass Mode",
                 }
+            );
+
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.OpaqueLayerMask))
+                )
+            );
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.TransparentLayerMask))
+                )
             );
 
             root.Add(

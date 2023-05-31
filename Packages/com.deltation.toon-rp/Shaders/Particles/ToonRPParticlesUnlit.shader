@@ -15,7 +15,7 @@
         
         [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
         _SurfaceType ("Surface Type", Float) = 1
-        [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode)]
+        [Enum(DELTation.ToonRP.ToonBlendMode)]
         _BlendMode ("Blend Mode", Float) = 0
         _BlendSrc ("Blend Src", Float) = 5
         _BlendDst ("Blend Dst", Float) = 10

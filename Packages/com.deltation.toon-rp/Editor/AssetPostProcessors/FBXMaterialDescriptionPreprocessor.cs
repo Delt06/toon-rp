@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
 using UnityEngine.Rendering;
-using BlendMode = UnityEngine.Rendering.BlendMode;
+using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace DELTation.ToonRP.Editor.AssetPostProcessors
 {
@@ -79,8 +79,8 @@ namespace DELTation.ToonRP.Editor.AssetPostProcessors
             if (isTransparent)
             {
                 material.SetOverrideTag("RenderType", "Transparent");
-                material.SetFloat(PropertyNames.BlendDst, (float) BlendMode.One);
-                material.SetFloat(PropertyNames.BlendDst, (float) BlendMode.OneMinusSrcAlpha);
+                material.SetFloat(PropertyNames.BlendDst, (float) UnityBlendMode.One);
+                material.SetFloat(PropertyNames.BlendDst, (float) UnityBlendMode.OneMinusSrcAlpha);
                 material.SetFloat(PropertyNames.ZWrite, 0.0f);
                 material.EnableKeyword(ShaderKeywords.AlphaPremultiplyOn);
                 material.renderQueue = (int) RenderQueue.Transparent;
@@ -89,8 +89,8 @@ namespace DELTation.ToonRP.Editor.AssetPostProcessors
             else
             {
                 material.SetOverrideTag("RenderType", "");
-                material.SetFloat(PropertyNames.BlendSrc, (float) BlendMode.One);
-                material.SetFloat(PropertyNames.BlendDst, (float) BlendMode.Zero);
+                material.SetFloat(PropertyNames.BlendSrc, (float) UnityBlendMode.One);
+                material.SetFloat(PropertyNames.BlendDst, (float) UnityBlendMode.Zero);
                 material.SetFloat(PropertyNames.ZWrite, 1.0f);
                 material.SetFloat(PropertyNames.AlphaClipping, 0);
                 material.DisableKeyword(ShaderKeywords.AlphaTestOn);

@@ -1,17 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
     public class DepthPrePass
     {
-        private const int DepthBufferBits = 32;
-        private static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
-        private static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");
         private static readonly ShaderTagId DepthOnlyShaderTagId = new("ToonRPDepthOnly");
         private static readonly ShaderTagId DepthNormalsShaderTagId = new("ToonRPDepthNormals");
+        private readonly int _depthTextureId;
+        private readonly int _normalsTextureId;
 
         private Camera _camera;
         private ScriptableRenderContext _context;
@@ -21,9 +20,21 @@ namespace DELTation.ToonRP
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
+        private bool _stencil;
+
+        public DepthPrePass() : this(
+            Shader.PropertyToID("_ToonRP_DepthTexture"), Shader.PropertyToID("_ToonRP_NormalsTexture")
+        ) { }
+
+        public DepthPrePass(int depthTextureId, int normalsTextureId)
+        {
+            _depthTextureId = depthTextureId;
+            _normalsTextureId = normalsTextureId;
+        }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            in ToonCameraRendererSettings settings, DepthPrePassMode mode, int rtWidth, int rtHeight)
+            in ToonCameraRendererSettings settings, DepthPrePassMode mode, int rtWidth, int rtHeight,
+            bool stencil = false)
         {
             Assert.IsTrue(mode != DepthPrePassMode.Off, "mode != DepthPrePassMode.Off");
 
@@ -34,6 +45,7 @@ namespace DELTation.ToonRP
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
             _normals = mode == DepthPrePassMode.DepthNormals;
+            _stencil = stencil;
         }
 
         public void Render()
@@ -42,24 +54,26 @@ namespace DELTation.ToonRP
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.DepthPrePass)))
             {
-                cmd.GetTemporaryRT(DepthTextureId, _rtWidth, _rtHeight, DepthBufferBits, FilterMode.Point,
-                    RenderTextureFormat.Depth
+                var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                    GraphicsFormat.None, _stencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D32_SFloat,
+                    0
                 );
+                cmd.GetTemporaryRT(_depthTextureId, depthDesc);
                 if (_normals)
                 {
-                    cmd.GetTemporaryRT(NormalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
+                    cmd.GetTemporaryRT(_normalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
                         RenderTextureFormat.RGB565
                     );
                     cmd.SetRenderTarget(
-                        NormalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                        DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                        _normalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                        _depthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                     );
                     cmd.ClearRenderTarget(true, true, Color.grey);
                 }
                 else
                 {
                     cmd.SetRenderTarget(
-                        DepthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                        _depthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                     );
                     cmd.ClearRenderTarget(true, false, Color.clear);
                 }
@@ -77,10 +91,10 @@ namespace DELTation.ToonRP
         public void Cleanup()
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.ReleaseTemporaryRT(DepthTextureId);
+            cmd.ReleaseTemporaryRT(_depthTextureId);
             if (_normals)
             {
-                cmd.ReleaseTemporaryRT(NormalsTextureId);
+                cmd.ReleaseTemporaryRT(_normalsTextureId);
             }
 
             ExecuteBuffer(cmd);

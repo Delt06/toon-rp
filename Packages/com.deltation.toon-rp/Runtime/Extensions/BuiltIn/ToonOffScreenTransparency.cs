@@ -10,6 +10,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         public const string ShaderName = "Hidden/Toon RP/Off-Screen Transparency";
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_CompositeTransparency_Color");
         private static readonly int DepthId = Shader.PropertyToID("_ToonRP_CompositeTransparency_Depth");
+        private static readonly int TintId = Shader.PropertyToID("_Tint");
+        private static readonly int PatternId = Shader.PropertyToID("_Pattern");
+        private static readonly int PatternHorizontalTilingId = Shader.PropertyToID("_PatternHorizontalTiling");
+        private static readonly int HeightOverWidthId = Shader.PropertyToID("_HeightOverWidth");
+        private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
+        private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
 
         private readonly DepthPrePass _depthPrePass = new(
             DepthId,
@@ -127,12 +133,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compose with Camera Render Target")))
                 {
                     _cameraRenderTarget.SetRenderTarget(cmd);
-                    _material.SetVector("_Tint", _settings.Tint);
-                    _material.SetTexture("_Pattern",
+                    _material.SetVector(TintId, _settings.Tint);
+                    _material.SetTexture(PatternId,
                         _settings.Pattern != null ? _settings.Pattern : Texture2D.whiteTexture
                     );
-                    _material.SetFloat("_PatternHorizontalTiling", _settings.PatternHorizontalTiling);
-                    _material.SetFloat("_HeightOverWidth", (float) _height / _width);
+                    _material.SetFloat(PatternHorizontalTilingId, _settings.PatternHorizontalTiling);
+                    _material.SetFloat(HeightOverWidthId, (float) _height / _width);
 
                     (BlendMode blendSource, BlendMode blendDestination) = _settings.BlendMode switch
                     {
@@ -140,8 +146,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         TransparencyBlendMode.Additive => (BlendMode.One, BlendMode.One),
                         _ => throw new ArgumentOutOfRangeException(),
                     };
-                    _material.SetFloat("_BlendSrc", (float) blendSource);
-                    _material.SetFloat("_BlendDst", (float) blendDestination);
+                    _material.SetFloat(BlendSrcId, (float) blendSource);
+                    _material.SetFloat(BlendDstId, (float) blendDestination);
 
                     CustomBlitter.Blit(cmd, _material);
                 }

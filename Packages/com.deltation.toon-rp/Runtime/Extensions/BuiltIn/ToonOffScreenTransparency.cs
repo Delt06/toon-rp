@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.Extensions.BuiltIn.ToonOffScreenTransparencySettings;
 
@@ -16,6 +17,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int HeightOverWidthId = Shader.PropertyToID("_HeightOverWidth");
         private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
         private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
+        private readonly ToonDepthDownsample _depthDownsample = new();
 
         private readonly DepthPrePass _depthPrePass = new(
             DepthId,
@@ -73,6 +75,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             {
                 ExecuteBuffer(cmd);
 
+                if (_settings.DepthMode == DepthRenderMode.PrePass)
                 {
                     const bool stencil = true;
                     _depthPrePass.Setup(_srpContext, _cullingResults,
@@ -90,10 +93,25 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     {
                         cmd.GetTemporaryRT(ColorId, _width, _height, 0, FilterMode.Bilinear, RenderTextureFormat.Default
                         );
+                        if (_settings.DepthMode == DepthRenderMode.Downsample)
+                        {
+                            cmd.GetTemporaryRT(DepthId,
+                                new RenderTextureDescriptor(_width, _height, GraphicsFormat.None,
+                                    GraphicsFormat.D24_UNorm_S8_UInt
+                                )
+                            );
+                        }
+
                         cmd.SetRenderTarget(ColorId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                             DepthId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
                         );
                         cmd.ClearRenderTarget(false, true, Color.black);
+                        if (_settings.DepthMode == DepthRenderMode.Downsample)
+                        {
+                            bool highQuality = _settings.DepthDownsampleQuality == DepthDownsampleQualityLevel.High;
+                            _depthDownsample.Downsample(cmd, highQuality, _settings.ResolutionFactor);
+                        }
+
                         ExecuteBuffer(cmd);
                     }
 
@@ -153,8 +171,20 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 }
 
 
+                cmd.ReleaseTemporaryRT(ColorId);
+                switch (_settings.DepthMode)
+                {
+                    case DepthRenderMode.Downsample:
+                        cmd.ReleaseTemporaryRT(DepthId);
+                        break;
+                    case DepthRenderMode.PrePass:
+                        _depthPrePass.Cleanup();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
                 ExecuteBuffer(cmd);
-                _depthPrePass.Cleanup();
             }
 
             ExecuteBuffer(cmd);

@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Low-Res Transparency
   m_EditorClassIdentifier: 
   _forceIncludedShaders:
-  - {fileID: 0}
+  - {fileID: 4800000, guid: 04c4284bdb354d6c9c5b51d6f5c77952, type: 3}
+  - {fileID: 4800000, guid: a487700b16e142aa841cdf2bc9afc6e0, type: 3}
   Settings:
     PassName: Low-Res Transparency
     ResolutionFactor: 4
@@ -25,3 +26,5 @@ MonoBehaviour:
     Pattern: {fileID: 2800000, guid: ccbd3348a4f42614b978aa012cab5239, type: 3}
     PatternHorizontalTiling: 200
     BlendMode: 0
+    DepthMode: 1
+    DepthDownsampleQuality: 1

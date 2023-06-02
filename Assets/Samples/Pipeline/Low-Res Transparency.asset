@@ -27,4 +27,4 @@ MonoBehaviour:
     PatternHorizontalTiling: 200
     BlendMode: 0
     DepthMode: 1
-    DepthDownsampleQuality: 1
+    DepthDownsampleQuality: 0

@@ -41,9 +41,8 @@
                 float4 color = SAMPLE_TEXTURE2D_LOD(_ToonRP_CompositeTransparency_Color, sampler_ToonRP_CompositeTransparency_Color, IN.uv, 0);
                 color.a = 1 - color.a;
 
-                // TODO: make a parameter, test performance
-                // using a clip here to skip blending for many regions
-                clip(color.a - 0.05);
+                // using "clip" skips blending, which can save some performance 
+                clip(color.a - 0.01);
 
                 float2 patternUv = IN.uv;
                 patternUv.x *= _PatternHorizontalTiling;

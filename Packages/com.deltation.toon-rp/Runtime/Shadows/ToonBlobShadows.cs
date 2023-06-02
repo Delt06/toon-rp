@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace DELTation.ToonRP.Shadows
 {
@@ -95,10 +96,10 @@ namespace DELTation.ToonRP.Shadows
 
         private void SetupBlending()
         {
-            (BlendMode srcBlend, BlendMode dstBlend, BlendOp blendOp) = _blobShadowsSettings.Mode switch
+            (UnityBlendMode srcBlend, UnityBlendMode dstBlend, BlendOp blendOp) = _blobShadowsSettings.Mode switch
             {
-                BlobShadowsMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
-                BlobShadowsMode.Default => (BlendMode.One, BlendMode.One, BlendOp.Max),
+                BlobShadowsMode.MetaBalls => (UnityBlendMode.SrcColor, UnityBlendMode.One, BlendOp.Add),
+                BlobShadowsMode.Default => (UnityBlendMode.One, UnityBlendMode.One, BlendOp.Max),
                 _ => throw new ArgumentOutOfRangeException(),
             };
             _material.SetFloat(SrcBlendId, (float) srcBlend);

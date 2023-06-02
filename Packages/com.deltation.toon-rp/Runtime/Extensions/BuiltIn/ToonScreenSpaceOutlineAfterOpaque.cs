@@ -21,8 +21,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _settings = ToonScreenSpaceOutlineAfterOpaqueSettings.ConvertToCommonSettings(
                 settingsStorage.GetSettings<ToonScreenSpaceOutlineAfterOpaqueSettings>(this)
             );
-            _rtWidth = context.RtWidth;
-            _rtHeight = context.RtHeight;
+            _rtWidth = context.CameraRenderTarget.Width;
+            _rtHeight = context.CameraRenderTarget.Height;
         }
 
         public override void Render()

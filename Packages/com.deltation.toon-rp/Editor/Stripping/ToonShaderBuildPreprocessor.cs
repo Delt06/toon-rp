@@ -275,6 +275,25 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
             }
+            
+            // ToonRPDepthDownsample
+            {
+                if (!AnyExtension<ToonOffScreenTransparencyAsset>(t =>
+                        t.Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample
+                    ))
+                {
+                    _shadersToStrip.Add(ToonDepthDownsample.ShaderName);
+                }
+                
+                if (!AnyExtension<ToonOffScreenTransparencyAsset>(t =>
+                        t.Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample &&
+                        t.Settings.DepthDownsampleQuality == ToonOffScreenTransparencySettings.DepthDownsampleQualityLevel.High
+                    ))
+                {
+                    _localKeywordsToStrip.Add((ToonDepthDownsample.ShaderName, ToonDepthDownsample.HighQualityKeyword));
+                }
+            }
+            
         }
 
         public int callbackOrder => 0;

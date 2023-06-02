@@ -50,8 +50,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             _context = context.ScriptableRenderContext;
             _settings = settingsStorage.GetSettings<ToonSsaoSettings>(this);
-            _width = context.RtWidth;
-            _height = context.RtHeight;
+            _width = context.CameraRenderTarget.Width;
+            _height = context.CameraRenderTarget.Height;
 
             _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _height / _settings.ResolutionFactor);

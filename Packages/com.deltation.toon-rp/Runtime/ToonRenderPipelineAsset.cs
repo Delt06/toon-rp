@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
 {
-    [CreateAssetMenu(menuName = "Rendering/Toon Render Pipeline Asset")]
+    [CreateAssetMenu(menuName = "Toon RP/Toon Render Pipeline Asset")]
     public sealed class ToonRenderPipelineAsset : RenderPipelineAsset
     {
         private static readonly string[] ForceIncludedShaderNames =
@@ -38,6 +38,8 @@ namespace DELTation.ToonRP
             MaxRenderTextureHeight = 0,
             MaxRenderTextureWidth = 0,
             RenderTextureFilterMode = FilterMode.Bilinear,
+            OpaqueLayerMask = -1,
+            TransparentLayerMask = -1,
             UseSrpBatching = true,
             UseDynamicBatching = false,
         };

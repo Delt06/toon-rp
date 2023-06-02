@@ -15,10 +15,7 @@ namespace DELTation.ToonRP
             new("ToonRPForward"),
             new("SRPDefaultUnlit"),
         };
-
-        private static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
-        private static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly DepthPrePass _depthPrePass = new();
@@ -27,21 +24,18 @@ namespace DELTation.ToonRP
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
         private readonly ToonPostProcessing _postProcessing = new();
+
+        private readonly ToonCameraRenderTarget _renderTarget = new();
         private readonly ToonShadows _shadows = new();
 
         private Camera _camera;
 
         private string _cmdName = DefaultCmdName;
-        private RenderTextureFormat _colorFormat;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private DepthPrePassMode _depthPrePassMode;
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
-        private int _msaaSamples;
-        private bool _renderToTexture;
-        private int _rtHeight;
-        private int _rtWidth;
         private ToonCameraRendererSettings _settings;
 
         public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
@@ -92,7 +86,7 @@ namespace DELTation.ToonRP
             PrepareBufferName();
             cmd.BeginSample(_cmdName);
 
-            PrepareMsaa(camera);
+            PrepareMsaa(camera, out int msaaSamples);
             PrepareForSceneWindow();
 
             if (!Cull(toonShadowSettings))
@@ -102,17 +96,19 @@ namespace DELTation.ToonRP
 
             _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
-            Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings);
+            Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings, msaaSamples);
             _extensionsCollection.Update(extensionSettings);
             _extensionsCollection.Setup(_extensionContext);
-            _postProcessing.Setup(_context, postProcessingSettings, _settings, _colorFormat, _camera, _rtWidth,
-                _rtHeight
+            _postProcessing.Setup(_context, postProcessingSettings, _settings, _renderTarget.ColorFormat, _camera,
+                _renderTarget.Width,
+                _renderTarget.Height
             );
 
             if (_depthPrePassMode != DepthPrePassMode.Off)
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
-                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode, _rtWidth, _rtHeight
+                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode,
+                    _renderTarget.Width, _renderTarget.Height
                 );
                 _depthPrePass.Render();
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
@@ -146,32 +142,18 @@ namespace DELTation.ToonRP
 
         private void SetRenderTargets(CommandBuffer cmd)
         {
-            if (_renderToTexture)
-            {
-                cmd.SetRenderTarget(
-                    CameraColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    CameraDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
-            }
-            else
-            {
-                cmd.SetRenderTarget(
-                    BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store
-                );
-            }
-
+            _renderTarget.SetRenderTarget(cmd);
             ExecuteBuffer(cmd);
         }
 
 
-        private void PrepareMsaa(Camera camera)
+        private void PrepareMsaa(Camera camera, out int msaaSamples)
         {
-            _msaaSamples = (int) _settings.Msaa;
-            QualitySettings.antiAliasing = _msaaSamples;
+            msaaSamples = (int) _settings.Msaa;
+            QualitySettings.antiAliasing = msaaSamples;
             // QualitySettings.antiAliasing returns 0 if MSAA is not supported
-            _msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
-            _msaaSamples = camera.allowMSAA ? _msaaSamples : 1;
+            msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
+            msaaSamples = camera.allowMSAA ? msaaSamples : 1;
         }
 
         partial void PrepareBufferName();
@@ -195,7 +177,8 @@ namespace DELTation.ToonRP
         }
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings)
+            in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings,
+            int msaaSamples)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
 
@@ -220,35 +203,36 @@ namespace DELTation.ToonRP
                 }
             }
 
-            _rtWidth = _camera.pixelWidth;
-            _rtHeight = _camera.pixelHeight;
+            int rtWidth = _camera.pixelWidth;
+            int rtHeight = _camera.pixelHeight;
 
-            _renderToTexture = _settings.AllowHdr || _msaaSamples > 1 ||
-                               _postProcessing.AnyFullScreenEffectsEnabled ||
-                               !Mathf.Approximately(renderScale, 1.0f) ||
-                               _rtWidth > maxRtWidth ||
-                               _rtHeight > maxRtHeight
+            bool renderToTexture = _settings.AllowHdr || msaaSamples > 1 ||
+                                   _postProcessing.AnyFullScreenEffectsEnabled ||
+                                   !Mathf.Approximately(renderScale, 1.0f) ||
+                                   rtWidth > maxRtWidth ||
+                                   rtHeight > maxRtHeight
                 ;
-            _colorFormat = _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+            RenderTextureFormat colorFormat =
+                _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
             bool requireStencil = RequireStencil(extensionSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
 
-            if (_renderToTexture)
+            if (renderToTexture)
             {
-                _rtWidth = Mathf.CeilToInt(_rtWidth * renderScale);
-                _rtHeight = Mathf.CeilToInt(_rtHeight * renderScale);
-                float aspectRatio = (float) _rtWidth / _rtHeight;
+                rtWidth = Mathf.CeilToInt(rtWidth * renderScale);
+                rtHeight = Mathf.CeilToInt(rtHeight * renderScale);
+                float aspectRatio = (float) rtWidth / rtHeight;
 
-                if (_rtWidth > maxRtWidth || _rtHeight > maxRtHeight)
+                if (rtWidth > maxRtWidth || rtHeight > maxRtHeight)
                 {
-                    _rtWidth = maxRtWidth;
-                    _rtHeight = maxRtHeight;
+                    rtWidth = maxRtWidth;
+                    rtHeight = maxRtHeight;
                     bool fixWidth;
-                    if (_rtWidth == int.MaxValue)
+                    if (rtWidth == int.MaxValue)
                     {
                         fixWidth = false;
                     }
-                    else if (_rtHeight == int.MaxValue)
+                    else if (rtHeight == int.MaxValue)
                     {
                         fixWidth = true;
                     }
@@ -259,34 +243,28 @@ namespace DELTation.ToonRP
 
                     if (fixWidth)
                     {
-                        _rtHeight = Mathf.CeilToInt(_rtWidth / aspectRatio);
+                        rtHeight = Mathf.CeilToInt(rtWidth / aspectRatio);
                     }
                     else
                     {
-                        _rtWidth = Mathf.CeilToInt(_rtHeight * aspectRatio);
+                        rtWidth = Mathf.CeilToInt(rtHeight * aspectRatio);
                     }
                 }
 
-                cmd.GetTemporaryRT(
-                    CameraColorBufferId, _rtWidth, _rtHeight, 0,
-                    _settings.RenderTextureFilterMode, _colorFormat,
-                    RenderTextureReadWrite.Default, _msaaSamples
+                _renderTarget.InitializeAsSeparateRenderTexture(cmd, rtWidth, rtHeight,
+                    _settings.RenderTextureFilterMode, colorFormat, _depthStencilFormat,
+                    msaaSamples
                 );
-
-                var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
-                    GraphicsFormat.None, _depthStencilFormat,
-                    0
-                )
-                {
-                    msaaSamples = _msaaSamples,
-                };
-                cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
+            }
+            else
+            {
+                _renderTarget.InitializeAsCameraRenderTarget(rtWidth, rtHeight, colorFormat);
             }
 
             ExecuteBuffer(cmd);
 
             _extensionContext =
-                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _rtWidth, _rtHeight);
+                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
@@ -365,16 +343,16 @@ namespace DELTation.ToonRP
         private void RenderPostProcessing(CommandBuffer cmd)
         {
             int sourceId;
-            if (_msaaSamples > 1)
+            if (_renderTarget.MsaaSamples > 1)
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ResolveCameraColor)))
                 {
                     cmd.GetTemporaryRT(
                         PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                        _settings.RenderTextureFilterMode, _colorFormat,
+                        _settings.RenderTextureFilterMode, _renderTarget.ColorFormat,
                         RenderTextureReadWrite.Default
                     );
-                    cmd.Blit(CameraColorBufferId, PostProcessingSourceId);
+                    cmd.Blit(ToonCameraRenderTarget.CameraColorBufferId, PostProcessingSourceId);
                 }
 
                 ExecuteBuffer(cmd);
@@ -382,14 +360,14 @@ namespace DELTation.ToonRP
             }
             else
             {
-                sourceId = CameraColorBufferId;
+                sourceId = ToonCameraRenderTarget.CameraColorBufferId;
             }
 
             ExecuteBuffer(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
             _postProcessing.RenderFullScreenEffects(
-                _rtWidth, _rtHeight, _colorFormat,
+                _renderTarget.Width, _renderTarget.Height, _renderTarget.ColorFormat,
                 sourceId, BuiltinRenderTextureType.CameraTarget
             );
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPostProcessing);
@@ -398,11 +376,8 @@ namespace DELTation.ToonRP
 
         private void BlitToCameraTarget()
         {
-            if (_renderToTexture)
-            {
-                _finalBlitCmd.Blit(CameraColorBufferId, BuiltinRenderTextureType.CameraTarget);
-                ExecuteBuffer(_finalBlitCmd);
-            }
+            _renderTarget.FinalBlit(_finalBlitCmd);
+            ExecuteBuffer(_finalBlitCmd);
         }
 
         private void Cleanup(CommandBuffer cmd)
@@ -416,12 +391,7 @@ namespace DELTation.ToonRP
 
             _extensionsCollection.Cleanup();
             _postProcessing.Cleanup();
-
-            if (_renderToTexture)
-            {
-                cmd.ReleaseTemporaryRT(CameraColorBufferId);
-                cmd.ReleaseTemporaryRT(CameraDepthBufferId);
-            }
+            _renderTarget.ReleaseTemporaryRTs(cmd);
 
             ExecuteBuffer(cmd);
         }
@@ -442,10 +412,10 @@ namespace DELTation.ToonRP
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
             cmd.SetGlobalVector(ScreenParamsId, new Vector4(
-                    1.0f / _rtWidth,
-                    1.0f / _rtHeight,
-                    _rtWidth,
-                    _rtHeight
+                    1.0f / _renderTarget.Width,
+                    1.0f / _renderTarget.Height,
+                    _renderTarget.Width,
+                    _renderTarget.Height
                 )
             );
             ExecuteBuffer(cmd);
@@ -456,7 +426,7 @@ namespace DELTation.ToonRP
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
                     ExecuteBuffer(cmd);
-                    DrawGeometry(RenderQueueRange.opaque);
+                    DrawGeometry(false);
                 }
 
                 ExecuteBuffer(cmd);
@@ -474,7 +444,7 @@ namespace DELTation.ToonRP
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
                     ExecuteBuffer(cmd);
-                    DrawGeometry(RenderQueueRange.transparent);
+                    DrawGeometry(true);
                 }
 
                 ExecuteBuffer(cmd);
@@ -483,15 +453,25 @@ namespace DELTation.ToonRP
             }
         }
 
-        private void DrawGeometry(RenderQueueRange renderQueueRange)
+        private void DrawGeometry(bool transparent)
         {
+            (SortingCriteria sortingCriteria, RenderQueueRange renderQueueRange, int layerMask) = transparent
+                ? (SortingCriteria.CommonTransparent, RenderQueueRange.transparent, _settings.TransparentLayerMask)
+                : (SortingCriteria.CommonOpaque, RenderQueueRange.opaque, _settings.OpaqueLayerMask);
             var sortingSettings = new SortingSettings(_camera)
             {
-                criteria = SortingCriteria.CommonOpaque,
+                criteria = sortingCriteria,
             };
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
+        }
+
+        public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
+            in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+            int layerMask = -1, RenderStateBlock renderStateBlock = default)
+        {
             var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
-                enableDynamicBatching = _settings.UseDynamicBatching,
+                enableDynamicBatching = settings.UseDynamicBatching,
                 perObjectData = PerObjectData.LightProbe,
             };
 
@@ -500,9 +480,8 @@ namespace DELTation.ToonRP
                 drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
             }
 
-            var filteringSettings = new FilteringSettings(renderQueueRange);
-
-            _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
+            var filteringSettings = new FilteringSettings(renderQueueRange, layerMask);
+            context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
         }
 
         partial void DrawGizmosPreImageEffects();

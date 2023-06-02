@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -36,8 +37,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public void EnableAlphaBlending(bool enable)
         {
             Material.SetKeyword(new LocalKeyword(_shader, AlphaBlendingKeywordName), enable);
-            (BlendMode srcBlend, BlendMode dstBlend) =
-                enable ? (BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha) : (BlendMode.One, BlendMode.Zero);
+            (UnityBlendMode srcBlend, UnityBlendMode dstBlend) =
+                enable
+                    ? (UnityBlendMode.SrcAlpha, UnityBlendMode.OneMinusSrcAlpha)
+                    : (UnityBlendMode.One, UnityBlendMode.Zero);
             Material.SetFloat(BlendSrcId, (float) srcBlend);
             Material.SetFloat(BlendDstId, (float) dstBlend);
         }

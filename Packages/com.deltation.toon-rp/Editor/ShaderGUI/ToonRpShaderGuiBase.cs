@@ -5,7 +5,6 @@ using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
-using BlendMode = DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.BlendMode;
 using Object = UnityEngine.Object;
 using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
@@ -168,20 +167,14 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             {
                 if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
                 {
-                    var blendModeValue = (BlendMode) blendMode.floatValue;
-                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue switch
-                    {
-                        BlendMode.Alpha => (UnityBlendMode.SrcAlpha, UnityBlendMode.OneMinusSrcAlpha),
-                        BlendMode.Premultiply => (UnityBlendMode.One, UnityBlendMode.OneMinusSrcAlpha),
-                        BlendMode.Additive => (UnityBlendMode.One, UnityBlendMode.One),
-                        BlendMode.Multiply => (UnityBlendMode.DstColor, UnityBlendMode.Zero),
-                        _ => throw new ArgumentOutOfRangeException(),
-                    };
+                    var blendModeValue = (ToonBlendMode) blendMode.floatValue;
+                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue.ToUnityBlendModes();
                     SetBlend(blendSrc, blendDst);
 
                     ForEachMaterial(m =>
                         {
-                            m.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == BlendMode.Premultiply);
+                            m.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == ToonBlendMode.Premultiply
+                            );
                         }
                     );
                 }

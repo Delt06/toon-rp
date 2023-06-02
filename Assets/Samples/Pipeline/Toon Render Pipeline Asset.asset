@@ -33,6 +33,12 @@ MonoBehaviour:
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
     DepthPrePass: 2
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 247
     UseSrpBatching: 1
     UseDynamicBatching: 0
   ShadowSettings:
@@ -68,6 +74,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
     - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
     - {fileID: 11400000, guid: 30041836c268b614db8f6cfc9f36024b, type: 2}
+    - {fileID: 11400000, guid: f0489e92ff979c443be4e14bcf3021bb, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:

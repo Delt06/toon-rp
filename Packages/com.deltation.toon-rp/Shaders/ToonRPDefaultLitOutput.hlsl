@@ -150,7 +150,7 @@ float3 ComputeAdditionalLightComponent(const in LightComputationParameters param
         const float attenuation = light.distanceAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
         const float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN);
-        lights += diffuseRamp * (light.color * parameters.albedo.rgb) * step(0.01, attenuation);
+        lights += diffuseRamp * (light.color * parameters.albedo.rgb) * step(0.001, attenuation);
     }
 
     return lights;

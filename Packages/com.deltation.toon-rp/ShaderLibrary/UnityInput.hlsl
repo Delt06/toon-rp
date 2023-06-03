@@ -10,6 +10,9 @@ float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
 real4 unity_WorldTransformParams;
 
+half4 unity_LightData;
+half4 unity_LightIndices[2];
+
 // Velocity
 float4x4 unity_MatrixPreviousM;
 float4x4 unity_MatrixPreviousMI;

@@ -301,7 +301,7 @@ namespace DELTation.ToonRP
 
             VisibleLight visibleLight =
                 _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;
-            _lighting.Setup(_context, visibleLight.light);
+            _lighting.Setup(ref _context, _cullingResults, visibleLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
@@ -472,7 +472,7 @@ namespace DELTation.ToonRP
             var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = PerObjectData.LightProbe,
+                perObjectData = PerObjectData.LightProbe | PerObjectData.LightData,
             };
 
             for (int i = 0; i < ShaderTagIds.Length; i++)

@@ -7,9 +7,15 @@
 #include "Shadows.hlsl"
 #include "UnityInput.hlsl"
 
+#define MAX_ADDITIONAL_LIGHT_COUNT 64
+
 CBUFFER_START(_ToonRPLight)
 float3 _DirectionalLightColor;
 float3 _DirectionalLightDirection;
+
+uint _AdditionalLightCount;
+float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT];
+float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT];
 CBUFFER_END
 
 struct Light
@@ -17,6 +23,7 @@ struct Light
     float3 color;
     float3 direction;
     float shadowAttenuation;
+    float distanceAttenuation;
 };
 
 Light GetMainLight()
@@ -25,6 +32,7 @@ Light GetMainLight()
     light.color = _DirectionalLightColor;
     light.direction = _DirectionalLightDirection;
     light.shadowAttenuation = 1.0f;
+    light.distanceAttenuation = 1.0f;
     return light;
 }
 
@@ -34,6 +42,30 @@ Light GetMainLight(const float3 shadowCoords)
     light.color = _DirectionalLightColor;
     light.direction = _DirectionalLightDirection;
     light.shadowAttenuation = SampleShadowAttenuation(shadowCoords);
+    light.distanceAttenuation = 1.0f;
+    return light;
+}
+
+uint GetAdditionalLightCount()
+{
+    return _AdditionalLightCount;
+}
+
+Light GetAdditionalLight(const uint index, const float3 positionWs)
+{
+    Light light;
+    light.color = _AdditionalLightColors[index].rgb;
+    const float4 position = _AdditionalLightPositions[index];
+    const float3 offset = position.xyz - positionWs;
+    light.direction = normalize(offset);
+    light.shadowAttenuation = 1.0f;
+
+    const float distanceSqr = max(dot(offset, offset), 0.00001);
+    const float distanceAttenuation = Sq(
+        saturate(1.0f - Sq(distanceSqr * position.w))
+    );
+    light.distanceAttenuation = distanceAttenuation / distanceSqr;
+
     return light;
 }
 

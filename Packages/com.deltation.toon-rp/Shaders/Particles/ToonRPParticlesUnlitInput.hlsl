@@ -10,6 +10,8 @@ DECLARE_TILING_OFFSET(_MainTexture)
 float3 _EmissionColor;
 
 float _AlphaClipThreshold;
+float _SoftParticlesDistance;
+float _SoftParticlesRange;
 
 CBUFFER_END
 

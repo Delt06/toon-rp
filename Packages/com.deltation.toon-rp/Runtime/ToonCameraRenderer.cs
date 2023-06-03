@@ -16,7 +16,6 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
-        private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
@@ -423,13 +422,7 @@ namespace DELTation.ToonRP
 
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
-            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
-                    1.0f / _renderTarget.Width,
-                    1.0f / _renderTarget.Height,
-                    _renderTarget.Width,
-                    _renderTarget.Height
-                )
-            );
+            _renderTarget.SetScreenParams(cmd);
             ExecuteBuffer(cmd);
 
             {

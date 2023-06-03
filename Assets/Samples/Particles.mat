@@ -9,8 +9,10 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Particles
   m_Shader: {fileID: 4800000, guid: 35c96b3480aa42608e6118af2c2aa7a2, type: 3}
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _SOFT_PARTICLES
+  m_InvalidKeywords:
+  - _SOFTPARTICLES_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -53,6 +55,9 @@ Material:
     - _QueueOffset: 0
     - _ReceiveBlobShadows: 0
     - _RenderFace: 2
+    - _SoftParticles: 1
+    - _SoftParticlesDistance: 0.45
+    - _SoftParticlesRange: 1
     - _SurfaceType: 1
     - _ZWrite: 0
     m_Colors:

@@ -49,4 +49,10 @@ float4 unity_OrthoParams;
 float4 unity_FogParams;
 real4 unity_FogColor;
 
+bool IsOrthographicCamera()
+{
+    return unity_OrthoParams.w == 1.0;
+}
+
+
 #endif // TOON_RP_UNITY_INPUT

@@ -22,7 +22,11 @@
         _ZWrite ("ZWrite", Float) = 0
         [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.RenderFace)]
         _RenderFace ("Render Face", Float) = 2
-        
+	    
+	    [Toggle]
+	    _SoftParticles("Soft Particles", Float) = 0
+	    _SoftParticlesDistance ("Soft Particles Distance", Range(0, 10)) = 0
+	    _SoftParticlesRange ("Soft Particles Range", Range(0.01, 10)) = 1
         _QueueOffset ("Queue Offset", Float) = 0
         
 	}
@@ -60,6 +64,7 @@
 			// Per-Material
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _SOFT_PARTICLES
 			
 			#include "ToonRPParticlesUnlitForwardPass.hlsl"
 			

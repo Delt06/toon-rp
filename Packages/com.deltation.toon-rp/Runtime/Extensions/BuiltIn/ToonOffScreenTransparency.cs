@@ -111,9 +111,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             bool highQuality = _settings.DepthDownsampleQuality == DepthDownsampleQualityLevel.High;
                             _depthDownsample.Downsample(cmd, highQuality, _settings.ResolutionFactor);
                         }
-
-                        ExecuteBuffer(cmd);
                     }
+
+                    _cameraRenderTarget.SetScreenParamsOverride(cmd, _width, _height);
+                    ExecuteBuffer(cmd);
 
                     {
                         var sortingSettings = new SortingSettings(_camera)

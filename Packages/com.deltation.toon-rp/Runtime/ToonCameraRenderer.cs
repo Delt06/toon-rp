@@ -341,7 +341,7 @@ namespace DELTation.ToonRP
             else
 #endif // UNITY_EDITOR
             {
-                clearColor = cameraClearFlags == CameraClearFlags.Color;
+                clearColor = cameraClearFlags == CameraClearFlags.Color || _camera.cameraType != CameraType.Game;
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
             }
 

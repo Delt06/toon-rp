@@ -99,6 +99,75 @@ float ComputeRampRim(const float fresnel, const v2f IN)
     #endif // _OVERRIDE_RAMP
 }
 
+struct LightComputationParameters
+{
+    v2f IN;
+    float4 albedo;
+    float3 normalWs;
+    float3 viewDirectionWs;
+};
+
+float GetSsao(in LightComputationParameters parameters)
+{
+    #ifdef TOON_RP_SSAO_ANY
+    const float2 screenUv = PositionHClipToScreenUv(parameters.IN.positionCs);
+    return SampleAmbientOcclusion(screenUv, parameters.IN.positionWs);;
+    #else // !TOON_RP_SSAO_ANY
+    return 1.0f;
+    #endif // TOON_RP_SSAO_ANY
+}
+
+float3 ComputeMainLightComponent(const in LightComputationParameters parameters, const float ssao,
+                                 out float shadowAttenuation)
+{
+    const float3 mixedShadowColor = MixShadowColor(parameters.albedo.rgb, _ShadowColor);
+    const Light light = GetMainLight(parameters.IN);
+    const float nDotL = dot(parameters.normalWs, light.direction);
+    float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN);
+    shadowAttenuation = GetShadowAttenuation(parameters.IN, light);
+    shadowAttenuation *= ssao;
+
+    diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
+    const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, diffuseRamp);
+
+    const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
+    float specularRamp = ComputeRampSpecular(nDotH, parameters.IN);
+    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
+    const float3 specular = _SpecularColor * specularRamp;
+
+    return light.color * (diffuse + specular);
+}
+
+float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
+{
+    const uint lightsCount = GetPerObjectAdditionalLightCount();
+    float3 lights = 0;
+
+    for (uint i = 0; i < lightsCount; ++i)
+    {
+        const Light light = GetAdditionalLight(i, parameters.IN.positionWs);
+        float nDotL = dot(parameters.normalWs, light.direction);
+        const float attenuation = light.distanceAttenuation * ssao;
+        nDotL = min(nDotL * attenuation, attenuation);
+        const float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN);
+        lights += diffuseRamp * (light.color * parameters.albedo.rgb) * step(0.01, attenuation);
+    }
+
+    return lights;
+}
+
+float3 ComputeLights(const in LightComputationParameters parameters, out float outShadowAttenuation)
+{
+    const float ssao = GetSsao(parameters);
+    float3 lights = ComputeMainLightComponent(parameters, ssao, outShadowAttenuation);
+
+    #ifdef _TOON_RP_ADDITIONAL_LIGHTS
+    lights += ComputeAdditionalLightComponent(parameters, ssao);
+    #endif // _TOON_RP_ADDITIONAL_LIGHTS
+
+    return lights;
+}
+
 float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 {
     #ifdef _NORMAL_MAP
@@ -109,25 +178,15 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     #endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 
-    const float3 mixedShadowColor = MixShadowColor(albedo.rgb, _ShadowColor);
-    const Light light = GetMainLight(IN);
-    const float nDotL = dot(normalWs, light.direction);
-    float diffuseRamp = ComputeRampDiffuse(nDotL, IN);
-    float shadowAttenuation = GetShadowAttenuation(IN, light);
-
-    #ifdef TOON_RP_SSAO_ANY
-    const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
-    shadowAttenuation *= SampleAmbientOcclusion(screenUv, IN.positionWs);
-    #endif // TOON_RP_SSAO_ANY
-
-    diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
-    const float3 diffuse = ApplyRamp(albedo.rgb, mixedShadowColor, diffuseRamp);
-
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
-    const float nDotH = ComputeNDotH(viewDirectionWs, normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH, IN);
-    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
-    const float3 specular = _SpecularColor * specularRamp;
+    LightComputationParameters lightComputationParameters;
+    lightComputationParameters.IN = IN;
+    lightComputationParameters.albedo = albedo;
+    lightComputationParameters.normalWs = normalWs;
+    lightComputationParameters.viewDirectionWs = viewDirectionWs;
+    // ReSharper disable once CppEntityAssignedButNoRead
+    float shadowAttenuation;
+    const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
 
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
     const float rimRamp = ComputeRampRim(fresnel, IN);
@@ -135,7 +194,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
 
-    float3 outputColor = light.color * (diffuse + specular) + rim + ambient + _EmissionColor * albedo.a;
+    float3 outputColor = lights + rim + ambient + _EmissionColor * albedo.a;
     TOON_RP_MATCAP_APPLY_MULTIPLICATIVE(outputColor, IN, _MatcapBlend, _MatcapTint);
     TOON_RP_MATCAP_APPLY_ADDITIVE(outputColor, IN, shadowAttenuation, _MatcapBlend, _MatcapTint);
     return outputColor;

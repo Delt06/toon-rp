@@ -299,14 +299,26 @@ namespace DELTation.ToonRP
 
             _globalRamp.Setup(_context, globalRampSettings);
 
-            VisibleLight visibleLight =
-                _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;
-            _lighting.Setup(_context, visibleLight.light);
+            VisibleLight mainLight = FindMainLightOrDefault();
+            _lighting.Setup(ref _context, ref _cullingResults, _settings, mainLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
-                _shadows.Render(visibleLight.light);
+                _shadows.Render(mainLight.light);
             }
+        }
+
+        private VisibleLight FindMainLightOrDefault()
+        {
+            foreach (VisibleLight visibleLight in _cullingResults.visibleLights)
+            {
+                if (visibleLight.lightType == LightType.Directional)
+                {
+                    return visibleLight;
+                }
+            }
+
+            return default;
         }
 
         private void ClearRenderTargets(CommandBuffer cmd)
@@ -462,17 +474,26 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange,
+                _settings.AdditionalLights, layerMask
+            );
         }
 
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+            bool perObjectLightData,
             int layerMask = -1, RenderStateBlock renderStateBlock = default)
         {
+            PerObjectData perObjectData = PerObjectData.LightProbe;
+            if (perObjectLightData)
+            {
+                perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+            }
+
             var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = PerObjectData.LightProbe,
+                perObjectData = perObjectData,
             };
 
             for (int i = 0; i < ShaderTagIds.Length; i++)

@@ -136,7 +136,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         };
                         ToonCameraRenderer.DrawGeometry(_cameraRendererSettings,
                             ref _srpContext, _cullingResults, sortingSettings, RenderQueueRange.transparent,
-                            _settings.LayerMask,
+                            _cameraRendererSettings.AdditionalLights, _settings.LayerMask,
                             new RenderStateBlock(RenderStateMask.Blend)
                             {
                                 blendState = new BlendState

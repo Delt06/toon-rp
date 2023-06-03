@@ -77,6 +77,10 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 ![Blob Shadows](./Documentation/features_blob_shadows.jpg?raw=true)
 
+- Additional Lights
+
+![Additional Lights](./Documentation/features_additional_lights.jpg?raw=true)
+
 - MSAA
 
 ![MSAA](./Documentation/features_msaa.jpg?raw=true)

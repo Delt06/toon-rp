@@ -8,6 +8,7 @@
 #include "UnityInput.hlsl"
 
 #define MAX_ADDITIONAL_LIGHT_COUNT 64
+#define MAX_ADDITIONAL_LIGHTS_PER_OBJECT 4
 
 CBUFFER_START(_ToonRPLight)
 float3 _DirectionalLightColor;
@@ -46,16 +47,25 @@ Light GetMainLight(const float3 shadowCoords)
     return light;
 }
 
-uint GetAdditionalLightCount()
+uint GetPerObjectAdditionalLightCount()
 {
-    return _AdditionalLightCount;
+    return min((uint)unity_LightData.y, MAX_ADDITIONAL_LIGHTS_PER_OBJECT);
 }
 
-Light GetAdditionalLight(const uint index, const float3 positionWs)
+uint ToGlobalLightIndex(const uint perObjectIndex)
 {
+    // Take the "vec4" part into float4 tmp variable in order to force float4 math.
+    // It appears indexing half4 as min16float4 on DX11 can fail. (dp4 {min16f})
+    const float4 tmp = unity_LightIndices[perObjectIndex / 4];
+    return uint(tmp[perObjectIndex % 4]);
+}
+
+Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
+{
+    const uint globalIndex = ToGlobalLightIndex(perObjectIndex);
     Light light;
-    light.color = _AdditionalLightColors[index].rgb;
-    const float4 position = _AdditionalLightPositions[index];
+    light.color = _AdditionalLightColors[globalIndex].rgb;
+    const float4 position = _AdditionalLightPositions[globalIndex];
     const float3 offset = position.xyz - positionWs;
     light.direction = normalize(offset);
     light.shadowAttenuation = 1.0f;

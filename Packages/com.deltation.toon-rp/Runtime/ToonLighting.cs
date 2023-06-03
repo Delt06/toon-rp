@@ -10,22 +10,40 @@ namespace DELTation.ToonRP
     {
         private const string CmdName = "Lighting";
         private const int MaxAdditionalLightCount = 64;
+        // TODO: implement stripping
+        public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
         private static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");
         private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
         private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
         private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
+        private static GlobalKeyword _additionalLightsGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
+        private int _additionalLightsCount;
 
-        public void Setup(ref ScriptableRenderContext context, in CullingResults cullingResults,
+        public ToonLighting() => _additionalLightsGlobalKeyword = GlobalKeyword.Create(AdditionalLightsGlobalKeyword);
+
+        public void Setup(ref ScriptableRenderContext context, ref CullingResults cullingResults,
+            in ToonCameraRendererSettings settings,
             [CanBeNull] Light mainLight)
         {
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
-            SetupAdditionalLights(cullingResults.visibleLights);
+
+            if (settings.AdditionalLights)
+            {
+                NativeArray<int> indexMap = cullingResults.GetLightIndexMap(Allocator.Temp);
+                SetupAdditionalLights(indexMap, cullingResults.visibleLights);
+                cullingResults.SetLightIndexMap(indexMap);
+                indexMap.Dispose();
+            }
+
+            bool useAdditionalLights = _additionalLightsCount > 0;
+            _buffer.SetKeyword(_additionalLightsGlobalKeyword, useAdditionalLights);
+
             _buffer.EndSample(CmdName);
             context.ExecuteCommandBuffer(_buffer);
             _buffer.Clear();
@@ -45,19 +63,25 @@ namespace DELTation.ToonRP
             }
         }
 
-        private void SetupAdditionalLights(NativeArray<VisibleLight> visibleLights)
+        private void SetupAdditionalLights(NativeArray<int> indexMap, NativeArray<VisibleLight> visibleLights)
         {
-            int additionalLightsCount = 0;
+            const int lightSkipIndex = -1;
+            _additionalLightsCount = 0;
 
-            foreach (VisibleLight visibleLight in visibleLights)
+            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; visibleLightIndex++)
             {
+                VisibleLight visibleLight = visibleLights[visibleLightIndex];
+
+                int newIndex = lightSkipIndex;
+
                 switch (visibleLight.lightType)
                 {
                     case LightType.Point:
-                        if (additionalLightsCount < MaxAdditionalLightCount)
+                        if (_additionalLightsCount < MaxAdditionalLightCount)
                         {
-                            SetupPointLight(additionalLightsCount, visibleLight);
-                            additionalLightsCount++;
+                            newIndex = _additionalLightsCount;
+                            SetupPointLight(_additionalLightsCount, visibleLight);
+                            _additionalLightsCount++;
                         }
 
                         break;
@@ -70,10 +94,18 @@ namespace DELTation.ToonRP
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                indexMap[visibleLightIndex] = newIndex;
             }
 
-            _buffer.SetGlobalInteger(AdditionalLightCountId, additionalLightsCount);
-            if (additionalLightsCount > 0)
+            // Remove invisible lights
+            for (int i = visibleLights.Length; i < indexMap.Length; ++i)
+            {
+                indexMap[i] = lightSkipIndex;
+            }
+
+            _buffer.SetGlobalInteger(AdditionalLightCountId, _additionalLightsCount);
+            if (_additionalLightsCount > 0)
             {
                 _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);
                 _buffer.SetGlobalVectorArray(AdditionalLightPositionsId, _additionalLightPositions);

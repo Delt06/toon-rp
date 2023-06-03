@@ -301,7 +301,7 @@ namespace DELTation.ToonRP
 
             VisibleLight visibleLight =
                 _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;
-            _lighting.Setup(ref _context, _cullingResults, visibleLight.light);
+            _lighting.Setup(ref _context, ref _cullingResults, _settings, visibleLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
@@ -462,17 +462,26 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange,
+                _settings.AdditionalLights, layerMask
+            );
         }
 
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+            bool perObjectLightData,
             int layerMask = -1, RenderStateBlock renderStateBlock = default)
         {
+            PerObjectData perObjectData = PerObjectData.LightProbe;
+            if (perObjectLightData)
+            {
+                perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+            }
+
             var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = PerObjectData.LightProbe | PerObjectData.LightData,
+                perObjectData = perObjectData,
             };
 
             for (int i = 0; i < ShaderTagIds.Length; i++)

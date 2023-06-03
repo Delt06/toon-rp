@@ -14,6 +14,7 @@ namespace DELTation.ToonRP
             _8x = 8,
         }
 
+        public bool AdditionalLights;
         public bool AllowHdr;
         public bool Stencil;
         public MsaaMode Msaa;

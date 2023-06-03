@@ -33,7 +33,7 @@ float3 SampleMatcapMultiplicative(const half2 matcapUv, const float3 tint, const
                                   const float blend)
 {
     const float3 matcapSample = SampleMatcap(matcapUv) * tint;
-    return lerp(matcapSample, matcapSample * originalColor, blend);
+    return lerp(originalColor, matcapSample * originalColor, blend);
 }
 
 #ifdef _MATCAP

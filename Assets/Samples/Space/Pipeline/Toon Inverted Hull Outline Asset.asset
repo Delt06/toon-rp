@@ -22,7 +22,20 @@ MonoBehaviour:
         m_Bits: 439
       StencilLayer: 8
       Color: {r: 0, g: 0, b: 0, a: 1}
-      Thickness: 0.05
+      Thickness: 0.015
+      NoiseAmplitude: 0
+      NoiseFrequency: 0
+      NormalsSource: 0
+      DepthBias: -1
+      MaxDistance: 0
+      DistanceFade: 0.1
+    - Name: Thick Outline
+      LayerMask:
+        serializedVersion: 2
+        m_Bits: 512
+      StencilLayer: 8
+      Color: {r: 0, g: 0, b: 0, a: 1}
+      Thickness: 0.04
       NoiseAmplitude: 0
       NoiseFrequency: 0
       NormalsSource: 0

@@ -10,7 +10,6 @@ namespace DELTation.ToonRP
     {
         private const string CmdName = "Lighting";
         private const int MaxAdditionalLightCount = 64;
-        // TODO: implement stripping
         public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
         private static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");

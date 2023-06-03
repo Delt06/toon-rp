@@ -45,6 +45,12 @@ namespace DELTation.ToonRP.Editor.Stripping
                 .Distinct()
                 .ToList();
 
+            // Additional lights
+            if (!_allToonRenderPipelineAssets.Any(a => a.CameraRendererSettings.AdditionalLights))
+            {
+                _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsGlobalKeyword));
+            }
+
             // Blob shadows
             if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Blobs))
             {

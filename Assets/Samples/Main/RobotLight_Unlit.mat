@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: RobotLight_Unlit
+  m_Shader: {fileID: 4800000, guid: 6b9fe9604cb243afa2ff826745fc8723, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
+  disabledShaderPasses:
+  - SHADOWCASTER
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints:
+    - _ForwardStencilComp: 0
+    - _ForwardStencilPass: 0
+    - _ForwardStencilRef: 0
+    - _ForwardStencilWriteMask: 0
+    m_Floats:
+    - _AlphaClipThreshold: 0.5
+    - _AlphaClipping: 0
+    - _BlendDst: 1
+    - _BlendMode: 2
+    - _BlendSrc: 1
+    - _OutlinesStencilLayer: 8
+    - _OverrideRamp: 0
+    - _OverrideRamp_RimSmoothness: 0.1
+    - _OverrideRamp_RimThreshold: 0.5
+    - _OverrideRamp_Smoothness: 0.083
+    - _OverrideRamp_SpecularSmoothness: 0.005
+    - _OverrideRamp_SpecularThreshold: 0.995
+    - _OverrideRamp_Threshold: 0
+    - _QueueOffset: 0
+    - _ReceiveBlobShadows: 0
+    - _RenderFace: 2
+    - _SurfaceType: 1
+    - _ZWrite: 0
+    m_Colors:
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _MainColor: {r: 4.237095, g: 1.0204521, b: 0.75424725, a: 0.98039216}
+    - _RimColor: {r: 0, g: 0, b: 0, a: 0}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
+    - _SpecularColor: {r: 0.43527526, g: 0.43527526, b: 0.43527526, a: 1}
+  m_BuildTextureStacks: []

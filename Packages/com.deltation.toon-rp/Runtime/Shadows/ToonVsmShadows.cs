@@ -288,7 +288,12 @@ namespace DELTation.ToonRP.Shadows
         private void RenderDirectionalShadows(CommandBuffer cmd, int index, int split, int tileSize)
         {
             ShadowedDirectionalLight light = _shadowedDirectionalLights[index];
-            var shadowSettings = new ShadowDrawingSettings(_cullingResults, light.VisibleLightIndex);
+            var shadowSettings =
+                new ShadowDrawingSettings(_cullingResults, light.VisibleLightIndex
+#if UNITY_2022_2_OR_NEWER
+                    , BatchCullingProjectionType.Orthographic // directional shadows are rendered with orthographic projection
+#endif // UNITY_2022_2_OR_NEWER
+                );
             int cascadeCount = _vsmSettings.Directional.CascadeCount;
             int tileOffset = index * cascadeCount;
             Vector3 ratios = _vsmSettings.Directional.GetRatios();

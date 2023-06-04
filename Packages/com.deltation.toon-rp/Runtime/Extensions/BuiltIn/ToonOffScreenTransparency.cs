@@ -23,14 +23,14 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             DepthId,
             0
         );
+        private readonly Material _material =
+            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Off-Screen Transparency");
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
         private CullingResults _cullingResults;
         private int _height;
-        private Material _material;
         private ToonOffScreenTransparencySettings _settings;
-        private Shader _shader;
         private ScriptableRenderContext _srpContext;
         private int _width;
 
@@ -49,23 +49,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _height = Mathf.Max(1, _cameraRenderTarget.Height / _settings.ResolutionFactor);
         }
 
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null && _shader != null)
-            {
-                return;
-            }
-
-            _shader = Shader.Find(ShaderName);
-            _material = new Material(_shader)
-            {
-                name = "Toon RP Off-Screen Transparency",
-            };
-        }
-
         public override void Render()
         {
-            EnsureMaterialIsCreated();
             CommandBuffer cmd = CommandBufferPool.Get();
 
             string passName = !string.IsNullOrWhiteSpace(_settings.PassName)

@@ -44,6 +44,8 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
         private static readonly int EarlyBailThresholdId = Shader.PropertyToID("_EarlyBailThreshold");
+        private readonly Material _blurMaterial;
+        private readonly Shader _blurShader;
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
 
         private readonly Matrix4x4[] _directionalShadowMatricesV =
@@ -54,8 +56,6 @@ namespace DELTation.ToonRP.Shadows
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
             new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
-        private Material _blurMaterial;
-        private Shader _blurShader;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonShadowSettings _settings;
@@ -73,6 +73,12 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
+        public ToonVsmShadows()
+        {
+            _blurShader = Shader.Find(BlurShaderName);
+            _blurMaterial = ToonRpUtils.CreateEngineMaterial(_blurShader, "Toon RP VSM Blur");
+        }
+
         private string PassName
         {
             get
@@ -82,20 +88,6 @@ namespace DELTation.ToonRP.Shadows
                     : ToonRpPassId.VsmShadows;
                 return passName;
             }
-        }
-
-        private void EnsureMaterialIsCreated()
-        {
-            if (_blurMaterial != null && _blurShader != null)
-            {
-                return;
-            }
-
-            _blurShader = Shader.Find(BlurShaderName);
-            _blurMaterial = new Material(_blurShader)
-            {
-                name = "Toon RP VSM Blur",
-            };
         }
 
 
@@ -151,7 +143,6 @@ namespace DELTation.ToonRP.Shadows
                     );
                     cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
 
-                    EnsureMaterialIsCreated();
                     RenderDirectionalShadows(cmd);
                 }
                 else

@@ -15,21 +15,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int BlurWidthId = Shader.PropertyToID("_BlurWidth");
         private static readonly int IntensityId = Shader.PropertyToID("_Intensity");
         private static readonly int NumSamplesId = Shader.PropertyToID("_NumSamples");
+        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Light Scattering");
         private ToonLightScatteringSettings _lightScatteringSettings;
-        private Material _material;
-
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null)
-            {
-                return;
-            }
-
-            _material = new Material(Shader.Find(ShaderName))
-            {
-                name = "Toon RP Light Scattering",
-            };
-        }
 
         public override bool NeedsDistinctSourceAndDestination() => false;
 
@@ -42,8 +29,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)
         {
-            EnsureMaterialIsCreated();
-
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.LightScattering)))
             {
                 Light sun = RenderSettings.sun;

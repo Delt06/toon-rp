@@ -34,26 +34,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             Shader.PropertyToID("_FilmGrain_LuminanceThreshold0");
         private static readonly int FilmGrainLuminanceThreshold1Id =
             Shader.PropertyToID("_FilmGrain_LuminanceThreshold1");
+        private readonly Material _material =
+            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Post-Processing Stack");
 
         private ToonFilmGrainSettings _filmGrainSettings;
         private ToonFxaaSettings _fxaaSettings;
         private ToonLookupTableSettings _lookupTable;
-        private Material _material;
         private ToonToneMappingSettings _toneMapping;
         private ToonVignetteSettings _vignette;
-
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null)
-            {
-                return;
-            }
-
-            _material = new Material(Shader.Find(ShaderName))
-            {
-                name = "Toon RP Post-Processing Stack",
-            };
-        }
 
         public override bool IsEnabled(in ToonPostProcessingSettings settings)
         {
@@ -80,8 +68,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)
         {
-            EnsureMaterialIsCreated();
-
             HandleFxaaProperties();
             HandleToneMappingProperties();
             HandleVignetteProperties();

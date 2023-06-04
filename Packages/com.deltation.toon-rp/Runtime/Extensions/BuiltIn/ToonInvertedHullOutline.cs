@@ -139,7 +139,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _context = context.ScriptableRenderContext;
             _cullingResults = context.CullingResults;
             _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
-            EnsureMaterialsAreCreated();
+            PopulateMaterialsForAllPasses();
         }
 
         private void ExecuteBuffer(CommandBuffer cmd)
@@ -148,7 +148,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             cmd.Clear();
         }
 
-        private void EnsureMaterialsAreCreated()
+        private void PopulateMaterialsForAllPasses()
         {
             while (_materials.Count < _outlineSettings.Passes.Length)
             {
@@ -164,13 +164,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             }
         }
 
-        private static Material CreateMaterial()
-        {
-            var shader = Shader.Find(ShaderName);
-            return new Material(shader)
-            {
-                name = "Toon RP Outline (Inverted Hull)",
-            };
-        }
+        private static Material CreateMaterial() =>
+            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Outline (Inverted Hull)");
     }
 }

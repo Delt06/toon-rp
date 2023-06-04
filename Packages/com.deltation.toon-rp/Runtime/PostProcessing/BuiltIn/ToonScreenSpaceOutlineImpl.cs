@@ -21,33 +21,30 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
         private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
         private static readonly int MainTexTexelSizeId = Shader.PropertyToID("_MainTex_TexelSize");
+        private readonly Material _material;
 
-        private Material _material;
-        private Shader _shader;
+        private readonly Shader _shader;
 
-        private Material Material
+        public ToonScreenSpaceOutlineImpl()
         {
-            get
-            {
-                EnsureMaterialIsCreated();
-                return _material;
-            }
+            _shader = Shader.Find(ShaderName);
+            _material = ToonRpUtils.CreateEngineMaterial(_shader, "Toon RP Outline (Screen Space)");
         }
 
         public void EnableAlphaBlending(bool enable)
         {
-            Material.SetKeyword(new LocalKeyword(_shader, AlphaBlendingKeywordName), enable);
+            _material.SetKeyword(new LocalKeyword(_shader, AlphaBlendingKeywordName), enable);
             (UnityBlendMode srcBlend, UnityBlendMode dstBlend) =
                 enable
                     ? (UnityBlendMode.SrcAlpha, UnityBlendMode.OneMinusSrcAlpha)
                     : (UnityBlendMode.One, UnityBlendMode.Zero);
-            Material.SetFloat(BlendSrcId, (float) srcBlend);
-            Material.SetFloat(BlendDstId, (float) dstBlend);
+            _material.SetFloat(BlendSrcId, (float) srcBlend);
+            _material.SetFloat(BlendDstId, (float) dstBlend);
         }
 
         public void SetRtSize(int rtWidth, int rtHeight)
         {
-            Material.SetVector(MainTexTexelSizeId, new Vector4(
+            _material.SetVector(MainTexTexelSizeId, new Vector4(
                     1.0f / rtWidth,
                     1.0f / rtHeight,
                     rtWidth,
@@ -56,23 +53,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             );
         }
 
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null && _shader != null)
-            {
-                return;
-            }
-
-            _shader = Shader.Find(ShaderName);
-            _material = new Material(_shader)
-            {
-                name = "Toon RP Outline (Screen Space)",
-            };
-        }
-
         public void RenderViaCustomBlit(CommandBuffer cmd, in ToonScreenSpaceOutlineSettings settings)
         {
-            EnsureMaterialIsCreated();
             UpdateMaterial(settings);
 
             CustomBlitter.Blit(cmd, _material);
@@ -81,7 +63,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public void RenderViaBlit(CommandBuffer cmd, in ToonScreenSpaceOutlineSettings settings,
             in RenderTargetIdentifier source, in RenderTargetIdentifier destination)
         {
-            EnsureMaterialIsCreated();
             UpdateMaterial(settings);
 
             cmd.Blit(source, destination, _material);

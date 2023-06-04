@@ -41,7 +41,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 for (int passIndex = 0; passIndex < _outlineSettings.Passes.Length; passIndex++)
                 {
@@ -70,7 +70,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         material.SetKeyword(DistanceFadeKeywordName, pass.IsDistanceFadeEnabled);
 
                         cmd.SetGlobalDepthBias(pass.DepthBias, 0);
-                        ExecuteBuffer(cmd);
+                        _context.ExecuteCommandBufferAndClear(cmd);
 
                         var sortingSettings = new SortingSettings(_camera)
                         {
@@ -122,12 +122,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
 
                         cmd.SetGlobalDepthBias(0, 0);
-                        ExecuteBuffer(cmd);
+                        _context.ExecuteCommandBufferAndClear(cmd);
                     }
                 }
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -140,12 +140,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _cullingResults = context.CullingResults;
             _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
             PopulateMaterialsForAllPasses();
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         private void PopulateMaterialsForAllPasses()

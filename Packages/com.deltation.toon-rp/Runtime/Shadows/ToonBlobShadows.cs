@@ -50,7 +50,7 @@ namespace DELTation.ToonRP.Shadows
             cmd.GetTemporaryRT(ShadowMapId, atlasSize, atlasSize, 0, FilterMode.Bilinear, RenderTextureFormat.R8,
                 RenderTextureReadWrite.Linear
             );
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -81,7 +81,7 @@ namespace DELTation.ToonRP.Shadows
                 }
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -111,14 +111,8 @@ namespace DELTation.ToonRP.Shadows
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             cmd.ReleaseTemporaryRT(ShadowMapId);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

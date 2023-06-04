@@ -79,12 +79,12 @@ namespace DELTation.ToonRP
                 }
 
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 DrawRenderers();
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -97,7 +97,7 @@ namespace DELTation.ToonRP
                 cmd.ReleaseTemporaryRT(_normalsTextureId);
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -117,12 +117,6 @@ namespace DELTation.ToonRP
             _context.DrawRenderers(_cullingResults,
                 ref drawingSettings, ref filteringSettings
             );
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

@@ -29,5 +29,11 @@ namespace DELTation.ToonRP
             SetMaterialName(material, materialName);
             return material;
         }
+
+        public static void ExecuteCommandBufferAndClear(ref this ScriptableRenderContext context, CommandBuffer cmd)
+        {
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
     }
 }

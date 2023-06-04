@@ -142,7 +142,7 @@ namespace DELTation.ToonRP
         private void SetRenderTargets(CommandBuffer cmd)
         {
             _renderTarget.SetRenderTarget(cmd);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
 
@@ -260,7 +260,7 @@ namespace DELTation.ToonRP
                 _renderTarget.InitializeAsCameraRenderTarget(rtWidth, rtHeight, colorFormat);
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionContext =
                 new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
@@ -294,7 +294,7 @@ namespace DELTation.ToonRP
         private void SetupLighting(CommandBuffer cmd, ToonRampSettings globalRampSettings,
             ToonShadowSettings shadowSettings)
         {
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _globalRamp.Setup(_context, globalRampSettings);
 
@@ -348,7 +348,7 @@ namespace DELTation.ToonRP
             cmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
             cmd.EndSample(sampleName);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void RenderPostProcessing(CommandBuffer cmd)
@@ -366,7 +366,7 @@ namespace DELTation.ToonRP
                     cmd.Blit(ToonCameraRenderTarget.CameraColorBufferId, PostProcessingSourceId);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
                 sourceId = PostProcessingSourceId;
             }
             else
@@ -374,7 +374,7 @@ namespace DELTation.ToonRP
                 sourceId = ToonCameraRenderTarget.CameraColorBufferId;
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
             _postProcessing.RenderFullScreenEffects(
@@ -388,7 +388,7 @@ namespace DELTation.ToonRP
         private void BlitToCameraTarget()
         {
             _renderTarget.FinalBlit(_finalBlitCmd);
-            ExecuteBuffer(_finalBlitCmd);
+            _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
         }
 
         private void Cleanup(CommandBuffer cmd)
@@ -404,37 +404,31 @@ namespace DELTation.ToonRP
             _postProcessing.Cleanup();
             _renderTarget.ReleaseTemporaryRTs(cmd);
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void Submit(CommandBuffer cmd)
         {
             cmd.EndSample(_cmdName);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             _context.Submit();
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
             _renderTarget.SetScreenParams(cmd);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
-                    ExecuteBuffer(cmd);
+                    _context.ExecuteCommandBufferAndClear(cmd);
                     DrawGeometry(false);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
@@ -448,11 +442,11 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
-                    ExecuteBuffer(cmd);
+                    _context.ExecuteCommandBufferAndClear(cmd);
                     DrawGeometry(true);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterTransparent);
             }

@@ -58,7 +58,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 : "Off-Screen Transparency";
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
             {
-                ExecuteBuffer(cmd);
+                _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                 if (_settings.DepthMode == DepthRenderMode.PrePass)
                 {
@@ -99,7 +99,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     }
 
                     _cameraRenderTarget.SetScreenParamsOverride(cmd, _width, _height);
-                    ExecuteBuffer(cmd);
+                    _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                     {
                         var sortingSettings = new SortingSettings(_camera)
@@ -170,17 +170,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         throw new ArgumentOutOfRangeException();
                 }
 
-                ExecuteBuffer(cmd);
+                _srpContext.ExecuteCommandBufferAndClear(cmd);
             }
 
-            ExecuteBuffer(cmd);
+            _srpContext.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _srpContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

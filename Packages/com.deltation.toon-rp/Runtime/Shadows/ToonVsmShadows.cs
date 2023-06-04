@@ -91,12 +91,6 @@ namespace DELTation.ToonRP.Shadows
         }
 
 
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-        }
-
         public void Setup(in ScriptableRenderContext context,
             in CullingResults cullingResults,
             in ToonShadowSettings settings)
@@ -160,7 +154,7 @@ namespace DELTation.ToonRP.Shadows
                 }
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -170,7 +164,7 @@ namespace DELTation.ToonRP.Shadows
             cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasId);
             cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasDepthId);
             cmd.ReleaseTemporaryRT(DirectionalShadowsAtlasTempId);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -220,7 +214,7 @@ namespace DELTation.ToonRP.Shadows
                 cmd.ClearRenderTarget(true, true, GetShadowmapClearColor());
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             int tiles = _shadowedDirectionalLightCount * _vsmSettings.Directional.CascadeCount;
             int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
@@ -247,7 +241,7 @@ namespace DELTation.ToonRP.Shadows
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void BakeViewSpaceZIntoMatrix()
@@ -328,7 +322,7 @@ namespace DELTation.ToonRP.Shadows
                     _directionalShadowMatricesV[tileIndex] = viewMatrix;
                     cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
-                    ExecuteBuffer(cmd);
+                    _context.ExecuteCommandBufferAndClear(cmd);
 
                     _context.DrawShadows(ref shadowSettings);
                 }
@@ -336,7 +330,7 @@ namespace DELTation.ToonRP.Shadows
 
             cmd.SetGlobalDepthBias(0f, 0.0f);
             cmd.EndSample(RenderShadowsSample);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             ExecuteBlur(cmd);
         }
@@ -390,7 +384,7 @@ namespace DELTation.ToonRP.Shadows
                 cmd.EndSample(BlurSample);
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private static void SetTileViewport(CommandBuffer cmd, int index, int split, int tileSize, out Vector2 offset)

@@ -4,6 +4,7 @@ using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
@@ -461,8 +462,9 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
+            bool perObjectLightData = _settings.AdditionalLights != AdditionalLightsMode.Off;
             DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange,
-                _settings.AdditionalLights, layerMask
+                perObjectLightData, layerMask
             );
         }
 

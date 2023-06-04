@@ -46,9 +46,22 @@ namespace DELTation.ToonRP.Editor.Stripping
                 .ToList();
 
             // Additional lights
-            if (!_allToonRenderPipelineAssets.Any(a => a.CameraRendererSettings.AdditionalLights))
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsGlobalKeyword));
+                if (_allToonRenderPipelineAssets.All(a =>
+                        a.CameraRendererSettings.AdditionalLights !=
+                        ToonCameraRendererSettings.AdditionalLightsMode.PerPixel
+                    ))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsGlobalKeyword));
+                }
+
+                if (_allToonRenderPipelineAssets.All(a =>
+                        a.CameraRendererSettings.AdditionalLights !=
+                        ToonCameraRendererSettings.AdditionalLightsMode.PerVertex
+                    ))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsVertexGlobalKeyword));
+                }
             }
 
             // Blob shadows

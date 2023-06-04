@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
@@ -11,19 +12,25 @@ namespace DELTation.ToonRP
         private const string CmdName = "Lighting";
         private const int MaxAdditionalLightCount = 64;
         public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
+        public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
         private static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");
         private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
         private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
         private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
         private static GlobalKeyword _additionalLightsGlobalKeyword;
+        private static GlobalKeyword _additionalLightsVertexGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
 
-        public ToonLighting() => _additionalLightsGlobalKeyword = GlobalKeyword.Create(AdditionalLightsGlobalKeyword);
+        public ToonLighting()
+        {
+            _additionalLightsGlobalKeyword = GlobalKeyword.Create(AdditionalLightsGlobalKeyword);
+            _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(AdditionalLightsVertexGlobalKeyword);
+        }
 
         public void Setup(ref ScriptableRenderContext context, ref CullingResults cullingResults,
             in ToonCameraRendererSettings settings,
@@ -32,7 +39,8 @@ namespace DELTation.ToonRP
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
 
-            if (settings.AdditionalLights)
+            AdditionalLightsMode additionalLightsMode = settings.AdditionalLights;
+            if (additionalLightsMode != AdditionalLightsMode.Off)
             {
                 NativeArray<int> indexMap = cullingResults.GetLightIndexMap(Allocator.Temp);
                 SetupAdditionalLights(indexMap, cullingResults.visibleLights);
@@ -40,12 +48,10 @@ namespace DELTation.ToonRP
                 indexMap.Dispose();
             }
 
-            bool useAdditionalLights = _additionalLightsCount > 0;
-            _buffer.SetKeyword(_additionalLightsGlobalKeyword, useAdditionalLights);
+            SetAdditionalLightsKeywords(additionalLightsMode);
 
             _buffer.EndSample(CmdName);
-            context.ExecuteCommandBuffer(_buffer);
-            _buffer.Clear();
+            context.ExecuteCommandBufferAndClear(_buffer);
         }
 
         private void SetupDirectionalLight([CanBeNull] Light light)
@@ -60,6 +66,21 @@ namespace DELTation.ToonRP
                 _buffer.SetGlobalVector(DirectionalLightColorId, Vector4.zero);
                 _buffer.SetGlobalVector(DirectionalLightDirectionId, Vector4.zero);
             }
+        }
+
+        private void SetAdditionalLightsKeywords(AdditionalLightsMode lightsMode)
+        {
+            bool anyAdditionalLights = _additionalLightsCount > 0;
+            (bool enablePerPixel, bool enablePerVertex) = (anyAdditionalLights, lightsMode) switch
+            {
+                (_, AdditionalLightsMode.Off) => (false, false),
+                (false, _) => (false, false),
+                (true, AdditionalLightsMode.PerPixel) => (true, false),
+                (true, AdditionalLightsMode.PerVertex) => (false, true),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+            _buffer.SetKeyword(_additionalLightsGlobalKeyword, enablePerPixel);
+            _buffer.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
         }
 
         private void SetupAdditionalLights(NativeArray<int> indexMap, NativeArray<VisibleLight> visibleLights)

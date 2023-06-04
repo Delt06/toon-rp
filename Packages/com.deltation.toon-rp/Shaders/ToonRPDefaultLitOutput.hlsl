@@ -57,7 +57,7 @@ Light GetMainLight(const v2f IN)
     return light;
 }
 
-float ComputeRampDiffuse(const float nDotL, const v2f IN)
+float ComputeRampDiffuse(const float nDotL, const float2 uv)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -66,12 +66,12 @@ float ComputeRampDiffuse(const float nDotL, const v2f IN)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampDiffuse(nDotL, IN.uv);
+    return ComputeGlobalRampDiffuse(nDotL, uv);
 
     #endif // _OVERRIDE_RAMP
 }
 
-float ComputeRampSpecular(const float nDotH, const v2f IN)
+float ComputeRampSpecular(const float nDotH, const float2 uv)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -80,12 +80,12 @@ float ComputeRampSpecular(const float nDotH, const v2f IN)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampSpecular(nDotH, IN.uv);
+    return ComputeGlobalRampSpecular(nDotH, uv);
 
     #endif // _OVERRIDE_RAMP
 }
 
-float ComputeRampRim(const float fresnel, const v2f IN)
+float ComputeRampRim(const float fresnel, const float2 uv)
 {
     #ifdef _OVERRIDE_RAMP
 
@@ -94,7 +94,7 @@ float ComputeRampRim(const float fresnel, const v2f IN)
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampRim(fresnel, IN.uv);
+    return ComputeGlobalRampRim(fresnel, uv);
 
     #endif // _OVERRIDE_RAMP
 }
@@ -123,7 +123,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     const float3 mixedShadowColor = MixShadowColor(parameters.albedo.rgb, _ShadowColor);
     const Light light = GetMainLight(parameters.IN);
     const float nDotL = dot(parameters.normalWs, light.direction);
-    float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN);
+    float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN.uv);
     shadowAttenuation = GetShadowAttenuation(parameters.IN, light);
     shadowAttenuation *= ssao;
 
@@ -131,29 +131,51 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, diffuseRamp);
 
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH, parameters.IN);
+    float specularRamp = ComputeRampSpecular(nDotH, parameters.IN.uv);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = _SpecularColor * specularRamp;
 
     return light.color * (diffuse + specular);
 }
 
-float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
+float3 ComputeAdditionalLightsRawDiffuse(const float3 positionWs, const half3 normalWs, const float2 uv,
+                                         const float ssao)
 {
     const uint lightsCount = GetPerObjectAdditionalLightCount();
     float3 lights = 0;
 
     for (uint i = 0; i < lightsCount; ++i)
     {
-        const Light light = GetAdditionalLight(i, parameters.IN.positionWs);
-        float nDotL = dot(parameters.normalWs, light.direction);
+        const Light light = GetAdditionalLight(i, positionWs);
+        float nDotL = dot(normalWs, light.direction);
         const float attenuation = light.distanceAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
-        const float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.IN);
-        lights += diffuseRamp * (light.color * parameters.albedo.rgb) * step(0.001, attenuation);
+
+        #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+        const float diffuseRamp = saturate(nDotL);
+        #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+        const float diffuseRamp = ComputeRampDiffuse(nDotL, uv);
+        #endif  // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+
+        lights += diffuseRamp * step(0.001, attenuation) * light.color;
     }
 
     return lights;
+}
+
+float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
+{
+    const float3 rawDiffuse = ComputeAdditionalLightsRawDiffuse(
+        parameters.IN.positionWs,
+        parameters.IN.normalWs, parameters.IN.uv,
+        ssao);
+    return rawDiffuse * parameters.albedo.rgb;
+}
+
+float3 ComputeAdditionalLightComponentPerVertex(const in LightComputationParameters parameters)
+{
+    const float3 rawDiffuse = PER_VERTEX_ADDITIONAL_LIGHTS(parameters.IN);
+    return rawDiffuse * parameters.albedo.rgb;
 }
 
 float3 ComputeLights(const in LightComputationParameters parameters, out float outShadowAttenuation)
@@ -161,9 +183,11 @@ float3 ComputeLights(const in LightComputationParameters parameters, out float o
     const float ssao = GetSsao(parameters);
     float3 lights = ComputeMainLightComponent(parameters, ssao, outShadowAttenuation);
 
-    #ifdef _TOON_RP_ADDITIONAL_LIGHTS
+    #if defined(_TOON_RP_ADDITIONAL_LIGHTS)
     lights += ComputeAdditionalLightComponent(parameters, ssao);
-    #endif // _TOON_RP_ADDITIONAL_LIGHTS
+    #elif defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX)
+    lights += ComputeAdditionalLightComponentPerVertex(parameters);
+    #endif
 
     return lights;
 }
@@ -189,7 +213,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
 
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
-    const float rimRamp = ComputeRampRim(fresnel, IN);
+    const float rimRamp = ComputeRampRim(fresnel, IN.uv);
     const float3 rim = _RimColor * rimRamp;
 
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;

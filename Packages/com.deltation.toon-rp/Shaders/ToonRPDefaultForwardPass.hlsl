@@ -35,7 +35,9 @@ v2f VS(const appdata IN)
 
     UNITY_SETUP_INSTANCE_ID(IN);
 
-    OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
+    const float2 uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
+    OUT.uv = uv;
+
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
 
     #if !defined(UNLIT)
@@ -54,6 +56,10 @@ v2f VS(const appdata IN)
     ComputeTangentsWs(IN.tangent, normalWs, OUT.tangentWs, OUT.bitangentWs);
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
+    #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(positionWs, normalWs, uv, 1);
+    #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 
     return OUT;
@@ -61,6 +67,9 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
+    #ifdef UNITY_FRAGMENT_SHADER
+    return 1;
+    #endif
     float4 albedo = SampleAlbedo(IN.uv);
     AlphaClip(albedo);
 

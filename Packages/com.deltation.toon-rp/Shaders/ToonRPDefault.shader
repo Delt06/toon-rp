@@ -112,7 +112,7 @@
 			#pragma multi_compile_fragment _ _TOON_RP_SHADOWS_PATTERN
 
 			// Lights
-			#pragma multi_compile_fragment _ _TOON_RP_ADDITIONAL_LIGHTS
+			#pragma multi_compile _ _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
 			// SSAO
 			#pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN

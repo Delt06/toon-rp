@@ -6,6 +6,13 @@ namespace DELTation.ToonRP
     [Serializable]
     public struct ToonCameraRendererSettings
     {
+        public enum AdditionalLightsMode
+        {
+            Off,
+            PerPixel,
+            PerVertex,
+        }
+
         public enum MsaaMode
         {
             Off = 1,
@@ -14,7 +21,7 @@ namespace DELTation.ToonRP
             _8x = 8,
         }
 
-        public bool AdditionalLights;
+        public AdditionalLightsMode AdditionalLights;
         public bool AllowHdr;
         public bool Stencil;
         public MsaaMode Msaa;

@@ -21,8 +21,8 @@ namespace DELTation.ToonRP.Editor.Stripping
     {
         private readonly List<ToonRenderPipelineAsset> _allToonRenderPipelineAssets;
         private readonly List<ShaderKeyword> _keywordsToStrip = new();
-        private readonly List<(string shaderName, string keyword)> _localKeywordsToStrip = new();
-        private readonly List<string> _shadersToStrip = new();
+        private readonly Dictionary<string, List<string>> _localKeywordsToStrip = new();
+        private readonly HashSet<string> _shadersToStrip = new();
 
         public ToonShaderBuildPreprocessor()
         {
@@ -110,15 +110,14 @@ namespace DELTation.ToonRP.Editor.Stripping
                                                            ToonVsmShadowSettings.BlurMode.GaussianHighQuality
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName)
-                    );
+                    AddLocalKeywordToStrip(ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName);
                 }
 
                 if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                            a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName));
+                    AddLocalKeywordToStrip(ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName);
                 }
             }
 
@@ -187,8 +186,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                     ))
                 {
-                    _localKeywordsToStrip.Add(
-                        (ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName)
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName
                     );
                 }
 
@@ -196,8 +194,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonInvertedHullOutline.ShaderName,
-                            ToonInvertedHullOutline.DistanceFadeKeywordName)
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.DistanceFadeKeywordName
                     );
                 }
             }
@@ -206,39 +204,39 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 if (!AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.ColorFilter.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                            ToonScreenSpaceOutlineImpl.ColorKeywordName)
+                    AddLocalKeywordToStrip(ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.ColorKeywordName
                     );
                 }
 
                 if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.DepthFilter.Enabled) &&
                     !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.DepthFilter.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                            ToonScreenSpaceOutlineImpl.DepthKeywordName)
+                    AddLocalKeywordToStrip(ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.DepthKeywordName
                     );
                 }
 
                 if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.NormalsFilter.Enabled) &&
                     !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.NormalsFilter.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                            ToonScreenSpaceOutlineImpl.NormalsKeywordName)
+                    AddLocalKeywordToStrip(ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.NormalsKeywordName
                     );
                 }
 
                 if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>(a => a.Settings.UseFog) &&
                     !AnyPostProcessingPass<ToonScreenSpaceOutlineAsset>(a => a.Settings.UseFog))
                 {
-                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                            ToonScreenSpaceOutlineImpl.UseFogKeywordName)
+                    AddLocalKeywordToStrip(ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.UseFogKeywordName
                     );
                 }
 
                 if (!AnyExtension<ToonScreenSpaceOutlineAfterOpaqueAsset>())
                 {
-                    _localKeywordsToStrip.Add((ToonScreenSpaceOutlineImpl.ShaderName,
-                            ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName)
+                    AddLocalKeywordToStrip(ToonScreenSpaceOutlineImpl.ShaderName,
+                        ToonScreenSpaceOutlineImpl.AlphaBlendingKeywordName
                     );
                 }
             }
@@ -247,11 +245,11 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Fxaa.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.FxaaLowKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaLowKeywordName
                     );
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.FxaaHighKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaHighKeywordName
                     );
                 }
 
@@ -259,8 +257,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                         s.Settings.Fxaa.Enabled && s.Settings.Fxaa.HighQuality
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.FxaaHighKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaHighKeywordName
                     );
                 }
 
@@ -268,36 +266,36 @@ namespace DELTation.ToonRP.Editor.Stripping
                         s.Settings.Fxaa.Enabled && !s.Settings.Fxaa.HighQuality
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.FxaaLowKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FxaaLowKeywordName
                     );
                 }
 
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.ToneMapping.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.ToneMappingKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.ToneMappingKeywordName
                     );
                 }
 
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Vignette.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.VignetteKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.VignetteKeywordName
                     );
                 }
 
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.LookupTable.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.LookupTableKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.LookupTableKeywordName
                     );
                 }
 
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.FilmGrain.Enabled))
                 {
-                    _localKeywordsToStrip.Add((ToonPostProcessingStack.ShaderName,
-                            ToonPostProcessingStack.FilmGrainKeywordName)
+                    AddLocalKeywordToStrip(ToonPostProcessingStack.ShaderName,
+                        ToonPostProcessingStack.FilmGrainKeywordName
                     );
                 }
             }
@@ -317,17 +315,17 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonOffScreenTransparencySettings.DepthDownsampleQualityLevel.High
                     ))
                 {
-                    _localKeywordsToStrip.Add((ToonDepthDownsample.ShaderName, ToonDepthDownsample.HighQualityKeyword));
+                    AddLocalKeywordToStrip(ToonDepthDownsample.ShaderName, ToonDepthDownsample.HighQualityKeyword);
                 }
             }
+
+            ReportStrippingConfiguration();
         }
 
         public int callbackOrder => 0;
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
-            string logMessage = string.Empty;
-
             for (int i = 0; i < data.Count; i++)
             {
                 ShaderCompilerData shaderCompilerData = data[i];
@@ -336,19 +334,46 @@ namespace DELTation.ToonRP.Editor.Stripping
                     continue;
                 }
 
-                string keywords = string.Join(";", data[i].shaderKeywordSet.GetShaderKeywords());
-                logMessage += $"Toon RP: stripping {shader.name} ({keywords}).\n";
                 data.RemoveAt(i);
                 --i;
             }
+        }
 
-            if (!string.IsNullOrEmpty(logMessage))
+        private void AddLocalKeywordToStrip(string shaderName, string keyword)
+        {
+            if (!_localKeywordsToStrip.TryGetValue(shaderName, out List<string> keywords))
             {
-                Debug.Log(logMessage);
+                _localKeywordsToStrip[shaderName] = keywords = new List<string>();
+            }
+
+            keywords.Add(keyword);
+        }
+
+        private void ReportStrippingConfiguration()
+        {
+            string separator = Environment.NewLine;
+
+            {
+                string shadersToStripString = string.Join(separator, _shadersToStrip);
+                Debug.Log($"Toon RP: stripping shaders: {shadersToStripString}");
+            }
+
+            {
+                string globalKeywordsToStripString = string.Join(separator, _keywordsToStrip);
+                Debug.Log($"Toon RP: stripping global shader keywords: {globalKeywordsToStripString}");
+            }
+
+            {
+                IEnumerable<string> localKeywords =
+                    _localKeywordsToStrip.SelectMany(kvp =>
+                        kvp.Value.Select(v => $"{kvp.Key} ({v})")
+                    );
+                string localKeywordsToStripString = string.Join(separator, localKeywords);
+                Debug.Log($"Toon RP: stripping local shader keywords: {localKeywordsToStripString}");
             }
         }
 
-        private bool ShouldStrip(ToonRpGlobalSettings globalSettings) =>
+        private static bool ShouldStrip(ToonRpGlobalSettings globalSettings) =>
             globalSettings.ShaderVariantStrippingMode switch
             {
                 ShaderVariantStrippingMode.Always => true,
@@ -360,12 +385,7 @@ namespace DELTation.ToonRP.Editor.Stripping
         private static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget,
             List<ToonRenderPipelineAsset> pipelineAssets)
         {
-            var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            if (qualitySettings == null)
-            {
-                return false;
-            }
+            using var qualitySettings = new SerializedObject(QualitySettings.GetQualitySettings());
 
             SerializedProperty property = qualitySettings.FindProperty("m_QualitySettings");
             if (property == null)
@@ -442,26 +462,25 @@ namespace DELTation.ToonRP.Editor.Stripping
 
         private bool ShouldStrip(Shader shader, ShaderCompilerData shaderCompilerData)
         {
-            foreach (string shaderToStrip in _shadersToStrip)
+            if (_shadersToStrip.Contains(shader.name))
             {
-                if (shader.name == shaderToStrip)
+                return true;
+            }
+
+            if (_localKeywordsToStrip.TryGetValue(shader.name, out List<string> localKeywords))
+            {
+                foreach (string keyword in localKeywords)
                 {
-                    return true;
+                    if (shaderCompilerData.shaderKeywordSet.IsEnabled(new ShaderKeyword(shader, keyword)))
+                    {
+                        return true;
+                    }
                 }
             }
 
-            foreach ((string shaderName, string keyword) in _localKeywordsToStrip)
+            foreach (ShaderKeyword keyword in _keywordsToStrip)
             {
-                if (shader.name == shaderName &&
-                    shaderCompilerData.shaderKeywordSet.IsEnabled(new ShaderKeyword(shader, keyword)))
-                {
-                    return true;
-                }
-            }
-
-            foreach (ShaderKeyword shaderKeyword in _keywordsToStrip)
-            {
-                if (shaderCompilerData.shaderKeywordSet.IsEnabled(shaderKeyword))
+                if (shaderCompilerData.shaderKeywordSet.IsEnabled(keyword))
                 {
                     return true;
                 }

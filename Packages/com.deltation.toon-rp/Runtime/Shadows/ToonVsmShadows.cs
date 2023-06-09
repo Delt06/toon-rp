@@ -191,7 +191,10 @@ namespace DELTation.ToonRP.Shadows
                         ShadowmapFiltering,
                         VsmShadowmapFormat
                     );
-                    cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                    int firstRenderTarget = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.Box
+                        ? DirectionalShadowsAtlasTempId
+                        : DirectionalShadowsAtlasId;
+                    cmd.SetRenderTarget(firstRenderTarget,
                         RenderBufferLoadAction.DontCare,
                         RenderBufferStoreAction.Store,
                         DirectionalShadowsAtlasDepthId,
@@ -346,43 +349,67 @@ namespace DELTation.ToonRP.Shadows
             if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
             {
                 cmd.BeginSample(BlurSample);
-                bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.HighQuality;
-                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
-                    highQualityBlur
-                );
 
-                _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
-                    _vsmSettings.IsBlurEarlyBailEnabled
-                );
-                if (_vsmSettings.IsBlurEarlyBailEnabled)
+                const int gaussianHorizontalPass = 0;
+                const int gaussianVerticalPass = 1;
+                const int boxBlurPass = 2;
+
+                if (_vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.Box)
                 {
-                    _blurMaterial.SetFloat(EarlyBailThresholdId, _vsmSettings.BlurEarlyBailThreshold * DepthScale);
+                    {
+                        cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                            RenderBufferLoadAction.DontCare,
+                            RenderBufferStoreAction.Store,
+                            DirectionalShadowsAtlasDepthId,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store
+                        );
+                        Color shadowmapClearColor = GetShadowmapClearColor();
+                        cmd.ClearRenderTarget(false, true, shadowmapClearColor);
+                        CustomBlitter.Blit(cmd, _blurMaterial, boxBlurPass);
+                    }
                 }
-
-                // Horizontal
+                else
                 {
-                    cmd.SetRenderTarget(DirectionalShadowsAtlasTempId,
-                        RenderBufferLoadAction.DontCare,
-                        RenderBufferStoreAction.Store,
-                        DirectionalShadowsAtlasDepthId,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store
+                    bool highQualityBlur = _vsmSettings.Blur == ToonVsmShadowSettings.BlurMode.GaussianHighQuality;
+                    _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
+                        highQualityBlur
                     );
-                    Color shadowmapClearColor = GetShadowmapClearColor();
-                    cmd.ClearRenderTarget(false, true, shadowmapClearColor);
-                    CustomBlitter.Blit(cmd, _blurMaterial);
-                }
 
-                // Vertical
-                {
-                    cmd.SetRenderTarget(DirectionalShadowsAtlasId,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        DirectionalShadowsAtlasDepthId,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store
+                    _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
+                        _vsmSettings.IsBlurEarlyBailEnabled
                     );
-                    CustomBlitter.Blit(cmd, _blurMaterial, 1);
+                    if (_vsmSettings.IsBlurEarlyBailEnabled)
+                    {
+                        _blurMaterial.SetFloat(EarlyBailThresholdId, _vsmSettings.BlurEarlyBailThreshold * DepthScale);
+                    }
+
+                    // Horizontal
+                    {
+                        cmd.SetRenderTarget(DirectionalShadowsAtlasTempId,
+                            RenderBufferLoadAction.DontCare,
+                            RenderBufferStoreAction.Store,
+                            DirectionalShadowsAtlasDepthId,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store
+                        );
+                        Color shadowmapClearColor = GetShadowmapClearColor();
+                        cmd.ClearRenderTarget(false, true, shadowmapClearColor);
+                        // ReSharper disable once RedundantArgumentDefaultValue
+                        CustomBlitter.Blit(cmd, _blurMaterial, gaussianHorizontalPass);
+                    }
+
+                    // Vertical
+                    {
+                        cmd.SetRenderTarget(DirectionalShadowsAtlasId,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store,
+                            DirectionalShadowsAtlasDepthId,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store
+                        );
+                        CustomBlitter.Blit(cmd, _blurMaterial, gaussianVerticalPass);
+                    }
                 }
 
 

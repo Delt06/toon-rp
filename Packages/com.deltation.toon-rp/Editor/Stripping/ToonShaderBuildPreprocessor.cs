@@ -107,7 +107,7 @@ namespace DELTation.ToonRP.Editor.Stripping
 
                 if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                            a.ShadowSettings.Vsm.Blur ==
-                                                           ToonVsmShadowSettings.BlurMode.HighQuality
+                                                           ToonVsmShadowSettings.BlurMode.GaussianHighQuality
                     ))
                 {
                     _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName)

@@ -60,9 +60,9 @@ MonoBehaviour:
         Enabled: 1
         AtlasSize: 1024
         CascadeCount: 4
-        CascadeRatio1: 0.1
-        CascadeRatio2: 0.25
-        CascadeRatio3: 0.5
+        CascadeRatio1: 0.299
+        CascadeRatio2: 0.58
+        CascadeRatio3: 0.85
         DepthBias: 0.102
         NormalBias: 0.025
         SlopeBias: 0

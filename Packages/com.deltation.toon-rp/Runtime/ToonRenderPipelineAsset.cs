@@ -53,7 +53,7 @@ namespace DELTation.ToonRP
             PatternScale = new Vector3(1, 0, 1),
             Vsm = new ToonVsmShadowSettings
             {
-                Blur = ToonVsmShadowSettings.BlurMode.LowQuality,
+                Blur = ToonVsmShadowSettings.BlurMode.Box,
                 BlurEarlyBail = true,
                 BlurEarlyBailThreshold = 0.01f,
                 Directional =

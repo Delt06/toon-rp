@@ -60,7 +60,7 @@ LuminanceNeighborhood GetLuminanceNeighborhood(float2 uv)
     return luminance;
 }
 
-bool CanSkipFXAA(in LuminanceNeighborhood luminance)
+bool CanSkipFxaa(const in LuminanceNeighborhood luminance)
 {
     return luminance.range < max(_FXAA_FixedContrastThreshold, _FXAA_RelativeContrastThreshold * luminance.highest);
 }
@@ -225,7 +225,8 @@ float3 ApplyFxaa(const float2 uv)
 {
     const LuminanceNeighborhood luminance = GetLuminanceNeighborhood(uv);
 
-    if (CanSkipFXAA(luminance))
+    UNITY_BRANCH
+    if (CanSkipFxaa(luminance))
     {
         return SampleSource(uv);
     }

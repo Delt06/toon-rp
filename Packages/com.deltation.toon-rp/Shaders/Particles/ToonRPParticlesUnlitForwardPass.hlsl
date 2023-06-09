@@ -2,6 +2,7 @@
 #define TOON_RP_PARTICLES_UNLIT_FORWARD_PASS
 
 #include "../../ShaderLibrary/Common.hlsl"
+#include "../../ShaderLibrary/DepthNormals.hlsl"
 #include "../../ShaderLibrary/Fog.hlsl"
 
 #include "ToonRPParticlesUnlitInput.hlsl"
@@ -47,6 +48,20 @@ v2f VS(const appdata IN)
     return OUT;
 }
 
+// Pre-multiplied alpha helper
+#if defined(_ALPHAPREMULTIPLY_ON)
+#define ALBEDO_MUL albedo
+#else
+#define ALBEDO_MUL albedo.a
+#endif
+
+float ComputeSoftParticlesFade(const float depth, const float bufferDepth)
+{
+    const float depthDelta = bufferDepth - depth;
+    const float nearAttenuation = (depthDelta - _SoftParticlesDistance) / _SoftParticlesRange;
+    return saturate(nearAttenuation);
+}
+
 float4 PS(const v2f IN) : SV_TARGET
 {
     float4 albedo = SampleAlbedo(IN.uv) * IN.color;
@@ -57,6 +72,17 @@ float4 PS(const v2f IN) : SV_TARGET
     #endif // _ALPHAPREMULTIPLY_ON
 
     albedo.rgb += _EmissionColor * albedo.a;
+
+    const float2 screenUv = PositionHClipToScreenUv(IN.positionCs);
+    const float depth = IsOrthographicCamera() ? OrthographicDepthBufferToLinear(IN.positionCs.z) : IN.positionCs.w;
+    float bufferDepth = SampleDepthTexture(screenUv);
+    bufferDepth = IsOrthographicCamera()
+                      ? OrthographicDepthBufferToLinear(bufferDepth)
+                      : LinearEyeDepth(bufferDepth, _ZBufferParams);
+
+    #ifdef _SOFT_PARTICLES
+    ALBEDO_MUL *= ComputeSoftParticlesFade(depth, bufferDepth);
+    #endif // _SOFT_PARTICLES
 
     float3 outputColor = albedo.rgb;
     TOON_RP_FOG_MIX(IN, outputColor);

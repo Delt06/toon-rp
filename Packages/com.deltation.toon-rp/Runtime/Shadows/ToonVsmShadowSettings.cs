@@ -10,8 +10,9 @@ namespace DELTation.ToonRP.Shadows
         public enum BlurMode
         {
             None,
-            LowQuality,
-            HighQuality,
+            Box,
+            GaussianLowQuality,
+            GaussianHighQuality,
         }
 
         [ToonRpShowIf(nameof(IsBlurEnabled), Mode = ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox,
@@ -28,7 +29,7 @@ namespace DELTation.ToonRP.Shadows
         public DirectionalShadows Directional;
 
         private bool IsBlurEnabled => Blur != BlurMode.None;
-        public bool IsBlurEarlyBailAllowed => Blur == BlurMode.HighQuality;
+        public bool IsBlurEarlyBailAllowed => Blur == BlurMode.GaussianHighQuality;
         public bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
 
         private bool IsBlurDisabled => Blur == BlurMode.None;

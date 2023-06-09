@@ -77,6 +77,10 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 
 ![Blob Shadows](./Documentation/features_blob_shadows.jpg?raw=true)
 
+- Additional Lights
+
+![Additional Lights](./Documentation/features_additional_lights.jpg?raw=true)
+
 - MSAA
 
 ![MSAA](./Documentation/features_msaa.jpg?raw=true)
@@ -140,6 +144,7 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 ## Used Assets
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)
 - [Quaternius - Ultimate Stylized Nature Pack](https://quaternius.com/packs/ultimatestylizednature.html)
+- [Quaternius - Ultimate Space Kit](https://quaternius.com/packs/ultimatespacekit.html)
 - [Aika: Sailor Uniform](https://assetstore.unity.com/packages/3d/characters/aika-sailor-uniform-222398)
 - [Stone](https://assetstore.unity.com/packages/3d/environments/landscapes/stone-62333)
 - [nidorx/matcaps: A huge library of MatCap textures in PNG and ZMT.](https://github.com/nidorx/matcaps)

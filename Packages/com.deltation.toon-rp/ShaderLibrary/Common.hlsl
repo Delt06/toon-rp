@@ -82,10 +82,7 @@ float GetLinearDepth(const float3 positionWs)
 
 float2 PositionHClipToScreenUv(const float4 positionCs)
 {
-    float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
-    #ifdef UNITY_UV_STARTS_AT_TOP
-    // screenUv.y = 1 - screenUv.y;
-    #endif // UNITY_UV_STARTS_AT_TOP
+    const float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
     return screenUv;
 }
 
@@ -95,6 +92,14 @@ void ComputeTangentsWs(const half4 tangentOs, const half3 normalWs, out half3 ta
     const half sign = tangentOs.w * GetOddNegativeScale();
     tangentWs = TransformObjectToWorldDir(tangentOs.xyz);
     bitangentWs = cross(normalWs, tangentWs) * sign;
+}
+
+float OrthographicDepthBufferToLinear(float rawDepth)
+{
+    #if UNITY_REVERSED_Z
+    rawDepth = 1.0 - rawDepth;
+    #endif
+    return (_ProjectionParams.z - _ProjectionParams.y) * rawDepth + _ProjectionParams.y;
 }
 
 #endif // TOON_RP_COMMON

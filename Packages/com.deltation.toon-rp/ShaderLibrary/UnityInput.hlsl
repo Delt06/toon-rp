@@ -6,9 +6,15 @@
 
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
+// Space block Feature
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
-real4 unity_WorldTransformParams;
+float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+
+// Light Indices block feature
+real4 unity_LightData;
+real4 unity_LightIndices[2];
 
 // Velocity
 float4x4 unity_MatrixPreviousM;
@@ -42,5 +48,11 @@ float4 unity_OrthoParams;
 
 float4 unity_FogParams;
 real4 unity_FogColor;
+
+bool IsOrthographicCamera()
+{
+    return unity_OrthoParams.w == 1.0;
+}
+
 
 #endif // TOON_RP_UNITY_INPUT

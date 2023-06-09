@@ -31,9 +31,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int PatternEdgeId = Shader.PropertyToID("_ToonRP_Bloom_PatternEdge");
 
         private readonly int _bloomPyramidId;
-        private ToonCameraRendererSettings _cameraRendererSettings;
 
-        private Material _material;
+        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Bloom");
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonBloomSettings _settings;
 
         public ToonBloom()
@@ -46,19 +46,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             }
         }
 
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null)
-            {
-                return;
-            }
-
-            _material = new Material(Shader.Find(ShaderName))
-            {
-                name = "Toon RP Bloom",
-            };
-        }
-
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
@@ -68,8 +55,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)
         {
-            EnsureMaterialIsCreated();
-
             int rtWidth = Context.RtWidth;
             int rtHeight = Context.RtHeight;
             int resolutionFactor = _settings.ResolutionFactor;

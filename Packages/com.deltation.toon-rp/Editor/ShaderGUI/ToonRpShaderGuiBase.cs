@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
@@ -151,61 +152,75 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
         }
 
-        protected bool DrawSurfaceProperties()
+        protected bool DrawSurfaceProperties([CanBeNull] Action onFoldoutOpen = null)
         {
             bool isFoldoutOpen = DrawFoldout(HeaderNames.Surface);
 
-            bool surfaceTypeChanged = DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceTypeProperty);
-            DrawAlphaClipping();
-            if (surfaceTypeProperty.hasMixedValue)
+            if (isFoldoutOpen)
             {
-                return isFoldoutOpen;
-            }
-
-            SurfaceType surfaceTypeValue = GetSurfaceType(GetFirstMaterial());
-            if (surfaceTypeValue == SurfaceType.Transparent)
-            {
-                if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
+                bool surfaceTypeChanged =
+                    DrawProperty(PropertyNames.SurfaceType, out MaterialProperty surfaceTypeProperty);
+                DrawAlphaClipping();
+                if (surfaceTypeProperty.hasMixedValue)
                 {
-                    var blendModeValue = (ToonBlendMode) blendMode.floatValue;
-                    (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue.ToUnityBlendModes();
-                    SetBlend(blendSrc, blendDst);
+                    return true;
+                }
 
+                SurfaceType surfaceTypeValue = GetSurfaceType(GetFirstMaterial());
+                if (surfaceTypeValue == SurfaceType.Transparent)
+                {
+                    if (DrawProperty(PropertyNames.BlendMode, out MaterialProperty blendMode) || surfaceTypeChanged)
+                    {
+                        var blendModeValue = (ToonBlendMode) blendMode.floatValue;
+                        (UnityBlendMode blendSrc, UnityBlendMode blendDst) = blendModeValue.ToUnityBlendModes();
+                        SetBlend(blendSrc, blendDst);
+
+                        ForEachMaterial(m =>
+                            {
+                                m.SetKeyword(ShaderKeywords.AlphaPremultiplyOn,
+                                    blendModeValue == ToonBlendMode.Premultiply
+                                );
+                            }
+                        );
+                    }
+
+                    if (surfaceTypeChanged)
+                    {
+                        SetZWrite(false);
+                        ForEachMaterial(m => m.SetShaderPassEnabled(ShadowCasterPassName, false));
+                    }
+                }
+                else if (surfaceTypeChanged)
+                {
+                    SetBlend(UnityBlendMode.One, UnityBlendMode.Zero);
+                    SetZWrite(true);
                     ForEachMaterial(m =>
                         {
-                            m.SetKeyword(ShaderKeywords.AlphaPremultiplyOn, blendModeValue == ToonBlendMode.Premultiply
-                            );
+                            m.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
+                            m.SetShaderPassEnabled(ShadowCasterPassName, true);
                         }
                     );
                 }
 
                 if (surfaceTypeChanged)
                 {
-                    SetZWrite(false);
-                    ForEachMaterial(m => m.SetShaderPassEnabled(ShadowCasterPassName, false));
+                    OnSurfaceTypeChanged();
                 }
-            }
-            else if (surfaceTypeChanged)
-            {
-                SetBlend(UnityBlendMode.One, UnityBlendMode.Zero);
-                SetZWrite(true);
-                ForEachMaterial(m =>
-                    {
-                        m.DisableKeyword(ShaderKeywords.AlphaPremultiplyOn);
-                        m.SetShaderPassEnabled(ShadowCasterPassName, true);
-                    }
-                );
-            }
 
-            DrawProperty(PropertyNames.RenderFace);
+                DrawProperty(PropertyNames.RenderFace);
 
-            if (OutlinesStencilLayer)
-            {
-                DrawOutlinesStencilLayer();
+                if (OutlinesStencilLayer)
+                {
+                    DrawOutlinesStencilLayer();
+                }
+
+                onFoldoutOpen?.Invoke();
             }
 
             return isFoldoutOpen;
         }
+
+        protected virtual void OnSurfaceTypeChanged() { }
 
         private static SurfaceType GetSurfaceType(Material m) => (SurfaceType) m.GetFloat(PropertyNames.SurfaceType);
 
@@ -273,18 +288,18 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
             {
                 byte reference = stencilLayer.ToReference();
-                m.SetInteger(ForwardStencilRefId, reference);
-                m.SetInteger(ForwardStencilWriteMaskId, reference);
-                m.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
-                m.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+                m.SetFloat(ForwardStencilRefId, reference);
+                m.SetFloat(ForwardStencilWriteMaskId, reference);
+                m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
+                m.SetFloat(ForwardStencilPassId, (int) StencilOp.Replace);
                 m.EnableKeyword(hasOutlinesStencilLayerKeyword);
             }
             else
             {
-                m.SetInteger(ForwardStencilRefId, 0);
-                m.SetInteger(ForwardStencilWriteMaskId, 0);
-                m.SetInteger(ForwardStencilCompId, 0);
-                m.SetInteger(ForwardStencilPassId, 0);
+                m.SetFloat(ForwardStencilRefId, 0);
+                m.SetFloat(ForwardStencilWriteMaskId, 0);
+                m.SetFloat(ForwardStencilCompId, 0);
+                m.SetFloat(ForwardStencilPassId, 0);
                 m.DisableKeyword(hasOutlinesStencilLayerKeyword);
             }
         }

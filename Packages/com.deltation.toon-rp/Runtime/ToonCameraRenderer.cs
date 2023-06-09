@@ -4,6 +4,7 @@ using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
@@ -16,7 +17,6 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
-        private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
@@ -143,7 +143,7 @@ namespace DELTation.ToonRP
         private void SetRenderTargets(CommandBuffer cmd)
         {
             _renderTarget.SetRenderTarget(cmd);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
 
@@ -261,7 +261,7 @@ namespace DELTation.ToonRP
                 _renderTarget.InitializeAsCameraRenderTarget(rtWidth, rtHeight, colorFormat);
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionContext =
                 new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
@@ -295,18 +295,30 @@ namespace DELTation.ToonRP
         private void SetupLighting(CommandBuffer cmd, ToonRampSettings globalRampSettings,
             ToonShadowSettings shadowSettings)
         {
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _globalRamp.Setup(_context, globalRampSettings);
 
-            VisibleLight visibleLight =
-                _cullingResults.visibleLights.Length > 0 ? _cullingResults.visibleLights[0] : default;
-            _lighting.Setup(_context, visibleLight.light);
+            VisibleLight mainLight = FindMainLightOrDefault();
+            _lighting.Setup(ref _context, ref _cullingResults, _settings, mainLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
-                _shadows.Render(visibleLight.light);
+                _shadows.Render(mainLight.light);
             }
+        }
+
+        private VisibleLight FindMainLightOrDefault()
+        {
+            foreach (VisibleLight visibleLight in _cullingResults.visibleLights)
+            {
+                if (visibleLight.lightType == LightType.Directional)
+                {
+                    return visibleLight;
+                }
+            }
+
+            return default;
         }
 
         private void ClearRenderTargets(CommandBuffer cmd)
@@ -330,14 +342,14 @@ namespace DELTation.ToonRP
             else
 #endif // UNITY_EDITOR
             {
-                clearColor = cameraClearFlags == CameraClearFlags.Color;
+                clearColor = cameraClearFlags == CameraClearFlags.Color || _camera.cameraType != CameraType.Game;
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
             }
 
             cmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
             cmd.EndSample(sampleName);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void RenderPostProcessing(CommandBuffer cmd)
@@ -355,7 +367,7 @@ namespace DELTation.ToonRP
                     cmd.Blit(ToonCameraRenderTarget.CameraColorBufferId, PostProcessingSourceId);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
                 sourceId = PostProcessingSourceId;
             }
             else
@@ -363,7 +375,7 @@ namespace DELTation.ToonRP
                 sourceId = ToonCameraRenderTarget.CameraColorBufferId;
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
             _postProcessing.RenderFullScreenEffects(
@@ -377,7 +389,7 @@ namespace DELTation.ToonRP
         private void BlitToCameraTarget()
         {
             _renderTarget.FinalBlit(_finalBlitCmd);
-            ExecuteBuffer(_finalBlitCmd);
+            _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
         }
 
         private void Cleanup(CommandBuffer cmd)
@@ -393,43 +405,31 @@ namespace DELTation.ToonRP
             _postProcessing.Cleanup();
             _renderTarget.ReleaseTemporaryRTs(cmd);
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void Submit(CommandBuffer cmd)
         {
             cmd.EndSample(_cmdName);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             _context.Submit();
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
-            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
-                    1.0f / _renderTarget.Width,
-                    1.0f / _renderTarget.Height,
-                    _renderTarget.Width,
-                    _renderTarget.Height
-                )
-            );
-            ExecuteBuffer(cmd);
+            _renderTarget.SetScreenParams(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
-                    ExecuteBuffer(cmd);
+                    _context.ExecuteCommandBufferAndClear(cmd);
                     DrawGeometry(false);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
@@ -443,11 +443,11 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
-                    ExecuteBuffer(cmd);
+                    _context.ExecuteCommandBufferAndClear(cmd);
                     DrawGeometry(true);
                 }
 
-                ExecuteBuffer(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterTransparent);
             }
@@ -462,17 +462,27 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
+            bool perObjectLightData = _settings.AdditionalLights != AdditionalLightsMode.Off;
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange,
+                perObjectLightData, layerMask
+            );
         }
 
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+            bool perObjectLightData,
             int layerMask = -1, RenderStateBlock renderStateBlock = default)
         {
+            PerObjectData perObjectData = PerObjectData.LightProbe;
+            if (perObjectLightData)
+            {
+                perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+            }
+
             var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = PerObjectData.LightProbe,
+                perObjectData = perObjectData,
             };
 
             for (int i = 0; i < ShaderTagIds.Length; i++)

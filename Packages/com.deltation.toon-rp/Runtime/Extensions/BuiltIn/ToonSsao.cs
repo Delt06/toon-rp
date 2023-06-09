@@ -60,7 +60,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             bool patternEnabled = _settings.Pattern != null;
             cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
             cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -115,7 +115,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 cmd.SetGlobalVector(PatternScaleId, _settings.PatternScale);
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -126,7 +126,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             cmd.ReleaseTemporaryRT(RtTempId);
             cmd.DisableKeyword(_ssaoKeyword);
             cmd.DisableKeyword(_ssaoPatternKeyword);
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
@@ -234,12 +234,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private void Draw(CommandBuffer cmd, int shaderPass)
         {
             cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

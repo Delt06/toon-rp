@@ -9,29 +9,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         public const string HighQualityKeyword = "_HIGH_QUALITY";
         private static readonly int ResolutionFactorId = Shader.PropertyToID("_ResolutionFactor");
 
-        private Material _material;
-        private Shader _shader;
-
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null && _shader != null)
-            {
-                return;
-            }
-
-            _shader = Shader.Find(ShaderName);
-            _material = new Material(_shader)
-            {
-                name = "Toon RP Depth Downsample",
-            };
-        }
+        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Depth Downsample");
 
         public void Downsample(CommandBuffer cmd, bool highQuality, int resolutionFactor)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Downsample Depth")))
             {
-                EnsureMaterialIsCreated();
-
                 _material.SetKeyword(HighQualityKeyword, highQuality);
                 if (highQuality)
                 {

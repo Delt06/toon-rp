@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DELTation.ToonRP.Editor.GlobalSettings;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Extensions.BuiltIn;
 using DELTation.ToonRP.PostProcessing;
@@ -25,6 +26,12 @@ namespace DELTation.ToonRP.Editor.Stripping
 
         public ToonShaderBuildPreprocessor()
         {
+            var globalSettings = ToonRpGlobalSettings.GetOrCreateSettings();
+            if (!ShouldStrip(globalSettings))
+            {
+                return;
+            }
+
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
 
             var renderPipelineAssets = new List<ToonRenderPipelineAsset>();
@@ -37,6 +44,25 @@ namespace DELTation.ToonRP.Editor.Stripping
                 .Where(a => a != null)
                 .Distinct()
                 .ToList();
+
+            // Additional lights
+            {
+                if (_allToonRenderPipelineAssets.All(a =>
+                        a.CameraRendererSettings.AdditionalLights !=
+                        ToonCameraRendererSettings.AdditionalLightsMode.PerPixel
+                    ))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsGlobalKeyword));
+                }
+
+                if (_allToonRenderPipelineAssets.All(a =>
+                        a.CameraRendererSettings.AdditionalLights !=
+                        ToonCameraRendererSettings.AdditionalLightsMode.PerVertex
+                    ))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsVertexGlobalKeyword));
+                }
+            }
 
             // Blob shadows
             if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Blobs))
@@ -81,7 +107,7 @@ namespace DELTation.ToonRP.Editor.Stripping
 
                 if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                            a.ShadowSettings.Vsm.Blur ==
-                                                           ToonVsmShadowSettings.BlurMode.HighQuality
+                                                           ToonVsmShadowSettings.BlurMode.GaussianHighQuality
                     ))
                 {
                     _localKeywordsToStrip.Add((ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName)
@@ -275,7 +301,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
             }
-            
+
             // ToonRPDepthDownsample
             {
                 if (!AnyExtension<ToonOffScreenTransparencyAsset>(t =>
@@ -284,16 +310,16 @@ namespace DELTation.ToonRP.Editor.Stripping
                 {
                     _shadersToStrip.Add(ToonDepthDownsample.ShaderName);
                 }
-                
+
                 if (!AnyExtension<ToonOffScreenTransparencyAsset>(t =>
                         t.Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample &&
-                        t.Settings.DepthDownsampleQuality == ToonOffScreenTransparencySettings.DepthDownsampleQualityLevel.High
+                        t.Settings.DepthDownsampleQuality ==
+                        ToonOffScreenTransparencySettings.DepthDownsampleQualityLevel.High
                     ))
                 {
                     _localKeywordsToStrip.Add((ToonDepthDownsample.ShaderName, ToonDepthDownsample.HighQualityKeyword));
                 }
             }
-            
         }
 
         public int callbackOrder => 0;
@@ -321,6 +347,15 @@ namespace DELTation.ToonRP.Editor.Stripping
                 Debug.Log(logMessage);
             }
         }
+
+        private bool ShouldStrip(ToonRpGlobalSettings globalSettings) =>
+            globalSettings.ShaderVariantStrippingMode switch
+            {
+                ShaderVariantStrippingMode.Always => true,
+                ShaderVariantStrippingMode.Never => false,
+                ShaderVariantStrippingMode.OnlyInRelease => !EditorUserBuildSettings.development,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         private static bool TryGetRenderPipelineAssetsForBuildTarget(BuildTarget buildTarget,
             List<ToonRenderPipelineAsset> pipelineAssets)

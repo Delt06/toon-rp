@@ -13,6 +13,11 @@ namespace DELTation.ToonRP.Editor
 
             root.Add(new ToonRpHeaderLabel("Camera Renderer"));
 
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.AdditionalLights)
+                    )
+                )
+            );
+
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.AllowHdr)))
                 {
                     label = "Allow HDR",

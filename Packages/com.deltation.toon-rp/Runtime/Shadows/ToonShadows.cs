@@ -98,7 +98,7 @@ namespace DELTation.ToonRP.Shadows
                 }
             }
 
-            ExecuteBuffer(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
 
             switch (settings.Mode)
@@ -116,12 +116,6 @@ namespace DELTation.ToonRP.Shadows
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         public void Render([CanBeNull] Light mainLight)

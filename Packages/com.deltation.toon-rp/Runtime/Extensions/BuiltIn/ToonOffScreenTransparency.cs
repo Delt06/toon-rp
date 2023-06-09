@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.Extensions.BuiltIn.ToonOffScreenTransparencySettings;
+using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
@@ -23,14 +24,14 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             DepthId,
             0
         );
+        private readonly Material _material =
+            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Off-Screen Transparency");
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
         private CullingResults _cullingResults;
         private int _height;
-        private Material _material;
         private ToonOffScreenTransparencySettings _settings;
-        private Shader _shader;
         private ScriptableRenderContext _srpContext;
         private int _width;
 
@@ -49,23 +50,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _height = Mathf.Max(1, _cameraRenderTarget.Height / _settings.ResolutionFactor);
         }
 
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material != null && _shader != null)
-            {
-                return;
-            }
-
-            _shader = Shader.Find(ShaderName);
-            _material = new Material(_shader)
-            {
-                name = "Toon RP Off-Screen Transparency",
-            };
-        }
-
         public override void Render()
         {
-            EnsureMaterialIsCreated();
             CommandBuffer cmd = CommandBufferPool.Get();
 
             string passName = !string.IsNullOrWhiteSpace(_settings.PassName)
@@ -73,7 +59,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 : "Off-Screen Transparency";
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
             {
-                ExecuteBuffer(cmd);
+                _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                 if (_settings.DepthMode == DepthRenderMode.PrePass)
                 {
@@ -111,9 +97,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             bool highQuality = _settings.DepthDownsampleQuality == DepthDownsampleQualityLevel.High;
                             _depthDownsample.Downsample(cmd, highQuality, _settings.ResolutionFactor);
                         }
-
-                        ExecuteBuffer(cmd);
                     }
+
+                    _cameraRenderTarget.SetScreenParamsOverride(cmd, _width, _height);
+                    _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                     {
                         var sortingSettings = new SortingSettings(_camera)
@@ -134,9 +121,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             ),
                             _ => throw new ArgumentOutOfRangeException(),
                         };
+                        bool perObjectLightData = _cameraRendererSettings.AdditionalLights !=
+                                                  AdditionalLightsMode.Off;
                         ToonCameraRenderer.DrawGeometry(_cameraRendererSettings,
                             ref _srpContext, _cullingResults, sortingSettings, RenderQueueRange.transparent,
-                            _settings.LayerMask,
+                            perObjectLightData, _settings.LayerMask,
                             new RenderStateBlock(RenderStateMask.Blend)
                             {
                                 blendState = new BlendState
@@ -184,17 +173,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         throw new ArgumentOutOfRangeException();
                 }
 
-                ExecuteBuffer(cmd);
+                _srpContext.ExecuteCommandBufferAndClear(cmd);
             }
 
-            ExecuteBuffer(cmd);
+            _srpContext.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        private void ExecuteBuffer(CommandBuffer cmd)
-        {
-            _srpContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

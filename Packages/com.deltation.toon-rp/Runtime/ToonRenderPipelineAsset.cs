@@ -79,7 +79,8 @@ namespace DELTation.ToonRP
         [ToonRpHeader("Post-Processing")]
         public ToonPostProcessingSettings PostProcessing;
 
-        public override Material defaultMaterial => new(defaultShader);
+        public override Material defaultMaterial =>
+            defaultShader != null ? new Material(defaultShader) : base.defaultMaterial;
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 

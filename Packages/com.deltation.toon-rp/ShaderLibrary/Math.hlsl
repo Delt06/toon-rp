@@ -3,7 +3,9 @@
 
 float InverseLerpUnclamped(const float a, const float b, const float v)
 {
+    #pragma warning (disable : 4008) // Suppress the division by zero warning
     return (v - a) / (b - a);
+    #pragma warning (restore : 4008)
 }
 
 float InverseLerpClamped(const float a, const float b, const float v)

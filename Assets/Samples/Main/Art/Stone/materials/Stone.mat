@@ -48,6 +48,10 @@ Material:
     - _BlendDst: 0
     - _BlendMode: 0
     - _BlendSrc: 1
+    - _ForwardStencilComp: 8
+    - _ForwardStencilPass: 2
+    - _ForwardStencilRef: 128
+    - _ForwardStencilWriteMask: 128
     - _MatcapBlend: 1
     - _MatcapMode: 2
     - _OutlinesStencilLayer: 8

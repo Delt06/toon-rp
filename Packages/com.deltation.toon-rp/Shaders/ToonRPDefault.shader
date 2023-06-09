@@ -58,10 +58,10 @@
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
-	    _ForwardStencilRef ("Stencil Ref", Integer) = 0
-	    _ForwardStencilWriteMask ("Stencil Write Mask", Integer) = 0
-	    _ForwardStencilComp ("Stencil Comp", Integer) = 0
-	    _ForwardStencilPass ("Stencil Pass", Integer) = 0
+	    _ForwardStencilRef ("Stencil Ref", Float) = 0
+	    _ForwardStencilWriteMask ("Stencil Write Mask", Float) = 0
+	    _ForwardStencilComp ("Stencil Comp", Float) = 0
+	    _ForwardStencilPass ("Stencil Pass", Float) = 0
 	}
 	SubShader
 	{

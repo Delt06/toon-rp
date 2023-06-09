@@ -288,18 +288,18 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
             {
                 byte reference = stencilLayer.ToReference();
-                m.SetInteger(ForwardStencilRefId, reference);
-                m.SetInteger(ForwardStencilWriteMaskId, reference);
-                m.SetInteger(ForwardStencilCompId, (int) CompareFunction.Always);
-                m.SetInteger(ForwardStencilPassId, (int) StencilOp.Replace);
+                m.SetFloat(ForwardStencilRefId, reference);
+                m.SetFloat(ForwardStencilWriteMaskId, reference);
+                m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
+                m.SetFloat(ForwardStencilPassId, (int) StencilOp.Replace);
                 m.EnableKeyword(hasOutlinesStencilLayerKeyword);
             }
             else
             {
-                m.SetInteger(ForwardStencilRefId, 0);
-                m.SetInteger(ForwardStencilWriteMaskId, 0);
-                m.SetInteger(ForwardStencilCompId, 0);
-                m.SetInteger(ForwardStencilPassId, 0);
+                m.SetFloat(ForwardStencilRefId, 0);
+                m.SetFloat(ForwardStencilWriteMaskId, 0);
+                m.SetFloat(ForwardStencilCompId, 0);
+                m.SetFloat(ForwardStencilPassId, 0);
                 m.DisableKeyword(hasOutlinesStencilLayerKeyword);
             }
         }

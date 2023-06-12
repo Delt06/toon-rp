@@ -56,6 +56,7 @@ MonoBehaviour:
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.25
       SoftShadows: 0
+      LightBleedingReduction: 0.9
       Directional:
         Enabled: 1
         AtlasSize: 1024

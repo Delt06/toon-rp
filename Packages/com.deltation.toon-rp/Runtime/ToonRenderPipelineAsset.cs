@@ -56,6 +56,7 @@ namespace DELTation.ToonRP
                 Blur = ToonVsmShadowSettings.BlurMode.Box,
                 BlurEarlyBail = true,
                 BlurEarlyBailThreshold = 0.01f,
+                LightBleedingReduction = 0.4f,
                 Directional =
                 {
                     Enabled = true, AtlasSize = TextureSize._1024,
@@ -91,6 +92,11 @@ namespace DELTation.ToonRP
             if (ForceIncludedShaders == null || ForceIncludedShaders.Length != ForceIncludedShaderNames.Length)
             {
                 ForceIncludedShaders = ForceIncludedShaderNames.Select(Shader.Find).ToArray();
+            }
+
+            if (ShadowSettings.Vsm.LightBleedingReduction == 0.0f)
+            {
+                ShadowSettings.Vsm.LightBleedingReduction = 0.4f;
             }
         }
 

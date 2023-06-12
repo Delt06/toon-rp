@@ -26,6 +26,9 @@ namespace DELTation.ToonRP.Shadows
         public float BlurEarlyBailThreshold;
         [ToonRpShowIf(nameof(IsBlurDisabled))]
         public bool SoftShadows;
+        [ToonRpShowIf(nameof(IsBlurEnabled))]
+        [Range(0.001f, 0.999f)]
+        public float LightBleedingReduction;
         public DirectionalShadows Directional;
 
         private bool IsBlurEnabled => Blur != BlurMode.None;

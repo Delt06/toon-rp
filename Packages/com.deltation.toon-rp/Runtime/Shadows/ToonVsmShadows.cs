@@ -44,6 +44,8 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int ShadowBiasId =
             Shader.PropertyToID("_ToonRP_ShadowBias");
         private static readonly int EarlyBailThresholdId = Shader.PropertyToID("_EarlyBailThreshold");
+        private static readonly int LightBleedingReductionId =
+            Shader.PropertyToID("_ToonRP_ShadowLightBleedingReduction");
         private readonly Material _blurMaterial;
         private readonly Shader _blurShader;
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
@@ -243,6 +245,10 @@ namespace DELTation.ToonRP.Shadows
 
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
+            if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
+            {
+                cmd.SetGlobalFloat(LightBleedingReductionId, _vsmSettings.LightBleedingReduction);
+            }
 
             _context.ExecuteCommandBufferAndClear(cmd);
         }

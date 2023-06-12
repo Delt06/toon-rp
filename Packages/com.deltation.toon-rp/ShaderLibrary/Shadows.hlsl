@@ -34,6 +34,7 @@ float4 _ToonRP_DirectionalShadowSamplingOffsets[SHADOW_SAMPLING_OFFSET_COUNT];
 int _ToonRP_CascadeCount;
 float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
 float2 _ToonRP_ShadowRamp;
+float _ToonRP_ShadowLightBleedingReduction;
 float2 _ToonRP_ShadowDistanceFade;
 float2 _ToonRP_ShadowBias; // x - depth, y - normal
 float3 _ToonRP_ShadowPatternScale;
@@ -90,7 +91,7 @@ float SampleShadowAttenuation(const float3 shadowCoords)
 
     if (difference > 0.00001)
     {
-        return smoothstep(0.4, 1.0, variance / (variance + difference * difference));
+        return smoothstep(_ToonRP_ShadowLightBleedingReduction, 1.0, variance / (variance + difference * difference));
     }
 
     return 1.0;

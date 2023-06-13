@@ -135,7 +135,9 @@ namespace DELTation.ToonRP.PostProcessing
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.BlitPostProcessingResults)
                            ))
                     {
-                        cmd.Blit(currentSource, destination);
+                        cmd.SetRenderTarget(destination);
+                        cmd.SetViewport(_postProcessingContext.Camera.pixelRect);
+                        ToonBlitter.BlitDefault(cmd, currentSource);
                     }
                 }
             }

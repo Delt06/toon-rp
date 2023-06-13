@@ -9,6 +9,7 @@ namespace DELTation.ToonRP
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
+        private Camera _camera;
 
         public int MsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
@@ -22,15 +23,19 @@ namespace DELTation.ToonRP
         {
             if (RenderToTexture)
             {
-                cmd.Blit(CameraColorBufferId, BuiltinRenderTextureType.CameraTarget);
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                cmd.SetViewport(_camera.pixelRect);
+                ToonBlitter.BlitDefault(cmd, CameraColorBufferId);
             }
         }
 
 
-        public void InitializeAsSeparateRenderTexture(CommandBuffer cmd, int width, int height, FilterMode filterMode,
+        public void InitializeAsSeparateRenderTexture(CommandBuffer cmd, Camera camera, int width, int height,
+            FilterMode filterMode,
             RenderTextureFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
             RenderToTexture = true;
+            _camera = camera;
             Width = width;
             Height = height;
             ColorFormat = colorFormat;
@@ -68,14 +73,17 @@ namespace DELTation.ToonRP
                     BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.Store
                 );
+                cmd.SetViewport(_camera.pixelRect);
             }
 
             SetScreenParams(cmd);
         }
 
-        public void InitializeAsCameraRenderTarget(int width, int height, RenderTextureFormat colorFormat)
+        public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
+            RenderTextureFormat colorFormat)
         {
             RenderToTexture = false;
+            _camera = camera;
             Width = width;
             Height = height;
             ColorFormat = colorFormat;

@@ -251,14 +251,14 @@ namespace DELTation.ToonRP
                     }
                 }
 
-                _renderTarget.InitializeAsSeparateRenderTexture(cmd, rtWidth, rtHeight,
+                _renderTarget.InitializeAsSeparateRenderTexture(cmd, _camera, rtWidth, rtHeight,
                     _settings.RenderTextureFilterMode, colorFormat, _depthStencilFormat,
                     msaaSamples
                 );
             }
             else
             {
-                _renderTarget.InitializeAsCameraRenderTarget(rtWidth, rtHeight, colorFormat);
+                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, colorFormat);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

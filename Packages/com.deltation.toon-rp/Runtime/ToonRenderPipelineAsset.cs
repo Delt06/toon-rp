@@ -13,6 +13,7 @@ namespace DELTation.ToonRP
     {
         private static readonly string[] ForceIncludedShaderNames =
         {
+            ToonBlitter.DefaultBlitShaderPath,
             ToonVsmShadows.BlurShaderName,
             ToonBlobShadows.ShaderName,
         };

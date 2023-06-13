@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Space - Toon Render Pipeline Asset
   m_EditorClassIdentifier: 
   ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
   - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:

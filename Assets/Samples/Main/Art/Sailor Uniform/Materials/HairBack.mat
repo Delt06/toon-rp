@@ -145,10 +145,10 @@ Material:
     - _OverrideRamp: 1
     - _OverrideRamp_RimSmoothness: 0.1
     - _OverrideRamp_RimThreshold: 0.5
-    - _OverrideRamp_Smoothness: 0.448
+    - _OverrideRamp_Smoothness: 0.001
     - _OverrideRamp_SpecularSmoothness: 0.005
     - _OverrideRamp_SpecularThreshold: 0.995
-    - _OverrideRamp_Threshold: 0.047
+    - _OverrideRamp_Threshold: 0.24
     - _Parallax: 0.02
     - _QueueOffset: 0
     - _ReceiveBlobShadows: 0

@@ -56,6 +56,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
             if (_mesh == null)
             {
                 _mesh = ToonMeshUtility.CopyMesh(_importer.BaseMesh);
+                UploadColors();
                 UpdateVertices();
             }
 
@@ -81,6 +82,13 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
 
             DrawMesh(_mesh);
 
+            const int controlsPadding = 8;
+            const float controlsHeight = 200;
+            var controlsRect = new Rect(controlsPadding, position.height - controlsHeight - controlsPadding,
+                position.width - controlsPadding * 2, controlsHeight
+            );
+            GUI.Box(controlsRect, string.Empty);
+            GUILayout.BeginArea(controlsRect);
             EditorGUILayout.BeginHorizontal();
             {
                 EditorGUILayout.BeginVertical();
@@ -115,6 +123,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
                 EditorGUILayout.EndVertical();
             }
             EditorGUILayout.EndHorizontal();
+            GUILayout.EndArea();
 
             _serializedObject.ApplyModifiedProperties();
         }
@@ -146,6 +155,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
                         {
                             Paint(hit.point, meshMatrix);
                             UploadColors();
+                            e.Use();
                         }
                     }
 

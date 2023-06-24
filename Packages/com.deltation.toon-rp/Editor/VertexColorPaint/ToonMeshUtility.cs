@@ -1,4 +1,7 @@
-﻿using Unity.Collections;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -6,6 +9,17 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
 {
     internal static class ToonMeshUtility
     {
+        private static readonly MethodInfo MethodIntersectRayMesh;
+
+        static ToonMeshUtility()
+        {
+            Type[] editorTypes = typeof(UnityEditor.Editor).Assembly.GetTypes();
+
+            Type typeHandleUtility = editorTypes.First(t => t.Name == "HandleUtility");
+            MethodIntersectRayMesh =
+                typeHandleUtility.GetMethod(nameof(IntersectRayMesh), BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
         public static Mesh CopyMesh(Mesh source)
         {
             var outMesh = new Mesh
@@ -62,6 +76,15 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
             }
 
             return outMesh;
+        }
+
+        // Adapted from https://gist.github.com/MattRix/9205bc62d558fef98045
+        public static bool IntersectRayMesh(Ray ray, Mesh mesh, Matrix4x4 matrix, out RaycastHit hit)
+        {
+            object[] parameters = { ray, mesh, matrix, null };
+            bool result = (bool) MethodIntersectRayMesh.Invoke(null, parameters);
+            hit = (RaycastHit) parameters[3];
+            return result;
         }
     }
 }

@@ -198,6 +198,50 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonInvertedHullOutline.DistanceFadeKeywordName
                     );
                 }
+
+                bool AnyExtensionHasVertexColorThicknessSource(
+                    ToonInvertedHullOutlineSettings.VertexColorThicknessSource vertexColorThicknessSource) =>
+                    AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                        e.Settings.Passes.Any(p =>
+                            p.VertexColorThicknessSource == vertexColorThicknessSource
+                        )
+                    );
+
+                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
+                        .VertexColorThicknessSource.R
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.VertexColorThicknessRKeywordName
+                    );
+                }
+
+                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
+                        .VertexColorThicknessSource.G
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.VertexColorThicknessGKeywordName
+                    );
+                }
+
+                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
+                        .VertexColorThicknessSource.B
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.VertexColorThicknessBKeywordName
+                    );
+                }
+
+                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
+                        .VertexColorThicknessSource.A
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.VertexColorThicknessAKeywordName
+                    );
+                }
             }
 
             // ToonRPScreenSpaceOutline

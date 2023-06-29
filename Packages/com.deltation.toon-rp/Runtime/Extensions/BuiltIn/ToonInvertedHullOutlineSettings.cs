@@ -13,6 +13,15 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Tangents,
         }
 
+        public enum VertexColorThicknessSource
+        {
+            None,
+            R,
+            G,
+            B,
+            A,
+        }
+
         public Pass[] Passes;
 
         [Serializable]
@@ -30,6 +39,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             [Min(0f)]
             public float NoiseFrequency;
             public NormalsSource NormalsSource;
+            public VertexColorThicknessSource VertexColorThicknessSource;
             public float DepthBias;
             [Min(0f)]
             public float MaxDistance;

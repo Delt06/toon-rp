@@ -15,11 +15,20 @@
 #define NORMAL_SEMANTIC NORMAL
 #endif // !NORMAL_SEMANTIC
 
+#if defined(_VERTEX_COLOR_THICKNESS_R) || defined(_VERTEX_COLOR_THICKNESS_G) || defined(_VERTEX_COLOR_THICKNESS_B) || defined(_VERTEX_COLOR_THICKNESS_A)
+#define USE_VERTEX_COLOR_THICKNESS
+#endif // _VERTEX_COLOR_THICKNESS_R || _VERTEX_COLOR_THICKNESS_G || _VERTEX_COLOR_THICKNESS_B || _VERTEX_COLOR_THICKNESS_A
+
+
+
 struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL_SEMANTIC;
     float2 uv : TEXCOORD0;
+    #ifdef USE_VERTEX_COLOR_THICKNESS
+    float4 color : COLOR;
+    #endif // USE_VERTEX_COLOR_THICKNESS
 };
 
 struct v2f
@@ -38,6 +47,22 @@ float2 _DistanceFade;
 float _NoiseFrequency;
 float _NoiseAmplitude;
 CBUFFER_END
+
+float GetVertexColorThickness(const appdata IN)
+{
+    #if defined(_VERTEX_COLOR_THICKNESS_R)
+    return IN.color.r;
+    #elif defined(_VERTEX_COLOR_THICKNESS_G)
+    return IN.color.g;
+    #elif defined(_VERTEX_COLOR_THICKNESS_B)
+    return IN.color.b;
+    #elif defined(_VERTEX_COLOR_THICKNESS_A)
+    return IN.color.a;
+    #else
+    return 1;
+    #endif // !_VERTEX_COLOR_THICKNESS_R && !_VERTEX_COLOR_THICKNESS_G && !_VERTEX_COLOR_THICKNESS_B && !_VERTEX_COLOR_THICKNESS_A 
+
+}
 
 v2f VS(const appdata IN)
 {
@@ -60,7 +85,7 @@ v2f VS(const appdata IN)
 
     #endif // _DISTANCE_FADE
 
-    const float thickness = max(0, rawThickness);
+    const float thickness = max(0, rawThickness) * GetVertexColorThickness(IN);
     const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
     OUT.positionCs = positionCs;
 

@@ -73,7 +73,7 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Particles Unlit Caster"
+		    Name "Toon RP Particles Unlit Shadow Caster"
 			Tags{ "LightMode" = "ShadowCaster" }
 		    
 		    ColorMask RG

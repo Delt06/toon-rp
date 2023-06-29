@@ -29,6 +29,8 @@
 
 			//#pragma enable_d3d11_debug_symbols
 
+			#pragma multi_compile_local_vertex _ VIEW_ALPHA
+
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
 			

@@ -21,6 +21,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
         private float _brushSize = 0.1f;
         [SerializeField] [Range(0, 1)]
         private float _brushHardness = 1.0f;
+        [SerializeField] private bool _viewAlpha;
         [SerializeField] private Color32 _brushColor = Color.black;
         [SerializeField] private Vector3 _cameraPosition;
         [SerializeField] private float _cameraYaw;
@@ -120,7 +121,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
 
         private void UpdateRects()
         {
-            const float controlsHeight = 75;
+            const float controlsHeight = 100;
             _controlsRect = new Rect(ControlsPadding, position.height - controlsHeight - ControlsPadding,
                 position.width - ControlsPadding * 2, controlsHeight
             );
@@ -138,6 +139,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
                     EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_brushSize)));
                     EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_brushHardness)));
                     EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_brushColor)));
+                    EditorGUILayout.PropertyField(_serializedObject.FindProperty(nameof(_viewAlpha)));
                 }
                 EditorGUILayout.EndVertical();
             }
@@ -440,6 +442,7 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
             _renderer.BeginPreview(new Rect(0, 0, _renderRect.width, _renderRect.height), GUIStyle.none);
 
             Matrix4x4 meshMatrix = MeshMatrix();
+            _material.SetKeyword("VIEW_ALPHA", _viewAlpha);
 
             for (int i = 0; i < mesh.subMeshCount; i++)
             {

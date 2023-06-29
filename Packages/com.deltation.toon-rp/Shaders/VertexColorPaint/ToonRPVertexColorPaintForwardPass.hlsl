@@ -34,7 +34,11 @@ v2f VS(const appdata IN)
 
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
+    #ifdef VIEW_ALPHA
+    OUT.color = IN.color.aaa;
+    #else // !VIEW_ALPHA
     OUT.color = IN.color.rgb;
+    #endif // VIEW_ALPHA
 
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float4 positionCs = TransformWorldToHClip(positionWs);

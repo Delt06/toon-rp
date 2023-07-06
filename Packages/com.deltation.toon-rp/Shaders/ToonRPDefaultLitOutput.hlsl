@@ -1,7 +1,6 @@
 ﻿#ifndef TOON_RP_DEFAULT_LIT_OUTPUT
 #define TOON_RP_DEFAULT_LIT_OUTPUT
 
-#include "ToonRPDefaultInput.hlsl"
 #include "ToonRPDefaultV2f.hlsl"
 
 #include "../ShaderLibrary/BlobShadows.hlsl"
@@ -133,7 +132,12 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
     float specularRamp = ComputeRampSpecular(nDotH, parameters.IN.uv);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
+
+    #ifdef SPECULAR
     const float3 specular = _SpecularColor * specularRamp;
+    #else // !SPECULAR
+    const float3 specular = 0;
+    #endif // SPECULAR
 
     return light.color * (diffuse + specular);
 }
@@ -214,11 +218,25 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
 
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
     const float rimRamp = ComputeRampRim(fresnel, IN.uv);
+    #ifdef RIM
     const float3 rim = _RimColor * rimRamp;
+    #else // !RIM
+    const float3 rim = 0;
+    #endif // RIM
 
+    #ifdef _FORCE_DISABLE_ENVIRONMENT_LIGHT
+    const float3 ambient = 0;
+    #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
+    #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
-    float3 outputColor = lights + rim + ambient + _EmissionColor * albedo.a;
+    #ifdef EMISSION
+    const float3 emission = _EmissionColor * albedo.a;
+    #else // !EMISSION
+    const float3 emission = 0;
+    #endif // EMISSION
+
+    float3 outputColor = lights + rim + ambient + emission;
     TOON_RP_MATCAP_APPLY_MULTIPLICATIVE(outputColor, IN, _MatcapBlend, _MatcapTint);
     TOON_RP_MATCAP_APPLY_ADDITIVE(outputColor, IN, shadowAttenuation, _MatcapBlend, _MatcapTint);
     return outputColor;

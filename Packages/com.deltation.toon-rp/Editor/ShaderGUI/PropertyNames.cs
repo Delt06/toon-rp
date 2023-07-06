@@ -20,6 +20,9 @@
         public const string RimColorPropertyName = "_RimColor";
         public const string NormalMapPropertyName = "_NormalMap";
 
+        public const string ForceDisableFogPropertyName = "_ForceDisableFog";
+        public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
+
         public const string QueueOffset = "_QueueOffset";
     }
 }

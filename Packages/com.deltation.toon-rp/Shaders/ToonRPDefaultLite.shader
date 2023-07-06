@@ -1,4 +1,4 @@
-﻿Shader "Toon RP/Default"
+﻿Shader "Toon RP/Default (Lite)"
 {
 	Properties
 	{
@@ -6,21 +6,12 @@
 		_MainColor ("Color", Color) = (1, 1, 1, 1)
 		[MainTexture]
 		_MainTexture ("Texture", 2D) = "white" {}
-	    [HDR]
-        _EmissionColor ("Emission", Color) = (0, 0, 0, 0)
 	    
 	    [Toggle(_ALPHATEST_ON)]
 	    _AlphaClipping ("Alpha Clipping", Float) = 0
 	    _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
 	    
 	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
-	    [HDR]
-		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
-	    [HDR]
-		_RimColor ("Rim Color", Color) = (0, 0, 0, 0)
-	    
-	    [NoScaleOffset]
-	    _NormalMap ("Normal Map", 2D) = "bump" {}
 	    
 	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
 	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
@@ -62,6 +53,12 @@
 	    _ForwardStencilWriteMask ("Stencil Write Mask", Float) = 0
 	    _ForwardStencilComp ("Stencil Comp", Float) = 0
 	    _ForwardStencilPass ("Stencil Pass", Float) = 0
+	    
+	    [Toggle(_FORCE_DISABLE_FOG)]
+	    _ForceDisableFog ("Force Disable Fog", Float) = 0
+	    
+	    [Toggle(_FORCE_DISABLE_ENVIRONMENT_LIGHT)]
+	    _ForceDisableEnvironmentLight ("Force Disable Environment Light", Float) = 0
 	}
 	SubShader
 	{
@@ -81,7 +78,7 @@
 
 		Pass
 		{
-		    Name "Toon RP Forward"
+		    Name "Toon RP Forward (Lite)"
 			Tags{ "LightMode" = "ToonRPForward" }
 		    
 		    Blend [_BlendSrc] [_BlendDst]
@@ -99,11 +96,10 @@
 
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultShaderFeatureList.hlsl"
-			#pragma shader_feature_local _NORMAL_MAP
+			#pragma shader_feature_local _FORCE_DISABLE_FOG
+			#pragma shader_feature_local _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
-			#define SPECULAR
-			#define RIM
-			#define EMISSION
+			#define DEFAULT_LITE
 			#include "ToonRPDefaultForwardPass.hlsl"
 			
 			ENDHLSL
@@ -111,7 +107,7 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Shadow Caster"
+		    Name "Toon RP Shadow Caster (Lite)"
 			Tags{ "LightMode" = "ShadowCaster" }
 		    
 		    ColorMask RG
@@ -121,7 +117,7 @@
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultShadowMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseShaderFeatureList.hlsl"
 
-			#include "ToonRPDefaultInput.hlsl"
+			#include "ToonRPDefaultLiteInput.hlsl"
 			#include "ToonRPDefaultShadowCasterPass.hlsl"
 			
 			ENDHLSL
@@ -129,7 +125,7 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Depth Only"
+		    Name "Toon RP Depth Only (Lite)"
 			Tags{ "LightMode" = "ToonRPDepthOnly" }
 		    
 		    ColorMask 0
@@ -139,7 +135,7 @@
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseShaderFeatureList.hlsl"
 
-			#include "ToonRPDefaultInput.hlsl"
+			#include "ToonRPDefaultLiteInput.hlsl"
 			#include "ToonRPDefaultDepthOnlyPass.hlsl"
 			
 			ENDHLSL
@@ -147,7 +143,7 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Depth Normals"
+		    Name "Toon RP Depth Normals (Lite)"
 			Tags{ "LightMode" = "ToonRPDepthNormals" }
 		    
 		    ColorMask RGB
@@ -156,14 +152,13 @@
 
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseShaderFeatureList.hlsl"
-			#pragma shader_feature_local _NORMAL_MAP
 
-			#include "ToonRPDefaultInput.hlsl"
+			#include "ToonRPDefaultLiteInput.hlsl"
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
 			
 			ENDHLSL
 		}
 	}
     
-    CustomEditor "DELTation.ToonRP.Editor.ShaderGUI.ToonRpDefaultShaderGui"
+    CustomEditor "DELTation.ToonRP.Editor.ShaderGUI.ToonRpDefaultLiteShaderGui"
 }

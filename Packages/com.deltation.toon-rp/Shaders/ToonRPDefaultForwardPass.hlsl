@@ -6,12 +6,21 @@
 #include "../ShaderLibrary/Matcap.hlsl"
 
 #ifdef UNLIT
+
 #include "ToonRPUnlitInput.hlsl"
 #include "ToonRPDefaultV2f.hlsl"
+
 #else // !UNLIT
+
+#ifdef DEFAULT_LITE
+#include "ToonRPDefaultLiteInput.hlsl"
+#else // !DEFAULT_LITE
 #include "ToonRPDefaultInput.hlsl"
+#endif // DEFAULT_LITE
+
 #include "ToonRPDefaultV2f.hlsl"
 #include "ToonRPDefaultLitOutput.hlsl"
+
 #endif // UNLIT
 
 struct appdata

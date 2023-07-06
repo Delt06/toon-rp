@@ -1,0 +1,1 @@
+﻿#pragma shader_feature_local _ALPHATEST_ON

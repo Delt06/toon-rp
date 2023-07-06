@@ -3,7 +3,7 @@
 
 #include "Common.hlsl"
 
-#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+#if !defined(_FORCE_DISABLE_FOG) && (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
 #define FOG_ANY
 #endif // FOG_LINEAR || FOG_EXP || FOG_EXP2
 

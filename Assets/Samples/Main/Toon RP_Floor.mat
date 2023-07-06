@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Toon RP_Floor
-  m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
+  m_Shader: {fileID: 4800000, guid: 6ec1afc7d53b4974ab764de8b09311f7, type: 3}
   m_ValidKeywords:
   - _RECEIVE_BLOB_SHADOWS
   m_InvalidKeywords: []

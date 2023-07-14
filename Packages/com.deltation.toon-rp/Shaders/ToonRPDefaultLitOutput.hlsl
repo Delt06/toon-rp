@@ -129,11 +129,10 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, diffuseRamp);
 
-    const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH, parameters.IN.uv);
-    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
-
     #ifdef SPECULAR
+    const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
+    float specularRamp = ComputeRampSpecular(nDotH + _SpecularSizeOffset, parameters.IN.uv);
+    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = _SpecularColor * specularRamp;
     #else // !SPECULAR
     const float3 specular = 0;

@@ -16,6 +16,7 @@
 	    _ShadowColor ("Shadow Color", Color) = (0, 0, 0, 0.75)
 	    [HDR]
 		_SpecularColor ("Specular Color", Color) = (1, 1, 1, 1)
+	    _SpecularSizeOffset ("Specular Size Offset", Range(-2, 2)) = 0
 	    [HDR]
 		_RimColor ("Rim Color", Color) = (0, 0, 0, 0)
 	    

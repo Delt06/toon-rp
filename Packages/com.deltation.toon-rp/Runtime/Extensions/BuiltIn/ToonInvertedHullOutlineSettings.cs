@@ -34,6 +34,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public Color Color;
             [Min(0f)]
             public float Thickness;
+            public bool FixedScreenSpaceThickness;
             [Min(0f)]
             public float NoiseAmplitude;
             [Min(0f)]

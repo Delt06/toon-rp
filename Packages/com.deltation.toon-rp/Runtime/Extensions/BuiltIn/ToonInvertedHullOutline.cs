@@ -18,6 +18,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         public const string VertexColorThicknessGKeywordName = "_VERTEX_COLOR_THICKNESS_G";
         public const string VertexColorThicknessBKeywordName = "_VERTEX_COLOR_THICKNESS_B";
         public const string VertexColorThicknessAKeywordName = "_VERTEX_COLOR_THICKNESS_A";
+        public const string FixedScreenSpaceThicknessKeywordName = "_FIXED_SCREEN_SPACE_THICKNESS";
         public const string DistanceFadeKeywordName = "_DISTANCE_FADE";
         private static readonly int ThicknessId = Shader.PropertyToID("_Thickness");
         private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
@@ -50,7 +51,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                 for (int passIndex = 0; passIndex < _outlineSettings.Passes.Length; passIndex++)
                 {
-                    Pass pass = _outlineSettings.Passes[passIndex];
+                    ref readonly Pass pass = ref _outlineSettings.Passes[passIndex];
                     string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
                     {
@@ -63,6 +64,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                                 1.0f / pass.DistanceFade
                             )
                         );
+
+                        material.SetKeyword(FixedScreenSpaceThicknessKeywordName, pass.FixedScreenSpaceThickness);
 
                         bool noiseEnabled = pass.IsNoiseEnabled;
                         material.SetKeyword(NoiseKeywordName, noiseEnabled);

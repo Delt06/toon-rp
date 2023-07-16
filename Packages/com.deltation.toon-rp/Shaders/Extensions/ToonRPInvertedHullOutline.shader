@@ -22,6 +22,7 @@
 	    #pragma multi_compile_local_vertex _ _NOISE
 	    #pragma multi_compile_local_vertex _ _DISTANCE_FADE
 	    #pragma multi_compile_local_vertex _ _VERTEX_COLOR_THICKNESS_R _VERTEX_COLOR_THICKNESS_G _VERTEX_COLOR_THICKNESS_B _VERTEX_COLOR_THICKNESS_A
+	    #pragma multi_compile_local_vertex _ _FIXED_SCREEN_SPACE_THICKNESS
 
 	    ENDHLSL 
 	    

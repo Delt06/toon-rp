@@ -183,6 +183,15 @@ namespace DELTation.ToonRP.Editor.Stripping
             // ToonRPInvertedHullOutline
             {
                 if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                        e.Settings.Passes.Any(p => p.FixedScreenSpaceThickness)
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.FixedScreenSpaceThicknessKeywordName
+                    );
+                }
+
+                if (!AnyExtension<ToonInvertedHullOutlineAsset>(e =>
                         e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                     ))
                 {
@@ -207,8 +216,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                         )
                     );
 
-                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
-                        .VertexColorThicknessSource.R
+                if (!AnyExtensionHasVertexColorThicknessSource(
+                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.R
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
@@ -216,8 +225,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
 
-                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
-                        .VertexColorThicknessSource.G
+                if (!AnyExtensionHasVertexColorThicknessSource(
+                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.G
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
@@ -225,8 +234,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
 
-                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
-                        .VertexColorThicknessSource.B
+                if (!AnyExtensionHasVertexColorThicknessSource(
+                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.B
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
@@ -234,8 +243,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
 
-                if (!AnyExtensionHasVertexColorThicknessSource(ToonInvertedHullOutlineSettings
-                        .VertexColorThicknessSource.A
+                if (!AnyExtensionHasVertexColorThicknessSource(
+                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.A
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,

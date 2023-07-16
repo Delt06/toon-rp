@@ -64,6 +64,27 @@ float GetVertexColorThickness(const appdata IN)
 
 }
 
+float4 ApplyThicknessAndTransformCS(const float3 positionWs, const float3 normalWs, const float thickness)
+{
+    const float4 positionCs = TransformWorldToHClip(positionWs);
+    const float3 normalCs = normalize(TransformWorldToHClipDir(normalWs));
+    return positionCs + float4(normalCs, 0) * thickness * positionCs.w;
+}
+
+float4 ApplyThicknessAndTransformWS(const float3 positionWs, const float3 normalWs, const float thickness)
+{
+    return TransformWorldToHClip(positionWs + normalWs * thickness);
+}
+
+float4 ApplyThicknessAndTransform(const float3 positionWs, const float3 normalWs, const float thickness)
+{
+    #ifdef _FIXED_SCREEN_SPACE_THICKNESS
+    return ApplyThicknessAndTransformCS(positionWs, normalWs, thickness);
+    #else // !_FIXED_SCREEN_SPACE_THICKNESS
+    return ApplyThicknessAndTransformWS(positionWs, normalWs, thickness);
+    #endif // _FIXED_SCREEN_SPACE_THICKNESS
+}
+
 v2f VS(const appdata IN)
 {
     v2f OUT;
@@ -86,7 +107,7 @@ v2f VS(const appdata IN)
     #endif // _DISTANCE_FADE
 
     const float thickness = max(0, rawThickness) * GetVertexColorThickness(IN);
-    const float4 positionCs = TransformWorldToHClip(positionWs + normalWs * thickness);
+    const float4 positionCs = ApplyThicknessAndTransform(positionWs, normalWs, thickness);
     OUT.positionCs = positionCs;
 
     #ifdef USE_CLIP_DISTANCE

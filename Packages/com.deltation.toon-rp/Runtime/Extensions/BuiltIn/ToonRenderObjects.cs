@@ -55,9 +55,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         ? SortingCriteria.CommonOpaque
                         : SortingCriteria.CommonTransparent,
                 };
+
+                RenderStateBlock? renderStateBlock = ConstructRenderStateBlock();
                 RenderQueueRange renderQueueRange = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
                 ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, _cullingResults, sortingSettings,
-                    renderQueueRange, _settings.Filters.LayerMask, null,
+                    renderQueueRange, _settings.Filters.LayerMask, renderStateBlock,
                     overrideLightModeTags ? _lightModeTags : null,
                     false,
                     _settings.Overrides.Material
@@ -68,6 +70,37 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private RenderStateBlock? ConstructRenderStateBlock()
+        {
+            ref readonly ToonRenderObjectsSettings.OverrideSettings overrides = ref _settings.Overrides;
+            if (!overrides.Depth.Enabled && !overrides.Stencil.Enabled)
+            {
+                return null;
+            }
+
+            var renderStateBlock = new RenderStateBlock();
+            if (overrides.Depth.Enabled)
+            {
+                renderStateBlock.mask |= RenderStateMask.Depth;
+                renderStateBlock.depthState = new DepthState(overrides.Depth.WriteDepth, overrides.Depth.DepthTest);
+            }
+
+            if (overrides.Stencil.Enabled)
+            {
+                renderStateBlock.mask |= RenderStateMask.Stencil;
+                renderStateBlock.stencilReference = overrides.Stencil.Value;
+                renderStateBlock.stencilState = new StencilState(true,
+                    overrides.Stencil.ReadMask, overrides.Stencil.WriteMask,
+                    overrides.Stencil.CompareFunction,
+                    overrides.Stencil.Pass,
+                    overrides.Stencil.Fail,
+                    overrides.Stencil.ZFail
+                );
+            }
+
+            return renderStateBlock;
         }
     }
 }

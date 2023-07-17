@@ -45,6 +45,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
+            var cameraOverride = new ToonCameraOverride(_camera);
+
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
                 _context.ExecuteCommandBufferAndClear(cmd);
@@ -93,6 +95,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         material.SetKeyword(DistanceFadeKeywordName, pass.IsDistanceFadeEnabled);
 
                         cmd.SetGlobalDepthBias(pass.DepthBias, 0);
+                        cameraOverride.OverrideIfEnabled(cmd, pass.CameraOverrides);
                         _context.ExecuteCommandBufferAndClear(cmd);
 
                         var sortingSettings = new SortingSettings(_camera)
@@ -143,9 +146,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             ref drawingSettings, ref filteringSettings, ref renderStateBlock
                         );
 
-
                         cmd.SetGlobalDepthBias(0, 0);
-                        _context.ExecuteCommandBufferAndClear(cmd);
+                        cameraOverride.RestoreIfEnabled(cmd);
                     }
                 }
             }

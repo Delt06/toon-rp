@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using DELTation.ToonRP.Attributes;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -37,14 +39,41 @@ namespace DELTation.ToonRP.Editor
         {
             foreach (string fieldName in pathPieces)
             {
-                Type type = currentObject.GetType();
-                FieldInfo field = type.GetField(fieldName, MemberBindingFlags);
-                if (field == null)
+                if (fieldName == "Array")
                 {
-                    throw new ArgumentException($"Could not find field {fieldName} in {type}.", nameof(pathPieces));
+                    continue;
                 }
 
-                currentObject = field.GetValue(currentObject);
+                if (fieldName.StartsWith("data["))
+                {
+                    Match match = Regex.Match(fieldName, @"^data\[([0-9]*)\]$");
+                    if (!match.Success)
+                    {
+                        throw new ArgumentException($"Invalid data field name: {fieldName}.", nameof(pathPieces));
+                    }
+
+                    int index = int.Parse(match.Groups[1].Value);
+
+                    if (currentObject is IList list)
+                    {
+                        currentObject = list[index];
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Current object is not a list: {currentObject.GetType()}.");
+                    }
+                }
+                else
+                {
+                    Type type = currentObject.GetType();
+                    FieldInfo field = type.GetField(fieldName, MemberBindingFlags);
+                    if (field == null)
+                    {
+                        throw new ArgumentException($"Could not find field {fieldName} in {type}.", nameof(pathPieces));
+                    }
+
+                    currentObject = field.GetValue(currentObject);
+                }
             }
 
             return currentObject;

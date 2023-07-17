@@ -22,6 +22,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         LayerMask = int.MaxValue,
                         MaxDistance = 0.0f,
                         DistanceFade = 0.1f,
+                        CameraOverrides = ToonCameraOverrideSettings.Default,
                     },
                 },
             };

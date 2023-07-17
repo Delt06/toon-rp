@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.Extensions.BuiltIn.ToonOffScreenTransparencySettings;
-using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
@@ -121,11 +120,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             ),
                             _ => throw new ArgumentOutOfRangeException(),
                         };
-                        bool perObjectLightData = _cameraRendererSettings.AdditionalLights !=
-                                                  AdditionalLightsMode.Off;
                         ToonCameraRenderer.DrawGeometry(_cameraRendererSettings,
                             ref _srpContext, _cullingResults, sortingSettings, RenderQueueRange.transparent,
-                            perObjectLightData, _settings.LayerMask,
+                            _settings.LayerMask,
                             new RenderStateBlock(RenderStateMask.Blend)
                             {
                                 blendState = new BlendState

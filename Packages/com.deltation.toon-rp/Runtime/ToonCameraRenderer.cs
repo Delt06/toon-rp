@@ -1,4 +1,5 @@
-﻿using DELTation.ToonRP.Extensions;
+﻿using System.Collections.Generic;
+using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
@@ -183,8 +184,7 @@ namespace DELTation.ToonRP
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
-            Matrix4x4 gpuProjectionMatrix =
-                GL.GetGPUProjectionMatrix(_camera.projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
+            Matrix4x4 gpuProjectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(_camera.projectionMatrix);
             cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
@@ -462,36 +462,50 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
-            bool perObjectLightData = _settings.AdditionalLights != AdditionalLightsMode.Off;
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange,
-                perObjectLightData, layerMask
-            );
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
         }
 
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
-            bool perObjectLightData,
-            int layerMask = -1, RenderStateBlock renderStateBlock = default)
+            int layerMask = -1, in RenderStateBlock? renderStateBlock = null,
+            IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
+            Material overrideMaterial = null)
         {
             PerObjectData perObjectData = PerObjectData.LightProbe;
+
+            bool perObjectLightData =
+                perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
                 perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
             }
 
-            var drawingSettings = new DrawingSettings(ShaderTagIds[0], sortingSettings)
+            shaderTagIds ??= ShaderTagIds;
+            var drawingSettings = new DrawingSettings(shaderTagIds[0], sortingSettings)
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
                 perObjectData = perObjectData,
+                overrideMaterial = overrideMaterial,
             };
 
-            for (int i = 0; i < ShaderTagIds.Length; i++)
+            for (int i = 0; i < shaderTagIds.Count; i++)
             {
-                drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
+                drawingSettings.SetShaderPassName(i, shaderTagIds[i]);
             }
 
             var filteringSettings = new FilteringSettings(renderQueueRange, layerMask);
-            context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+
+            if (renderStateBlock == null)
+            {
+                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
+            }
+            else
+            {
+                RenderStateBlock renderStateBlockValue = renderStateBlock.Value;
+                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings,
+                    ref renderStateBlockValue
+                );
+            }
         }
 
         partial void DrawGizmosPreImageEffects();

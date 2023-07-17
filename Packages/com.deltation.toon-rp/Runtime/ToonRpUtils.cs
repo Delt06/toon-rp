@@ -35,5 +35,46 @@ namespace DELTation.ToonRP
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }
+
+        public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix,
+            Matrix4x4 gpuProjectionMatrix, bool setInverseMatrices)
+        {
+            Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
+            cmd.SetGlobalMatrix(ShaderPropertyId.ViewMatrix, viewMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.ProjectionMatrix, gpuProjectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.ViewAndProjectionMatrix, viewAndProjectionMatrix);
+
+            if (!setInverseMatrices)
+            {
+                return;
+            }
+
+            var inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+            var inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+            Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewMatrix, inverseViewMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseProjectionMatrix, inverseProjectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjection);
+        }
+
+        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix) =>
+            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
+
+        public static void RestoreCameraMatrices(Camera camera, CommandBuffer cmd, bool setInverseMatrices)
+        {
+            Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(camera.projectionMatrix);
+            SetViewAndProjectionMatrices(cmd, camera.worldToCameraMatrix, gpuProjectionMatrix, setInverseMatrices);
+        }
+
+        private static class ShaderPropertyId
+        {
+            public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");
+            public static readonly int ProjectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
+            public static readonly int ViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
+
+            public static readonly int InverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
+            public static readonly int InverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
+            public static readonly int InverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
+        }
     }
 }

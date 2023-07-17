@@ -468,7 +468,8 @@ namespace DELTation.ToonRP
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
             int layerMask = -1, in RenderStateBlock? renderStateBlock = null,
-            IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null)
+            IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
+            Material overrideMaterial = null)
         {
             PerObjectData perObjectData = PerObjectData.LightProbe;
 
@@ -484,6 +485,7 @@ namespace DELTation.ToonRP
             {
                 enableDynamicBatching = settings.UseDynamicBatching,
                 perObjectData = perObjectData,
+                overrideMaterial = overrideMaterial,
             };
 
             for (int i = 0; i < shaderTagIds.Count; i++)

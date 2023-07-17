@@ -59,7 +59,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, _cullingResults, sortingSettings,
                     renderQueueRange, _settings.Filters.LayerMask, null,
                     overrideLightModeTags ? _lightModeTags : null,
-                    false
+                    false,
+                    _settings.Overrides.Material
                 );
 
                 cameraOverride.RestoreIfEnabled(cmd);

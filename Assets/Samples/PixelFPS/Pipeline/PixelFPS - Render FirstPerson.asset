@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23df226cd3564c9a9e8f01776a3b72ad, type: 3}
+  m_Name: PixelFPS - Render FirstPerson
+  m_EditorClassIdentifier: 
+  _forceIncludedShaders: []
+  Settings:
+    Event: 2
+    PassName: First-Person (Opaque)
+    Filters:
+      Queue: 0
+      LayerMask:
+        serializedVersion: 2
+        m_Bits: 1024
+      LightModeTags: []
+    Overrides:
+      Material: {fileID: 0}
+      Depth:
+        Enabled: 0
+        WriteDepth: 1
+        DepthTest: 4
+      Stencil:
+        Enabled: 0
+        Value: 255
+        ReadMask: 0
+        WriteMask: 0
+        CompareFunction: 8
+        Pass: 0
+        Fail: 0
+        ZFail: 0
+      Camera:
+        Enabled: 1
+        FieldOfView: 45

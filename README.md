@@ -145,6 +145,7 @@ Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipe
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)
 - [Quaternius - Ultimate Stylized Nature Pack](https://quaternius.com/packs/ultimatestylizednature.html)
 - [Quaternius - Ultimate Space Kit](https://quaternius.com/packs/ultimatespacekit.html)
+- [Quaternius - Toon Shooter Game Kit](https://quaternius.com/packs/toonshootergamekit.html)
 - [Aika: Sailor Uniform](https://assetstore.unity.com/packages/3d/characters/aika-sailor-uniform-222398)
 - [Stone](https://assetstore.unity.com/packages/3d/environments/landscapes/stone-62333)
 - [nidorx/matcaps: A huge library of MatCap textures in PNG and ZMT.](https://github.com/nidorx/matcaps)

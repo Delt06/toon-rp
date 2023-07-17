@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Character_Soldier_Skin
+  m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
+  m_ValidKeywords:
+  - _HAS_OUTLINES_STENCIL_LAYER
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2000
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MatcapTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaClipThreshold: 0.5
+    - _AlphaClipping: 0
+    - _BlendDst: 0
+    - _BlendMode: 0
+    - _BlendSrc: 1
+    - _BumpScale: 1
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _ForwardStencilComp: 8
+    - _ForwardStencilPass: 2
+    - _ForwardStencilRef: 128
+    - _ForwardStencilWriteMask: 128
+    - _GlossMapScale: 1
+    - _Glossiness: 0.30996522
+    - _GlossyReflections: 1
+    - _MatcapBlend: 1
+    - _MatcapMode: 0
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 1
+    - _OutlinesStencilLayer: 8
+    - _OverrideRamp: 0
+    - _OverrideRamp_RimSmoothness: 0.1
+    - _OverrideRamp_RimThreshold: 0.5
+    - _OverrideRamp_Smoothness: 0.083
+    - _OverrideRamp_SpecularSmoothness: 0.005
+    - _OverrideRamp_SpecularThreshold: 0.995
+    - _OverrideRamp_Threshold: 0
+    - _Parallax: 0.02
+    - _QueueOffset: 0
+    - _ReceiveBlobShadows: 0
+    - _RenderFace: 2
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SpecularSizeOffset: 0
+    - _SrcBlend: 1
+    - _SurfaceType: 0
+    - _UVSec: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 0.38158748, g: 0.23238337, b: 0.08011392, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _MainColor: {r: 0.7199895, g: 0.57530445, b: 0.34942988, a: 1}
+    - _MatcapTint: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 0, g: 0, b: 0, a: 0}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

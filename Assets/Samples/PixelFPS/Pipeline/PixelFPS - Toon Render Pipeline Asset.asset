@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: PixelFPS - Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  GlobalRampSettings:
+    Threshold: 0.29
+    SpecularThreshold: 1
+    RimThreshold: 0.5
+    Mode: 2
+    Smoothness: 0
+    SpecularSmoothness: 0.03
+    RimSmoothness: 0.1
+    RampTexture: {fileID: 2800000, guid: 313d786eddd03ca498f382cc924d669b, type: 3}
+  CameraRendererSettings:
+    AdditionalLights: 0
+    AllowHdr: 0
+    Stencil: 0
+    Msaa: 1
+    RenderScale: 1
+    MaxRenderTextureWidth: 360
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 0
+    DepthPrePass: 0
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 1015
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 1015
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+  ShadowSettings:
+    Mode: 1
+    Threshold: 0.5
+    CrispAntiAliased: 0
+    Smoothness: 0
+    MaxDistance: 15
+    DistanceFade: 0.001
+    Pattern: {fileID: 0}
+    PatternScale: {x: 1, y: 0, z: 1}
+    Vsm:
+      Blur: 1
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.01
+      SoftShadows: 0
+      LightBleedingReduction: 0.4
+      Directional:
+        Enabled: 1
+        AtlasSize: 256
+        CascadeCount: 4
+        CascadeRatio1: 0.1
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
+        DepthBias: 0
+        NormalBias: 0
+        SlopeBias: 0
+    Blobs:
+      AtlasSize: 128
+      Mode: 0
+      Saturation: 1
+  Extensions:
+    Extensions:
+    - {fileID: 11400000, guid: f9216de13340aae45a7647d53e66b626, type: 2}
+    - {fileID: 11400000, guid: ef4056a9b7eaedd459ca732c1c3af9e7, type: 2}
+  PostProcessing:
+    Enabled: 0
+    Passes: []

@@ -91,7 +91,7 @@ float SampleShadowAttenuation(const float3 shadowCoords)
 
     if (difference > 0.00001)
     {
-        return smoothstep(_ToonRP_ShadowLightBleedingReduction, 1.0, variance / (variance + difference * difference));
+        return InverseLerpClamped(_ToonRP_ShadowLightBleedingReduction, 1.0, variance / (variance + difference * difference));
     }
 
     return 1.0;

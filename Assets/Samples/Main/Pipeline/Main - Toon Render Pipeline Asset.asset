@@ -18,7 +18,7 @@ MonoBehaviour:
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
   GlobalRampSettings:
     Threshold: 0
-    SpecularThreshold: 0.794
+    SpecularThreshold: 0.79
     RimThreshold: -0.328
     Mode: 2
     Smoothness: 0.083

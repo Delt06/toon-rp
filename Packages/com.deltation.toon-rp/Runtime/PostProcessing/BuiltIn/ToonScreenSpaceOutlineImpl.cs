@@ -89,7 +89,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private void UpdateMaterialFilter(in ToonScreenSpaceOutlineSettings.OutlineFilter filter, int rampId,
             string keyword)
         {
-            var ramp = new Vector4(filter.Threshold, filter.Threshold + filter.Smoothness);
+            Vector4 ramp = ToonRpUtils.BuildRampVectorFromSmoothness(filter.Threshold, filter.Smoothness);
             _material.SetVector(rampId, ramp);
             _material.SetKeyword(new LocalKeyword(_shader, keyword), filter.Enabled);
         }

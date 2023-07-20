@@ -66,6 +66,12 @@ namespace DELTation.ToonRP
             SetViewAndProjectionMatrices(cmd, camera.worldToCameraMatrix, gpuProjectionMatrix, setInverseMatrices);
         }
 
+        public static Vector4 BuildRampVectorFromEdges(float edge1, float edge2) =>
+            BuildRampVectorFromSmoothness(edge1, edge2 - edge1);
+
+        public static Vector4 BuildRampVectorFromSmoothness(float edge1, float smoothness) =>
+            new(edge1, 1.0f / Mathf.Max(smoothness, 0.0001f));
+
         private static class ShaderPropertyId
         {
             public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");

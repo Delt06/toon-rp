@@ -1,6 +1,7 @@
 ﻿#ifndef TOON_RP_DEFAULT_INPUT
 #define TOON_RP_DEFAULT_INPUT
 
+#include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/Textures.hlsl"
 
 #if defined(_NORMAL_MAP)
@@ -39,17 +40,17 @@ SAMPLER(sampler_NormalMap);
 
 float2 ConstructOverrideRampDiffuse()
 {
-    return float2(_OverrideRamp_Threshold, _OverrideRamp_Threshold + _OverrideRamp_Smoothness);
+    return ConstructRamp(_OverrideRamp_Threshold, _OverrideRamp_Smoothness);
 }
 
 float2 ConstructOverrideRampSpecular()
 {
-    return float2(_OverrideRamp_SpecularThreshold, _OverrideRamp_SpecularThreshold + _OverrideRamp_SpecularSmoothness);
+    return ConstructRamp(_OverrideRamp_SpecularThreshold, _OverrideRamp_SpecularSmoothness);
 }
 
 float2 ConstructOverrideRampRim()
 {
-    return float2(_OverrideRamp_RimThreshold, _OverrideRamp_RimThreshold + _OverrideRamp_RimSmoothness);
+    return ConstructRamp(_OverrideRamp_RimThreshold, _OverrideRamp_RimSmoothness);
 }
 
 float4 SampleAlbedo(const float2 uv)

@@ -76,10 +76,7 @@ namespace DELTation.ToonRP.Shadows
 
                 float effectiveThreshold = 1 - _settings.Threshold;
                 cmd.SetGlobalVector(ShadowRampId,
-                    new Vector4(
-                        effectiveThreshold,
-                        effectiveThreshold + _settings.Smoothness
-                    )
+                    ToonRpUtils.BuildRampVectorFromSmoothness(effectiveThreshold, _settings.Smoothness)
                 );
 
                 cmd.SetGlobalVector(ShadowDistanceFadeId,
@@ -88,7 +85,6 @@ namespace DELTation.ToonRP.Shadows
                         1.0f / _settings.DistanceFade
                     )
                 );
-
 
                 {
                     bool patternEnabled = _settings.Pattern != null;

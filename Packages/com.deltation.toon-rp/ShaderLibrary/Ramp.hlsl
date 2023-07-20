@@ -2,6 +2,7 @@
 #define TOON_RP_RAMP
 
 #include "Math.hlsl"
+#include "Textures.hlsl"
 
 float2 _ToonRP_GlobalRamp;
 float2 _ToonRP_GlobalRampSpecular;
@@ -9,14 +10,14 @@ float2 _ToonRP_GlobalRampRim;
 TEXTURE2D(_ToonRP_GlobalRampTexture);
 SAMPLER(sampler_ToonRP_GlobalRampTexture);
 
-float ComputeRamp(const float value, const float edge1, const float edge2)
+float2 ConstructRamp(const float threshold, const float smoothness)
 {
-    return smoothstep(edge1, edge2, value);
+    return float2(threshold, 1.0f / smoothness);
 }
 
 float ComputeRamp(const float value, const float2 ramp)
 {
-    return ComputeRamp(value, ramp.x, ramp.y);
+    return InverseLerpClampedFast(ramp.x, ramp.y, value);
 }
 
 float ComputeRampAntiAliased(const float nDotL, const float2 ramp)

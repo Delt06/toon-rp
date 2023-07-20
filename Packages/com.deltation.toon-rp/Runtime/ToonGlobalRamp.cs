@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.ToonRpUtils;
 
 namespace DELTation.ToonRP
 {
@@ -34,21 +35,21 @@ namespace DELTation.ToonRP
             {
                 float edge1 = rampSettings.Threshold;
                 float edge2 = edge1 + rampSettings.Smoothness;
-                _cmd.SetGlobalVector(GlobalRampId, new Vector4(edge1, edge2));
+                _cmd.SetGlobalVector(GlobalRampId, BuildRampVectorFromEdges(edge1, edge2));
             }
 
             // specular
             {
                 float edge1 = rampSettings.SpecularThreshold;
                 float edge2 = edge1 + rampSettings.SpecularSmoothness;
-                _cmd.SetGlobalVector(GlobalRampSpecularId, new Vector4(edge1, edge2));
+                _cmd.SetGlobalVector(GlobalRampSpecularId, BuildRampVectorFromEdges(edge1, edge2));
             }
 
             // rim
             {
                 float edge1 = rampSettings.RimThreshold;
                 float edge2 = edge1 + rampSettings.RimSmoothness;
-                _cmd.SetGlobalVector(GlobalRampRimId, new Vector4(edge1, edge2));
+                _cmd.SetGlobalVector(GlobalRampRimId, BuildRampVectorFromEdges(edge1, edge2));
             }
 
             switch (rampSettings.Mode)

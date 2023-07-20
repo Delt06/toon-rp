@@ -106,7 +106,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 {
                     float effectiveThreshold = 1 - _settings.Threshold;
                     cmd.SetGlobalVector(RampId,
-                        new Vector4(effectiveThreshold, effectiveThreshold + _settings.Smoothness)
+                        ToonRpUtils.BuildRampVectorFromSmoothness(effectiveThreshold, _settings.Smoothness)
                     );
                 }
 

@@ -13,6 +13,11 @@ float InverseLerpClamped(const float a, const float b, const float v)
     return saturate(InverseLerpUnclamped(a, b, v));
 }
 
+float InverseLerpClampedFast(const float a, const float invBMinusA, const float v)
+{
+    return saturate((v - a) * invBMinusA);
+}
+
 // https://www.ronja-tutorials.com/post/046-fwidth/
 float StepAntiAliased(const float edge, const float value)
 {

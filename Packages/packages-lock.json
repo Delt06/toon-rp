@@ -5,7 +5,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "e4e5c5f92caaf91f5501510ea06efc0fc2523df8"
+      "hash": "1cc7f7e1b5ae41df6b8455237d0ba5d79d10e4c3"
     },
     "com.deltation.toon-rp": {
       "version": "file:com.deltation.toon-rp",

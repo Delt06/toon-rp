@@ -3,6 +3,8 @@ using DELTation.ToonRP.Attributes;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
+using JetBrains.Annotations;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -80,9 +82,25 @@ namespace DELTation.ToonRP
 
         [ToonRpHeader("Post-Processing")]
         public ToonPostProcessingSettings PostProcessing;
+        
+        [CanBeNull]
+        private Material _defaultMaterial;
 
-        public override Material defaultMaterial =>
-            defaultShader != null ? new Material(defaultShader) : base.defaultMaterial;
+        public override Material defaultMaterial
+        {
+            get
+            {
+                if (_defaultMaterial != null)
+                {
+                    return _defaultMaterial;
+                }
+
+                _defaultMaterial =
+                    AssetDatabase.LoadAssetAtPath<Material>("Packages/com.deltation.toon-rp/Assets/Toon RP Default.mat"
+                    );
+                return _defaultMaterial;
+            }
+        }
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 

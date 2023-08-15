@@ -18,6 +18,11 @@ float InverseLerpClampedFast(const float a, const float invBMinusA, const float 
     return saturate((v - a) * invBMinusA);
 }
 
+float SlopeOffsetFast(const float slope, const float offset, const float value)
+{
+    return saturate(slope * value + offset);
+}
+
 // https://www.ronja-tutorials.com/post/046-fwidth/
 float StepAntiAliased(const float edge, const float value)
 {

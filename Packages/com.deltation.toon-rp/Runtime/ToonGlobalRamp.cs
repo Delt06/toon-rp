@@ -35,7 +35,10 @@ namespace DELTation.ToonRP
             {
                 float edge1 = rampSettings.Threshold;
                 float edge2 = edge1 + rampSettings.Smoothness;
-                _cmd.SetGlobalVector(GlobalRampId, BuildRampVectorFromEdges(edge1, edge2));
+                Vector4 ramp = rampSettings.Mode == ToonGlobalRampMode.CrispAntiAliased
+                    ? BuildRampVectorCrispAntiAliased(edge1)
+                    : BuildRampVectorFromEdges(edge1, edge2);
+                _cmd.SetGlobalVector(GlobalRampId, ramp);
             }
 
             // specular

@@ -10,14 +10,16 @@ float2 _ToonRP_GlobalRampRim;
 TEXTURE2D(_ToonRP_GlobalRampTexture);
 SAMPLER(sampler_ToonRP_GlobalRampTexture);
 
-float2 ConstructRamp(const float threshold, const float smoothness)
+float2 ConstructOverrideRamp(const float threshold, const float smoothness)
 {
-    return float2(threshold, 1.0f / smoothness);
+    // See ComputeRamp below for parameter info for each branch
+    const float invSmoothness = 1.0f / smoothness;
+    return float2(invSmoothness, -threshold * invSmoothness);
 }
 
 float ComputeRamp(const float value, const float2 ramp)
 {
-    return InverseLerpClampedFast(ramp.x, ramp.y, value);
+    return SlopeOffsetFast(ramp.x, ramp.y, value);
 }
 
 float ComputeRampAntiAliased(const float nDotL, const float2 ramp)

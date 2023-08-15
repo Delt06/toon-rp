@@ -74,10 +74,15 @@ namespace DELTation.ToonRP.Shadows
             {
                 cmd.SetKeyword(ShadowsRampCrisp, _settings.CrispAntiAliased);
 
-                float effectiveThreshold = 1 - _settings.Threshold;
-                cmd.SetGlobalVector(ShadowRampId,
-                    ToonRpUtils.BuildRampVectorFromSmoothness(effectiveThreshold, _settings.Smoothness)
-                );
+                {
+                    float effectiveThreshold = 1 - _settings.Threshold;
+                    Vector4 ramp = _settings.CrispAntiAliased
+                        ? ToonRpUtils.BuildRampVectorCrispAntiAliased(effectiveThreshold)
+                        : ToonRpUtils.BuildRampVectorFromSmoothness(effectiveThreshold, _settings.Smoothness);
+                    cmd.SetGlobalVector(ShadowRampId,
+                        ramp
+                    );
+                }
 
                 cmd.SetGlobalVector(ShadowDistanceFadeId,
                     new Vector4(

@@ -40,17 +40,17 @@ SAMPLER(sampler_NormalMap);
 
 float2 ConstructOverrideRampDiffuse()
 {
-    return ConstructRamp(_OverrideRamp_Threshold, _OverrideRamp_Smoothness);
+    return ConstructOverrideRamp(_OverrideRamp_Threshold, _OverrideRamp_Smoothness);
 }
 
 float2 ConstructOverrideRampSpecular()
 {
-    return ConstructRamp(_OverrideRamp_SpecularThreshold, _OverrideRamp_SpecularSmoothness);
+    return ConstructOverrideRamp(_OverrideRamp_SpecularThreshold, _OverrideRamp_SpecularSmoothness);
 }
 
 float2 ConstructOverrideRampRim()
 {
-    return ConstructRamp(_OverrideRamp_RimThreshold, _OverrideRamp_RimSmoothness);
+    return ConstructOverrideRamp(_OverrideRamp_RimThreshold, _OverrideRamp_RimSmoothness);
 }
 
 float4 SampleAlbedo(const float2 uv)

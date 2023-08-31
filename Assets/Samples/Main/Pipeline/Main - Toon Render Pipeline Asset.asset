@@ -27,6 +27,8 @@ MonoBehaviour:
     RampTexture: {fileID: 2800000, guid: 752a48c13df68ea4aae97103de1292d2, type: 3}
   CameraRendererSettings:
     AdditionalLights: 1
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 67
     AllowHdr: 1
     Stencil: 0
     Msaa: 1

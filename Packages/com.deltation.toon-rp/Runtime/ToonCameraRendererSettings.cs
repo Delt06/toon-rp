@@ -1,5 +1,7 @@
 ﻿using System;
+using DELTation.ToonRP.Attributes;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace DELTation.ToonRP
 {
@@ -22,7 +24,14 @@ namespace DELTation.ToonRP
         }
 
         public AdditionalLightsMode AdditionalLights;
+        public bool OverrideRenderTextureFormat;
+
+        [ToonRpShowIf(nameof(OverrideRenderTextureFormat))]
+        public GraphicsFormat RenderTextureFormat;
+
+        [ToonRpShowIf(nameof(UseDefaultRenderTextureFormat))]
         public bool AllowHdr;
+
         public bool Stencil;
         public MsaaMode Msaa;
         [Range(0.25f, 2.0f)]
@@ -38,5 +47,7 @@ namespace DELTation.ToonRP
 
         public bool UseSrpBatching;
         public bool UseDynamicBatching;
+
+        private bool UseDefaultRenderTextureFormat => !OverrideRenderTextureFormat;
     }
 }

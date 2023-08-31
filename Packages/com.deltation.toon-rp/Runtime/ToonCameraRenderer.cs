@@ -206,14 +206,40 @@ namespace DELTation.ToonRP
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
 
-            bool renderToTexture = _settings.AllowHdr || msaaSamples > 1 ||
+            static GraphicsFormat GetDefaultGraphicsFormat() =>
+                GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, true);
+
+            static GraphicsFormat GetRenderTextureColorFormat(in ToonCameraRendererSettings settings)
+            {
+                if (!settings.OverrideRenderTextureFormat)
+                {
+                    return settings.AllowHdr
+                        ? GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.DefaultHDR, false)
+                        : GetDefaultGraphicsFormat();
+                }
+
+                GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
+                FormatUsage formatUsage = FormatUsage.Render;
+                formatUsage |= settings.Msaa switch
+                {
+                    MsaaMode._2x => FormatUsage.MSAA2x,
+                    MsaaMode._4x => FormatUsage.MSAA4x,
+                    MsaaMode._8x => FormatUsage.MSAA8x,
+                    _ => 0,
+                };
+
+                return SystemInfo.GetCompatibleFormat(rawGraphicsFormat, formatUsage);
+            }
+
+            GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
+            bool renderToTexture = renderTextureColorFormat != GetDefaultGraphicsFormat() ||
+                                   msaaSamples > 1 ||
                                    _postProcessing.AnyFullScreenEffectsEnabled ||
                                    !Mathf.Approximately(renderScale, 1.0f) ||
                                    rtWidth > maxRtWidth ||
                                    rtHeight > maxRtHeight
                 ;
-            RenderTextureFormat colorFormat =
-                _settings.AllowHdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+
             bool requireStencil = RequireStencil(extensionSettings);
             _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
 
@@ -252,13 +278,13 @@ namespace DELTation.ToonRP
                 }
 
                 _renderTarget.InitializeAsSeparateRenderTexture(cmd, _camera, rtWidth, rtHeight,
-                    _settings.RenderTextureFilterMode, colorFormat, _depthStencilFormat,
+                    _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
                     msaaSamples
                 );
             }
             else
             {
-                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, colorFormat);
+                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -361,8 +387,7 @@ namespace DELTation.ToonRP
                 {
                     cmd.GetTemporaryRT(
                         PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                        _settings.RenderTextureFilterMode, _renderTarget.ColorFormat,
-                        RenderTextureReadWrite.Default
+                        _settings.RenderTextureFilterMode, _renderTarget.ColorFormat
                     );
                     cmd.Blit(ToonCameraRenderTarget.CameraColorBufferId, PostProcessingSourceId);
                 }

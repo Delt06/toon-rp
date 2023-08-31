@@ -6,6 +6,7 @@ using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
@@ -36,6 +37,7 @@ namespace DELTation.ToonRP
 
         public ToonCameraRendererSettings CameraRendererSettings = new()
         {
+            RenderTextureFormat = GraphicsFormat.R8G8B8A8_SRGB,
             Msaa = ToonCameraRendererSettings.MsaaMode.Off,
             RenderScale = 1.0f,
             MaxRenderTextureHeight = 0,
@@ -82,7 +84,7 @@ namespace DELTation.ToonRP
 
         [ToonRpHeader("Post-Processing")]
         public ToonPostProcessingSettings PostProcessing;
-        
+
         [CanBeNull]
         private Material _defaultMaterial;
 

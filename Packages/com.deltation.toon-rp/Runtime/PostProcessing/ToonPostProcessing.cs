@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing
@@ -59,7 +60,7 @@ namespace DELTation.ToonRP.PostProcessing
 
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
             in ToonCameraRendererSettings cameraRendererSettings,
-            RenderTextureFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
+            GraphicsFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
             _context = context;
             _cameraRendererSettings = cameraRendererSettings;
@@ -97,7 +98,7 @@ namespace DELTation.ToonRP.PostProcessing
             cmd.Clear();
         }
 
-        public void RenderFullScreenEffects(int width, int height, RenderTextureFormat format, int sourceId,
+        public void RenderFullScreenEffects(int width, int height, GraphicsFormat format, int sourceId,
             RenderTargetIdentifier destination)
         {
             if (!AnyFullScreenEffectsEnabled)
@@ -113,8 +114,7 @@ namespace DELTation.ToonRP.PostProcessing
                 RenderTargetIdentifier currentDestination = PostProcessingBufferId;
 
                 cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0,
-                    _cameraRendererSettings.RenderTextureFilterMode, format,
-                    RenderTextureReadWrite.Linear
+                    _cameraRendererSettings.RenderTextureFilterMode, format
                 );
 
                 foreach (IToonPostProcessingPass pass in _enabledFullScreenPasses)

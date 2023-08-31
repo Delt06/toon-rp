@@ -15,7 +15,7 @@ namespace DELTation.ToonRP
         public bool RenderToTexture { get; private set; }
         public GraphicsFormat DepthStencilFormat { get; private set; }
 
-        public RenderTextureFormat ColorFormat { get; private set; }
+        public GraphicsFormat ColorFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
 
@@ -32,7 +32,7 @@ namespace DELTation.ToonRP
 
         public void InitializeAsSeparateRenderTexture(CommandBuffer cmd, Camera camera, int width, int height,
             FilterMode filterMode,
-            RenderTextureFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
+            GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
             RenderToTexture = true;
             _camera = camera;
@@ -44,8 +44,7 @@ namespace DELTation.ToonRP
 
             cmd.GetTemporaryRT(
                 CameraColorBufferId, width, height, 0,
-                filterMode, colorFormat,
-                RenderTextureReadWrite.Default, msaaSamples
+                filterMode, colorFormat, msaaSamples, false
             );
 
             var depthDesc = new RenderTextureDescriptor(width, height,
@@ -80,7 +79,7 @@ namespace DELTation.ToonRP
         }
 
         public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
-            RenderTextureFormat colorFormat)
+            GraphicsFormat colorFormat)
         {
             RenderToTexture = false;
             _camera = camera;

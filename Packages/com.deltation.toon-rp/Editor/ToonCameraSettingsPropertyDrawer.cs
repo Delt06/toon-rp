@@ -18,6 +18,15 @@ namespace DELTation.ToonRP.Editor
                 )
             );
 
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.OverrideRenderTextureFormat))
+                )
+            );
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.RenderTextureFormat))
+                )
+            );
+
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.AllowHdr)))
                 {
                     label = "Allow HDR",

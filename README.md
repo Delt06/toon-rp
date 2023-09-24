@@ -7,13 +7,15 @@
 
 A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
-> The project is in its very **early** stages and has **not** been tested in production.
+> 🚧 The project is in its very **early** stages and has **not** been tested in production.
+
+> ⚠️ The project only supports **Linear** color space. 
  
 ![Main](./Documentation/demo.jpg?raw=true)
 
 ### Unity Version
 
-> Developed and verified with Unity 2021.3.15f1 LTS and Core RP Library v12.1.8.
+> 🔨 Developed and verified with Unity 2021.3.15f1 LTS and Core RP Library v12.1.8.
 
 ### Table of Contents
 

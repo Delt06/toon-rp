@@ -31,6 +31,14 @@ namespace DELTation.ToonRP
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+            {
+                Debug.LogError(
+                    "Toon RP does not support Gamma color space. Please switch to Linear color space in Project Settings > Player > Other Settings > Color Space"
+                );
+                return;
+            }
+
             foreach (Camera camera in cameras)
             {
                 _cameraRenderer.Render(context, camera,

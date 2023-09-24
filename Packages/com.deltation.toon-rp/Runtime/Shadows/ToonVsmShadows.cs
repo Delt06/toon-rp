@@ -9,14 +9,10 @@ namespace DELTation.ToonRP.Shadows
         private const string BlurSample = "Blur";
 
         private const int MaxShadowedDirectionalLightCount = 1;
-        private const int DepthBits = 32;
         public const int MaxCascades = 4;
 
         // ShouldMirrorTheValue in VSM.hlsl
         private const float DepthScale = 0.1f;
-
-        // R - depth, G - depth^2
-        private const RenderTextureFormat VsmShadowmapFormat = RenderTextureFormat.RGFloat;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
 
         public const string BlurShaderName = "Hidden/Toon RP/VSM Blur";
@@ -81,6 +77,14 @@ namespace DELTation.ToonRP.Shadows
             _blurMaterial = ToonRpUtils.CreateEngineMaterial(_blurShader, "Toon RP VSM Blur");
         }
 
+        // R - depth, G - depth^2
+        private RenderTextureFormat VsmShadowmapFormat => _vsmSettings.VsmPrecision switch
+        {
+            ToonVsmShadowSettings.VsmTexturePrecision.Float => RenderTextureFormat.RGFloat,
+            ToonVsmShadowSettings.VsmTexturePrecision.Half => RenderTextureFormat.RGHalf,
+            var _ => RenderTextureFormat.RGFloat,
+        };
+
         private string PassName
         {
             get
@@ -91,6 +95,8 @@ namespace DELTation.ToonRP.Shadows
                 return passName;
             }
         }
+
+        private int ShadowMapDepthBits => _vsmSettings.GetShadowMapDepthBits();
 
 
         public void Setup(in ScriptableRenderContext context,
@@ -144,7 +150,7 @@ namespace DELTation.ToonRP.Shadows
                 else
                 {
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, 1, 1,
-                        DepthBits,
+                        ShadowMapDepthBits,
                         ShadowmapFiltering,
                         VsmShadowmapDepthFormat
                     );
@@ -184,7 +190,7 @@ namespace DELTation.ToonRP.Shadows
                         VsmShadowmapFormat
                     );
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasDepthId, atlasSize, atlasSize,
-                        DepthBits,
+                        ShadowMapDepthBits,
                         ShadowmapFiltering,
                         VsmShadowmapDepthFormat
                     );
@@ -206,7 +212,8 @@ namespace DELTation.ToonRP.Shadows
                 }
                 else
                 {
-                    cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, DepthBits, ShadowmapFiltering,
+                    cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize, ShadowMapDepthBits,
+                        ShadowmapFiltering,
                         VsmShadowmapDepthFormat
                     );
                     cmd.SetRenderTarget(DirectionalShadowsAtlasId,

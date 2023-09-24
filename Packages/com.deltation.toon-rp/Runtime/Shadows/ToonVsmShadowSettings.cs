@@ -15,6 +15,21 @@ namespace DELTation.ToonRP.Shadows
             GaussianHighQuality,
         }
 
+        public enum ShadowMapBits
+        {
+            _16 = 16,
+            _24 = 24,
+            _32 = 32,
+        }
+
+        public enum VsmTexturePrecision
+        {
+            Float,
+            Half,
+        }
+
+        public ShadowMapBits DepthBits;
+
         [ToonRpShowIf(nameof(IsBlurEnabled), Mode = ToonRpShowIfAttribute.ShowIfMode.ShowHelpBox,
             HelpBoxMessage = "VSM blur requires a valid background. Make sure to add a shadow-casting ground mesh."
         )]
@@ -24,6 +39,8 @@ namespace DELTation.ToonRP.Shadows
         [ToonRpShowIf(nameof(IsBlurEarlyBailEnabled))]
         [Min(0.000001f)]
         public float BlurEarlyBailThreshold;
+        [ToonRpShowIf(nameof(IsBlurEnabled))]
+        public VsmTexturePrecision VsmPrecision;
         [ToonRpShowIf(nameof(IsBlurDisabled))]
         public bool SoftShadows;
         [ToonRpShowIf(nameof(IsBlurEnabled))]
@@ -36,6 +53,16 @@ namespace DELTation.ToonRP.Shadows
         public bool IsBlurEarlyBailEnabled => IsBlurEarlyBailAllowed && BlurEarlyBail;
 
         private bool IsBlurDisabled => Blur == BlurMode.None;
+
+        public int GetShadowMapDepthBits()
+        {
+            if (DepthBits == 0)
+            {
+                return (int) ShadowMapBits._32;
+            }
+
+            return (int) DepthBits;
+        }
 
         [Serializable]
         public struct DirectionalShadows

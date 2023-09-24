@@ -55,9 +55,11 @@ MonoBehaviour:
     Pattern: {fileID: 2800000, guid: 370591c24596965498bac30a92b5a7cf, type: 3}
     PatternScale: {x: 1, y: 0, z: 1}
     Vsm:
+      DepthBits: 32
       Blur: 1
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.25
+      VsmPrecision: 0
       SoftShadows: 0
       LightBleedingReduction: 0.9
       Directional:

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
-namespace DELTation.ToonRP
+namespace DELTation.ToonRP.Lighting
 {
     public sealed class ToonLighting
     {

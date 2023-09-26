@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
@@ -9,7 +11,7 @@ using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
-    public sealed partial class ToonCameraRenderer
+    public sealed partial class ToonCameraRenderer : IDisposable
     {
         private const string DefaultCmdName = "Render Camera";
         public static readonly ShaderTagId[] ShaderTagIds =
@@ -28,6 +30,7 @@ namespace DELTation.ToonRP
 
         private readonly ToonCameraRenderTarget _renderTarget = new();
         private readonly ToonShadows _shadows = new();
+        private readonly ToonTiledLighting _tiledLighting = new();
 
         private Camera _camera;
 
@@ -38,6 +41,11 @@ namespace DELTation.ToonRP
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private ToonCameraRendererSettings _settings;
+
+        public void Dispose()
+        {
+            _tiledLighting?.Dispose();
+        }
 
         public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
@@ -83,17 +91,18 @@ namespace DELTation.ToonRP
             _camera = camera;
             _settings = settings;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
-            PrepareBufferName();
-            cmd.BeginSample(_cmdName);
-
-            PrepareMsaa(camera, out int msaaSamples);
-            PrepareForSceneWindow();
-
             if (!Cull(toonShadowSettings))
             {
                 return;
             }
+
+            CommandBuffer cmd = CommandBufferPool.Get();
+            PrepareBufferName();
+            cmd.BeginSample(_cmdName);
+            _context.ExecuteCommandBufferAndClear(cmd);
+
+            PrepareMsaa(camera, out int msaaSamples);
+            PrepareForSceneWindow();
 
             _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
@@ -104,6 +113,8 @@ namespace DELTation.ToonRP
                 _renderTarget.Width,
                 _renderTarget.Height
             );
+
+            _tiledLighting.CullLights();
 
             if (_depthPrePassMode != DepthPrePassMode.Off)
             {
@@ -291,6 +302,8 @@ namespace DELTation.ToonRP
 
             _extensionContext =
                 new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
+
+            _tiledLighting.Setup(_context, _extensionContext);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)

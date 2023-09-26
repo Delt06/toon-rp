@@ -4,6 +4,7 @@ using System.Linq;
 using DELTation.ToonRP.Editor.GlobalSettings;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Extensions.BuiltIn;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;

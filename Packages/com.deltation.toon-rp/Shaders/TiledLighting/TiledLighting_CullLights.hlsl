@@ -1,15 +1,13 @@
 ﻿#include "TiledLighting_Shared.hlsl"
 
-#define CULL_LIGHTS_GROUP_SIZE 16
-
-StructuredBuffer<Frustum> _TiledLighting_Frustums;
+StructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexCounter;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
 RWStructuredBuffer<uint2> _TiledLighting_LightGrid;
 
 groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
-groupshared Frustum g_Frustum;
+groupshared TiledLighting_Frustum g_Frustum;
 
 #define MAX_LIGHTS_PER_TILE 1024
 
@@ -43,7 +41,7 @@ void AppendLight_Transparent(const uint lightIndex)
     }
 }
 
-[numthreads(CULL_LIGHTS_GROUP_SIZE, CULL_LIGHTS_GROUP_SIZE, 1)]
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void CS(
     const uint3 dispatchThreadId : SV_DispatchThreadID,
     const uint groupIndex : SV_GroupIndex,
@@ -51,6 +49,9 @@ void CS(
 )
 {
     int2 pixelCoord = dispatchThreadId.xy;
+    #ifdef UNITY_UV_STARTS_AT_TOP
+    pixelCoord.y = (int)_TiledLighting_ScreenDimensions.y - 1 - pixelCoord.y;
+    #endif // UNITY_UV_STARTS_AT_TOP 
     const float depth = _ToonRP_DepthTexture.Load(int3(pixelCoord, 0)).r;
 
     const uint depthAsUint = asuint(depth);
@@ -60,7 +61,7 @@ void CS(
         g_MaxDepth = 0;
         g_LightList_Count_Opaque = 0;
         g_LightList_Count_Transparent = 0;
-        g_Frustum = _TiledLighting_Frustums[GetFlatTileIndex(groupId.x, groupId.y)];
+        g_Frustum = _TiledLighting_Frustums[TiledLighting_GetFlatTileIndex(groupId.x, groupId.y)];
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -73,31 +74,31 @@ void CS(
     const float minDepth = asfloat(g_MinDepth);
     const float maxDepth = asfloat(g_MaxDepth);
 
-    const float minDepthVs = ClipToView(float4(0, 0, minDepth, 1)).z;
-    const float maxDepthVs = ClipToView(float4(0, 0, maxDepth, 1)).z;
-    const float nearClipVs = ClipToView(float4(0, 0, 0, 1)).z;
+    const float minDepthVs = TiledLighting_ClipToView(float4(0, 0, minDepth, 1)).z;
+    const float maxDepthVs = TiledLighting_ClipToView(float4(0, 0, maxDepth, 1)).z;
+    const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, 1, 1)).z;
 
-    Plane minPlane;
+    TiledLighting_Plane minPlane;
     minPlane.normal = float3(0, 0, -1);
-    minPlane.distance = -minDepthVs;
+    minPlane.distance = -maxDepthVs;
 
     uint i;
 
-    for (i = groupIndex; i < _AdditionalLightCount; i += CULL_LIGHTS_GROUP_SIZE * CULL_LIGHTS_GROUP_SIZE)
+    for (i = groupIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
     {
         const float3 positionWs = _AdditionalLightPositions[i].xyz;
         const float3 positionVs = TransformWorldToView(positionWs);
         const float range = _AdditionalLightColors[i].w;
 
-        Sphere boundingSphere;
+        TiledLighting_Sphere boundingSphere;
         boundingSphere.center = positionVs;
         boundingSphere.radius = range;
 
-        if (SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, maxDepthVs))
+        if (TiledLighting_SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, minDepthVs))
         {
             AppendLight_Transparent(i);
 
-            if (!SphereInsidePlane(boundingSphere, minPlane))
+            if (!TiledLighting_SphereInsidePlane(boundingSphere, minPlane))
             {
                 AppendLight_Opaque(i);
             }
@@ -108,33 +109,35 @@ void CS(
 
     if (groupIndex == 0)
     {
-        const uint tileIndex = GetFlatTileIndex(groupId.x, groupId.y);
+        const uint tileIndex = TiledLighting_GetFlatTileIndex(groupId.x, groupId.y);
 
         InterlockedAdd(_TiledLighting_LightIndexCounter[0],
                        g_LightList_Count_Opaque,
                        g_LightList_IndexStartOffset_Opaque);
-        _TiledLighting_LightGrid[GetOpaqueLightGridIndex(tileIndex)] = uint2(g_LightList_IndexStartOffset_Opaque,
-                                                                             g_LightList_Count_Opaque);
+        _TiledLighting_LightGrid[TiledLighting_GetOpaqueLightGridIndex(tileIndex)] = uint2(
+            g_LightList_IndexStartOffset_Opaque,
+            g_LightList_Count_Opaque);
 
         InterlockedAdd(_TiledLighting_LightIndexCounter[1],
                        g_LightList_Count_Transparent,
                        g_LightList_IndexStartOffset_Transparent);
-        _TiledLighting_LightGrid[GetTransparentLightGridIndex(tileIndex)] = uint2(
+        _TiledLighting_LightGrid[TiledLighting_GetTransparentLightGridIndex(tileIndex)] = uint2(
             g_LightList_IndexStartOffset_Transparent,
             g_LightList_Count_Transparent);
     }
 
     GroupMemoryBarrierWithGroupSync();
 
-    for (i = groupIndex; i < g_LightList_Count_Opaque; i += CULL_LIGHTS_GROUP_SIZE * CULL_LIGHTS_GROUP_SIZE)
+    for (i = groupIndex; i < g_LightList_Count_Opaque; i += TILE_SIZE * TILE_SIZE)
     {
-        const uint index = GetOpaqueLightIndexListIndex(g_LightList_IndexStartOffset_Opaque + i);
+        const uint index = TiledLighting_GetOpaqueLightIndexListIndex(g_LightList_IndexStartOffset_Opaque + i);
         _TiledLighting_LightIndexList[index] = g_LightList_Opaque[i];
     }
 
-    for (i = groupIndex; i < g_LightList_Count_Transparent; i += CULL_LIGHTS_GROUP_SIZE * CULL_LIGHTS_GROUP_SIZE)
+    for (i = groupIndex; i < g_LightList_Count_Transparent; i += TILE_SIZE * TILE_SIZE)
     {
-        const uint index = GetTransparentLightIndexListIndex(g_LightList_IndexStartOffset_Transparent + i);
+        const uint index =
+            TiledLighting_GetTransparentLightIndexListIndex(g_LightList_IndexStartOffset_Transparent + i);
         _TiledLighting_LightIndexList[index] = g_LightList_Transparent[i];
     }
 }

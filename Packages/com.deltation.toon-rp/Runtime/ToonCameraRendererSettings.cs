@@ -24,6 +24,9 @@ namespace DELTation.ToonRP
         }
 
         public AdditionalLightsMode AdditionalLights;
+        [ToonRpShowIf(nameof(PerPixelAdditionalLights))]
+        public bool TiledLighting;
+
         public bool OverrideRenderTextureFormat;
 
         [ToonRpShowIf(nameof(OverrideRenderTextureFormat))]
@@ -48,6 +51,12 @@ namespace DELTation.ToonRP
         public bool UseSrpBatching;
         public bool UseDynamicBatching;
 
+        public bool IsTiledLightingEffectivelyEnabled =>
+            SystemInfo.supportsComputeShaders &&
+            AdditionalLights == AdditionalLightsMode.PerPixel &&
+            TiledLighting;
+
+        private bool PerPixelAdditionalLights => AdditionalLights == AdditionalLightsMode.PerPixel;
         private bool UseDefaultRenderTextureFormat => !OverrideRenderTextureFormat;
     }
 }

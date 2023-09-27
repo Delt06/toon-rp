@@ -1,6 +1,6 @@
 ﻿#include "TiledLighting_Shared.hlsl"
 
-RWStructuredBuffer<Frustum> _TiledLighting_Frustums;
+RWStructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 
 #define COMPUTE_FRUSTUMS_GROUP_SIZE 16
 
@@ -23,11 +23,11 @@ void CS(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 viewSpace[4];
     for (uint i = 0; i < 4; i++)
     {
-        viewSpace[i] = ScreenToView(screenSpace[i]).xyz;
+        viewSpace[i] = TiledLighting_ScreenToView(screenSpace[i]).xyz;
     }
 
     const float3 eyePos = float3(0, 0, 0);
-    Frustum frustum;
+    TiledLighting_Frustum frustum;
     // Left plane
     frustum.planes[0] = ComputePlane(eyePos, viewSpace[2], viewSpace[0]);
     // Right plane
@@ -39,7 +39,7 @@ void CS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     if (tileCoords.x < _TiledLighting_TilesX && tileCoords.y < _TiledLighting_TilesY)
     {
-        const uint frustumIndex = GetFlatTileIndex(tileCoords.x, tileCoords.y);
+        const uint frustumIndex = TiledLighting_GetFlatTileIndex(tileCoords.x, tileCoords.y);
         _TiledLighting_Frustums[frustumIndex] = frustum;
     }
 }

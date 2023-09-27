@@ -477,6 +477,8 @@ namespace DELTation.ToonRP
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             {
+                _tiledLighting.PrepareForTransparents(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
@@ -515,7 +517,11 @@ namespace DELTation.ToonRP
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
-                perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+                perObjectData |= PerObjectData.LightData;
+                if (!settings.IsTiledLightingEffectivelyEnabled)
+                {
+                    perObjectData |= PerObjectData.LightIndices;
+                }
             }
 
             shaderTagIds ??= ShaderTagIds;

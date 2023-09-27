@@ -3,7 +3,7 @@
 
 // https://www.3dgep.com/forward-plus/
 #define TILE_SIZE 16
-#define RESERVED_LIGHTS_PER_TILE 32
+#define RESERVED_LIGHTS_PER_TILE 2
 
 #include "../../ShaderLibrary/Common.hlsl"
 #include "../../ShaderLibrary/Lighting.hlsl"
@@ -12,17 +12,20 @@ CBUFFER_START(TiledLighting)
     float2 _TiledLighting_ScreenDimensions;
     uint _TiledLighting_TilesX;
     uint _TiledLighting_TilesY;
+
+    uint _TiledLighting_CurrentLightIndexListOffset;
+    uint _TiledLighting_CurrentLightGridOffset;
 CBUFFER_END
 
-struct Plane
+struct TiledLighting_Plane
 {
     float3 normal;
     float distance;
 };
 
-Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2)
+TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2)
 {
-    Plane plane;
+    TiledLighting_Plane plane;
 
     const float3 v0 = p1 - p0;
     const float3 v2 = p2 - p0;
@@ -34,13 +37,13 @@ Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2)
     return plane;
 }
 
-struct Frustum
+struct TiledLighting_Frustum
 {
-    Plane planes[4]; // left, right, top, bottom; back and front can be computed from depth values
+    TiledLighting_Plane planes[4]; // left, right, top, bottom; back and front can be computed from depth values
 };
 
 // Convert clip space coordinates to view space
-float4 ClipToView(const float4 clip)
+float4 TiledLighting_ClipToView(const float4 clip)
 {
     // View space position.
     float4 view = mul(UNITY_MATRIX_I_P, clip);
@@ -50,7 +53,7 @@ float4 ClipToView(const float4 clip)
     return view;
 }
 
-float4 ScreenToView(const float4 screenCoordinates)
+float4 TiledLighting_ScreenToView(const float4 screenCoordinates)
 {
     // Convert to normalized texture coordinates
     float2 texCoord = screenCoordinates.xy / _TiledLighting_ScreenDimensions;
@@ -63,28 +66,29 @@ float4 ScreenToView(const float4 screenCoordinates)
 
     const float4 positionCs = float4(float2(texCoord.x, 1.0f - texCoord.y) * 2.0f - 1.0f, screenCoordinates.z,
                                      screenCoordinates.w);
-    return ClipToView(positionCs);
+    return TiledLighting_ClipToView(positionCs);
 }
 
-uint GetFlatTileIndex(const uint tileX, const uint tileY)
+uint TiledLighting_GetFlatTileIndex(const uint tileX, const uint tileY)
 {
     return tileY * _TiledLighting_TilesX + tileX;
 }
 
 #include "../../ShaderLibrary/DepthNormals.hlsl"
 
-struct Sphere
+struct TiledLighting_Sphere
 {
     float3 center;
     float radius;
 };
 
-bool SphereInsidePlane(const Sphere sphere, const Plane plane)
+bool TiledLighting_SphereInsidePlane(const TiledLighting_Sphere sphere, const TiledLighting_Plane plane)
 {
     return (dot(plane.normal, sphere.center) - plane.distance) < -sphere.radius;
 }
 
-bool SphereInsideFrustum(const Sphere sphere, const Frustum frustum, const float zNear, const float zFar)
+bool TiledLighting_SphereInsideFrustum(const TiledLighting_Sphere sphere, const TiledLighting_Frustum frustum,
+                                       const float zNear, const float zFar)
 {
     bool result = true;
 
@@ -103,7 +107,7 @@ bool SphereInsideFrustum(const Sphere sphere, const Frustum frustum, const float
     // Then check frustum planes
     for (uint i = 0; i < 4 && result; i++)
     {
-        if (SphereInsidePlane(sphere, frustum.planes[i]))
+        if (TiledLighting_SphereInsidePlane(sphere, frustum.planes[i]))
         {
             result = false;
         }
@@ -112,22 +116,22 @@ bool SphereInsideFrustum(const Sphere sphere, const Frustum frustum, const float
     return result;
 }
 
-uint GetOpaqueLightGridIndex(const uint tileIndex)
+uint TiledLighting_GetOpaqueLightGridIndex(const uint tileIndex)
 {
     return tileIndex;
 }
 
-uint GetTransparentLightGridIndex(const uint tileIndex)
+uint TiledLighting_GetTransparentLightGridIndex(const uint tileIndex)
 {
     return _TiledLighting_TilesX * _TiledLighting_TilesY + tileIndex;
 }
 
-uint GetOpaqueLightIndexListIndex(const uint tileIndex)
+uint TiledLighting_GetOpaqueLightIndexListIndex(const uint tileIndex)
 {
     return tileIndex;
 }
 
-uint GetTransparentLightIndexListIndex(const uint tileIndex)
+uint TiledLighting_GetTransparentLightIndexListIndex(const uint tileIndex)
 {
     return _TiledLighting_TilesX * _TiledLighting_TilesY * RESERVED_LIGHTS_PER_TILE + tileIndex;
 }

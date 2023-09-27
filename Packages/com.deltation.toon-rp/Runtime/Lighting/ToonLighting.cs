@@ -124,7 +124,8 @@ namespace DELTation.ToonRP.Lighting
                 indexMap[i] = lightSkipIndex;
             }
 
-            _buffer.SetGlobalInteger(AdditionalLightCountId, _additionalLightsCount);
+            _buffer.SetGlobalInt(AdditionalLightCountId, _additionalLightsCount);
+
             if (_additionalLightsCount > 0)
             {
                 _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);

@@ -1,0 +1,10 @@
+﻿#pragma kernel CS
+
+RWStructuredBuffer<uint> _TiledLighting_LightIndexCounter;
+
+[numthreads(1, 1, 1)]
+void CS()
+{
+    _TiledLighting_LightIndexCounter[0] = 0;
+    _TiledLighting_LightIndexCounter[1] = 0;
+}

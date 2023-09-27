@@ -27,6 +27,7 @@ MonoBehaviour:
     RampTexture: {fileID: 2800000, guid: 752a48c13df68ea4aae97103de1292d2, type: 3}
   CameraRendererSettings:
     AdditionalLights: 1
+    TiledLighting: 1
     OverrideRenderTextureFormat: 0
     RenderTextureFormat: 67
     AllowHdr: 1
@@ -78,12 +79,11 @@ MonoBehaviour:
       Saturation: 1
   Extensions:
     Extensions:
-    - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
     - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
-    - {fileID: 11400000, guid: 30041836c268b614db8f6cfc9f36024b, type: 2}
     - {fileID: 11400000, guid: f0489e92ff979c443be4e14bcf3021bb, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 444443e987af20941be3a8f1b36ba921, type: 2}
+    - {fileID: 11400000, guid: fbec6b31b69fe924498065c60633b32a, type: 2}

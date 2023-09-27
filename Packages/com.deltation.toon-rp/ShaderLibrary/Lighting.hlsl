@@ -60,12 +60,11 @@ uint ToGlobalLightIndex(const uint perObjectIndex)
     return uint(tmp[perObjectIndex % 4]);
 }
 
-Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
+Light GetAdditionalLightGlobal(const uint globalLightIndex, const float3 positionWs)
 {
-    const uint globalIndex = ToGlobalLightIndex(perObjectIndex);
     Light light;
-    light.color = _AdditionalLightColors[globalIndex].rgb;
-    const float4 position = _AdditionalLightPositions[globalIndex];
+    light.color = _AdditionalLightColors[globalLightIndex].rgb;
+    const float4 position = _AdditionalLightPositions[globalLightIndex];
     const float3 offset = position.xyz - positionWs;
     light.direction = normalize(offset);
     light.shadowAttenuation = 1.0f;
@@ -77,6 +76,12 @@ Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
     light.distanceAttenuation = distanceAttenuation / distanceSqr;
 
     return light;
+}
+
+Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
+{
+    const uint globalIndex = ToGlobalLightIndex(perObjectIndex);
+    return GetAdditionalLightGlobal(globalIndex, positionWs);
 }
 
 // Samples SH L0, L1 and L2 terms

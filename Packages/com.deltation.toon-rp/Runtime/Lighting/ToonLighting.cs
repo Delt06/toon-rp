@@ -18,13 +18,16 @@ namespace DELTation.ToonRP.Lighting
         private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
         private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
         private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
+        private static readonly int AdditionalLightPositionsVsId = Shader.PropertyToID("_AdditionalLightPositionsVS");
         private static GlobalKeyword _additionalLightsGlobalKeyword;
         private static GlobalKeyword _additionalLightsVertexGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
+        private readonly Vector4[] _additionalLightPositionsVs = new Vector4[MaxAdditionalLightCount];
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
+        private Camera _camera;
 
         public ToonLighting()
         {
@@ -32,10 +35,11 @@ namespace DELTation.ToonRP.Lighting
             _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(AdditionalLightsVertexGlobalKeyword);
         }
 
-        public void Setup(ref ScriptableRenderContext context, ref CullingResults cullingResults,
+        public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
             in ToonCameraRendererSettings settings,
             [CanBeNull] Light mainLight)
         {
+            _camera = camera;
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
 
@@ -130,18 +134,22 @@ namespace DELTation.ToonRP.Lighting
             {
                 _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);
                 _buffer.SetGlobalVectorArray(AdditionalLightPositionsId, _additionalLightPositions);
+                _buffer.SetGlobalVectorArray(AdditionalLightPositionsVsId, _additionalLightPositionsVs);
             }
         }
 
         private void SetupPointLight(int index, in VisibleLight visibleLight)
         {
-            Vector4 packedColor = visibleLight.finalColor;
-            packedColor.w = visibleLight.range;
-            _additionalLightColors[index] = packedColor;
+            _additionalLightColors[index] = visibleLight.finalColor;
 
             Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
             position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
             _additionalLightPositions[index] = position;
+
+            Vector4 positionVs =
+                _camera.worldToCameraMatrix.MultiplyPoint(visibleLight.localToWorldMatrix.GetColumn(3));
+            positionVs.w = visibleLight.range;
+            _additionalLightPositionsVs[index] = positionVs;
         }
     }
 }

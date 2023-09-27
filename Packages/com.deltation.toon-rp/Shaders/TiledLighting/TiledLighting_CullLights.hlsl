@@ -86,9 +86,9 @@ void CS(
 
     for (i = groupIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
     {
-        const float3 positionWs = _AdditionalLightPositions[i].xyz;
-        const float3 positionVs = TransformWorldToView(positionWs);
-        const float range = _AdditionalLightColors[i].w;
+        const float4 positionsEntry = _AdditionalLightPositionsVS[i];
+        const float3 positionVs = positionsEntry.xyz;
+        const float range = positionsEntry.w;
 
         TiledLighting_Sphere boundingSphere;
         boundingSphere.center = positionVs;

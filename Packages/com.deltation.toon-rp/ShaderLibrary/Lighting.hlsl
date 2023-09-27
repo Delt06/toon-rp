@@ -15,7 +15,8 @@ CBUFFER_START(_ToonRPLight)
     float3 _DirectionalLightDirection;
 
     uint _AdditionalLightCount;
-    float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color, w = range
+    float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color
+    float4 _AdditionalLightPositionsVS[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position VS, w = range
     float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
 CBUFFER_END
 

@@ -114,8 +114,6 @@ namespace DELTation.ToonRP
                 _renderTarget.Height
             );
 
-            _tiledLighting.CullLights();
-
             if (_depthPrePassMode != DepthPrePassMode.Off)
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
@@ -125,6 +123,8 @@ namespace DELTation.ToonRP
                 _depthPrePass.Render();
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
             }
+
+            _tiledLighting.CullLights();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
             {

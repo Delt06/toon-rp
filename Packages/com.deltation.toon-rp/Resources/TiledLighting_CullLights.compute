@@ -1,0 +1,3 @@
+#pragma kernel CS
+
+#include "../Shaders/TiledLighting/TiledLighting_CullLights.hlsl"

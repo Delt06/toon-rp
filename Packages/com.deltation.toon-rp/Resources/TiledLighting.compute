@@ -1,3 +1,0 @@
-#pragma kernel CS_ComputeFrustums
-
-#include "../Shaders/TiledLighting/TiledLighting.hlsl"

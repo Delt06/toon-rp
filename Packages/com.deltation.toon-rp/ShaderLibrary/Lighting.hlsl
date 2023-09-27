@@ -11,12 +11,12 @@
 #define MAX_ADDITIONAL_LIGHTS_PER_OBJECT 4
 
 CBUFFER_START(_ToonRPLight)
-float3 _DirectionalLightColor;
-float3 _DirectionalLightDirection;
+    float3 _DirectionalLightColor;
+    float3 _DirectionalLightDirection;
 
-uint _AdditionalLightCount;
-float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT];
-float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT];
+    uint _AdditionalLightCount;
+    float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color, w = range
+    float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
 CBUFFER_END
 
 struct Light

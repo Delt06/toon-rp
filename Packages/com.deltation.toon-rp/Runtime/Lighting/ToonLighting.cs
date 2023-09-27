@@ -134,7 +134,10 @@ namespace DELTation.ToonRP.Lighting
 
         private void SetupPointLight(int index, in VisibleLight visibleLight)
         {
-            _additionalLightColors[index] = visibleLight.finalColor;
+            Vector4 packedColor = visibleLight.finalColor;
+            packedColor.w = visibleLight.range;
+            _additionalLightColors[index] = packedColor;
+
             Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
             position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
             _additionalLightPositions[index] = position;

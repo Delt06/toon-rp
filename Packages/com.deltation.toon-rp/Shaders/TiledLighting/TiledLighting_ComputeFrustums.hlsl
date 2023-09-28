@@ -1,8 +1,14 @@
 ﻿#include "TiledLighting_Shared.hlsl"
 
-RWStructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
+RWStructuredBuffer<TiledLighting_FrustumVectors> _TiledLighting_Frustums;
 
 #define COMPUTE_FRUSTUMS_GROUP_SIZE 16
+
+float3 ScaleByInverseCosine(const float3 vec, const float3 forward)
+{
+    const float cosine = dot(vec, forward);
+    return vec / cosine;
+}
 
 [numthreads(COMPUTE_FRUSTUMS_GROUP_SIZE, COMPUTE_FRUSTUMS_GROUP_SIZE, 1)]
 void CS(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -26,20 +32,17 @@ void CS(uint3 dispatchThreadId : SV_DispatchThreadID)
         viewSpace[i] = TiledLighting_ScreenToView(screenSpace[i]).xyz;
     }
 
-    const float3 eyePos = float3(0, 0, 0);
-    TiledLighting_Frustum frustum;
-    // Left plane
-    frustum.planes[0] = ComputePlane(eyePos, viewSpace[2], viewSpace[0]);
-    // Right plane
-    frustum.planes[1] = ComputePlane(eyePos, viewSpace[1], viewSpace[3]);
-    // Top plane
-    frustum.planes[2] = ComputePlane(eyePos, viewSpace[0], viewSpace[1]);
-    // Bottom plane
-    frustum.planes[3] = ComputePlane(eyePos, viewSpace[3], viewSpace[2]);
+    const float3 forward = float3(0, 0, -1);
+
+    TiledLighting_FrustumVectors frustumVectors;
+    frustumVectors.topLeft = ScaleByInverseCosine(normalize(viewSpace[0]), forward);
+    frustumVectors.topRight = ScaleByInverseCosine(normalize(viewSpace[1]), forward);
+    frustumVectors.bottomLeft = ScaleByInverseCosine(normalize(viewSpace[2]), forward);
+    frustumVectors.bottomRight = ScaleByInverseCosine(normalize(viewSpace[3]), forward);
 
     if (tileCoords.x < _TiledLighting_TilesX && tileCoords.y < _TiledLighting_TilesY)
     {
         const uint frustumIndex = TiledLighting_GetFlatTileIndex(tileCoords.x, tileCoords.y);
-        _TiledLighting_Frustums[frustumIndex] = frustum;
+        _TiledLighting_Frustums[frustumIndex] = frustumVectors;
     }
 }

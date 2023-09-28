@@ -80,7 +80,7 @@ namespace DELTation.ToonRP.Lighting
             _tilesY = (uint) Mathf.CeilToInt(_screenHeight / TileSize);
             int totalTilesCount = (int) (_tilesX * _tilesY);
 
-            const int frustumSize = 4 * 4 * sizeof(float); // 4 planes, which are normal + distance
+            const int frustumSize = 4 * 3 * sizeof(float); // 4 x float3
             ResizeBufferIfNeeded(ref _frustumsBuffer, totalTilesCount, frustumSize);
             ResizeBufferIfNeeded(ref _lightGrid, totalTilesCount * 2, sizeof(uint) * 2);
             ResizeBufferIfNeeded(ref _lightIndexList, totalTilesCount * ReservedLightsPerTile * 2, sizeof(uint));

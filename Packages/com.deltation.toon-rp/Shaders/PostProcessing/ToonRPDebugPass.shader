@@ -56,6 +56,9 @@
                 return OUT;
             }
 
+			bool _TiledLighting_ShowOpaque;
+			bool _TiledLighting_ShowTransparent;
+
 			float4 PS(const v2f IN) : SV_TARGET
             {
                 const uint2 tileIndex = TiledLighting_ScreenPositionToTileIndex(IN.positionCs.xy);
@@ -63,21 +66,24 @@
 
                 float3 output = 0.0f;
 
+                if (_AdditionalLightCount)
                 {
-                    const uint lightGridIndex = TiledLighting_GetOpaqueLightGridIndex(flatTileIndex);
-                    const uint startOffset = _TiledLighting_LightGrid[lightGridIndex].x;
-                    const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
+                    if (_TiledLighting_ShowOpaque)
+                    {
+                        const uint lightGridIndex = TiledLighting_GetOpaqueLightGridIndex(flatTileIndex);
+                        const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
+                    
+                        output.r = (float) lightCount / _AdditionalLightCount;
+                    }
 
-                    output.r = (float) lightCount / _AdditionalLightCount;
+                    if (_TiledLighting_ShowTransparent)
+                    {
+                        const uint lightGridIndex = TiledLighting_GetTransparentLightGridIndex(flatTileIndex);
+                        const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
+                    
+                        output.g = (float) lightCount / _AdditionalLightCount;
+                    }    
                 }
-
-                // {
-                //     const uint lightGridIndex = TiledLighting_GetTransparentLightGridIndex(flatTileIndex);
-                //     const uint startOffset = _TiledLighting_LightGrid[lightGridIndex].x;
-                //     const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
-                //
-                //     output.g = (float) lightCount / 2;
-                // }
                 
                 return float4(lerp(SampleSource(IN.uv), output, 0.5), 1.0f);
             }

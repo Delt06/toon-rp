@@ -9,7 +9,9 @@ StructuredBuffer<uint2> _TiledLighting_LightGrid;
 
 uint2 TiledLighting_ScreenPositionToTileIndex(float2 screenPosition)
 {
+    #ifdef UNITY_UV_STARTS_AT_TOP
     screenPosition.y = _TiledLighting_ScreenDimensions.y - screenPosition.y;
+    #endif // UNITY_UV_STARTS_AT_TOP
     return uint2(floor(screenPosition / TILE_SIZE));
 }
 

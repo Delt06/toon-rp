@@ -41,6 +41,17 @@ void AppendLight_Transparent(const uint lightIndex)
     }
 }
 
+float RemapDepthToClipZ(const float depth)
+{
+    if (UNITY_NEAR_CLIP_VALUE == -1)
+    {
+        // ReSharper disable once CppUnreachableCode
+        return depth * 2 - 1;
+    }
+    
+    return depth;
+}
+
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void CS(
     const uint3 dispatchThreadId : SV_DispatchThreadID,
@@ -74,13 +85,20 @@ void CS(
     const float minDepth = asfloat(g_MinDepth);
     const float maxDepth = asfloat(g_MaxDepth);
 
-    const float minDepthVs = TiledLighting_ClipToView(float4(0, 0, minDepth, 1)).z;
-    const float maxDepthVs = TiledLighting_ClipToView(float4(0, 0, maxDepth, 1)).z;
-    const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, 1, 1)).z;
+    // ReSharper disable once CppLocalVariableMayBeConst
+    float minDepthVs = TiledLighting_ClipToView(float4(0, 0, RemapDepthToClipZ(minDepth), 1)).z;
+    // ReSharper disable once CppLocalVariableMayBeConst
+    float maxDepthVs = TiledLighting_ClipToView(float4(0, 0, RemapDepthToClipZ(maxDepth), 1)).z;
+    
+    #ifdef UNITY_REVERSED_Z
+    Swap(minDepthVs, maxDepthVs);
+    #endif // UNITY_REVERSED_Z
+    
+    const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, UNITY_NEAR_CLIP_VALUE, 1)).z;
 
     TiledLighting_Plane minPlane;
     minPlane.normal = float3(0, 0, -1);
-    minPlane.distance = -maxDepthVs;
+    minPlane.distance = -minDepthVs;
 
     uint i;
 
@@ -94,7 +112,7 @@ void CS(
         boundingSphere.center = positionVs;
         boundingSphere.radius = range;
 
-        if (TiledLighting_SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, minDepthVs))
+        if (TiledLighting_SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, maxDepthVs))
         {
             AppendLight_Transparent(i);
 

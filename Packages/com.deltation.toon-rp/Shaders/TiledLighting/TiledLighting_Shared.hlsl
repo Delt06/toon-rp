@@ -56,16 +56,10 @@ float4 TiledLighting_ClipToView(const float4 clip)
 float4 TiledLighting_ScreenToView(const float4 screenCoordinates)
 {
     // Convert to normalized texture coordinates
-    float2 texCoord = screenCoordinates.xy / _TiledLighting_ScreenDimensions;
-
-    #ifdef UNITY_UV_STARTS_AT_TOP
-    texCoord.y = 1.0f - texCoord.y;
-    #endif // UNITY_UV_STARTS_AT_TOP
+    const float2 texCoord = screenCoordinates.xy / _TiledLighting_ScreenDimensions;
 
     // Convert to clip space
-
-    const float4 positionCs = float4(float2(texCoord.x, 1.0f - texCoord.y) * 2.0f - 1.0f, screenCoordinates.z,
-                                     screenCoordinates.w);
+    const float4 positionCs = float4(texCoord * 2.0f - 1.0f, screenCoordinates.z, screenCoordinates.w);
     return TiledLighting_ClipToView(positionCs);
 }
 
@@ -92,17 +86,10 @@ bool TiledLighting_SphereInsideFrustum(const TiledLighting_Sphere sphere, const 
 {
     bool result = true;
 
-    #ifdef UNITY_REVERSED_Z
     if (sphere.center.z - sphere.radius > zNear || sphere.center.z + sphere.radius < zFar)
     {
         result = false;
     }
-    #else // !UNITY_REVERSED_Z
-    if (sphere.center.z - sphere.radius < zNear || sphere.center.z + sphere.radius > zFar )
-    {
-        result = false;
-    }
-    #endif // UNITY_REVERSED_Z
 
     // Then check frustum planes
     for (uint i = 0; i < 4 && result; i++)

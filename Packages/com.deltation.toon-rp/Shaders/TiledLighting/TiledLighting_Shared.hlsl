@@ -17,62 +17,30 @@ CBUFFER_START(TiledLighting)
     uint _TiledLighting_CurrentLightGridOffset;
 CBUFFER_END
 
-struct TiledLighting_FrustumVectors
+struct TiledLighting_Plane
 {
-    float3 topLeft;
-    float3 topRight;
-    float3 bottomLeft;
-    float3 bottomRight;
+    float3 normal;
+    float distance;
 };
 
-struct TiledLighting_AABB
+TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2)
 {
-    float3 center;
-    float3 halfSize;
-};
+    TiledLighting_Plane plane;
 
-struct TiledLighting_Sphere
-{
-    float3 center;
-    float radius;
-};
+    const float3 v0 = p1 - p0;
+    const float3 v2 = p2 - p0;
+    plane.normal = normalize(cross(v0, v2));
 
-TiledLighting_AABB TiledLighting_ComputeFrustumAABB(
-    const TiledLighting_FrustumVectors frustumVectors,
-    const float zNear, const float zFar)
-{
-    float3 corners[8];
-    corners[0] = frustumVectors.topLeft * zNear;
-    corners[1] = frustumVectors.topRight * zNear;
-    corners[2] = frustumVectors.bottomLeft * zNear;
-    corners[3] = frustumVectors.bottomRight * zNear;
-    corners[4] = frustumVectors.topLeft * zFar;
-    corners[5] = frustumVectors.topRight * zFar;
-    corners[6] = frustumVectors.bottomLeft * zFar;
-    corners[7] = frustumVectors.bottomRight * zFar;
+    // Compute the distance to the origin using p0.
+    plane.distance = dot(plane.normal, p0);
 
-    float3 aabbMin = corners[0];
-    float3 aabbMax = corners[0];
-
-    UNITY_UNROLL
-    for (uint i = 1; i < 8; ++i)
-    {
-        aabbMin = min(aabbMin, corners[i]);
-        aabbMax = max(aabbMax, corners[i]);
-    }
-
-    TiledLighting_AABB aabb;
-    aabb.halfSize = (aabbMax - aabbMin) * 0.5f;
-    aabb.center = aabbMin + aabb.halfSize;
-    return aabb;
+    return plane;
 }
 
-bool TiledLighting_TestSphereVsAABB(const TiledLighting_Sphere sphere, const TiledLighting_AABB aabb)
+struct TiledLighting_Frustum
 {
-    const float3 delta = max(0, abs(aabb.center - sphere.center) - aabb.halfSize);
-    const float distSq = dot(delta, delta);
-    return distSq <= sphere.radius * sphere.radius;
-}
+    TiledLighting_Plane planes[4]; // left, right, top, bottom; back and front can be computed from depth values
+};
 
 // Convert clip space coordinates to view space
 float4 TiledLighting_ClipToView(const float4 clip)
@@ -104,6 +72,48 @@ float4 TiledLighting_ScreenToView(const float4 screenCoordinates)
 uint TiledLighting_GetFlatTileIndex(const uint tileX, const uint tileY)
 {
     return tileY * _TiledLighting_TilesX + tileX;
+}
+
+#include "../../ShaderLibrary/DepthNormals.hlsl"
+
+struct TiledLighting_Sphere
+{
+    float3 center;
+    float radius;
+};
+
+bool TiledLighting_SphereInsidePlane(const TiledLighting_Sphere sphere, const TiledLighting_Plane plane)
+{
+    return (dot(plane.normal, sphere.center) - plane.distance) < -sphere.radius;
+}
+
+bool TiledLighting_SphereInsideFrustum(const TiledLighting_Sphere sphere, const TiledLighting_Frustum frustum,
+                                       const float zNear, const float zFar)
+{
+    bool result = true;
+
+    #ifdef UNITY_REVERSED_Z
+    if (sphere.center.z - sphere.radius > zNear || sphere.center.z + sphere.radius < zFar)
+    {
+        result = false;
+    }
+    #else // !UNITY_REVERSED_Z
+    if (sphere.center.z - sphere.radius < zNear || sphere.center.z + sphere.radius > zFar )
+    {
+        result = false;
+    }
+    #endif // UNITY_REVERSED_Z
+
+    // Then check frustum planes
+    for (uint i = 0; i < 4 && result; i++)
+    {
+        if (TiledLighting_SphereInsidePlane(sphere, frustum.planes[i]))
+        {
+            result = false;
+        }
+    }
+
+    return result;
 }
 
 uint TiledLighting_GetOpaqueLightGridIndex(const uint tileIndex)

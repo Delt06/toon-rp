@@ -1,17 +1,13 @@
 ﻿#include "TiledLighting_Shared.hlsl"
 
-#include "../../ShaderLibrary/DepthNormals.hlsl"
-
-StructuredBuffer<TiledLighting_FrustumVectors> _TiledLighting_Frustums;
+StructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexCounter;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
 RWStructuredBuffer<uint2> _TiledLighting_LightGrid;
 
 groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
-groupshared TiledLighting_FrustumVectors g_FrustumVector;
-groupshared TiledLighting_AABB g_FrustumAabb_Opaque;
-groupshared TiledLighting_AABB g_FrustumAabb_Transparent;
+groupshared TiledLighting_Frustum g_Frustum;
 
 #define MAX_LIGHTS_PER_TILE 1024
 
@@ -65,7 +61,7 @@ void CS(
         g_MaxDepth = 0;
         g_LightList_Count_Opaque = 0;
         g_LightList_Count_Transparent = 0;
-        g_FrustumVector = _TiledLighting_Frustums[TiledLighting_GetFlatTileIndex(groupId.x, groupId.y)];
+        g_Frustum = _TiledLighting_Frustums[TiledLighting_GetFlatTileIndex(groupId.x, groupId.y)];
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -75,25 +71,16 @@ void CS(
 
     GroupMemoryBarrierWithGroupSync();
 
-    if (groupIndex == 0)
-    {
-        const float minDepth = asfloat(g_MinDepth);
-        const float maxDepth = asfloat(g_MaxDepth);
+    const float minDepth = asfloat(g_MinDepth);
+    const float maxDepth = asfloat(g_MaxDepth);
 
-        float minDepthVs = TiledLighting_ClipToView(float4(0, 0, minDepth, 1)).z;
-        float maxDepthVs = TiledLighting_ClipToView(float4(0, 0, maxDepth, 1)).z;
-        const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, 0, 1)).z;
+    const float minDepthVs = TiledLighting_ClipToView(float4(0, 0, minDepth, 1)).z;
+    const float maxDepthVs = TiledLighting_ClipToView(float4(0, 0, maxDepth, 1)).z;
+    const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, 1, 1)).z;
 
-        #ifdef UNITY_REVERSED_Z
-        minDepthVs *= -1;
-        maxDepthVs *= -1;
-        #endif // UNITY_REVERSED_Z
-
-        g_FrustumAabb_Opaque = TiledLighting_ComputeFrustumAABB(g_FrustumVector, minDepthVs, maxDepthVs);
-        g_FrustumAabb_Transparent = TiledLighting_ComputeFrustumAABB(g_FrustumVector, nearClipVs, maxDepthVs);
-    }
-
-    GroupMemoryBarrierWithGroupSync();
+    TiledLighting_Plane minPlane;
+    minPlane.normal = float3(0, 0, -1);
+    minPlane.distance = -maxDepthVs;
 
     uint i;
 
@@ -107,14 +94,14 @@ void CS(
         boundingSphere.center = positionVs;
         boundingSphere.radius = range;
 
-        if (TiledLighting_TestSphereVsAABB(boundingSphere, g_FrustumAabb_Opaque))
-        {
-            AppendLight_Opaque(i);
-        }
-
-        if (TiledLighting_TestSphereVsAABB(boundingSphere, g_FrustumAabb_Transparent))
+        if (TiledLighting_SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, minDepthVs))
         {
             AppendLight_Transparent(i);
+
+            if (!TiledLighting_SphereInsidePlane(boundingSphere, minPlane))
+            {
+                AppendLight_Opaque(i);
+            }
         }
     }
 

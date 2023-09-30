@@ -16,6 +16,3 @@ MonoBehaviour:
   - {fileID: 0}
   Settings:
     Mode: 0
-    TiledLighting:
-      ShowOpaque: 1
-      ShowTransparent: 0

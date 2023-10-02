@@ -15,14 +15,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass");
         private ToonDebugPassSettings _settings;
 
-        public override bool IsEnabled(in ToonPostProcessingSettings settings)
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            return settings.Find<ToonDebugPassSettings>().Mode != ToonDebugPassSettings.DebugMode.None;
-#else
-            return false;
-#endif
-        }
+        public override bool IsEnabled(in ToonPostProcessingSettings settings) =>
+            settings.Find<ToonDebugPassSettings>().IsEffectivelyEnabled();
 
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {

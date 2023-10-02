@@ -19,6 +19,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private bool TiledLightingOn => Mode == DebugMode.TiledLighting;
 
+        public bool IsEffectivelyEnabled()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            return Mode != DebugMode.None;
+#else 
+            return false;
+#endif
+        }
+
         [Serializable]
         public struct TiledLightingSettings
         {

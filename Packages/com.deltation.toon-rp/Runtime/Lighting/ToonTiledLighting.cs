@@ -14,6 +14,11 @@ namespace DELTation.ToonRP.Lighting
         private const int FrustumSize = 4 * 4 * sizeof(float);
         private const int LightIndexListBaseIndexOffset = 2;
 
+        public const string SetupComputeShaderName = "TiledLighting_Setup";
+        public const string ComputeFrustumsComputeShaderName = "TiledLighting_ComputeFrustums";
+        public const string CullLightsComputeShaderName = "TiledLighting_CullLights";
+        public const string TiledLightingKeywordName = "_TOON_RP_TILED_LIGHTING";
+
         private readonly ComputeShaderKernel _computeFrustumsKernel;
         private readonly ComputeShaderKernel _cullLightsKernel;
         private readonly ToonStructuredComputeBuffer _frustumsBuffer = new(FrustumSize);
@@ -36,15 +41,16 @@ namespace DELTation.ToonRP.Lighting
         public ToonTiledLighting(ToonLighting lighting)
         {
             _lighting = lighting;
-            _tiledLightingKeyword = GlobalKeyword.Create("_TOON_RP_TILED_LIGHTING");
+            _tiledLightingKeyword = GlobalKeyword.Create(TiledLightingKeywordName);
 
-            ComputeShader clearCountersComputeShader = Resources.Load<ComputeShader>("TiledLighting_Setup");
+            ComputeShader clearCountersComputeShader = Resources.Load<ComputeShader>(SetupComputeShaderName);
             _setupKernel = new ComputeShaderKernel(clearCountersComputeShader, 0);
 
-            ComputeShader computeFrustumsComputeShader = Resources.Load<ComputeShader>("TiledLighting_ComputeFrustums");
+            ComputeShader computeFrustumsComputeShader =
+                Resources.Load<ComputeShader>(ComputeFrustumsComputeShaderName);
             _computeFrustumsKernel = new ComputeShaderKernel(computeFrustumsComputeShader, 0);
 
-            ComputeShader cullLightsComputeShader = Resources.Load<ComputeShader>("TiledLighting_CullLights");
+            ComputeShader cullLightsComputeShader = Resources.Load<ComputeShader>(CullLightsComputeShaderName);
             _cullLightsKernel = new ComputeShaderKernel(cullLightsComputeShader, 0);
         }
 

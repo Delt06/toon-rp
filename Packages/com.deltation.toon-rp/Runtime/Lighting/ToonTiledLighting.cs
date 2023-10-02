@@ -10,7 +10,7 @@ namespace DELTation.ToonRP.Lighting
     public class ToonTiledLighting : IDisposable
     {
         private const int TileSize = 16;
-        private const int ReservedLightsPerTile = 2;
+        private const int ReservedLightsPerTile = 32;
         private const int FrustumSize = 4 * 4 * sizeof(float);
         private const int LightIndexListBaseIndexOffset = 2;
 

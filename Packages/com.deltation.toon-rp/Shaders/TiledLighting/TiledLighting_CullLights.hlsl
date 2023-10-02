@@ -8,7 +8,7 @@ groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
 groupshared TiledLighting_Frustum g_Frustum;
 
-#define MAX_LIGHTS_PER_TILE 256
+#define MAX_LIGHTS_PER_TILE 32
 
 groupshared uint g_LightList_Count_Opaque;
 groupshared uint g_LightList_IndexStartOffset_Opaque;

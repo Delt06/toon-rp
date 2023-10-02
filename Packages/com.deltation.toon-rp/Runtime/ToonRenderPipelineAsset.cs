@@ -4,10 +4,12 @@ using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
 
 namespace DELTation.ToonRP
 {
@@ -98,9 +100,11 @@ namespace DELTation.ToonRP
                     return _defaultMaterial;
                 }
 
+#if UNITY_EDITOR
                 _defaultMaterial =
                     AssetDatabase.LoadAssetAtPath<Material>("Packages/com.deltation.toon-rp/Assets/Toon RP Default.mat"
                     );
+#endif // UNITY_EDITOR
                 return _defaultMaterial;
             }
         }

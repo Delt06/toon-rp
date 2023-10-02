@@ -40,7 +40,7 @@ LightEntry GetTiledLightEntry(const uint globalLightIndex)
     const TiledLight tiledLight = _TiledLighting_Lights[globalLightIndex];
 
     LightEntry lightEntry;
-    lightEntry.color = tiledLight.color;
+    lightEntry.color = tiledLight.color.rgb;
     lightEntry.positionWs_attenuation = tiledLight.positionWs_attenuation;
     return lightEntry;
 }

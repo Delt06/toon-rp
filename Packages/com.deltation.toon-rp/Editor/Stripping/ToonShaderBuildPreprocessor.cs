@@ -68,8 +68,8 @@ namespace DELTation.ToonRP.Editor.Stripping
 
             // Tiled lighting
             {
-                if (_allToonRenderPipelineAssets.Any(a =>
-                        a.CameraRendererSettings.IsTiledLightingEnabledAndSupported
+                if (_allToonRenderPipelineAssets.All(a =>
+                        !a.CameraRendererSettings.IsTiledLightingEnabledAndSupported
                     ))
                 {
                     _computeShadersToStrip.Add(ToonTiledLighting.SetupComputeShaderName);
@@ -451,6 +451,11 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 string shadersToStripString = string.Join(separator, _shadersToStrip);
                 Debug.Log($"Toon RP: stripping shaders: {shadersToStripString}");
+            }
+
+            {
+                string shadersToStripString = string.Join(separator, _computeShadersToStrip);
+                Debug.Log($"Toon RP: stripping compute shaders: {shadersToStripString}");
             }
 
             {

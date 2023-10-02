@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using DELTation.ToonRP.Extensions;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -10,26 +11,31 @@ namespace DELTation.ToonRP.Lighting
     {
         private const int TileSize = 16;
         private const int ReservedLightsPerTile = 2;
+        private const int FrustumSize = 4 * 4 * sizeof(float);
+        private const int LightIndexListBaseIndexOffset = 2;
 
         private readonly ComputeShaderKernel _computeFrustumsKernel;
         private readonly ComputeShaderKernel _cullLightsKernel;
-        private readonly ComputeBuffer _lightIndexCounter = new(2, sizeof(uint), ComputeBufferType.Structured);
+        private readonly ToonStructuredComputeBuffer _frustumsBuffer = new(FrustumSize);
+        private readonly ToonStructuredComputeBuffer _lightGrid = new(sizeof(uint) * 2);
+        private readonly ToonStructuredComputeBuffer _lightIndexList = new(sizeof(uint));
+        private readonly ToonLighting _lighting;
         private readonly ComputeShaderKernel _setupKernel;
         private readonly GlobalKeyword _tiledLightingKeyword;
+        private readonly ToonStructuredComputeBuffer _tiledLightsBuffer =
+            new(Marshal.SizeOf<TiledLight>(), ToonLighting.MaxAdditionalLightCountTiled / 8);
 
         private ScriptableRenderContext _context;
         private bool _enabled;
-        private ComputeBuffer _frustumsBuffer;
-        private ComputeBuffer _lightGrid;
-        private ComputeBuffer _lightIndexList;
-        private ComputeBuffer _lightIndexListTransparent;
+
         private float _screenHeight;
         private float _screenWidth;
         private uint _tilesX;
         private uint _tilesY;
 
-        public ToonTiledLighting()
+        public ToonTiledLighting(ToonLighting lighting)
         {
+            _lighting = lighting;
             _tiledLightingKeyword = GlobalKeyword.Create("_TOON_RP_TILED_LIGHTING");
 
             ComputeShader clearCountersComputeShader = Resources.Load<ComputeShader>("TiledLighting_Setup");
@@ -42,25 +48,14 @@ namespace DELTation.ToonRP.Lighting
             _cullLightsKernel = new ComputeShaderKernel(cullLightsComputeShader, 0);
         }
 
+        private int TotalTilesCount => (int) (_tilesX * _tilesY);
+
         public void Dispose()
         {
             _frustumsBuffer?.Dispose();
-
-            _lightIndexCounter?.Dispose();
-
             _lightGrid?.Dispose();
-
             _lightIndexList?.Dispose();
-            _lightIndexListTransparent?.Dispose();
-        }
-
-        private static void ResizeBufferIfNeeded(ref ComputeBuffer buffer, int desiredCount, int stride)
-        {
-            if (buffer == null || !buffer.IsValid() || buffer.count < desiredCount)
-            {
-                buffer?.Release();
-                buffer = new ComputeBuffer(desiredCount, stride, ComputeBufferType.Structured);
-            }
+            _tiledLightsBuffer?.Dispose();
         }
 
         public void Setup(in ScriptableRenderContext context, in ToonRenderingExtensionContext toonContext)
@@ -80,10 +75,12 @@ namespace DELTation.ToonRP.Lighting
             _tilesY = (uint) Mathf.CeilToInt(_screenHeight / TileSize);
             int totalTilesCount = (int) (_tilesX * _tilesY);
 
-            const int frustumSize = 4 * 4 * sizeof(float); // 4 planes, which are normal + distance
-            ResizeBufferIfNeeded(ref _frustumsBuffer, totalTilesCount, frustumSize);
-            ResizeBufferIfNeeded(ref _lightGrid, totalTilesCount * 2, sizeof(uint) * 2);
-            ResizeBufferIfNeeded(ref _lightIndexList, totalTilesCount * ReservedLightsPerTile * 2, sizeof(uint));
+            _frustumsBuffer.Update(totalTilesCount);
+            _lightGrid.Update(totalTilesCount * 2);
+            _lightIndexList.Update(totalTilesCount * ReservedLightsPerTile * 2 + LightIndexListBaseIndexOffset);
+
+            _lighting.GetTiledAdditionalLightsBuffer(out _, out int tiledLightsCount);
+            _tiledLightsBuffer.Update(tiledLightsCount);
 
             _computeFrustumsKernel.Setup();
         }
@@ -98,6 +95,10 @@ namespace DELTation.ToonRP.Lighting
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TiledLighting)))
                 {
+                    _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] tiledLights, out int tiledLightsCount);
+                    _tiledLightsBuffer.Buffer.SetData(tiledLights, 0, 0, tiledLightsCount);
+                    cmd.SetGlobalBuffer("_TiledLighting_Lights", _tiledLightsBuffer.Buffer);
+
                     cmd.SetGlobalVector("_TiledLighting_ScreenDimensions",
                         new Vector4(_screenWidth, _screenHeight)
                     );
@@ -108,21 +109,20 @@ namespace DELTation.ToonRP.Lighting
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Clear Counters")))
                     {
-                        cmd.SetGlobalBuffer("_TiledLighting_LightIndexCounter", _lightIndexCounter);
+                        cmd.SetGlobalBuffer("_TiledLighting_LightIndexList", _lightIndexList.Buffer);
                         _setupKernel.Dispatch(cmd, 1);
                     }
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compute Frustums")))
                     {
-                        cmd.SetGlobalBuffer("_TiledLighting_Frustums", _frustumsBuffer);
+                        cmd.SetGlobalBuffer("_TiledLighting_Frustums", _frustumsBuffer.Buffer);
                         _computeFrustumsKernel.Dispatch(cmd, _tilesX, _tilesY);
                     }
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Cull Lights")))
                     {
-                        // Frustums are already bound
-                        cmd.SetGlobalBuffer("_TiledLighting_LightGrid", _lightGrid);
-                        cmd.SetGlobalBuffer("_TiledLighting_LightIndexList", _lightIndexList);
+                        // Frustum and light index list buffers are already bound
+                        cmd.SetGlobalBuffer("_TiledLighting_LightGrid", _lightGrid.Buffer);
                         _cullLightsKernel.Dispatch(cmd, (uint) _screenWidth, (uint) _screenHeight);
                     }
                 }
@@ -132,11 +132,22 @@ namespace DELTation.ToonRP.Lighting
             CommandBufferPool.Release(cmd);
         }
 
-        public void PrepareForTransparents(CommandBuffer cmd)
+        public void PrepareForOpaqueGeometry(CommandBuffer cmd)
         {
-            int totalTiles = (int) (_tilesX * _tilesY);
-            cmd.SetGlobalInt("_TiledLighting_CurrentLightIndexListOffset", totalTiles * ReservedLightsPerTile);
-            cmd.SetGlobalInt("_TiledLighting_CurrentLightGridOffset", totalTiles);
+            PrepareForGeometryPass(cmd, 0);
+        }
+
+        public void PrepareForTransparentGeometry(CommandBuffer cmd)
+        {
+            PrepareForGeometryPass(cmd, TotalTilesCount);
+        }
+
+        private void PrepareForGeometryPass(CommandBuffer cmd, int offset)
+        {
+            cmd.SetGlobalInt("_TiledLighting_CurrentLightIndexListOffset",
+                LightIndexListBaseIndexOffset + offset * ReservedLightsPerTile
+            );
+            cmd.SetGlobalInt("_TiledLighting_CurrentLightGridOffset", offset);
         }
 
         private class ComputeShaderKernel

@@ -30,7 +30,7 @@ namespace DELTation.ToonRP
 
         private readonly ToonCameraRenderTarget _renderTarget = new();
         private readonly ToonShadows _shadows = new();
-        private readonly ToonTiledLighting _tiledLighting = new();
+        private readonly ToonTiledLighting _tiledLighting;
 
         private Camera _camera;
 
@@ -41,6 +41,8 @@ namespace DELTation.ToonRP
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private ToonCameraRendererSettings _settings;
+
+        public ToonCameraRenderer() => _tiledLighting = new ToonTiledLighting(_lighting);
 
         public void Dispose()
         {
@@ -459,6 +461,8 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             {
+                _tiledLighting.PrepareForOpaqueGeometry(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
@@ -477,7 +481,7 @@ namespace DELTation.ToonRP
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             {
-                _tiledLighting.PrepareForTransparents(cmd);
+                _tiledLighting.PrepareForTransparentGeometry(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
 
@@ -517,10 +521,9 @@ namespace DELTation.ToonRP
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
-                perObjectData |= PerObjectData.LightData;
                 if (!settings.IsTiledLightingEffectivelyEnabled)
                 {
-                    perObjectData |= PerObjectData.LightIndices;
+                    perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
                 }
             }
 

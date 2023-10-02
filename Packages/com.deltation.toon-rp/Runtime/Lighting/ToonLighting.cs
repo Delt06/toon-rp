@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
@@ -10,7 +11,10 @@ namespace DELTation.ToonRP.Lighting
     public sealed class ToonLighting
     {
         private const string CmdName = "Lighting";
+
         private const int MaxAdditionalLightCount = 64;
+        public const int MaxAdditionalLightCountTiled = 1024;
+
         public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
         public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
@@ -27,7 +31,9 @@ namespace DELTation.ToonRP.Lighting
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
+        private TiledLight[] _additionalTiledLights;
         private Camera _camera;
+        private int _currentMaxAdditionalLights;
 
         public ToonLighting()
         {
@@ -40,6 +46,16 @@ namespace DELTation.ToonRP.Lighting
             [CanBeNull] Light mainLight)
         {
             _camera = camera;
+
+            _currentMaxAdditionalLights = settings.IsTiledLightingEffectivelyEnabled
+                ? MaxAdditionalLightCountTiled
+                : MaxAdditionalLightCount;
+
+            if (settings.IsTiledLightingEffectivelyEnabled)
+            {
+                _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
+            }
+
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
 
@@ -101,7 +117,7 @@ namespace DELTation.ToonRP.Lighting
                 switch (visibleLight.lightType)
                 {
                     case LightType.Point:
-                        if (_additionalLightsCount < MaxAdditionalLightCount)
+                        if (_additionalLightsCount < _currentMaxAdditionalLights)
                         {
                             newIndex = _additionalLightsCount;
                             SetupPointLight(_additionalLightsCount, visibleLight);
@@ -138,18 +154,38 @@ namespace DELTation.ToonRP.Lighting
             }
         }
 
+        public void GetTiledAdditionalLightsBuffer(out TiledLight[] lights, out int count)
+        {
+            Assert.IsNotNull(_additionalTiledLights, "Tiled lights are not initialized");
+            lights = _additionalTiledLights;
+            count = _additionalLightsCount;
+        }
+
         private void SetupPointLight(int index, in VisibleLight visibleLight)
         {
-            _additionalLightColors[index] = visibleLight.finalColor;
+            Vector4 color = visibleLight.finalColor;
 
-            Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
-            position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
-            _additionalLightPositions[index] = position;
+            Vector4 positionWsAttenuation = visibleLight.localToWorldMatrix.GetColumn(3);
+            positionWsAttenuation.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
 
-            Vector4 positionVs =
+            Vector4 positionVsRange =
                 _camera.worldToCameraMatrix.MultiplyPoint(visibleLight.localToWorldMatrix.GetColumn(3));
-            positionVs.w = visibleLight.range;
-            _additionalLightPositionsVs[index] = positionVs;
+            positionVsRange.w = visibleLight.range;
+
+            if (index < MaxAdditionalLightCount)
+            {
+                _additionalLightColors[index] = color;
+                _additionalLightPositions[index] = positionWsAttenuation;
+                _additionalLightPositionsVs[index] = positionVsRange;
+            }
+
+            if (_additionalTiledLights != null)
+            {
+                ref TiledLight tiledLight = ref _additionalTiledLights[index];
+                tiledLight.Color = color;
+                tiledLight.PositionVsRange = positionVsRange;
+                tiledLight.PositionWsAttenuation = positionWsAttenuation;
+            }
         }
     }
 }

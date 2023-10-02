@@ -2,8 +2,12 @@
 #define TOON_RP_TILED_LIGHTING_SHARED
 
 // https://www.3dgep.com/forward-plus/
+
 #define TILE_SIZE 16
 #define RESERVED_LIGHTS_PER_TILE 2
+
+// the opaque and transparent light counters are stored in the beginning of the buffer
+#define LIGHT_INDEX_LIST_BASE_INDEX_OFFSET 2
 
 #include "../../ShaderLibrary/Common.hlsl"
 #include "../../ShaderLibrary/Lighting.hlsl"
@@ -16,6 +20,15 @@ CBUFFER_START(TiledLighting)
     uint _TiledLighting_CurrentLightIndexListOffset;
     uint _TiledLighting_CurrentLightGridOffset;
 CBUFFER_END
+
+struct TiledLight
+{
+    float4 color; // rgb = color
+    float4 positionVs_range; // xyz = position VS, w = range
+    float4 positionWs_attenuation; // xyz = position, w = 1/range^2
+};
+
+StructuredBuffer<TiledLight> _TiledLighting_Lights;
 
 struct TiledLighting_Plane
 {
@@ -110,17 +123,19 @@ uint TiledLighting_GetOpaqueLightGridIndex(const uint tileIndex)
 
 uint TiledLighting_GetTransparentLightGridIndex(const uint tileIndex)
 {
-    return _TiledLighting_TilesX * _TiledLighting_TilesY + tileIndex;
+    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY;
+    return transparentOffset + TiledLighting_GetOpaqueLightGridIndex(tileIndex);
 }
 
 uint TiledLighting_GetOpaqueLightIndexListIndex(const uint tileIndex)
 {
-    return tileIndex;
+    return tileIndex + LIGHT_INDEX_LIST_BASE_INDEX_OFFSET;
 }
 
 uint TiledLighting_GetTransparentLightIndexListIndex(const uint tileIndex)
 {
-    return _TiledLighting_TilesX * _TiledLighting_TilesY * RESERVED_LIGHTS_PER_TILE + tileIndex;
+    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY * RESERVED_LIGHTS_PER_TILE;
+    return transparentOffset + TiledLighting_GetOpaqueLightIndexListIndex(tileIndex);
 }
 
 #endif // TOON_RP_TILED_LIGHTING_SHARED

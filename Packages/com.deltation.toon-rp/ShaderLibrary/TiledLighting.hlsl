@@ -1,7 +1,7 @@
 ﻿#ifndef TOON_RP_TILED_LIGHTING
 #define TOON_RP_TILED_LIGHTING
 
-#include "../ShaderLibrary/Lighting.hlsl"
+#include "Lighting.hlsl"
 #include "../Shaders/TiledLighting/TiledLighting_Shared.hlsl"
 
 StructuredBuffer<uint> _TiledLighting_LightIndexList;
@@ -32,12 +32,24 @@ TiledLighting_LightGridCell TiledLighting_GetLightGridCell(const float2 screenCo
     return cell;
 }
 
+LightEntry GetTiledLightEntry(const uint globalLightIndex)
+{
+    const TiledLight tiledLight = _TiledLighting_Lights[globalLightIndex];
+
+    LightEntry lightEntry;
+    lightEntry.color = tiledLight.color;
+    lightEntry.positionWs_attenuation = tiledLight.positionWs_attenuation;
+    return lightEntry;
+}
+
 Light GetAdditionalLightTiled(const uint perTileLightIndex, const TiledLighting_LightGridCell cell,
                               const float3 positionWs)
 {
-    const uint globalLightIndex = _TiledLighting_LightIndexList[_TiledLighting_CurrentLightIndexListOffset + cell.
-        indexStartOffset + perTileLightIndex];
-    return GetAdditionalLightGlobal(globalLightIndex, positionWs);
+    const uint offset = _TiledLighting_CurrentLightIndexListOffset + cell.indexStartOffset + perTileLightIndex;
+    const uint globalLightIndex = _TiledLighting_LightIndexList[offset];
+    const LightEntry lightEntry = GetTiledLightEntry(globalLightIndex);
+    return ConvertEntryToLight(lightEntry, positionWs);
 }
+
 
 #endif // TOON_RP_TILED_LIGHTING

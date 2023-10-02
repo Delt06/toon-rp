@@ -20,8 +20,8 @@ MonoBehaviour:
     Threshold: 0
     SpecularThreshold: 0.99
     RimThreshold: 0.5
-    Mode: 1
-    Smoothness: 0.02
+    Mode: 0
+    Smoothness: 0.001
     SpecularSmoothness: 0.005
     RimSmoothness: 0.1
     RampTexture: {fileID: 0}

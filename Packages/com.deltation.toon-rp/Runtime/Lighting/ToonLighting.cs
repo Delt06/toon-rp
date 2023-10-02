@@ -47,11 +47,11 @@ namespace DELTation.ToonRP.Lighting
         {
             _camera = camera;
 
-            _currentMaxAdditionalLights = settings.IsTiledLightingEffectivelyEnabled
+            _currentMaxAdditionalLights = settings.IsTiledLightingEnabledAndSupported
                 ? MaxAdditionalLightCountTiled
                 : MaxAdditionalLightCount;
 
-            if (settings.IsTiledLightingEffectivelyEnabled)
+            if (settings.IsTiledLightingEnabledAndSupported)
             {
                 _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
             }

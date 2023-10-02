@@ -67,7 +67,7 @@ namespace DELTation.ToonRP.Lighting
         public void Setup(in ScriptableRenderContext context, in ToonRenderingExtensionContext toonContext)
         {
             _context = context;
-            _enabled = toonContext.CameraRendererSettings.IsTiledLightingEffectivelyEnabled;
+            _enabled = toonContext.CameraRendererSettings.IsTiledLightingEnabledAndSupported;
 
             if (!_enabled)
             {

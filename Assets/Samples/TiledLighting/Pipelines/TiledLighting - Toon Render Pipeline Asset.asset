@@ -38,7 +38,7 @@ MonoBehaviour:
     MaxRenderTextureWidth: 0
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
-    DepthPrePass: 0
+    DepthPrePass: 1
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -49,9 +49,9 @@ MonoBehaviour:
     UseDynamicBatching: 0
   ShadowSettings:
     Mode: 1
-    Threshold: 0.5
-    CrispAntiAliased: 1
-    Smoothness: 0.075
+    Threshold: 0.505
+    CrispAntiAliased: 0
+    Smoothness: 0.519
     MaxDistance: 100
     DistanceFade: 0.1
     Pattern: {fileID: 0}
@@ -60,10 +60,11 @@ MonoBehaviour:
       DepthBits: 32
       Blur: 1
       BlurEarlyBail: 1
-      BlurEarlyBailThreshold: 0.01
-      VsmPrecision: 0
+      BlurEarlyBailThreshold: 0.000001
+      BlurScatter: 1.362
+      VsmPrecision: 1
       SoftShadows: 0
-      LightBleedingReduction: 0.4
+      LightBleedingReduction: 0.001
       Directional:
         Enabled: 1
         AtlasSize: 256
@@ -71,9 +72,9 @@ MonoBehaviour:
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
-        DepthBias: 0.049
+        DepthBias: 0.287
         NormalBias: 0
-        SlopeBias: 0
+        SlopeBias: 3.72
     Blobs:
       AtlasSize: 128
       Mode: 0

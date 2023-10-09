@@ -20,25 +20,27 @@ namespace DELTation.ToonRP.Lighting
         public const string CullLightsComputeShaderName = "TiledLighting_CullLights";
         public const string TiledLightingKeywordName = "_TOON_RP_TILED_LIGHTING";
         private static readonly int ReservedLightsPerTileId = Shader.PropertyToID("_ReservedLightsPerTile");
-
-
-        private readonly ComputeShaderKernel _computeFrustumsKernel;
-        private readonly ComputeShaderKernel _cullLightsKernel;
         private readonly ToonStructuredComputeBuffer _frustumsBuffer = new(FrustumSize);
         private readonly ToonStructuredComputeBuffer _lightGrid = new(sizeof(uint) * 2);
         private readonly ToonStructuredComputeBuffer _lightIndexList = new(sizeof(uint));
         private readonly ToonLighting _lighting;
-        private readonly ComputeShaderKernel _setupKernel;
         private readonly GlobalKeyword _tiledLightingKeyword;
         private readonly ToonStructuredComputeBuffer _tiledLightsBuffer =
             new(Marshal.SizeOf<TiledLight>(), ToonLighting.MaxAdditionalLightCountTiled / 8);
 
+
+        private ComputeShaderKernel _computeFrustumsKernel;
+
+        private bool _computeShadersAreValid;
+
         private ScriptableRenderContext _context;
+        private ComputeShaderKernel _cullLightsKernel;
         private bool _enabled;
         private int _reservedLightsPerTile;
 
         private float _screenHeight;
         private float _screenWidth;
+        private ComputeShaderKernel _setupKernel;
         private uint _tilesX;
         private uint _tilesY;
 
@@ -46,16 +48,6 @@ namespace DELTation.ToonRP.Lighting
         {
             _lighting = lighting;
             _tiledLightingKeyword = GlobalKeyword.Create(TiledLightingKeywordName);
-
-            ComputeShader clearCountersComputeShader = Resources.Load<ComputeShader>(SetupComputeShaderName);
-            _setupKernel = new ComputeShaderKernel(clearCountersComputeShader, 0);
-
-            ComputeShader computeFrustumsComputeShader =
-                Resources.Load<ComputeShader>(ComputeFrustumsComputeShaderName);
-            _computeFrustumsKernel = new ComputeShaderKernel(computeFrustumsComputeShader, 0);
-
-            ComputeShader cullLightsComputeShader = Resources.Load<ComputeShader>(CullLightsComputeShaderName);
-            _cullLightsKernel = new ComputeShaderKernel(cullLightsComputeShader, 0);
         }
 
         private int TotalTilesCount => (int) (_tilesX * _tilesY);
@@ -66,6 +58,24 @@ namespace DELTation.ToonRP.Lighting
             _lightGrid?.Dispose();
             _lightIndexList?.Dispose();
             _tiledLightsBuffer?.Dispose();
+        }
+
+        private void EnsureComputeShadersAreValid()
+        {
+            if (!_computeShadersAreValid)
+            {
+                _computeShadersAreValid = true;
+
+                ComputeShader clearCountersComputeShader = Resources.Load<ComputeShader>(SetupComputeShaderName);
+                _setupKernel = new ComputeShaderKernel(clearCountersComputeShader, 0);
+
+                ComputeShader computeFrustumsComputeShader =
+                    Resources.Load<ComputeShader>(ComputeFrustumsComputeShaderName);
+                _computeFrustumsKernel = new ComputeShaderKernel(computeFrustumsComputeShader, 0);
+
+                ComputeShader cullLightsComputeShader = Resources.Load<ComputeShader>(CullLightsComputeShaderName);
+                _cullLightsKernel = new ComputeShaderKernel(cullLightsComputeShader, 0);
+            }
         }
 
         public void Setup(in ScriptableRenderContext context, in ToonRenderingExtensionContext toonContext)
@@ -84,6 +94,8 @@ namespace DELTation.ToonRP.Lighting
             {
                 return;
             }
+
+            EnsureComputeShadersAreValid();
 
             ToonCameraRenderTarget renderTarget = toonContext.CameraRenderTarget;
             _screenWidth = renderTarget.Width;

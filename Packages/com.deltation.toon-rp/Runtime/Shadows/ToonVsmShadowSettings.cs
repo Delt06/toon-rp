@@ -40,6 +40,9 @@ namespace DELTation.ToonRP.Shadows
         [Min(0.000001f)]
         public float BlurEarlyBailThreshold;
         [ToonRpShowIf(nameof(IsBlurEnabled))]
+        [Range(1.0f, 2.0f)]
+        public float BlurScatter;
+        [ToonRpShowIf(nameof(IsBlurEnabled))]
         public VsmTexturePrecision VsmPrecision;
         [ToonRpShowIf(nameof(IsBlurDisabled))]
         public bool SoftShadows;

@@ -131,6 +131,11 @@ namespace DELTation.ToonRP
                 ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._32;
             }
 
+            if (ShadowSettings.Vsm.BlurScatter < 1.0f)
+            {
+                ShadowSettings.Vsm.BlurScatter = 1.0f;
+            }
+
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (CameraRendererSettings.MaxLightsPerTile == 0)
             {

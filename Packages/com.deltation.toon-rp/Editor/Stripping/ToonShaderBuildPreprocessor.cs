@@ -69,7 +69,7 @@ namespace DELTation.ToonRP.Editor.Stripping
             // Tiled lighting
             {
                 if (_allToonRenderPipelineAssets.All(a =>
-                        !a.CameraRendererSettings.IsTiledLightingEnabledAndSupported
+                        !a.CameraRendererSettings.IsTiledLightingEnabledAndSupported()
                     ))
                 {
                     _computeShadersToStrip.Add(ToonTiledLighting.SetupComputeShaderName);

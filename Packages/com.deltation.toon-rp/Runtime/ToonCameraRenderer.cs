@@ -81,7 +81,7 @@ namespace DELTation.ToonRP
                 }
             }
 
-            if (settings.IsTiledLightingEnabledAndSupported)
+            if (settings.IsTiledLightingEnabledAndSupported())
             {
                 mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, DepthPrePassMode.Depth);
             }
@@ -526,7 +526,7 @@ namespace DELTation.ToonRP
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
-                if (!settings.IsTiledLightingEnabledAndSupported)
+                if (!settings.IsTiledLightingEnabledAndSupported())
                 {
                     perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
                 }

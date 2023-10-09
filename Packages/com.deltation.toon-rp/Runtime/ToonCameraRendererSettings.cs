@@ -55,11 +55,7 @@ namespace DELTation.ToonRP
         public bool UseSrpBatching;
         public bool UseDynamicBatching;
 
-        public bool IsTiledLightingEnabledAndSupported =>
-            IsTiledLightingEnabled &&
-            SystemInfo.supportsComputeShaders;
-
-        private bool IsTiledLightingEnabled =>
+        public bool IsTiledLightingEnabled =>
             AdditionalLights == AdditionalLightsMode.PerPixel &&
             TiledLighting;
 

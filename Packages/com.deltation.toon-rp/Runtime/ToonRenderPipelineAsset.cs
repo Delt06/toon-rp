@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using DELTation.ToonRP.Attributes;
 using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
@@ -128,6 +129,12 @@ namespace DELTation.ToonRP
             if (ShadowSettings.Vsm.DepthBits == 0)
             {
                 ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._32;
+            }
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (CameraRendererSettings.MaxLightsPerTile == 0)
+            {
+                CameraRendererSettings.MaxLightsPerTile = ToonTiledLighting.MaxLightsPerTile / 2;
             }
         }
 

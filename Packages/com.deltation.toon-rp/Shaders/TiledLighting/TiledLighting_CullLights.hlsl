@@ -3,12 +3,13 @@
 StructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
 RWStructuredBuffer<uint2> _TiledLighting_LightGrid;
+uint _ReservedLightsPerTile;
 
 groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
 groupshared TiledLighting_Frustum g_Frustum;
 
-#define MAX_LIGHTS_PER_TILE 32
+#define MAX_LIGHTS_PER_TILE 64
 
 groupshared uint g_LightList_Count_Opaque;
 groupshared uint g_LightList_IndexStartOffset_Opaque;
@@ -23,7 +24,7 @@ void AppendLight_Opaque(const uint lightIndex)
     uint index;
     InterlockedAdd(g_LightList_Count_Opaque, 1, index);
 
-    if (index < MAX_LIGHTS_PER_TILE)
+    if (index < _ReservedLightsPerTile)
     {
         g_LightList_Opaque[index] = lightIndex;
     }
@@ -34,7 +35,7 @@ void AppendLight_Transparent(const uint lightIndex)
     uint index;
     InterlockedAdd(g_LightList_Count_Transparent, 1, index);
 
-    if (index < MAX_LIGHTS_PER_TILE)
+    if (index < _ReservedLightsPerTile)
     {
         g_LightList_Transparent[index] = lightIndex;
     }
@@ -54,7 +55,7 @@ float RemapDepthToClipZ(const float depth)
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
 void CS(
     const uint3 dispatchThreadId : SV_DispatchThreadID,
-    const uint groupIndex : SV_GroupIndex,
+    const uint localIndex : SV_GroupIndex,
     const uint3 groupId : SV_GroupID
 )
 {
@@ -65,7 +66,7 @@ void CS(
     const float depth = _ToonRP_DepthTexture.Load(int3(pixelCoord, 0)).r;
 
     const uint depthAsUint = asuint(depth);
-    if (groupIndex == 0)
+    if (localIndex == 0)
     {
         g_MinDepth = 0xFFFFFFFF;
         g_MaxDepth = 0;
@@ -101,7 +102,7 @@ void CS(
 
     uint i;
 
-    for (i = groupIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
+    for (i = localIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
     {
         const TiledLight light = _TiledLighting_Lights[i];
         const float3 positionVs = light.positionVs_range.xyz;
@@ -124,10 +125,11 @@ void CS(
 
     GroupMemoryBarrierWithGroupSync();
 
-    if (groupIndex == 0)
+    if (localIndex == 0)
     {
         const uint tileIndex = TiledLighting_GetFlatTileIndex(groupId.x, groupId.y);
 
+        g_LightList_Count_Opaque = min(_ReservedLightsPerTile, g_LightList_Count_Opaque);
         InterlockedAdd(_TiledLighting_LightIndexList[0],
                        g_LightList_Count_Opaque,
                        g_LightList_IndexStartOffset_Opaque);
@@ -135,6 +137,7 @@ void CS(
             g_LightList_IndexStartOffset_Opaque,
             g_LightList_Count_Opaque);
 
+        g_LightList_Count_Transparent = min(_ReservedLightsPerTile, g_LightList_Count_Transparent);
         InterlockedAdd(_TiledLighting_LightIndexList[1],
                        g_LightList_Count_Transparent,
                        g_LightList_IndexStartOffset_Transparent);
@@ -145,14 +148,14 @@ void CS(
 
     GroupMemoryBarrierWithGroupSync();
 
-    for (i = groupIndex; i < g_LightList_Count_Opaque; i += TILE_SIZE * TILE_SIZE)
+    for (i = localIndex; i < g_LightList_Count_Opaque; i += TILE_SIZE * TILE_SIZE)
     {
         const uint tileIndex = g_LightList_IndexStartOffset_Opaque + i;
         const uint index = TiledLighting_GetOpaqueLightIndexListIndex(tileIndex);
         _TiledLighting_LightIndexList[index] = g_LightList_Opaque[i];
     }
 
-    for (i = groupIndex; i < g_LightList_Count_Transparent; i += TILE_SIZE * TILE_SIZE)
+    for (i = localIndex; i < g_LightList_Count_Transparent; i += TILE_SIZE * TILE_SIZE)
     {
         const uint tileIndex = g_LightList_IndexStartOffset_Transparent + i;
         const uint index = TiledLighting_GetTransparentLightIndexListIndex(tileIndex);

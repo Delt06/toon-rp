@@ -10,7 +10,8 @@ namespace DELTation.ToonRP.Lighting
     public class ToonTiledLighting : IDisposable
     {
         private const int TileSize = 16;
-        private const int ReservedLightsPerTile = 32;
+        public const int MinLightsPerTile = 8;
+        public const int MaxLightsPerTile = 64;
         private const int FrustumSize = 4 * 4 * sizeof(float);
         private const int LightIndexListBaseIndexOffset = 2;
 
@@ -18,6 +19,8 @@ namespace DELTation.ToonRP.Lighting
         public const string ComputeFrustumsComputeShaderName = "TiledLighting_ComputeFrustums";
         public const string CullLightsComputeShaderName = "TiledLighting_CullLights";
         public const string TiledLightingKeywordName = "_TOON_RP_TILED_LIGHTING";
+        private static readonly int ReservedLightsPerTileId = Shader.PropertyToID("_ReservedLightsPerTile");
+
 
         private readonly ComputeShaderKernel _computeFrustumsKernel;
         private readonly ComputeShaderKernel _cullLightsKernel;
@@ -32,6 +35,7 @@ namespace DELTation.ToonRP.Lighting
 
         private ScriptableRenderContext _context;
         private bool _enabled;
+        private int _reservedLightsPerTile;
 
         private float _screenHeight;
         private float _screenWidth;
@@ -83,7 +87,14 @@ namespace DELTation.ToonRP.Lighting
 
             _frustumsBuffer.Update(totalTilesCount);
             _lightGrid.Update(totalTilesCount * 2);
-            _lightIndexList.Update(totalTilesCount * ReservedLightsPerTile * 2 + LightIndexListBaseIndexOffset);
+
+            _reservedLightsPerTile = Mathf.Clamp(
+                toonContext.CameraRendererSettings.MaxLightsPerTile,
+                MinLightsPerTile,
+                MaxLightsPerTile
+            );
+            _lightIndexList.Update(totalTilesCount * _reservedLightsPerTile * 2 + LightIndexListBaseIndexOffset);
+            _cullLightsKernel.Cs.SetInt(ReservedLightsPerTileId, _reservedLightsPerTile);
 
             _lighting.GetTiledAdditionalLightsBuffer(out _, out int tiledLightsCount);
             _tiledLightsBuffer.Update(tiledLightsCount);
@@ -151,7 +162,7 @@ namespace DELTation.ToonRP.Lighting
         private static void PrepareForGeometryPass(CommandBuffer cmd, int offset)
         {
             cmd.SetGlobalInt(ShaderIds.CurrentLightIndexListOffsetId,
-                LightIndexListBaseIndexOffset + offset * ReservedLightsPerTile
+                LightIndexListBaseIndexOffset + offset * ReservedLightsPerTileId
             );
             cmd.SetGlobalInt(ShaderIds.CurrentLightGridOffsetId, offset);
         }

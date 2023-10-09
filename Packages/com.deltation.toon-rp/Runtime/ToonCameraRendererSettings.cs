@@ -1,5 +1,6 @@
 ﻿using System;
 using DELTation.ToonRP.Attributes;
+using DELTation.ToonRP.Lighting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -26,6 +27,9 @@ namespace DELTation.ToonRP
         public AdditionalLightsMode AdditionalLights;
         [ToonRpShowIf(nameof(PerPixelAdditionalLights))]
         public bool TiledLighting;
+        [ToonRpShowIf(nameof(IsTiledLightingEnabled))]
+        [Range(ToonTiledLighting.MinLightsPerTile, ToonTiledLighting.MaxLightsPerTile)]
+        public int MaxLightsPerTile;
 
         public bool OverrideRenderTextureFormat;
 

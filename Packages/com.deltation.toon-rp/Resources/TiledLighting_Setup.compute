@@ -1,4 +1,5 @@
 ﻿#pragma kernel CS
+//#pragma enable_d3d11_debug_symbols
 
 #include "../Shaders/TiledLighting/TiledLighting_Shared.hlsl"
 

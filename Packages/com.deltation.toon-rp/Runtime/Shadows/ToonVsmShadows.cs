@@ -42,6 +42,7 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int EarlyBailThresholdId = Shader.PropertyToID("_EarlyBailThreshold");
         private static readonly int LightBleedingReductionId =
             Shader.PropertyToID("_ToonRP_ShadowLightBleedingReduction");
+        private static readonly int BlurScatterId = Shader.PropertyToID("_ToonRP_VSM_BlurScatter");
         private readonly Material _blurMaterial;
         private readonly Shader _blurShader;
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
@@ -362,6 +363,9 @@ namespace DELTation.ToonRP.Shadows
             if (_vsmSettings.Blur != ToonVsmShadowSettings.BlurMode.None)
             {
                 cmd.BeginSample(BlurSample);
+
+                float blurScatter = Mathf.Max(1.0f, _settings.Vsm.BlurScatter);
+                cmd.SetGlobalFloat(BlurScatterId, blurScatter);
 
                 const int gaussianHorizontalPass = 0;
                 const int gaussianVerticalPass = 1;

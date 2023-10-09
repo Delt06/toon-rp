@@ -4,6 +4,7 @@ using System.Linq;
 using DELTation.ToonRP.Editor.GlobalSettings;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Extensions.BuiltIn;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
@@ -17,9 +18,10 @@ using UnityEngine.Rendering;
 namespace DELTation.ToonRP.Editor.Stripping
 {
     [UsedImplicitly]
-    public class ToonShaderBuildPreprocessor : IPreprocessShaders
+    public class ToonShaderBuildPreprocessor : IPreprocessShaders, IPreprocessComputeShaders
     {
         private readonly List<ToonRenderPipelineAsset> _allToonRenderPipelineAssets;
+        private readonly HashSet<string> _computeShadersToStrip = new();
         private readonly List<ShaderKeyword> _keywordsToStrip = new();
         private readonly Dictionary<string, List<string>> _localKeywordsToStrip = new();
         private readonly HashSet<string> _shadersToStrip = new();
@@ -27,7 +29,7 @@ namespace DELTation.ToonRP.Editor.Stripping
         public ToonShaderBuildPreprocessor()
         {
             var globalSettings = ToonRpGlobalSettings.GetOrCreateSettings();
-            if (!ShouldStrip(globalSettings))
+            if (!ShouldStripAtAll(globalSettings))
             {
                 return;
             }
@@ -61,6 +63,20 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsVertexGlobalKeyword));
+                }
+            }
+
+            // Tiled lighting
+            {
+                if (_allToonRenderPipelineAssets.All(a =>
+                        !a.CameraRendererSettings.IsTiledLightingEnabledAndSupported()
+                    ))
+                {
+                    _computeShadersToStrip.Add(ToonTiledLighting.SetupComputeShaderName);
+                    _computeShadersToStrip.Add(ToonTiledLighting.ComputeFrustumsComputeShaderName);
+                    _computeShadersToStrip.Add(ToonTiledLighting.CullLightsComputeShaderName);
+
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonTiledLighting.TiledLightingKeywordName));
                 }
             }
 
@@ -294,6 +310,14 @@ namespace DELTation.ToonRP.Editor.Stripping
                 }
             }
 
+            // ToonRPDebugPass
+            {
+                if (!AnyPostProcessingPass<ToonDebugPassAsset>(a => a.Settings.IsEffectivelyEnabled()))
+                {
+                    _shadersToStrip.Add(ToonDebugPass.ShaderName);
+                }
+            }
+
             // ToonRPPostProcessingStack
             {
                 if (!AnyPostProcessingPass<ToonPostProcessingStackAsset>(s => s.Settings.Fxaa.Enabled))
@@ -375,6 +399,21 @@ namespace DELTation.ToonRP.Editor.Stripping
             ReportStrippingConfiguration();
         }
 
+        public void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> data)
+        {
+            for (int i = 0; i < data.Count; i++)
+            {
+                ShaderCompilerData shaderCompilerData = data[i];
+                if (!ShouldStripComputeShader(shader, shaderCompilerData))
+                {
+                    continue;
+                }
+
+                data.RemoveAt(i);
+                --i;
+            }
+        }
+
         public int callbackOrder => 0;
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
@@ -382,7 +421,7 @@ namespace DELTation.ToonRP.Editor.Stripping
             for (int i = 0; i < data.Count; i++)
             {
                 ShaderCompilerData shaderCompilerData = data[i];
-                if (!ShouldStrip(shader, shaderCompilerData))
+                if (!ShouldStripShader(shader, shaderCompilerData))
                 {
                     continue;
                 }
@@ -402,6 +441,9 @@ namespace DELTation.ToonRP.Editor.Stripping
             keywords.Add(keyword);
         }
 
+        private bool ShouldStripComputeShader(ComputeShader computeShader, ShaderCompilerData shaderCompilerData) =>
+            _computeShadersToStrip.Contains(computeShader.name);
+
         private void ReportStrippingConfiguration()
         {
             string separator = Environment.NewLine;
@@ -409,6 +451,11 @@ namespace DELTation.ToonRP.Editor.Stripping
             {
                 string shadersToStripString = string.Join(separator, _shadersToStrip);
                 Debug.Log($"Toon RP: stripping shaders: {shadersToStripString}");
+            }
+
+            {
+                string shadersToStripString = string.Join(separator, _computeShadersToStrip);
+                Debug.Log($"Toon RP: stripping compute shaders: {shadersToStripString}");
             }
 
             {
@@ -426,7 +473,7 @@ namespace DELTation.ToonRP.Editor.Stripping
             }
         }
 
-        private static bool ShouldStrip(ToonRpGlobalSettings globalSettings) =>
+        private static bool ShouldStripAtAll(ToonRpGlobalSettings globalSettings) =>
             globalSettings.ShaderVariantStrippingMode switch
             {
                 ShaderVariantStrippingMode.Always => true,
@@ -513,7 +560,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 a.PostProcessing.Passes.OfType<TPass>().Any(condition)
             );
 
-        private bool ShouldStrip(Shader shader, ShaderCompilerData shaderCompilerData)
+        private bool ShouldStripShader(Shader shader, ShaderCompilerData shaderCompilerData)
         {
             if (_shadersToStrip.Contains(shader.name))
             {

@@ -29,6 +29,12 @@ namespace DELTation.ToonRP
 
         public static Shader GetDefaultShader() => Shader.Find("Toon RP/Default");
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            _cameraRenderer.Dispose();
+        }
+
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             if (QualitySettings.activeColorSpace == ColorSpace.Gamma)

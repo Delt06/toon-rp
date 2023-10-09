@@ -21,6 +21,8 @@
         
         #include "../../ShaderLibrary/CustomBlit.hlsl"
         #include "../../ShaderLibrary/Textures.hlsl"
+
+        float _ToonRP_VSM_BlurScatter;
         
 	    ENDHLSL
 
@@ -44,7 +46,7 @@
                 return Blur(
                     TEXTURE2D_ARGS(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas),
                     _ToonRP_DirectionalShadowAtlas_TexelSize.xy,
-                    IN.uv, float2(1.0f, 0.0f));   
+                    IN.uv, float2(_ToonRP_VSM_BlurScatter, 0.0f));   
             }
 
 			ENDHLSL
@@ -70,7 +72,7 @@
                 return Blur(
                     TEXTURE2D_ARGS(_ToonRP_DirectionalShadowAtlas_Temp, sampler_ToonRP_DirectionalShadowAtlas_Temp),
                     _ToonRP_DirectionalShadowAtlas_Temp_TexelSize.xy,
-                    IN.uv, float2(0.0f, 1.0f));   
+                    IN.uv, float2(0.0f, _ToonRP_VSM_BlurScatter));   
             }
 
 			ENDHLSL
@@ -100,7 +102,7 @@
 
 			float2 PS(const v2f IN) : SV_TARGET
             {
-                const float2 texelSize = _ToonRP_DirectionalShadowAtlas_Temp_TexelSize.xy;
+                const float2 texelSize = _ToonRP_DirectionalShadowAtlas_Temp_TexelSize.xy * _ToonRP_VSM_BlurScatter;
                 const float2 uv = IN.uv;
                 return Blur(
                     TEXTURE2D_ARGS(_ToonRP_DirectionalShadowAtlas_Temp, sampler_ToonRP_DirectionalShadowAtlas_Temp),

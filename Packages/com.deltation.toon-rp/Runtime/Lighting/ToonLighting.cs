@@ -2,15 +2,19 @@
 using JetBrains.Annotations;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
-namespace DELTation.ToonRP
+namespace DELTation.ToonRP.Lighting
 {
     public sealed class ToonLighting
     {
         private const string CmdName = "Lighting";
+
         private const int MaxAdditionalLightCount = 64;
+        public const int MaxAdditionalLightCountTiled = 1024;
+
         public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
         public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
         private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
@@ -18,13 +22,18 @@ namespace DELTation.ToonRP
         private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
         private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
         private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
+        private static readonly int AdditionalLightPositionsVsId = Shader.PropertyToID("_AdditionalLightPositionsVS");
         private static GlobalKeyword _additionalLightsGlobalKeyword;
         private static GlobalKeyword _additionalLightsVertexGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
+        private readonly Vector4[] _additionalLightPositionsVs = new Vector4[MaxAdditionalLightCount];
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
+        private TiledLight[] _additionalTiledLights;
+        private Camera _camera;
+        private int _currentMaxAdditionalLights;
 
         public ToonLighting()
         {
@@ -32,10 +41,21 @@ namespace DELTation.ToonRP
             _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(AdditionalLightsVertexGlobalKeyword);
         }
 
-        public void Setup(ref ScriptableRenderContext context, ref CullingResults cullingResults,
+        public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
             in ToonCameraRendererSettings settings,
             [CanBeNull] Light mainLight)
         {
+            _camera = camera;
+
+            _currentMaxAdditionalLights = settings.IsTiledLightingEnabledAndSupported()
+                ? MaxAdditionalLightCountTiled
+                : MaxAdditionalLightCount;
+
+            if (settings.IsTiledLightingEnabledAndSupported())
+            {
+                _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
+            }
+
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
 
@@ -97,7 +117,7 @@ namespace DELTation.ToonRP
                 switch (visibleLight.lightType)
                 {
                     case LightType.Point:
-                        if (_additionalLightsCount < MaxAdditionalLightCount)
+                        if (_additionalLightsCount < _currentMaxAdditionalLights)
                         {
                             newIndex = _additionalLightsCount;
                             SetupPointLight(_additionalLightsCount, visibleLight);
@@ -124,20 +144,48 @@ namespace DELTation.ToonRP
                 indexMap[i] = lightSkipIndex;
             }
 
-            _buffer.SetGlobalInteger(AdditionalLightCountId, _additionalLightsCount);
+            _buffer.SetGlobalInt(AdditionalLightCountId, _additionalLightsCount);
+
             if (_additionalLightsCount > 0)
             {
                 _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);
                 _buffer.SetGlobalVectorArray(AdditionalLightPositionsId, _additionalLightPositions);
+                _buffer.SetGlobalVectorArray(AdditionalLightPositionsVsId, _additionalLightPositionsVs);
             }
+        }
+
+        public void GetTiledAdditionalLightsBuffer(out TiledLight[] lights, out int count)
+        {
+            Assert.IsNotNull(_additionalTiledLights, "Tiled lights are not initialized");
+            lights = _additionalTiledLights;
+            count = _additionalLightsCount;
         }
 
         private void SetupPointLight(int index, in VisibleLight visibleLight)
         {
-            _additionalLightColors[index] = visibleLight.finalColor;
-            Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
-            position.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
-            _additionalLightPositions[index] = position;
+            Vector4 color = visibleLight.finalColor;
+
+            Vector4 positionWsAttenuation = visibleLight.localToWorldMatrix.GetColumn(3);
+            positionWsAttenuation.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
+
+            Vector4 positionVsRange =
+                _camera.worldToCameraMatrix.MultiplyPoint(visibleLight.localToWorldMatrix.GetColumn(3));
+            positionVsRange.w = visibleLight.range;
+
+            if (index < MaxAdditionalLightCount)
+            {
+                _additionalLightColors[index] = color;
+                _additionalLightPositions[index] = positionWsAttenuation;
+                _additionalLightPositionsVs[index] = positionVsRange;
+            }
+
+            if (_additionalTiledLights != null)
+            {
+                ref TiledLight tiledLight = ref _additionalTiledLights[index];
+                tiledLight.Color = color;
+                tiledLight.PositionVsRange = positionVsRange;
+                tiledLight.PositionWsAttenuation = positionWsAttenuation;
+            }
         }
     }
 }

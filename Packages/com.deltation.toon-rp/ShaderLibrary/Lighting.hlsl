@@ -11,12 +11,13 @@
 #define MAX_ADDITIONAL_LIGHTS_PER_OBJECT 4
 
 CBUFFER_START(_ToonRPLight)
-float3 _DirectionalLightColor;
-float3 _DirectionalLightDirection;
+    float3 _DirectionalLightColor;
+    float3 _DirectionalLightDirection;
 
-uint _AdditionalLightCount;
-float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT];
-float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT];
+    uint _AdditionalLightCount;
+    float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color
+    float4 _AdditionalLightPositionsVS[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position VS, w = range
+    float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
 CBUFFER_END
 
 struct Light
@@ -60,23 +61,44 @@ uint ToGlobalLightIndex(const uint perObjectIndex)
     return uint(tmp[perObjectIndex % 4]);
 }
 
-Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
+struct LightEntry
 {
-    const uint globalIndex = ToGlobalLightIndex(perObjectIndex);
+    float3 color;
+    float4 positionWs_attenuation;
+};
+
+LightEntry GetUniformLightEntry(const uint globalLightIndex)
+{
+    LightEntry lightEntry;
+    lightEntry.color = _AdditionalLightColors[globalLightIndex].rgb;
+    lightEntry.positionWs_attenuation = _AdditionalLightPositions[globalLightIndex];
+    return lightEntry;
+}
+
+Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
+{
     Light light;
-    light.color = _AdditionalLightColors[globalIndex].rgb;
-    const float4 position = _AdditionalLightPositions[globalIndex];
-    const float3 offset = position.xyz - positionWs;
+
+    light.color = lightEntry.color;
+    const float4 positionWs_attenuation = lightEntry.positionWs_attenuation;
+    const float3 offset = positionWs_attenuation.xyz - positionWs;
     light.direction = normalize(offset);
     light.shadowAttenuation = 1.0f;
 
     const float distanceSqr = max(dot(offset, offset), 0.00001);
     const float distanceAttenuation = Sq(
-        saturate(1.0f - Sq(distanceSqr * position.w))
+        saturate(1.0f - Sq(distanceSqr * positionWs_attenuation.w))
     );
     light.distanceAttenuation = distanceAttenuation / distanceSqr;
 
     return light;
+}
+
+Light GetAdditionalLight(const uint perObjectIndex, const float3 positionWs)
+{
+    const uint globalIndex = ToGlobalLightIndex(perObjectIndex);
+    const LightEntry lightEntry = GetUniformLightEntry(globalIndex);
+    return ConvertEntryToLight(lightEntry, positionWs);
 }
 
 // Samples SH L0, L1 and L2 terms

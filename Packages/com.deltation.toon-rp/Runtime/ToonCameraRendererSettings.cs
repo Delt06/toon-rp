@@ -1,5 +1,6 @@
 ﻿using System;
 using DELTation.ToonRP.Attributes;
+using DELTation.ToonRP.Lighting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -24,6 +25,12 @@ namespace DELTation.ToonRP
         }
 
         public AdditionalLightsMode AdditionalLights;
+        [ToonRpShowIf(nameof(PerPixelAdditionalLights))]
+        public bool TiledLighting;
+        [ToonRpShowIf(nameof(IsTiledLightingEnabled))]
+        [Range(ToonTiledLighting.MinLightsPerTile, ToonTiledLighting.MaxLightsPerTile)]
+        public int MaxLightsPerTile;
+
         public bool OverrideRenderTextureFormat;
 
         [ToonRpShowIf(nameof(OverrideRenderTextureFormat))]
@@ -48,6 +55,11 @@ namespace DELTation.ToonRP
         public bool UseSrpBatching;
         public bool UseDynamicBatching;
 
+        public bool IsTiledLightingEnabled =>
+            AdditionalLights == AdditionalLightsMode.PerPixel &&
+            TiledLighting;
+
+        private bool PerPixelAdditionalLights => AdditionalLights == AdditionalLightsMode.PerPixel;
         private bool UseDefaultRenderTextureFormat => !OverrideRenderTextureFormat;
     }
 }

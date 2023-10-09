@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
@@ -9,7 +11,7 @@ using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
 {
-    public sealed partial class ToonCameraRenderer
+    public sealed partial class ToonCameraRenderer : IDisposable
     {
         private const string DefaultCmdName = "Render Camera";
         public static readonly ShaderTagId[] ShaderTagIds =
@@ -28,6 +30,7 @@ namespace DELTation.ToonRP
 
         private readonly ToonCameraRenderTarget _renderTarget = new();
         private readonly ToonShadows _shadows = new();
+        private readonly ToonTiledLighting _tiledLighting;
 
         private Camera _camera;
 
@@ -38,6 +41,13 @@ namespace DELTation.ToonRP
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private ToonCameraRendererSettings _settings;
+
+        public ToonCameraRenderer() => _tiledLighting = new ToonTiledLighting(_lighting);
+
+        public void Dispose()
+        {
+            _tiledLighting?.Dispose();
+        }
 
         public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
@@ -71,6 +81,11 @@ namespace DELTation.ToonRP
                 }
             }
 
+            if (settings.IsTiledLightingEnabledAndSupported())
+            {
+                mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, DepthPrePassMode.Depth);
+            }
+
             return mode;
         }
 
@@ -83,17 +98,18 @@ namespace DELTation.ToonRP
             _camera = camera;
             _settings = settings;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
-            PrepareBufferName();
-            cmd.BeginSample(_cmdName);
-
-            PrepareMsaa(camera, out int msaaSamples);
-            PrepareForSceneWindow();
-
             if (!Cull(toonShadowSettings))
             {
                 return;
             }
+
+            CommandBuffer cmd = CommandBufferPool.Get();
+            PrepareBufferName();
+            cmd.BeginSample(_cmdName);
+            _context.ExecuteCommandBufferAndClear(cmd);
+
+            PrepareMsaa(camera, out int msaaSamples);
+            PrepareForSceneWindow();
 
             _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
@@ -114,6 +130,8 @@ namespace DELTation.ToonRP
                 _depthPrePass.Render();
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
             }
+
+            _tiledLighting.CullLights();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
             {
@@ -291,6 +309,8 @@ namespace DELTation.ToonRP
 
             _extensionContext =
                 new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
+
+            _tiledLighting.Setup(_context, _extensionContext);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
@@ -326,7 +346,7 @@ namespace DELTation.ToonRP
             _globalRamp.Setup(_context, globalRampSettings);
 
             VisibleLight mainLight = FindMainLightOrDefault();
-            _lighting.Setup(ref _context, ref _cullingResults, _settings, mainLight.light);
+            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, mainLight.light);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
@@ -446,6 +466,8 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             {
+                ToonTiledLighting.PrepareForOpaqueGeometry(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
@@ -464,6 +486,8 @@ namespace DELTation.ToonRP
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             {
+                _tiledLighting.PrepareForTransparentGeometry(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
@@ -502,7 +526,10 @@ namespace DELTation.ToonRP
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
-                perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+                if (!settings.IsTiledLightingEnabledAndSupported())
+                {
+                    perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
+                }
             }
 
             shaderTagIds ??= ShaderTagIds;

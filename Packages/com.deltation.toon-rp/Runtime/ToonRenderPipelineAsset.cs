@@ -1,13 +1,16 @@
 ﻿using System.Linq;
 using DELTation.ToonRP.Attributes;
 using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
 
 namespace DELTation.ToonRP
 {
@@ -98,9 +101,11 @@ namespace DELTation.ToonRP
                     return _defaultMaterial;
                 }
 
+#if UNITY_EDITOR
                 _defaultMaterial =
                     AssetDatabase.LoadAssetAtPath<Material>("Packages/com.deltation.toon-rp/Assets/Toon RP Default.mat"
                     );
+#endif // UNITY_EDITOR
                 return _defaultMaterial;
             }
         }
@@ -124,6 +129,17 @@ namespace DELTation.ToonRP
             if (ShadowSettings.Vsm.DepthBits == 0)
             {
                 ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._32;
+            }
+
+            if (ShadowSettings.Vsm.BlurScatter < 1.0f)
+            {
+                ShadowSettings.Vsm.BlurScatter = 1.0f;
+            }
+
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+            if (CameraRendererSettings.MaxLightsPerTile == 0)
+            {
+                CameraRendererSettings.MaxLightsPerTile = ToonTiledLighting.MaxLightsPerTile / 2;
             }
         }
 

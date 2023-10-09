@@ -11,6 +11,7 @@
 #include "../ShaderLibrary/Matcap.hlsl"
 #include "../ShaderLibrary/Ramp.hlsl"
 #include "../ShaderLibrary/SSAO.hlsl"
+#include "../ShaderLibrary/TiledLighting.hlsl"
 
 float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const float3 lightDirectionWs)
 {
@@ -141,15 +142,26 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     return light.color * (diffuse + specular);
 }
 
-float3 ComputeAdditionalLightsRawDiffuse(const float3 positionWs, const half3 normalWs, const float2 uv,
+float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 positionWs, const half3 normalWs,
+                                         const float2 uv,
                                          const float ssao)
 {
-    const uint lightsCount = GetPerObjectAdditionalLightCount();
+    #ifdef _TOON_RP_TILED_LIGHTING
+    TiledLighting_LightGridCell cell = TiledLighting_GetLightGridCell(positionCs.xy);
+    const uint lightCount = cell.lightCount;
+    #else // !_TOON_RP_TILED_LIGHTING
+    const uint lightCount = GetPerObjectAdditionalLightCount();
+    #endif // _TOON_RP_TILED_LIGHTING 
     float3 lights = 0;
 
-    for (uint i = 0; i < lightsCount; ++i)
+    UNITY_LOOP
+    for (uint i = 0; i < lightCount; ++i)
     {
+        #ifdef _TOON_RP_TILED_LIGHTING
+        const Light light = GetAdditionalLightTiled(i, cell, positionWs);
+        #else // !_TOON_RP_TILED_LIGHTING
         const Light light = GetAdditionalLight(i, positionWs);
+        #endif // _TOON_RP_TILED_LIGHTING
         float nDotL = dot(normalWs, light.direction);
         const float attenuation = light.distanceAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
@@ -169,6 +181,7 @@ float3 ComputeAdditionalLightsRawDiffuse(const float3 positionWs, const half3 no
 float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
 {
     const float3 rawDiffuse = ComputeAdditionalLightsRawDiffuse(
+        parameters.IN.positionCs,
         parameters.IN.positionWs,
         parameters.IN.normalWs, parameters.IN.uv,
         ssao);

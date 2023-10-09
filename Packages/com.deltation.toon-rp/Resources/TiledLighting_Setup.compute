@@ -1,0 +1,17 @@
+﻿#pragma kernel CS
+//#pragma enable_d3d11_debug_symbols
+
+#include "../Shaders/TiledLighting/TiledLighting_Shared.hlsl"
+
+// Opaque and transparent light counters are stored as two first elements of the buffer
+RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
+
+[numthreads(1, 1, 1)]
+void CS()
+{
+    UNITY_UNROLL
+    for (uint i = 0; i < LIGHT_INDEX_LIST_BASE_INDEX_OFFSET; ++i)
+    {
+        _TiledLighting_LightIndexList[i] = 0;
+    }
+}

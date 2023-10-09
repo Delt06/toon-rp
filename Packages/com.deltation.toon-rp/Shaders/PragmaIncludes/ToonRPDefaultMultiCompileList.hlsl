@@ -13,6 +13,7 @@
 
 // Lights
 #pragma multi_compile _ _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+#pragma multi_compile _ _TOON_RP_TILED_LIGHTING
 
 // SSAO
 #pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN

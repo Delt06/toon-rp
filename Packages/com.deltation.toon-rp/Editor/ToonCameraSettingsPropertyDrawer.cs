@@ -18,6 +18,16 @@ namespace DELTation.ToonRP.Editor
                 )
             );
 
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.TiledLighting)
+                    )
+                )
+            );
+
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MaxLightsPerTile)
+                    )
+                )
+            );
+
             root.Add(new PropertyField(
                     property.FindPropertyRelative(nameof(ToonCameraRendererSettings.OverrideRenderTextureFormat))
                 )

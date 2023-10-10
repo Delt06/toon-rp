@@ -28,6 +28,7 @@ MonoBehaviour:
   CameraRendererSettings:
     AdditionalLights: 1
     TiledLighting: 0
+    MaxLightsPerTile: 32
     OverrideRenderTextureFormat: 0
     RenderTextureFormat: 67
     AllowHdr: 1
@@ -37,7 +38,7 @@ MonoBehaviour:
     MaxRenderTextureWidth: 0
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
-    DepthPrePass: 2
+    PrePass: 3
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -60,6 +61,7 @@ MonoBehaviour:
       Blur: 1
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.25
+      BlurScatter: 1
       VsmPrecision: 0
       SoftShadows: 0
       LightBleedingReduction: 0.9

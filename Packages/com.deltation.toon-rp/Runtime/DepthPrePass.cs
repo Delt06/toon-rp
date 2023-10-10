@@ -33,10 +33,10 @@ namespace DELTation.ToonRP
         }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            in ToonCameraRendererSettings settings, DepthPrePassMode mode, int rtWidth, int rtHeight,
+            in ToonCameraRendererSettings settings, PrePassMode mode, int rtWidth, int rtHeight,
             bool stencil = false)
         {
-            Assert.IsTrue(mode != DepthPrePassMode.Off, "mode != DepthPrePassMode.Off");
+            Assert.IsTrue(mode.Includes(PrePassMode.Depth), "(mode & PrePassMode.Depth) != 0");
 
             _context = context;
             _cullingResults = cullingResults;
@@ -44,7 +44,7 @@ namespace DELTation.ToonRP
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
-            _normals = mode == DepthPrePassMode.DepthNormals;
+            _normals = mode.Includes(PrePassMode.Normals);
             _stencil = stencil;
         }
 

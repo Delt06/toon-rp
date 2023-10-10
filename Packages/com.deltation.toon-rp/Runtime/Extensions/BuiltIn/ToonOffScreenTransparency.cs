@@ -65,7 +65,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     const bool stencil = true;
                     _depthPrePass.Setup(_srpContext, _cullingResults,
                         _camera, _cameraRendererSettings,
-                        DepthPrePassMode.Depth,
+                        PrePassMode.Depth,
                         _width, _height,
                         stencil
                     );

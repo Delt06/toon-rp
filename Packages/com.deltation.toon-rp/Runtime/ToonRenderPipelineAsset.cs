@@ -141,10 +141,12 @@ namespace DELTation.ToonRP
             {
                 CameraRendererSettings.MaxLightsPerTile = ToonTiledLighting.MaxLightsPerTile / 2;
             }
+
+            CameraRendererSettings.PrePass = CameraRendererSettings.PrePass.Sanitize();
         }
 
-        public DepthPrePassMode GetEffectiveDepthPrePassMode() =>
-            ToonCameraRenderer.GetOverrideDepthPrePassMode(CameraRendererSettings, PostProcessing, Extensions);
+        public PrePassMode GetEffectiveDepthPrePassMode() =>
+            ToonCameraRenderer.GetOverridePrePassMode(CameraRendererSettings, PostProcessing, Extensions);
 
         protected override RenderPipeline CreatePipeline() =>
             new ToonRenderPipeline(CameraRendererSettings, GlobalRampSettings, ShadowSettings, PostProcessing,

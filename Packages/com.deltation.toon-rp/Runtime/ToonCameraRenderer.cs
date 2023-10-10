@@ -37,9 +37,9 @@ namespace DELTation.ToonRP
         private string _cmdName = DefaultCmdName;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private DepthPrePassMode _depthPrePassMode;
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
+        private PrePassMode _prePassMode;
         private ToonCameraRendererSettings _settings;
 
         public ToonCameraRenderer() => _tiledLighting = new ToonTiledLighting(_lighting);
@@ -49,11 +49,11 @@ namespace DELTation.ToonRP
             _tiledLighting?.Dispose();
         }
 
-        public static DepthPrePassMode GetOverrideDepthPrePassMode(in ToonCameraRendererSettings settings,
+        public static PrePassMode GetOverridePrePassMode(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
             in ToonRenderingExtensionSettings extensionSettings)
         {
-            DepthPrePassMode mode = settings.DepthPrePass;
+            PrePassMode mode = settings.PrePass;
 
             if (postProcessingSettings.Passes != null)
             {
@@ -64,7 +64,7 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, pass.RequiredDepthPrePassMode());
+                    mode |= pass.RequiredPrePassMode();
                 }
             }
 
@@ -77,13 +77,13 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, extension.RequiredDepthPrePassMode());
+                    mode |= extension.RequiredPrePassMode();
                 }
             }
 
             if (settings.IsTiledLightingEnabledAndSupported())
             {
-                mode = DepthPrePassModeUtils.CombineDepthPrePassModes(mode, DepthPrePassMode.Depth);
+                mode |= PrePassMode.Depth;
             }
 
             return mode;
@@ -111,7 +111,7 @@ namespace DELTation.ToonRP
             PrepareMsaa(camera, out int msaaSamples);
             PrepareForSceneWindow();
 
-            _depthPrePassMode = GetOverrideDepthPrePassMode(settings, postProcessingSettings, extensionSettings);
+            _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
             Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings, msaaSamples);
             _extensionsCollection.Update(extensionSettings);
@@ -121,10 +121,10 @@ namespace DELTation.ToonRP
                 _renderTarget.Height
             );
 
-            if (_depthPrePassMode != DepthPrePassMode.Off)
+            if (_prePassMode != PrePassMode.Off)
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
-                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _depthPrePassMode,
+                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _prePassMode,
                     _renderTarget.Width, _renderTarget.Height
                 );
                 _depthPrePass.Render();
@@ -238,6 +238,7 @@ namespace DELTation.ToonRP
 
                 GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
                 FormatUsage formatUsage = FormatUsage.Render;
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 formatUsage |= settings.Msaa switch
                 {
                     MsaaMode._2x => FormatUsage.MSAA2x,
@@ -441,7 +442,7 @@ namespace DELTation.ToonRP
         {
             _shadows.Cleanup();
 
-            if (_depthPrePassMode != DepthPrePassMode.Off)
+            if (_prePassMode != PrePassMode.Off)
             {
                 _depthPrePass.Cleanup();
             }

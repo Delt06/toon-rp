@@ -38,7 +38,7 @@ MonoBehaviour:
     MaxRenderTextureWidth: 0
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
-    DepthPrePass: 1
+    PrePass: 1
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295

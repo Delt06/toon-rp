@@ -40,7 +40,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             ToonScreenSpaceOutlineImpl.ShaderName,
         };
 
-        public override DepthPrePassMode RequiredDepthPrePassMode() =>
-            ToonScreenSpaceOutlineAsset.RequiredDepthPrePassMode(ConvertToCommonSettings(Settings));
+        public override PrePassMode RequiredPrePassMode() =>
+            ToonScreenSpaceOutline.RequiredPrePassMode(ConvertToCommonSettings(Settings));
     }
 }

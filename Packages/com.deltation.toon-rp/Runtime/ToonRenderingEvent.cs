@@ -2,8 +2,8 @@
 {
     public enum ToonRenderingEvent
     {
-        BeforeDepthPrepass,
-        AfterDepthPrepass,
+        BeforePrepass,
+        AfterPrepass,
         BeforeOpaque,
         AfterOpaque,
         BeforeSkybox,

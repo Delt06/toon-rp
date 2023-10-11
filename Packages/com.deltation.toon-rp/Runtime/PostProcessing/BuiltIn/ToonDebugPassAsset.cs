@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using static DELTation.ToonRP.PostProcessing.BuiltIn.ToonDebugPassSettings;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -7,7 +9,16 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     {
         private void Reset()
         {
-            Settings.TiledLighting.ShowOpaque = true;
+            Settings.TiledLighting = new TiledLightingSettings
+            {
+                ShowOpaque = true,
+                ShowTransparent = false,
+            };
+            Settings.MotionVectors = new MotionVectorsSettings
+            {
+                Scale = 10f,
+                SceneIntensity = 0.5f,
+            };
         }
 
         public override int Order() => ToonPostProcessingPassOrders.Debug;
@@ -18,5 +29,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonDebugPass.ShaderName,
         };
+
+        public override PrePassMode RequiredPrePassMode() =>
+            Settings.Mode switch
+            {
+                DebugMode.None => PrePassMode.Off,
+                DebugMode.TiledLighting => PrePassMode.Off,
+                DebugMode.MotionVectors => PrePassMode.MotionVectors,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
     }
 }

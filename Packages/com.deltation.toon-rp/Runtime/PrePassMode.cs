@@ -20,9 +20,12 @@ namespace DELTation.ToonRP
         [Pure]
         public static PrePassMode Sanitize(this PrePassMode mode)
         {
-            if (mode.Includes(PrePassMode.Normals) && !mode.Includes(PrePassMode.Depth))
+            if (!mode.Includes(PrePassMode.Depth))
             {
-                mode |= PrePassMode.Depth;
+                if (mode.Includes(PrePassMode.Normals) || mode.Includes(PrePassMode.MotionVectors))
+                {
+                    mode |= PrePassMode.Depth;
+                }
             }
 
             return mode;

@@ -5,7 +5,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "SSAO")]
     public class ToonSsaoAsset : ToonRenderingExtensionAsset<ToonSsaoSettings>
     {
-        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterDepthPrepass;
+        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterPrepass;
 
         private void Reset()
         {

@@ -21,6 +21,35 @@
         {
             return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0).rgb;
         }
+
+	    //#pragma enable_d3d11_debug_symbols
+
+	    #pragma vertex VS
+		#pragma fragment PS
+		
+		#include "../../ShaderLibrary/TiledLighting.hlsl"
+
+		struct appdata
+        {
+            float3 position : POSITION;
+            float2 uv : TEXCOORD0;
+        };
+
+        struct v2f
+        {
+            float4 positionCs : SV_POSITION;
+            float2 uv : TEXCOORD0;
+        };
+
+        v2f VS(const appdata IN)
+        {
+            v2f OUT;
+            OUT.uv = IN.uv;
+            OUT.positionCs = TransformObjectToHClip(IN.position);
+            return OUT;
+        }
+
+	    float4 PS(v2f IN);
 	    
 	    ENDHLSL
 	    Pass
@@ -28,33 +57,6 @@
 		    Name "Toon RP Debug Pass: Tiled Lighting"
 
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
-
-	        #pragma vertex VS
-		    #pragma fragment PS
-			
-			#include "../../ShaderLibrary/TiledLighting.hlsl"
-
-			struct appdata
-            {
-                float3 position : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float4 positionCs : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            v2f VS(const appdata IN)
-            {
-                v2f OUT;
-                OUT.uv = IN.uv;
-                OUT.positionCs = TransformObjectToHClip(IN.position);
-                return OUT;
-            }
 
 			bool _TiledLighting_ShowOpaque;
 			bool _TiledLighting_ShowTransparent;
@@ -86,6 +88,27 @@
                 }
                 
                 return float4(lerp(SampleSource(IN.uv), output, 0.5), 1.0f);
+            }
+
+			ENDHLSL
+		}
+
+        Pass
+		{
+		    Name "Toon RP Debug Pass: Motion Vectors"
+
+			HLSLPROGRAM
+
+			#include "../../ShaderLibrary/MotionVectors.hlsl"
+
+			float _MotionVectors_Scale;
+			float _MotionVectors_SceneIntensity;
+
+			float4 PS(const v2f IN) : SV_TARGET
+            {
+                const float2 motionVectorsSample = SAMPLE_TEXTURE2D_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, IN.uv, 0).rg;
+                const float3 result = SampleSource(IN.uv) * _MotionVectors_SceneIntensity + float3(abs(motionVectorsSample) * _MotionVectors_Scale, 0.0f);
+                return float4(result, 1.0f);
             }
 
 			ENDHLSL

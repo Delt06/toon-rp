@@ -72,6 +72,8 @@
 	    
 	    HLSLINCLUDE
 
+	    //#pragma enable_d3d11_debug_symbols
+
 	    // Require variable-length loops
 		#pragma target 3.5
 
@@ -161,6 +163,24 @@
 
 			#include "ToonRPDefaultInput.hlsl"
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
+			
+			ENDHLSL
+		}
+
+        Pass
+		{
+		    Name "Toon RP Motion Vectors"
+			Tags{ "LightMode" = "ToonRPMotionVectors" }
+		    
+		    ColorMask RG
+			
+			HLSLPROGRAM
+
+			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseMultiCompileList.hlsl"
+			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseShaderFeatureList.hlsl"
+
+			#include "ToonRPDefaultInput.hlsl"
+			#include "ToonRPDefaultMotionVectorsPass.hlsl"
 			
 			ENDHLSL
 		}

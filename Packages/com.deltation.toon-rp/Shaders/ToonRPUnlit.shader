@@ -39,6 +39,8 @@
 	    
 	    HLSLINCLUDE
 
+	    //#pragma enable_d3d11_debug_symbols
+
 	    #pragma vertex VS
 		#pragma fragment PS
 	    
@@ -62,8 +64,6 @@
 			
 			HLSLPROGRAM
 
-			//#pragma enable_d3d11_debug_symbols
-
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
 
@@ -82,14 +82,12 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Shadow Caster"
+		    Name "Toon RP Shadow Caster (Unlit)"
 			Tags{ "LightMode" = "ShadowCaster" }
 		    
 		    ColorMask RG
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 
@@ -107,14 +105,12 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Depth Only"
+		    Name "Toon RP Depth Only (Unlit)"
 			Tags{ "LightMode" = "ToonRPDepthOnly" }
 		    
 		    ColorMask 0
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 
@@ -129,14 +125,12 @@
 	    
 	    Pass
 		{
-		    Name "Toon RP Depth Normals"
+		    Name "Toon RP Depth Normals (Unlit)"
 			Tags{ "LightMode" = "ToonRPDepthNormals" }
 		    
 		    ColorMask RGB
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 
@@ -145,6 +139,26 @@
 
 			#include "ToonRPUnlitInput.hlsl"
 			#include "ToonRPDefaultDepthNormalsPass.hlsl"
+			
+			ENDHLSL
+		}
+
+        Pass
+		{
+		    Name "Toon RP Motion Vectors (Unlit)"
+			Tags{ "LightMode" = "ToonRPMotionVectors" }
+		    
+		    ColorMask RG
+			
+			HLSLPROGRAM
+
+			#pragma multi_compile_instancing
+
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
+
+			#include "ToonRPUnlitInput.hlsl"
+			#include "ToonRPDefaultMotionVectorsPass.hlsl"
 			
 			ENDHLSL
 		}

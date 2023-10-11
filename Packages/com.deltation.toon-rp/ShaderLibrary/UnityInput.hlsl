@@ -6,30 +6,44 @@
 
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
-// Space block Feature
-float4x4 unity_ObjectToWorld;
-float4x4 unity_WorldToObject;
-float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
-real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+    // Space block Feature
+    float4x4 unity_ObjectToWorld;
+    float4x4 unity_WorldToObject;
+    float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+    real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 
-// Light Indices block feature
-real4 unity_LightData;
-real4 unity_LightIndices[2];
+    // Light Indices block feature
+    real4 unity_LightData;
+    real4 unity_LightIndices[2];
 
-// Velocity
-float4x4 unity_MatrixPreviousM;
-float4x4 unity_MatrixPreviousMI;
+    // SH block feature
+    real4 unity_SHAr;
+    real4 unity_SHAg;
+    real4 unity_SHAb;
+    real4 unity_SHBr;
+    real4 unity_SHBg;
+    real4 unity_SHBb;
+    real4 unity_SHC;
 
-// SH block feature
-real4 unity_SHAr;
-real4 unity_SHAg;
-real4 unity_SHAb;
-real4 unity_SHBr;
-real4 unity_SHBg;
-real4 unity_SHBb;
-real4 unity_SHC;
-
+    // Motion Vectors
+    float4x4 unity_MatrixPreviousM;
+    float4x4 unity_MatrixPreviousMI;
+    //X : Use last frame positions (right now skinned meshes are the only objects that use this
+    //Y : Force No Motion
+    //Z : Z bias value
+    float4 unity_MotionVectorsParams;
 CBUFFER_END
+
+// CBUFFER_START(UnityVelocityPass)
+//     float4x4 unity_MatrixNonJitteredVP;
+//     float4x4 unity_MatrixPreviousVP;
+//     float4x4 unity_MatrixPreviousM;
+//     float4x4 unity_MatrixPreviousMI;
+//     //X : Use last frame positions (right now skinned meshes are the only objects that use this
+//     //Y : Force No Motion
+//     //Z : Z bias value
+//     float4 unity_MotionVectorsParams;
+// CBUFFER_END
 
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixV;
@@ -49,10 +63,12 @@ float4 unity_OrthoParams;
 float4 unity_FogParams;
 real4 unity_FogColor;
 
+float4x4 _PrevViewProjMatrix; // non-jittered. Motion vectors.
+float4x4 _NonJitteredViewProjMatrix; // non-jittered.
+
 bool IsOrthographicCamera()
 {
     return unity_OrthoParams.w == 1.0;
 }
-
 
 #endif // TOON_RP_UNITY_INPUT

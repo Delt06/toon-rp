@@ -26,11 +26,13 @@ namespace DELTation.ToonRP
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
+        private readonly MotionVectorsPrePass _motionVectorsPrePass = new();
         private readonly ToonPostProcessing _postProcessing = new();
 
         private readonly ToonCameraRenderTarget _renderTarget = new();
         private readonly ToonShadows _shadows = new();
         private readonly ToonTiledLighting _tiledLighting;
+        private ToonAdditionalCameraData _additionalCameraData;
 
         private Camera _camera;
 
@@ -89,14 +91,18 @@ namespace DELTation.ToonRP
             return mode;
         }
 
-        public void Render(ScriptableRenderContext context, Camera camera, in ToonCameraRendererSettings settings,
-            in ToonRampSettings globalRampSettings, in ToonShadowSettings toonShadowSettings,
+        public void Render(
+            ScriptableRenderContext context, Camera camera, ToonAdditionalCameraData additionalCameraData,
+            in ToonCameraRendererSettings settings,
+            in ToonRampSettings globalRampSettings,
+            in ToonShadowSettings toonShadowSettings,
             in ToonPostProcessingSettings postProcessingSettings,
             in ToonRenderingExtensionSettings extensionSettings)
         {
             _context = context;
             _camera = camera;
             _settings = settings;
+            _additionalCameraData = additionalCameraData;
 
             if (!Cull(toonShadowSettings))
             {
@@ -123,12 +129,26 @@ namespace DELTation.ToonRP
 
             if (_prePassMode != PrePassMode.Off)
             {
-                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeDepthPrepass);
-                _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _prePassMode,
-                    _renderTarget.Width, _renderTarget.Height
-                );
-                _depthPrePass.Render();
-                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterDepthPrepass);
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
+
+                if (_prePassMode.Includes(PrePassMode.Depth))
+                {
+                    _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _prePassMode,
+                        _renderTarget.Width, _renderTarget.Height
+                    );
+                    _depthPrePass.Render();
+                }
+
+                if (_prePassMode.Includes(PrePassMode.MotionVectors))
+                {
+                    _motionVectorsPrePass.Setup(_context, _cullingResults, _camera, additionalCameraData,
+                        settings,
+                        _renderTarget.Width, _renderTarget.Height
+                    );
+                    _motionVectorsPrePass.Render();
+                }
+
+                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
             }
 
             _tiledLighting.CullLights();
@@ -202,8 +222,16 @@ namespace DELTation.ToonRP
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
 
             _context.SetupCameraProperties(_camera);
-            Matrix4x4 gpuProjectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(_camera.projectionMatrix);
+
+            ToonCameraData cameraData = new(_camera);
+            Matrix4x4 gpuProjectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(cameraData.ProjectionMatrix);
             cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
+
+            if (_prePassMode.Includes(PrePassMode.MotionVectors))
+            {
+                SupportedRenderingFeatures.active.motionVectors = true;
+                _additionalCameraData.MotionVectorsPersistentData.Update(cameraData);
+            }
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
             int maxRtWidth = int.MaxValue;
@@ -442,9 +470,17 @@ namespace DELTation.ToonRP
         {
             _shadows.Cleanup();
 
-            if (_prePassMode != PrePassMode.Off)
+            // Pre-Pass Cleanup
             {
-                _depthPrePass.Cleanup();
+                if (_prePassMode.Includes(PrePassMode.Depth))
+                {
+                    _depthPrePass.Cleanup();
+                }
+
+                if (_prePassMode.Includes(PrePassMode.MotionVectors))
+                {
+                    _motionVectorsPrePass.Cleanup();
+                }
             }
 
             _extensionsCollection.Cleanup();

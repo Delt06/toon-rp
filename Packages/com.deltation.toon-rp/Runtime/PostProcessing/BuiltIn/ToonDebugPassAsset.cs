@@ -36,6 +36,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 DebugMode.None => PrePassMode.Off,
                 DebugMode.TiledLighting => PrePassMode.Off,
                 DebugMode.MotionVectors => PrePassMode.MotionVectors,
+                DebugMode.Depth => PrePassMode.Depth,
+                DebugMode.Normals => PrePassMode.Normals,
                 _ => throw new ArgumentOutOfRangeException(),
             };
     }

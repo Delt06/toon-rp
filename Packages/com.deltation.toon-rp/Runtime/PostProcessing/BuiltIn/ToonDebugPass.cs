@@ -59,6 +59,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                             break;
                         }
 
+                        case ToonDebugPassSettings.DebugMode.Depth:
+                            break;
+                        case ToonDebugPassSettings.DebugMode.Normals:
+                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }

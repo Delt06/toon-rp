@@ -95,6 +95,40 @@
 
         Pass
 		{
+		    Name "Toon RP Debug Pass: Depth"
+
+			HLSLPROGRAM
+
+			#include "../../ShaderLibrary/DepthNormals.hlsl"
+
+			float4 PS(const v2f IN) : SV_TARGET
+            {
+                const float depth = SampleDepthTexture(IN.uv);
+                return float4(depth, 0.0f, 0.0f, 1.0f);
+            }
+
+			ENDHLSL
+		}
+
+        Pass
+		{
+		    Name "Toon RP Debug Pass: Normals"
+
+			HLSLPROGRAM
+
+			#include "../../ShaderLibrary/DepthNormals.hlsl"
+
+			float4 PS(const v2f IN) : SV_TARGET
+            {
+                const float3 normals = SampleNormalsTexture(IN.uv) * 0.5f + 0.5f;
+                return float4(normals, 1.0f);
+            }
+
+			ENDHLSL
+		}
+
+        Pass
+		{
 		    Name "Toon RP Debug Pass: Motion Vectors"
 
 			HLSLPROGRAM

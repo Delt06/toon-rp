@@ -11,6 +11,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             None,
             TiledLighting,
+            Depth,
+            Normals,
             MotionVectors,
         }
 

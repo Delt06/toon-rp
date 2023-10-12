@@ -18,7 +18,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override IToonPostProcessingPass CreatePass() => new ToonTemporalAA();
 
-        // TODO: add TAA shader here
         protected override string[] ForceIncludedShaderNames() => new[] { ToonTemporalAA.ShaderName };
 
         public override PrePassMode RequiredPrePassMode() => PrePassMode.MotionVectors;

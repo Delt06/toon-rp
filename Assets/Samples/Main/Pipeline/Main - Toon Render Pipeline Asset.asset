@@ -38,7 +38,7 @@ MonoBehaviour:
     MaxRenderTextureWidth: 0
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
-    PrePass: 3
+    PrePass: -1
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -82,7 +82,6 @@ MonoBehaviour:
   Extensions:
     Extensions:
     - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
-    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
     - {fileID: 11400000, guid: 30041836c268b614db8f6cfc9f36024b, type: 2}
     - {fileID: 11400000, guid: f0489e92ff979c443be4e14bcf3021bb, type: 2}
   PostProcessing:
@@ -91,3 +90,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
     - {fileID: 11400000, guid: 444443e987af20941be3a8f1b36ba921, type: 2}
     - {fileID: 11400000, guid: fbec6b31b69fe924498065c60633b32a, type: 2}
+    - {fileID: 11400000, guid: 75d4fcbe012babd418796a799a26d7d2, type: 2}

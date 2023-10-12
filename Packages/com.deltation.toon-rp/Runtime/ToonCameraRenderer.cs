@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
+using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -20,7 +21,6 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
-        private static readonly int UnityMatrixInvPId = Shader.PropertyToID("unity_MatrixInvP");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
@@ -49,6 +49,36 @@ namespace DELTation.ToonRP
         public void Dispose()
         {
             _tiledLighting?.Dispose();
+        }
+
+        private static GraphicsFormat GetDefaultGraphicsFormat() =>
+            GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, true);
+
+        public static GraphicsFormat GetRenderTextureColorFormat(in ToonCameraRendererSettings settings,
+            bool ignoreMsaa = false)
+        {
+            if (!settings.OverrideRenderTextureFormat)
+            {
+                return settings.AllowHdr
+                    ? GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.DefaultHDR, false)
+                    : GetDefaultGraphicsFormat();
+            }
+
+            GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
+            FormatUsage formatUsage = FormatUsage.Render;
+            if (!ignoreMsaa)
+            {
+                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
+                formatUsage |= settings.Msaa switch
+                {
+                    MsaaMode._2x => FormatUsage.MSAA2x,
+                    MsaaMode._4x => FormatUsage.MSAA4x,
+                    MsaaMode._8x => FormatUsage.MSAA8x,
+                    _ => 0,
+                };
+            }
+
+            return SystemInfo.GetCompatibleFormat(rawGraphicsFormat, formatUsage);
         }
 
         public static PrePassMode GetOverridePrePassMode(in ToonCameraRendererSettings settings,
@@ -95,7 +125,7 @@ namespace DELTation.ToonRP
             ScriptableRenderContext context, Camera camera, ToonAdditionalCameraData additionalCameraData,
             in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings,
-            in ToonShadowSettings toonShadowSettings,
+            in ToonShadowSettings shadowSettings,
             in ToonPostProcessingSettings postProcessingSettings,
             in ToonRenderingExtensionSettings extensionSettings)
         {
@@ -104,7 +134,7 @@ namespace DELTation.ToonRP
             _settings = settings;
             _additionalCameraData = additionalCameraData;
 
-            if (!Cull(toonShadowSettings))
+            if (!Cull(shadowSettings))
             {
                 return;
             }
@@ -119,10 +149,11 @@ namespace DELTation.ToonRP
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _postProcessing.UpdatePasses(camera, postProcessingSettings);
-            Setup(cmd, globalRampSettings, toonShadowSettings, extensionSettings, msaaSamples);
+            Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, postProcessingSettings, msaaSamples);
             _extensionsCollection.Update(extensionSettings);
             _extensionsCollection.Setup(_extensionContext);
-            _postProcessing.Setup(_context, postProcessingSettings, _settings, _renderTarget.ColorFormat, _camera,
+            _postProcessing.Setup(_context, postProcessingSettings, _settings, additionalCameraData,
+                _renderTarget.ColorFormat, _camera,
                 _renderTarget.Width,
                 _renderTarget.Height
             );
@@ -217,21 +248,10 @@ namespace DELTation.ToonRP
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
             in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings,
+            in ToonPostProcessingSettings postProcessingSettings,
             int msaaSamples)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
-
-            _context.SetupCameraProperties(_camera);
-
-            ToonCameraData cameraData = new(_camera);
-            Matrix4x4 gpuProjectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(cameraData.ProjectionMatrix);
-            cmd.SetGlobalMatrix(UnityMatrixInvPId, Matrix4x4.Inverse(gpuProjectionMatrix));
-
-            if (_prePassMode.Includes(PrePassMode.MotionVectors))
-            {
-                SupportedRenderingFeatures.active.motionVectors = true;
-                _additionalCameraData.MotionVectorsPersistentData.Update(cameraData);
-            }
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
             int maxRtWidth = int.MaxValue;
@@ -251,32 +271,6 @@ namespace DELTation.ToonRP
 
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
-
-            static GraphicsFormat GetDefaultGraphicsFormat() =>
-                GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, true);
-
-            static GraphicsFormat GetRenderTextureColorFormat(in ToonCameraRendererSettings settings)
-            {
-                if (!settings.OverrideRenderTextureFormat)
-                {
-                    return settings.AllowHdr
-                        ? GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.DefaultHDR, false)
-                        : GetDefaultGraphicsFormat();
-                }
-
-                GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
-                FormatUsage formatUsage = FormatUsage.Render;
-                // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
-                formatUsage |= settings.Msaa switch
-                {
-                    MsaaMode._2x => FormatUsage.MSAA2x,
-                    MsaaMode._4x => FormatUsage.MSAA4x,
-                    MsaaMode._8x => FormatUsage.MSAA8x,
-                    _ => 0,
-                };
-
-                return SystemInfo.GetCompatibleFormat(rawGraphicsFormat, formatUsage);
-            }
 
             GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
             bool renderToTexture = renderTextureColorFormat != GetDefaultGraphicsFormat() ||
@@ -334,7 +328,27 @@ namespace DELTation.ToonRP
                 _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat);
             }
 
+            RTHandles.SetReferenceSize(rtWidth, rtHeight);
+
             _context.ExecuteCommandBufferAndClear(cmd);
+
+            Matrix4x4 originalProjectionMatrix = _camera.projectionMatrix;
+            Matrix4x4 jitteredProjectionMatrix = _camera.cameraType == CameraType.Game
+                ? ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _renderTarget) *
+                  originalProjectionMatrix
+                : originalProjectionMatrix;
+            _context.SetupCameraProperties(_camera);
+
+            ToonCameraData cameraData = new(_camera, jitteredProjectionMatrix);
+            Matrix4x4 gpuProjectionMatrix =
+                ToonRpUtils.GetGPUProjectionMatrix(cameraData.JitteredProjectionMatrix, _renderTarget);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, gpuProjectionMatrix, true);
+
+            if (_prePassMode.Includes(PrePassMode.MotionVectors))
+            {
+                SupportedRenderingFeatures.active.motionVectors = true;
+                _additionalCameraData.MotionVectorsPersistentData.Update(cameraData);
+            }
 
             _extensionContext =
                 new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);

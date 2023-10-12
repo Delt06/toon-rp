@@ -9,6 +9,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private readonly List<ShaderTagId> _lightModeTags = new();
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonRenderObjectsSettings _settings;
@@ -21,6 +22,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _context = context.ScriptableRenderContext;
             _camera = context.Camera;
             _cameraRendererSettings = context.CameraRendererSettings;
+            _cameraRenderTarget = context.CameraRenderTarget;
             _cullingResults = context.CullingResults;
         }
 
@@ -44,7 +46,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     }
                 }
 
-                var cameraOverride = new ToonCameraOverride(_camera);
+                var cameraOverride = new ToonCameraOverride(_camera, _cameraRenderTarget);
                 cameraOverride.OverrideIfEnabled(cmd, _settings.Overrides.Camera);
                 _context.ExecuteCommandBufferAndClear(cmd);
 

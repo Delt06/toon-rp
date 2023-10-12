@@ -29,6 +29,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
 
@@ -45,7 +46,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            var cameraOverride = new ToonCameraOverride(_camera);
+            var cameraOverride = new ToonCameraOverride(_camera, _cameraRenderTarget);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
@@ -160,6 +161,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             IToonRenderingExtensionSettingsStorage settingsStorage)
         {
             _cameraRendererSettings = context.CameraRendererSettings;
+            _cameraRenderTarget = context.CameraRenderTarget;
             _camera = context.Camera;
             _context = context.ScriptableRenderContext;
             _cullingResults = context.CullingResults;

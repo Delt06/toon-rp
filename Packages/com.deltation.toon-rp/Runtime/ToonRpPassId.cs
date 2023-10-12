@@ -21,6 +21,7 @@
         public const string Bloom = "Bloom";
         public const string LightScattering = "Light Scattering";
         public const string RenderObjects = "Render Objects";
+        public const string TemporalAA = "TAA";
         public const string Debug = "Debug";
         public const string BlitPostProcessingResults = "Blit Post-Processing Results";
     }

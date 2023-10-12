@@ -1,8 +1,9 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing
 {
-    public interface IToonPostProcessingPass
+    public interface IToonPostProcessingPass : IDisposable
     {
         /// <summary>
         ///     Given the current settings, whether the pass should run.

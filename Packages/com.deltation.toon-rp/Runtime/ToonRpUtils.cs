@@ -57,12 +57,14 @@ namespace DELTation.ToonRP
             cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjection);
         }
 
-        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix) =>
-            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
+        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix,
+            ToonCameraRenderTarget cameraRenderTarget) =>
+            GL.GetGPUProjectionMatrix(projectionMatrix, cameraRenderTarget.RenderToTexture);
 
-        public static void RestoreCameraMatrices(Camera camera, CommandBuffer cmd, bool setInverseMatrices)
+        public static void RestoreCameraMatrices(Camera camera, CommandBuffer cmd,
+            ToonCameraRenderTarget cameraRenderTarget, bool setInverseMatrices)
         {
-            Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(camera.projectionMatrix);
+            Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(camera.projectionMatrix, cameraRenderTarget);
             SetViewAndProjectionMatrices(cmd, camera.worldToCameraMatrix, gpuProjectionMatrix, setInverseMatrices);
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -6,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing
 {
-    public class ToonPostProcessing
+    public class ToonPostProcessing : IDisposable
     {
         private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
         private List<IToonPostProcessingPass> _allFullScreenPasses;
@@ -16,6 +17,14 @@ namespace DELTation.ToonRP.PostProcessing
         private ToonPostProcessingContext _postProcessingContext;
 
         public bool AnyFullScreenEffectsEnabled => _enabledFullScreenPasses.Count > 0;
+
+        public void Dispose()
+        {
+            foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
+            {
+                pass.Dispose();
+            }
+        }
 
         public void UpdatePasses(Camera camera, in ToonPostProcessingSettings settings)
         {
@@ -60,6 +69,7 @@ namespace DELTation.ToonRP.PostProcessing
 
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
             in ToonCameraRendererSettings cameraRendererSettings,
+            ToonAdditionalCameraData additionalCameraData,
             GraphicsFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
             _context = context;
@@ -72,6 +82,8 @@ namespace DELTation.ToonRP.PostProcessing
                 RtWidth = rtWidth,
                 RtHeight = rtHeight,
                 Camera = camera,
+                CameraRendererSettings = _cameraRendererSettings,
+                AdditionalCameraData = additionalCameraData,
             };
 
             SetupPasses();

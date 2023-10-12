@@ -18,5 +18,7 @@ namespace DELTation.ToonRP.PostProcessing
             RenderTargetIdentifier destination);
 
         public virtual void Cleanup(CommandBuffer cmd) { }
+
+        public virtual void Dispose() { }
     }
 }

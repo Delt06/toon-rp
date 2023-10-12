@@ -10,5 +10,7 @@ namespace DELTation.ToonRP.PostProcessing
         public int RtWidth;
         public int RtHeight;
         public Camera Camera;
+        public ToonCameraRendererSettings CameraRendererSettings;
+        public ToonAdditionalCameraData AdditionalCameraData;
     }
 }

@@ -12,6 +12,8 @@ namespace DELTation.ToonRP
 
         internal Matrix4x4 PreviousViewProjection { get; private set; } = Matrix4x4.identity;
 
+        public Matrix4x4 LastPrimaryProjectionMatrix { get; set; }
+
         public void Update(in ToonCameraData cameraData)
         {
             bool aspectChanged = !Mathf.Approximately(_prevAspectRatio, cameraData.AspectRatio);

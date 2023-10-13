@@ -168,7 +168,7 @@ namespace DELTation.ToonRP.Lighting
             CommandBufferPool.Release(cmd);
         }
 
-        public static void PrepareForOpaqueGeometry(CommandBuffer cmd)
+        public void PrepareForOpaqueGeometry(CommandBuffer cmd)
         {
             PrepareForGeometryPass(cmd, 0);
         }

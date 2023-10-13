@@ -8,26 +8,33 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public static Matrix4x4 CalculateJitterMatrix(in ToonPostProcessingSettings postProcessingSettings,
             ToonCameraRenderTarget renderTarget)
         {
-            Matrix4x4 jitterMat = Matrix4x4.identity;
+            Matrix4x4 jitterMatrix = Matrix4x4.identity;
 
-            if (TryGetTaaSettings(postProcessingSettings, out ToonTemporalAASettings taaSettings))
+            if (!postProcessingSettings.Enabled)
             {
-                int taaFrameIndex = Time.frameCount;
-
-                // TODO: check whether we should use camera or RT size 
-                float actualWidth = renderTarget.Width;
-                float actualHeight = renderTarget.Height;
-                float jitterScale = taaSettings.JitterScale;
-
-                Vector2 jitter = CalculateJitter(taaFrameIndex) * jitterScale;
-
-                float offsetX = jitter.x * (2.0f / actualWidth);
-                float offsetY = jitter.y * (2.0f / actualHeight);
-
-                jitterMat = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
+                return jitterMatrix;
             }
 
-            return jitterMat;
+            if (!TryGetTaaSettings(postProcessingSettings, out ToonTemporalAASettings taaSettings))
+            {
+                return jitterMatrix;
+            }
+
+            int taaFrameIndex = Time.frameCount;
+
+            // TODO: check whether we should use camera or RT size 
+            float actualWidth = renderTarget.Width;
+            float actualHeight = renderTarget.Height;
+            float jitterScale = taaSettings.JitterScale;
+
+            Vector2 jitter = CalculateJitter(taaFrameIndex) * jitterScale;
+
+            float offsetX = jitter.x * (2.0f / actualWidth);
+            float offsetY = jitter.y * (2.0f / actualHeight);
+
+            jitterMatrix = Matrix4x4.Translate(new Vector3(offsetX, offsetY, 0.0f));
+
+            return jitterMatrix;
         }
 
         private static Vector2 CalculateJitter(int frameIndex)

@@ -58,14 +58,18 @@ namespace DELTation.ToonRP
         }
 
         public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix,
-            ToonCameraRenderTarget cameraRenderTarget) =>
-            GL.GetGPUProjectionMatrix(projectionMatrix, cameraRenderTarget.RenderToTexture);
+            Camera camera) =>
+            GL.GetGPUProjectionMatrix(projectionMatrix, IsCameraProjectionMatrixFlipped(camera));
 
-        public static void RestoreCameraMatrices(Camera camera, CommandBuffer cmd,
-            ToonCameraRenderTarget cameraRenderTarget, bool setInverseMatrices)
+        private static bool IsCameraProjectionMatrixFlipped(Camera camera)
         {
-            Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(camera.projectionMatrix, cameraRenderTarget);
-            SetViewAndProjectionMatrices(cmd, camera.worldToCameraMatrix, gpuProjectionMatrix, setInverseMatrices);
+            if (!SystemInfo.graphicsUVStartsAtTop)
+            {
+                return false;
+            }
+
+            CameraType cameraType = camera.cameraType;
+            return cameraType is CameraType.SceneView or CameraType.Preview;
         }
 
         public static Vector4 BuildRampVectorFromEdges(float edge1, float edge2) =>

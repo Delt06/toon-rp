@@ -35,6 +35,7 @@ namespace DELTation.ToonRP
         private ToonAdditionalCameraData _additionalCameraData;
 
         private Camera _camera;
+        private ToonCameraData _cameraData;
 
         private string _cmdName = DefaultCmdName;
         private ScriptableRenderContext _context;
@@ -161,6 +162,8 @@ namespace DELTation.ToonRP
             if (_prePassMode != PrePassMode.Off)
             {
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
+
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 if (_prePassMode.Includes(PrePassMode.Depth))
                 {
@@ -330,30 +333,34 @@ namespace DELTation.ToonRP
 
             RTHandles.SetReferenceSize(rtWidth, rtHeight);
 
-            _context.ExecuteCommandBufferAndClear(cmd);
+            Matrix4x4 jitterMatrix = ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _renderTarget);
+            _cameraData = new ToonCameraData(_camera, jitterMatrix);
 
-            Matrix4x4 originalProjectionMatrix = _camera.projectionMatrix;
-            Matrix4x4 jitteredProjectionMatrix = _camera.cameraType == CameraType.Game
-                ? ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _renderTarget) *
-                  originalProjectionMatrix
-                : originalProjectionMatrix;
             _context.SetupCameraProperties(_camera);
-
-            ToonCameraData cameraData = new(_camera, jitteredProjectionMatrix);
-            Matrix4x4 gpuProjectionMatrix =
-                ToonRpUtils.GetGPUProjectionMatrix(cameraData.JitteredProjectionMatrix, _renderTarget);
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, gpuProjectionMatrix, true);
+            UpdateProjectionMatrices(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             if (_prePassMode.Includes(PrePassMode.MotionVectors))
             {
                 SupportedRenderingFeatures.active.motionVectors = true;
-                _additionalCameraData.MotionVectorsPersistentData.Update(cameraData);
+                _additionalCameraData.MotionVectorsPersistentData.Update(_cameraData);
             }
 
             _extensionContext =
-                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget);
+                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget,
+                    _additionalCameraData
+                );
 
             _tiledLighting.Setup(_context, _extensionContext);
+        }
+
+        private void UpdateProjectionMatrices(CommandBuffer cmd)
+        {
+            Matrix4x4 gpuProjectionMatrix =
+                ToonRpUtils.GetGPUProjectionMatrix(_cameraData.JitterMatrix * _cameraData.ProjectionMatrix, _camera);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, gpuProjectionMatrix, true);
+            _additionalCameraData.MotionVectorsPersistentData.LastPrimaryProjectionMatrix = gpuProjectionMatrix;
+            _context.SetupCameraProperties(_camera);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
@@ -517,7 +524,10 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             {
-                ToonTiledLighting.PrepareForOpaqueGeometry(cmd);
+                _tiledLighting.PrepareForOpaqueGeometry(cmd);
+
+                // UpdateProjectionMatrices(cmd, false);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
@@ -539,7 +549,9 @@ namespace DELTation.ToonRP
             {
                 _tiledLighting.PrepareForTransparentGeometry(cmd);
 
+                // UpdateProjectionMatrices(cmd, false);
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
+
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {

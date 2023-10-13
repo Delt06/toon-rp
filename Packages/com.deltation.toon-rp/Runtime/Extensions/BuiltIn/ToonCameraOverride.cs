@@ -10,12 +10,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private readonly float _zFar;
         private readonly Camera _camera;
         private bool _overriden;
-        private readonly ToonCameraRenderTarget _cameraRenderTarget;
+        private readonly ToonAdditionalCameraData _additionalCameraData;
 
-        public ToonCameraOverride(Camera camera, ToonCameraRenderTarget cameraRenderTarget)
+        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData)
         {
             _camera = camera;
-            _cameraRenderTarget = cameraRenderTarget;
+            _additionalCameraData = additionalCameraData;
             Rect pixelRect = camera.pixelRect;
             _aspectRatio = pixelRect.width / pixelRect.height;
             _zNear = camera.nearClipPlane;
@@ -38,14 +38,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             }
 
             float fieldOfView = settings.FieldOfView;
-            Matrix4x4 projectionMatrix =
-                ToonRpUtils.GetGPUProjectionMatrix(
-                    Matrix4x4.Perspective(fieldOfView, _aspectRatio,
-                        _zNear,
-                        _zFar
-                    ),
-                    _cameraRenderTarget
-                );
+            var matrix = Matrix4x4.Perspective(fieldOfView, _aspectRatio,
+                _zNear,
+                _zFar
+            );
+            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(matrix, _camera);
             ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix, false);
             _overriden = true;
         }
@@ -57,7 +54,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 return;
             }
 
-            ToonRpUtils.RestoreCameraMatrices(_camera, cmd, _cameraRenderTarget, false);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix,
+                _additionalCameraData.MotionVectorsPersistentData.LastPrimaryProjectionMatrix, false
+            );
             _overriden = false;
         }
     }

@@ -10,16 +10,18 @@ namespace DELTation.ToonRP.Extensions
         public readonly ToonCameraRendererSettings CameraRendererSettings;
         public readonly CullingResults CullingResults;
         public readonly ToonCameraRenderTarget CameraRenderTarget;
+        public readonly ToonAdditionalCameraData AdditionalCameraData;
 
         public ToonRenderingExtensionContext(ScriptableRenderContext scriptableRenderContext, Camera camera,
             ToonCameraRendererSettings cameraRendererSettings, CullingResults cullingResults,
-            ToonCameraRenderTarget cameraRenderTarget)
+            ToonCameraRenderTarget cameraRenderTarget, ToonAdditionalCameraData additionalCameraData)
         {
             ScriptableRenderContext = scriptableRenderContext;
             Camera = camera;
             CameraRendererSettings = cameraRendererSettings;
             CullingResults = cullingResults;
             CameraRenderTarget = cameraRenderTarget;
+            AdditionalCameraData = additionalCameraData;
         }
     }
 }

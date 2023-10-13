@@ -26,10 +26,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int NoiseFrequencyId = Shader.PropertyToID("_NoiseFrequency");
         private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_NoiseAmplitude");
         private readonly List<Material> _materials = new();
+        private ToonAdditionalCameraData _additionalCameraData;
 
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
-        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
 
@@ -46,7 +46,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            var cameraOverride = new ToonCameraOverride(_camera, _cameraRenderTarget);
+            var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
@@ -161,11 +161,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             IToonRenderingExtensionSettingsStorage settingsStorage)
         {
             _cameraRendererSettings = context.CameraRendererSettings;
-            _cameraRenderTarget = context.CameraRenderTarget;
             _camera = context.Camera;
             _context = context.ScriptableRenderContext;
             _cullingResults = context.CullingResults;
             _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
+            _additionalCameraData = context.AdditionalCameraData;
             PopulateMaterialsForAllPasses();
         }
 

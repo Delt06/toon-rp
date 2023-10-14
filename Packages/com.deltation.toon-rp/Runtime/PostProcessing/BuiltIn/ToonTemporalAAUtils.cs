@@ -5,6 +5,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public static class ToonTemporalAAUtils
     {
+        public static bool CameraSupportsTaa(Camera camera) => camera.cameraType == CameraType.Game;
+
         public static Matrix4x4 CalculateJitterMatrix(
             in ToonPostProcessingSettings postProcessingSettings,
             Camera camera,
@@ -12,7 +14,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             Matrix4x4 jitterMatrix = Matrix4x4.identity;
 
-            if (camera.cameraType != CameraType.Game)
+            if (!CameraSupportsTaa(camera))
             {
                 return jitterMatrix;
             }

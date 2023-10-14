@@ -5,6 +5,8 @@ namespace DELTation.ToonRP.PostProcessing
 {
     public interface IToonPostProcessingPass : IDisposable
     {
+        int Order { get; set; }
+
         /// <summary>
         ///     Given the current settings, whether the pass should run.
         /// </summary>

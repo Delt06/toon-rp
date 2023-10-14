@@ -19,6 +19,8 @@ namespace DELTation.ToonRP.PostProcessing
 
         public virtual void Cleanup(CommandBuffer cmd) { }
 
+        public int Order { get; set; }
+
         public virtual void Dispose() { }
     }
 }

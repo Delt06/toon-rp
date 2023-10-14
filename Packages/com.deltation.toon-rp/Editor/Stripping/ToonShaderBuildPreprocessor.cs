@@ -396,6 +396,22 @@ namespace DELTation.ToonRP.Editor.Stripping
                 }
             }
 
+            // ToonTemporalAA
+            {
+                if (!AnyPostProcessingPass<ToonTemporalAAAsset>())
+                {
+                    _shadersToStrip.Add(ToonTemporalAA.ShaderName);
+                }
+            }
+
+            // ToonSharpen
+            {
+                if (!AnyPostProcessingPass<ToonSharpenAsset>())
+                {
+                    _shadersToStrip.Add(ToonSharpen.ShaderName);
+                }
+            }
+
             ReportStrippingConfiguration();
         }
 
@@ -558,6 +574,12 @@ namespace DELTation.ToonRP.Editor.Stripping
             where TPass : ToonPostProcessingPassAsset =>
             _allToonRenderPipelineAssets.Any(a =>
                 a.PostProcessing.Passes.OfType<TPass>().Any(condition)
+            );
+
+        private bool AnyPostProcessingPass<TPass>()
+            where TPass : ToonPostProcessingPassAsset =>
+            _allToonRenderPipelineAssets.Any(a =>
+                a.PostProcessing.Passes.OfType<TPass>().Any()
             );
 
         private bool ShouldStripShader(Shader shader, ShaderCompilerData shaderCompilerData)

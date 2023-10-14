@@ -6,6 +6,7 @@
         public const int LightScattering = 450;
         public const int Bloom = 500;
         public const int TemporalAA = 750;
+        public const int Sharpen = 800;
         public const int PostProcessingStack = 1000;
         public const int Debug = 1_000_000;
     }

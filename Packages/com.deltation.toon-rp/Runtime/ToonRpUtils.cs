@@ -53,11 +53,12 @@ namespace DELTation.ToonRP
             SetInverseViewAndProjectionMatrices(cmd, viewMatrix, gpuProjectionMatrix, viewAndProjectionMatrix);
         }
 
-        public static void SetupCameraProperties(ref ScriptableRenderContext context, Camera camera,
-            Matrix4x4 jitteredProjectionMatrix)
+        public static void SetupCameraProperties(ref ScriptableRenderContext context,
+            ToonAdditionalCameraData additionalCameraData,
+            Matrix4x4 overrideProjectionMatrix)
         {
-            camera.projectionMatrix = jitteredProjectionMatrix;
-            context.SetupCameraProperties(camera);
+            additionalCameraData.SetCustomProjectionMatrix(overrideProjectionMatrix);
+            context.SetupCameraProperties(additionalCameraData.Camera);
         }
 
         private static void SetInverseViewAndProjectionMatrices(CommandBuffer cmd,

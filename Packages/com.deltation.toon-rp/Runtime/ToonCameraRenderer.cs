@@ -210,6 +210,7 @@ namespace DELTation.ToonRP
 
             Cleanup(cmd);
             Submit(cmd);
+            _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
         }
 
@@ -337,13 +338,14 @@ namespace DELTation.ToonRP
                 ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _camera, _renderTarget);
             _cameraData = new ToonCameraData(_camera);
 
-            _camera.ResetProjectionMatrix();
             _additionalCameraData.MotionVectorsPersistentData.JitterMatrix = jitterMatrix;
             _additionalCameraData.BaseProjectionMatrix = _camera.nonJitteredProjectionMatrix;
             _additionalCameraData.JitteredProjectionMatrix = jitterMatrix * _additionalCameraData.BaseProjectionMatrix;
             _additionalCameraData.JitteredGpuProjectionMatrix =
                 ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix);
-            ToonRpUtils.SetupCameraProperties(ref _context, _camera, _additionalCameraData.JitteredProjectionMatrix);
+            ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData,
+                _additionalCameraData.JitteredProjectionMatrix
+            );
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
                 Matrix4x4.Inverse(_additionalCameraData.JitteredGpuProjectionMatrix)
             );

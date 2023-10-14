@@ -17,7 +17,7 @@ MonoBehaviour:
   Settings:
     Radius: 0.05
     Power: 15
-    KernelSize: 64
+    KernelSize: 4
     ResolutionFactor: 2
     Threshold: 0.768
     Smoothness: 0.522

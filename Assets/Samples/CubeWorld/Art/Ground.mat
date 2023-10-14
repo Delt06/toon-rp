@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Ground
-  m_Shader: {fileID: 4800000, guid: 66d261cceb43446dbdd99389a7ed8411, type: 3}
+  m_Shader: {fileID: 4800000, guid: 6ec1afc7d53b4974ab764de8b09311f7, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -40,6 +40,8 @@ Material:
     - _BlendDst: 0
     - _BlendMode: 0
     - _BlendSrc: 1
+    - _ForceDisableEnvironmentLight: 0
+    - _ForceDisableFog: 0
     - _ForwardStencilComp: 0
     - _ForwardStencilPass: 0
     - _ForwardStencilRef: 0

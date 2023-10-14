@@ -27,7 +27,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int SamplesId = Shader.PropertyToID("_ToonRP_SSAO_Samples");
         private static readonly int BlurDirectionId = Shader.PropertyToID("_ToonRP_SSAO_Blur_Direction");
         private static readonly int BlurSourceId = Shader.PropertyToID("_ToonRP_SSAO_Blur_SourceTex");
-        private static readonly int InvPId = Shader.PropertyToID("_ToonRP_SSAO_InvP");
 
         private readonly Vector4[] _samples = GenerateRandomSamples(MaxSamplesCount);
         private readonly GlobalKeyword _ssaoKeyword = GlobalKeyword.Create(SsaoKeywordName);
@@ -85,12 +84,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 {
                     const string sampleName = "SSAO (Trace)";
                     cmd.BeginSample(sampleName);
-
-                    Matrix4x4 gpuP =
-                        ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix);
-                    var gpuInvP = Matrix4x4.Inverse(gpuP);
-                    cmd.SetGlobalMatrix(InvPId, gpuInvP);
-
                     cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                     RenderMainPass(cmd);
                     cmd.EndSample(sampleName);

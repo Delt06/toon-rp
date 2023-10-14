@@ -92,7 +92,7 @@ namespace DELTation.ToonRP
             return new Vector4(invBMinusA, -a * invBMinusA);
         }
 
-        private static class ShaderPropertyId
+        public static class ShaderPropertyId
         {
             public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");
             public static readonly int ProjectionMatrix = Shader.PropertyToID("glstate_matrix_projection");

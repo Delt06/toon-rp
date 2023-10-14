@@ -344,6 +344,9 @@ namespace DELTation.ToonRP
             _additionalCameraData.JitteredGpuProjectionMatrix =
                 ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix);
             ToonRpUtils.SetupCameraProperties(ref _context, _camera, _additionalCameraData.JitteredProjectionMatrix);
+            cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
+                Matrix4x4.Inverse(_additionalCameraData.JitteredGpuProjectionMatrix)
+            );
 
             if (_prePassMode.Includes(PrePassMode.MotionVectors))
             {

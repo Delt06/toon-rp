@@ -15,5 +15,5 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 677d80d3ea664815bd08649680575719, type: 3}
   Settings:
-    JitterScale: 0.5
+    JitterScale: 1
     ModulationFactor: 0.8

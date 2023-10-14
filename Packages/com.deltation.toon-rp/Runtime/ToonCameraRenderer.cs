@@ -333,12 +333,15 @@ namespace DELTation.ToonRP
 
             RTHandles.SetReferenceSize(rtWidth, rtHeight);
 
-            Matrix4x4 jitterMatrix = ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _renderTarget);
-            _cameraData = new ToonCameraData(_camera, jitterMatrix);
+            Matrix4x4 jitterMatrix =
+                ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _camera, _renderTarget);
+            _cameraData = new ToonCameraData(_camera);
 
-            _context.SetupCameraProperties(_camera);
-            UpdateProjectionMatrices(cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
+            _camera.ResetProjectionMatrix();
+            _additionalCameraData.MotionVectorsPersistentData.JitterMatrix = jitterMatrix;
+            _additionalCameraData.BaseProjectionMatrix = _camera.nonJitteredProjectionMatrix;
+            _additionalCameraData.JitteredProjectionMatrix = jitterMatrix * _additionalCameraData.BaseProjectionMatrix;
+            ToonRpUtils.SetupCameraProperties(ref _context, _camera, _additionalCameraData.JitteredProjectionMatrix);
 
             if (_prePassMode.Includes(PrePassMode.MotionVectors))
             {
@@ -352,15 +355,6 @@ namespace DELTation.ToonRP
                 );
 
             _tiledLighting.Setup(_context, _extensionContext);
-        }
-
-        private void UpdateProjectionMatrices(CommandBuffer cmd)
-        {
-            Matrix4x4 gpuProjectionMatrix =
-                ToonRpUtils.GetGPUProjectionMatrix(_cameraData.JitterMatrix * _cameraData.ProjectionMatrix, _camera);
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, gpuProjectionMatrix, true);
-            _additionalCameraData.MotionVectorsPersistentData.LastPrimaryProjectionMatrix = gpuProjectionMatrix;
-            _context.SetupCameraProperties(_camera);
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)
@@ -526,9 +520,6 @@ namespace DELTation.ToonRP
             {
                 _tiledLighting.PrepareForOpaqueGeometry(cmd);
 
-                // UpdateProjectionMatrices(cmd, false);
-                _context.ExecuteCommandBufferAndClear(cmd);
-
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
@@ -549,9 +540,7 @@ namespace DELTation.ToonRP
             {
                 _tiledLighting.PrepareForTransparentGeometry(cmd);
 
-                // UpdateProjectionMatrices(cmd, false);
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
-
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {

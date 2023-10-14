@@ -37,29 +37,51 @@ namespace DELTation.ToonRP
         }
 
         public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix,
-            Matrix4x4 gpuProjectionMatrix, bool setInverseMatrices)
+            Matrix4x4 gpuProjectionMatrix,
+            Matrix4x4 jitterMatrix,
+            bool setInverseMatrices)
         {
             Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
             cmd.SetGlobalMatrix(ShaderPropertyId.ViewMatrix, viewMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.ProjectionMatrix, gpuProjectionMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.ViewAndProjectionMatrix, viewAndProjectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.ProjectionMatrix, jitterMatrix * gpuProjectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.ViewAndProjectionMatrix, jitterMatrix * viewAndProjectionMatrix);
 
             if (!setInverseMatrices)
             {
                 return;
             }
 
-            var inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-            var inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
-            Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
-            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewMatrix, inverseViewMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.InverseProjectionMatrix, inverseProjectionMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjection);
+            SetInverseViewAndProjectionMatrices(cmd, viewMatrix, gpuProjectionMatrix, jitterMatrix);
         }
 
-        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix,
+        public static void SetupCameraProperties(ref ScriptableRenderContext context, Camera camera,
+            Matrix4x4 jitteredProjectionMatrix)
+        {
+            camera.projectionMatrix = jitteredProjectionMatrix;
+            context.SetupCameraProperties(camera);
+        }
+
+        private static void SetInverseViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix,
+            Matrix4x4 gpuProjectionMatrix, Matrix4x4 jitterMatrix)
+        {
+            var inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
+            var inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+            var inverseJitterMatrix = Matrix4x4.Inverse(jitterMatrix);
+            Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewMatrix, inverseViewMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseProjectionMatrix, inverseProjectionMatrix * inverseJitterMatrix
+            );
+            cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix,
+                inverseViewProjection * inverseJitterMatrix
+            );
+        }
+
+        public static Matrix4x4 GetGPUProjectionMatrixForCamera(Matrix4x4 projectionMatrix,
             Camera camera) =>
             GL.GetGPUProjectionMatrix(projectionMatrix, IsCameraProjectionMatrixFlipped(camera));
+
+        public static Matrix4x4 GetGPUProjectionMatrixForOffscreen(Matrix4x4 projectionMatrix) =>
+            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
 
         private static bool IsCameraProjectionMatrixFlipped(Camera camera)
         {
@@ -87,7 +109,7 @@ namespace DELTation.ToonRP
             return new Vector4(invBMinusA, -a * invBMinusA);
         }
 
-        private static class ShaderPropertyId
+        public static class ShaderPropertyId
         {
             public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");
             public static readonly int ProjectionMatrix = Shader.PropertyToID("glstate_matrix_projection");

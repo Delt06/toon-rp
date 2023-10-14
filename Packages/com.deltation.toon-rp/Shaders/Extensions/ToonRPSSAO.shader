@@ -60,6 +60,7 @@
             #define DEPTH_BIAS 0.01
 
 			CBUFFER_START(ToonRpSsao)
+			float4x4 _ToonRP_SSAO_InvP;
 			float2 _ToonRP_SSAO_NoiseScale;
 			int _ToonRP_SSAO_KernelSize;
 			float4 _ToonRP_SSAO_Samples[MAX_SAMPLES_COUNT];
@@ -108,7 +109,7 @@
                 }
 
                 const float3 positionNdc = ScreenSpaceUvToNdc(uv, zNdc);
-                const float4 positionVs = RestorePositionVs(positionNdc, UNITY_MATRIX_I_P);
+                const float4 positionVs = RestorePositionVs(positionNdc, _ToonRP_SSAO_InvP);
                 const float3 positionWs = mul(UNITY_MATRIX_I_V, positionVs).xyz + normalWs * NORMAL_BIAS;
 
                 const float3 randomVector = float3(SAMPLE_TEXTURE2D_LOD(_NoiseTexture, sampler_NoiseTexture, uv * _ToonRP_SSAO_NoiseScale, 0).xy, 0);
@@ -142,7 +143,7 @@
 
                     const float sampleDepthZNdc = SampleDepthTexture(sampleScreenSpaceUv);
                     const float3 sampleDepthPositionNdc = float3(samplePositionCs.xy, sampleDepthZNdc);
-                    float3 sampleDepthPositionVs = RestorePositionVs(sampleDepthPositionNdc, UNITY_MATRIX_I_P).xyz;
+                    float3 sampleDepthPositionVs = RestorePositionVs(sampleDepthPositionNdc, _ToonRP_SSAO_InvP).xyz;
 
                     float3 samplePositionVs = TransformWorldToView(samplePositionWs);
 

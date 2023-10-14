@@ -9,7 +9,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             Settings = new ToonTemporalAASettings
             {
-                JitterScale = 1.0f,
+                JitterScale = 0.25f,
                 ModulationFactor = 0.8f,
             };
         }

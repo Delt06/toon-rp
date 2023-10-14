@@ -5,10 +5,17 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public static class ToonTemporalAAUtils
     {
-        public static Matrix4x4 CalculateJitterMatrix(in ToonPostProcessingSettings postProcessingSettings,
+        public static Matrix4x4 CalculateJitterMatrix(
+            in ToonPostProcessingSettings postProcessingSettings,
+            Camera camera,
             ToonCameraRenderTarget renderTarget)
         {
             Matrix4x4 jitterMatrix = Matrix4x4.identity;
+
+            if (camera.cameraType != CameraType.Game)
+            {
+                return jitterMatrix;
+            }
 
             if (!postProcessingSettings.Enabled)
             {
@@ -22,7 +29,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             int taaFrameIndex = Time.frameCount;
 
-            // TODO: check whether we should use camera or RT size 
             float actualWidth = renderTarget.Width;
             float actualHeight = renderTarget.Height;
             float jitterScale = taaSettings.JitterScale;

@@ -11,8 +11,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private readonly Camera _camera;
         private bool _overriden;
         private readonly ToonAdditionalCameraData _additionalCameraData;
+        private readonly bool _setInverse;
 
-        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData)
+        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData, bool setInverse = false)
         {
             _camera = camera;
             _additionalCameraData = additionalCameraData;
@@ -21,6 +22,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _zNear = camera.nearClipPlane;
             _zFar = camera.farClipPlane;
             _overriden = false;
+            _setInverse = setInverse;
         }
 
         public void OverrideIfEnabled(CommandBuffer cmd, in ToonCameraOverrideSettings settings)
@@ -42,22 +44,26 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 _zNear,
                 _zFar
             );
-            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(matrix, _camera);
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix, false);
+            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrixForCamera(matrix, _camera);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix, JitterMatrix,
+                _setInverse
+            );
             _overriden = true;
         }
 
-        public void RestoreIfEnabled(CommandBuffer cmd)
+        public void Restore(ref ScriptableRenderContext context)
         {
             if (!_overriden)
             {
                 return;
             }
 
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix,
-                _additionalCameraData.MotionVectorsPersistentData.LastPrimaryProjectionMatrix, false
+            ToonRpUtils.SetupCameraProperties(ref context, _camera,
+                _additionalCameraData.JitteredProjectionMatrix
             );
             _overriden = false;
         }
+
+        private Matrix4x4 JitterMatrix => _additionalCameraData.MotionVectorsPersistentData.JitterMatrix;
     }
 }

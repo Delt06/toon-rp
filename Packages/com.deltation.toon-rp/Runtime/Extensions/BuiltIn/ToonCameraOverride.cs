@@ -10,15 +10,19 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private readonly float _zFar;
         private readonly Camera _camera;
         private bool _overriden;
+        private readonly ToonAdditionalCameraData _additionalCameraData;
+        private readonly bool _setInverse;
 
-        public ToonCameraOverride(Camera camera)
+        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData, bool setInverse = false)
         {
             _camera = camera;
+            _additionalCameraData = additionalCameraData;
             Rect pixelRect = camera.pixelRect;
             _aspectRatio = pixelRect.width / pixelRect.height;
             _zNear = camera.nearClipPlane;
             _zFar = camera.farClipPlane;
             _overriden = false;
+            _setInverse = setInverse;
         }
 
         public void OverrideIfEnabled(CommandBuffer cmd, in ToonCameraOverrideSettings settings)
@@ -36,25 +40,28 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             }
 
             float fieldOfView = settings.FieldOfView;
-            Matrix4x4 projectionMatrix =
-                ToonRpUtils.GetGPUProjectionMatrix(
-                    Matrix4x4.Perspective(fieldOfView, _aspectRatio,
-                        _zNear,
-                        _zFar
-                    )
-                );
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix, false);
+            var matrix = Matrix4x4.Perspective(fieldOfView, _aspectRatio,
+                _zNear,
+                _zFar
+            );
+            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(matrix);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix,
+                _setInverse
+            );
             _overriden = true;
         }
 
-        public void RestoreIfEnabled(CommandBuffer cmd)
+        public void Restore(CommandBuffer cmd)
         {
             if (!_overriden)
             {
                 return;
             }
 
-            ToonRpUtils.RestoreCameraMatrices(_camera, cmd, false);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd,
+                _camera.worldToCameraMatrix, _additionalCameraData.JitteredGpuProjectionMatrix,
+                _setInverse
+            );
             _overriden = false;
         }
     }

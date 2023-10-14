@@ -82,7 +82,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private void HandleFxaaProperties()
         {
-            if (_fxaaSettings.Enabled && _fxaaSettings.HighQuality)
+            if (_fxaaSettings is { Enabled: true, HighQuality: true })
             {
                 _material.SetFloat(FxaaFixedContrastThresholdId, _fxaaSettings.FixedContrastThresholdId);
                 _material.SetFloat(FxaaRelativeContrastThresholdId, _fxaaSettings.RelativeContrastThreshold);

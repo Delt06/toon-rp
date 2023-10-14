@@ -71,12 +71,12 @@ namespace DELTation.ToonRP.Editor
                             return;
                         }
 
-                        DepthPrePassMode mode = pipelineAsset.CameraRendererSettings.DepthPrePass;
-                        DepthPrePassMode effectiveMode = pipelineAsset.GetEffectiveDepthPrePassMode();
+                        PrePassMode mode = pipelineAsset.CameraRendererSettings.PrePass;
+                        PrePassMode effectiveMode = pipelineAsset.GetEffectiveDepthPrePassMode();
                         if (mode != effectiveMode)
                         {
                             EditorGUILayout.HelpBox(
-                                $"Depth Pre-Pass Mode is overriden by one or many passes to: \"{effectiveMode}\"",
+                                $"Pre-Pass Mode is overriden by one or many passes to: \"{effectiveMode}\"",
                                 MessageType.Warning
                             );
                         }
@@ -84,9 +84,9 @@ namespace DELTation.ToonRP.Editor
                 )
             );
 
-            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.DepthPrePass)))
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.PrePass)))
                 {
-                    label = "Depth Pre-Pass Mode",
+                    label = "Pre-Pass Mode",
                 }
             );
 

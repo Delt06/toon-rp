@@ -34,12 +34,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             };
         }
 
-        public override DepthPrePassMode RequiredDepthPrePassMode() => RequiredDepthPrePassMode(Settings);
-
-        public static DepthPrePassMode RequiredDepthPrePassMode(in ToonScreenSpaceOutlineSettings settings)
-            => settings.NormalsFilter.Enabled
-                ? DepthPrePassMode.DepthNormals
-                : DepthPrePassMode.Depth;
+        public override PrePassMode RequiredPrePassMode() => ToonScreenSpaceOutline.RequiredPrePassMode(Settings);
 
         public override int Order() => ToonPostProcessingPassOrders.Outline;
 

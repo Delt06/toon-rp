@@ -4,9 +4,9 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Textures.hlsl"
 
-#if defined(_NORMAL_MAP) || defined(_ALPHATEST_ON)
+#if defined(_ALPHATEST_ON)
 #define REQUIRE_UV_INTERPOLANT
-#endif // _NORMAL_MAP || _ALPHATEST_ON
+#endif // _ALPHATEST_ON
 
 struct appdata
 {

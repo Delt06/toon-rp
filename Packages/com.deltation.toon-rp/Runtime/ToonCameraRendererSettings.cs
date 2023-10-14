@@ -48,7 +48,7 @@ namespace DELTation.ToonRP
         [Min(0)]
         public int MaxRenderTextureHeight;
         public FilterMode RenderTextureFilterMode;
-        public DepthPrePassMode DepthPrePass;
+        public PrePassMode PrePass;
         public LayerMask OpaqueLayerMask;
         public LayerMask TransparentLayerMask;
 

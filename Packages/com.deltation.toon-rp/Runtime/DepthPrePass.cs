@@ -9,6 +9,10 @@ namespace DELTation.ToonRP
     {
         private static readonly ShaderTagId DepthOnlyShaderTagId = new("ToonRPDepthOnly");
         private static readonly ShaderTagId DepthNormalsShaderTagId = new("ToonRPDepthNormals");
+
+        public static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
+        public static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");
+
         private readonly int _depthTextureId;
         private readonly int _normalsTextureId;
 
@@ -22,9 +26,7 @@ namespace DELTation.ToonRP
         private ToonCameraRendererSettings _settings;
         private bool _stencil;
 
-        public DepthPrePass() : this(
-            Shader.PropertyToID("_ToonRP_DepthTexture"), Shader.PropertyToID("_ToonRP_NormalsTexture")
-        ) { }
+        public DepthPrePass() : this(DepthTextureId, NormalsTextureId) { }
 
         public DepthPrePass(int depthTextureId, int normalsTextureId)
         {
@@ -33,10 +35,10 @@ namespace DELTation.ToonRP
         }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            in ToonCameraRendererSettings settings, DepthPrePassMode mode, int rtWidth, int rtHeight,
+            in ToonCameraRendererSettings settings, PrePassMode mode, int rtWidth, int rtHeight,
             bool stencil = false)
         {
-            Assert.IsTrue(mode != DepthPrePassMode.Off, "mode != DepthPrePassMode.Off");
+            Assert.IsTrue(mode.Includes(PrePassMode.Depth), "mode.Includes(PrePassMode.Depth)");
 
             _context = context;
             _cullingResults = cullingResults;
@@ -44,7 +46,7 @@ namespace DELTation.ToonRP
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
-            _normals = mode == DepthPrePassMode.DepthNormals;
+            _normals = mode.Includes(PrePassMode.Normals);
             _stencil = stencil;
         }
 
@@ -112,7 +114,7 @@ namespace DELTation.ToonRP
             {
                 enableDynamicBatching = _settings.UseDynamicBatching,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, _camera.cullingMask);
 
             _context.DrawRenderers(_cullingResults,
                 ref drawingSettings, ref filteringSettings

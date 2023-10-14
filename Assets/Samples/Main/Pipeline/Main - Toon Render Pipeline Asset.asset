@@ -28,6 +28,7 @@ MonoBehaviour:
   CameraRendererSettings:
     AdditionalLights: 1
     TiledLighting: 0
+    MaxLightsPerTile: 32
     OverrideRenderTextureFormat: 0
     RenderTextureFormat: 67
     AllowHdr: 1
@@ -37,7 +38,7 @@ MonoBehaviour:
     MaxRenderTextureWidth: 0
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
-    DepthPrePass: 2
+    PrePass: -1
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -60,6 +61,7 @@ MonoBehaviour:
       Blur: 1
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.25
+      BlurScatter: 1
       VsmPrecision: 0
       SoftShadows: 0
       LightBleedingReduction: 0.9
@@ -80,9 +82,9 @@ MonoBehaviour:
   Extensions:
     Extensions:
     - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
-    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
     - {fileID: 11400000, guid: 30041836c268b614db8f6cfc9f36024b, type: 2}
     - {fileID: 11400000, guid: f0489e92ff979c443be4e14bcf3021bb, type: 2}
+    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:

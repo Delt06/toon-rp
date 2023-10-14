@@ -37,7 +37,8 @@ namespace DELTation.ToonRP
         }
 
         public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix,
-            Matrix4x4 gpuProjectionMatrix, bool setInverseMatrices)
+            Matrix4x4 gpuProjectionMatrix,
+            bool setInverseMatrices)
         {
             Matrix4x4 viewAndProjectionMatrix = gpuProjectionMatrix * viewMatrix;
             cmd.SetGlobalMatrix(ShaderPropertyId.ViewMatrix, viewMatrix);
@@ -49,9 +50,26 @@ namespace DELTation.ToonRP
                 return;
             }
 
+            SetInverseViewAndProjectionMatrices(cmd, viewMatrix, gpuProjectionMatrix, viewAndProjectionMatrix);
+        }
+
+        public static void SetupCameraProperties(ref ScriptableRenderContext context,
+            ToonAdditionalCameraData additionalCameraData,
+            Matrix4x4 overrideProjectionMatrix)
+        {
+            additionalCameraData.SetCustomProjectionMatrix(overrideProjectionMatrix);
+            context.SetupCameraProperties(additionalCameraData.Camera);
+        }
+
+        private static void SetInverseViewAndProjectionMatrices(CommandBuffer cmd,
+            Matrix4x4 viewMatrix,
+            Matrix4x4 gpuProjectionMatrix,
+            Matrix4x4 viewAndProjectionMatrix
+        )
+        {
             var inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
             var inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
-            Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+            var inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
             cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewMatrix, inverseViewMatrix);
             cmd.SetGlobalMatrix(ShaderPropertyId.InverseProjectionMatrix, inverseProjectionMatrix);
             cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjection);
@@ -59,12 +77,6 @@ namespace DELTation.ToonRP
 
         public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix) =>
             GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
-
-        public static void RestoreCameraMatrices(Camera camera, CommandBuffer cmd, bool setInverseMatrices)
-        {
-            Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(camera.projectionMatrix);
-            SetViewAndProjectionMatrices(cmd, camera.worldToCameraMatrix, gpuProjectionMatrix, setInverseMatrices);
-        }
 
         public static Vector4 BuildRampVectorFromEdges(float edge1, float edge2) =>
             BuildRampVectorFromSmoothness(edge1, edge2 - edge1);
@@ -81,7 +93,7 @@ namespace DELTation.ToonRP
             return new Vector4(invBMinusA, -a * invBMinusA);
         }
 
-        private static class ShaderPropertyId
+        public static class ShaderPropertyId
         {
             public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");
             public static readonly int ProjectionMatrix = Shader.PropertyToID("glstate_matrix_projection");

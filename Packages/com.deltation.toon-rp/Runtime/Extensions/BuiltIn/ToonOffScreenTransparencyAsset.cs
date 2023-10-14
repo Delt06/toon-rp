@@ -29,9 +29,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             ToonDepthDownsample.ShaderName,
         };
 
-        public override DepthPrePassMode RequiredDepthPrePassMode() =>
+        public override PrePassMode RequiredPrePassMode() =>
             Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample
-                ? DepthPrePassMode.Depth
-                : DepthPrePassMode.Off;
+                ? PrePassMode.Depth
+                : PrePassMode.Off;
     }
 }

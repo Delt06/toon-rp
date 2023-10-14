@@ -47,7 +47,9 @@ namespace DELTation.ToonRP
 
             foreach (Camera camera in cameras)
             {
-                _cameraRenderer.Render(context, camera,
+                ToonAdditionalCameraData additionalCameraData = GetOrAddAdditionalCameraData(camera);
+
+                _cameraRenderer.Render(context, camera, additionalCameraData,
                     _cameraRendererSettings,
                     _globalRampSettings,
                     _shadowSettings,
@@ -55,6 +57,16 @@ namespace DELTation.ToonRP
                     _extensions
                 );
             }
+        }
+
+        private static ToonAdditionalCameraData GetOrAddAdditionalCameraData(Camera camera)
+        {
+            if (!camera.TryGetComponent(out ToonAdditionalCameraData additionalCameraData))
+            {
+                additionalCameraData = camera.gameObject.AddComponent<ToonAdditionalCameraData>();
+            }
+
+            return additionalCameraData;
         }
     }
 }

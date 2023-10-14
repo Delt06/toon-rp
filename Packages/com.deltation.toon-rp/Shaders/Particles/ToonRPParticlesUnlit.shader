@@ -39,6 +39,8 @@
 	    
 	    HLSLINCLUDE
 
+	    //#pragma enable_d3d11_debug_symbols
+
 	    // Require variable-length loops
 		#pragma target 3.5
 
@@ -55,8 +57,6 @@
 			Blend [_BlendSrc] [_BlendDst]
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_fog
 			#pragma multi_compile_instancing
@@ -80,8 +80,6 @@
 			
 			HLSLPROGRAM
 
-			//#pragma enable_d3d11_debug_symbols
-
 			#pragma multi_compile_instancing
 			
 			// Per-Material
@@ -101,8 +99,6 @@
 		    ColorMask 0
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 
 			#pragma multi_compile_instancing
 			
@@ -124,8 +120,6 @@
 			
 			HLSLPROGRAM
 
-			//#pragma enable_d3d11_debug_symbols
-
 			#pragma multi_compile_instancing
 			
 			// Per-Material
@@ -133,6 +127,26 @@
 
             #include "ToonRPParticlesUnlitInput.hlsl"
 			#include "../ToonRPDefaultDepthNormalsPass.hlsl"
+			
+			ENDHLSL
+		}
+
+        Pass
+		{
+		    Name "Toon RP Particles Motion Vectors"
+			Tags{ "LightMode" = "ToonRPMotionVectors" }
+		    
+		    ColorMask RG
+			
+			HLSLPROGRAM
+
+			#pragma multi_compile_instancing
+
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
+
+			#include "ToonRPParticlesUnlitInput.hlsl"
+			#include "../ToonRPDefaultMotionVectorsPass.hlsl"
 			
 			ENDHLSL
 		}

@@ -16,3 +16,9 @@ MonoBehaviour:
   - {fileID: 0}
   Settings:
     Mode: 0
+    TiledLighting:
+      ShowOpaque: 0
+      ShowTransparent: 0
+    MotionVectors:
+      Scale: 10
+      SceneIntensity: 0.1

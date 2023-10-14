@@ -21,5 +21,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 _impl.RenderViaBlit(cmd, _settings, source, destination);
             }
         }
+
+        public static PrePassMode RequiredPrePassMode(in ToonScreenSpaceOutlineSettings settings)
+            => settings.NormalsFilter.Enabled
+                ? PrePassMode.Normals | PrePassMode.Depth
+                : PrePassMode.Depth;
     }
 }

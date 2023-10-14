@@ -28,9 +28,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int BlurDirectionId = Shader.PropertyToID("_ToonRP_SSAO_Blur_Direction");
         private static readonly int BlurSourceId = Shader.PropertyToID("_ToonRP_SSAO_Blur_SourceTex");
 
-        private readonly Vector4[] _samples;
-        private readonly GlobalKeyword _ssaoKeyword;
-        private readonly GlobalKeyword _ssaoPatternKeyword;
+        private readonly Vector4[] _samples = GenerateRandomSamples(MaxSamplesCount);
+        private readonly GlobalKeyword _ssaoKeyword = GlobalKeyword.Create(SsaoKeywordName);
+        private readonly GlobalKeyword _ssaoPatternKeyword = GlobalKeyword.Create(SsaoPatternKeywordName);
+        private ToonAdditionalCameraData _additionalCameraData;
         private ScriptableRenderContext _context;
         private int _height;
         private Material _material;
@@ -38,18 +39,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private ToonSsaoSettings _settings;
         private int _width;
 
-        public ToonSsao()
-        {
-            _samples = GenerateRandomSamples(MaxSamplesCount);
-            _ssaoKeyword = GlobalKeyword.Create(SsaoKeywordName);
-            _ssaoPatternKeyword = GlobalKeyword.Create(SsaoPatternKeywordName);
-        }
-
         public override void Setup(in ToonRenderingExtensionContext context,
             IToonRenderingExtensionSettingsStorage settingsStorage)
         {
             _context = context.ScriptableRenderContext;
             _settings = settingsStorage.GetSettings<ToonSsaoSettings>(this);
+            _additionalCameraData = context.AdditionalCameraData;
+
             _width = context.CameraRenderTarget.Width;
             _height = context.CameraRenderTarget.Height;
 

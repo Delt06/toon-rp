@@ -6,6 +6,7 @@
         public const string Shadows = "Shadows";
         public const string BlobShadows = "Blob Shadows";
         public const string DepthPrePass = "Depth Pre-Pass";
+        public const string MotionVectorsPrePass = "Motion Vectors Pre-Pass";
         public const string Ssao = "SSAO";
         public const string TiledLighting = "Tiled Lighting";
         public const string PrepareRenderTargets = "Prepare Render Targets";
@@ -20,6 +21,8 @@
         public const string Bloom = "Bloom";
         public const string LightScattering = "Light Scattering";
         public const string RenderObjects = "Render Objects";
+        public const string TemporalAA = "TAA";
+        public const string Sharpen = "Sharpen";
         public const string Debug = "Debug";
         public const string BlitPostProcessingResults = "Blit Post-Processing Results";
     }

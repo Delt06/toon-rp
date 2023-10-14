@@ -5,7 +5,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "SSAO")]
     public class ToonSsaoAsset : ToonRenderingExtensionAsset<ToonSsaoSettings>
     {
-        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterDepthPrepass;
+        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterPrepass;
 
         private void Reset()
         {
@@ -23,8 +23,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         public override IToonRenderingExtension CreateExtension() => new ToonSsao();
 
-        public override DepthPrePassMode RequiredDepthPrePassMode() =>
-            DepthPrePassMode.DepthNormals;
+        public override PrePassMode RequiredPrePassMode() =>
+            PrePassMode.Depth | PrePassMode.Normals;
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {

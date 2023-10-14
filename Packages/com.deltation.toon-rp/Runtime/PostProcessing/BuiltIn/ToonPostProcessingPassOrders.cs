@@ -7,10 +7,11 @@
         public const int Bloom = 500;
         public const int TemporalAA = 750;
         public const int Sharpen = 900;
+        public const int PostProcessingStackPreUpscale = 1000;
 
-        public const int SwitchToNativeResolution = 1000;
+        public const int SwitchToNativeResolution = 5000;
 
-        public const int PostProcessingStack = 1500;
+        public const int PostProcessingStackPostUpscale = 6000;
         public const int Debug = 1_000_000;
     }
 }

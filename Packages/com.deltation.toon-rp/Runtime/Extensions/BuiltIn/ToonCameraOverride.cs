@@ -44,26 +44,25 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 _zNear,
                 _zFar
             );
-            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrixForCamera(matrix, _camera);
-            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix, JitterMatrix,
+            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(matrix);
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix,
                 _setInverse
             );
             _overriden = true;
         }
 
-        public void Restore(ref ScriptableRenderContext context)
+        public void Restore(CommandBuffer cmd)
         {
             if (!_overriden)
             {
                 return;
             }
 
-            ToonRpUtils.SetupCameraProperties(ref context, _camera,
-                _additionalCameraData.JitteredProjectionMatrix
+            ToonRpUtils.SetViewAndProjectionMatrices(cmd,
+                _camera.worldToCameraMatrix, _additionalCameraData.JitteredGpuProjectionMatrix,
+                _setInverse
             );
             _overriden = false;
         }
-
-        private Matrix4x4 JitterMatrix => _additionalCameraData.MotionVectorsPersistentData.JitterMatrix;
     }
 }

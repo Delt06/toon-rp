@@ -10,7 +10,8 @@ namespace DELTation.ToonRP
     {
         public Matrix4x4 BaseProjectionMatrix { get; set; }
         public Matrix4x4 JitteredProjectionMatrix { get; set; }
-        
+        public Matrix4x4 JitteredGpuProjectionMatrix { get; set; }
+
         public ToonMotionVectorsPersistentData MotionVectorsPersistentData { get; } = new();
         public ToonTemporalAAPersistentData TemporalAAPersistentData { get; } = new();
 

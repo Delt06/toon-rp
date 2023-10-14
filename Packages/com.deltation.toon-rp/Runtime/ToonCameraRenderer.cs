@@ -341,6 +341,8 @@ namespace DELTation.ToonRP
             _additionalCameraData.MotionVectorsPersistentData.JitterMatrix = jitterMatrix;
             _additionalCameraData.BaseProjectionMatrix = _camera.nonJitteredProjectionMatrix;
             _additionalCameraData.JitteredProjectionMatrix = jitterMatrix * _additionalCameraData.BaseProjectionMatrix;
+            _additionalCameraData.JitteredGpuProjectionMatrix =
+                ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix);
             ToonRpUtils.SetupCameraProperties(ref _context, _camera, _additionalCameraData.JitteredProjectionMatrix);
 
             if (_prePassMode.Includes(PrePassMode.MotionVectors))

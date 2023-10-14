@@ -148,7 +148,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         );
 
                         cmd.SetGlobalDepthBias(0, 0);
-                        cameraOverride.Restore(ref _context);
+                        cameraOverride.Restore(cmd);
                     }
                 }
             }

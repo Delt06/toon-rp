@@ -87,7 +87,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     cmd.BeginSample(sampleName);
 
                     Matrix4x4 gpuP =
-                        ToonRpUtils.GetGPUProjectionMatrixForOffscreen(_additionalCameraData.JitteredProjectionMatrix);
+                        ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix);
                     var gpuInvP = Matrix4x4.Inverse(gpuP);
                     cmd.SetGlobalMatrix(InvPId, gpuInvP);
 

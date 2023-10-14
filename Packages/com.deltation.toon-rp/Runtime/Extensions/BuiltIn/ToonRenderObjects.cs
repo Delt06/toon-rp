@@ -67,7 +67,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     _settings.Overrides.Material
                 );
 
-                cameraOverride.Restore(ref _context);
+                cameraOverride.Restore(cmd);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

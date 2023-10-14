@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -13,7 +14,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             };
         }
 
-        public override int Order() => ToonPostProcessingPassOrders.Sharpen;
+        public override int Order() => Settings.Order switch
+        {
+            ToonSharpenSettings.PassOrder.PreUpscale => ToonPostProcessingPassOrders.SharpenPreUpscale,
+            ToonSharpenSettings.PassOrder.PostUpscale => ToonPostProcessingPassOrders.SharpenPostUpscale,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
         public override IToonPostProcessingPass CreatePass() => new ToonSharpen();
 

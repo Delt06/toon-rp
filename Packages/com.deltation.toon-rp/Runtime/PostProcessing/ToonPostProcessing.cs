@@ -173,6 +173,8 @@ namespace DELTation.ToonRP.PostProcessing
                         switchedToNative = true;
                     }
 
+
+                    // Case 1: source and destination need to be distinct
                     if (switchedToNative || pass.NeedsDistinctSourceAndDestination())
                     {
                         pass.Render(cmd, currentSource, currentDestination);
@@ -186,6 +188,7 @@ namespace DELTation.ToonRP.PostProcessing
                             (currentSource, currentDestination) = (currentDestination, currentSource);
                         }
                     }
+                    // Case 2: source and destination can be the same
                     else
                     {
                         pass.Render(cmd, currentSource, currentSource);

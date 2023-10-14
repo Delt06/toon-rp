@@ -15,4 +15,5 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 986c305002ce4ab7b310d1520c097cee, type: 3}
   Settings:
+    Order: 0
     Amount: 0.86

@@ -12,7 +12,7 @@ void ApplyMotionVectorZBias(inout float4 positionCs)
     #if defined(UNITY_REVERSED_Z)
     positionCs.z -= unity_MotionVectorsParams.z * positionCs.w;
     #else
-    positionCS.z += unity_MotionVectorsParams.z * positionCs.w;
+    positionCs.z += unity_MotionVectorsParams.z * positionCs.w;
     #endif
 }
 

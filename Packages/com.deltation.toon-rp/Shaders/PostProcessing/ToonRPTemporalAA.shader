@@ -73,7 +73,7 @@
                 // Originally from here: https://sugulee.wordpress.com/2021/06/21/temporal-anti-aliasingtaa-tutorial/
                 // Adapted from the version from: https://github.com/Delt06/dx12-renderer/blob/master/Framework/shaders/TAA_Resolve_PS.hlsl
                 const float2 uv = IN.uv;
-                const float2 velocity = SAMPLE_TEXTURE2D_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, uv, 0);
+                const float2 velocity = SAMPLE_TEXTURE2D_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, uv, 0).xy;
                 const float2 previousPixelUv = uv - velocity;
 
                 const float3 currentColor = SampleSource(uv);

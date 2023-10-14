@@ -16,7 +16,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int MotionVectorsSceneIntensityId =
             Shader.PropertyToID("_MotionVectors_SceneIntensity");
 
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass");
+        private Material _material;
         private Camera _camera;
         private ToonDebugPassSettings _settings;
 
@@ -28,6 +28,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             base.Setup(cmd, in context);
             _camera = context.Camera;
             _settings = context.Settings.Find<ToonDebugPassSettings>();
+            
+            if (_material == null)
+            {
+                _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass");
+            }
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,

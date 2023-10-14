@@ -16,7 +16,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int MotionVectorsSceneIntensityId =
             Shader.PropertyToID("_MotionVectors_SceneIntensity");
 
-        private Material _material;
+        // Using Lazy to avoid creating a material when it's not used (it also can be stripped).
+        private readonly Lazy<Material> _material = new(
+            () => ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass")
+        );
         private Camera _camera;
         private ToonDebugPassSettings _settings;
 
@@ -28,11 +31,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             base.Setup(cmd, in context);
             _camera = context.Camera;
             _settings = context.Settings.Find<ToonDebugPassSettings>();
-            
-            if (_material == null)
-            {
-                _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass");
-            }
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -42,25 +40,27 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 if (_camera.cameraType == CameraType.Game)
                 {
+                    Material material = _material.Value;
+
                     switch (_settings.Mode)
                     {
                         case ToonDebugPassSettings.DebugMode.None:
                             break;
                         case ToonDebugPassSettings.DebugMode.TiledLighting:
                         {
-                            _material.SetInt(TiledLightingShowOpaqueId,
+                            material.SetInt(TiledLightingShowOpaqueId,
                                 _settings.TiledLighting.ShowOpaque ? 1 : 0
                             );
 
-                            _material.SetInt(TiledLightingShowTransparentId,
+                            material.SetInt(TiledLightingShowTransparentId,
                                 _settings.TiledLighting.ShowTransparent ? 1 : 0
                             );
                             break;
                         }
                         case ToonDebugPassSettings.DebugMode.MotionVectors:
                         {
-                            _material.SetFloat(MotionVectorsScaleId, _settings.MotionVectors.Scale);
-                            _material.SetFloat(MotionVectorsSceneIntensityId, _settings.MotionVectors.SceneIntensity);
+                            material.SetFloat(MotionVectorsScaleId, _settings.MotionVectors.Scale);
+                            material.SetFloat(MotionVectorsSceneIntensityId, _settings.MotionVectors.SceneIntensity);
                             break;
                         }
 
@@ -73,7 +73,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     }
 
                     int passIndex = (int) _settings.Mode - 1;
-                    cmd.Blit(source, destination, _material, passIndex);
+                    cmd.Blit(source, destination, material, passIndex);
                 }
                 else
                 {

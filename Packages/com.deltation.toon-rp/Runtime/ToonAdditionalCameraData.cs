@@ -14,6 +14,8 @@ namespace DELTation.ToonRP
         public Matrix4x4 BaseProjectionMatrix { get; set; }
         public Matrix4x4 JitteredProjectionMatrix { get; set; }
         public Matrix4x4 JitteredGpuProjectionMatrix { get; set; }
+        public int RtWidth { get; set; }
+        public int RtHeight { get; set; }
 
         public bool UsingCustomProjection { get; private set; }
 

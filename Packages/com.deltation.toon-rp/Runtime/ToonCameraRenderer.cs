@@ -332,7 +332,7 @@ namespace DELTation.ToonRP
                 _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat);
             }
 
-            RTHandles.SetReferenceSize(rtWidth, rtHeight);
+            UpdateRtHandles(rtWidth, rtHeight);
 
             Matrix4x4 jitterMatrix =
                 ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _camera, _renderTarget);
@@ -362,6 +362,21 @@ namespace DELTation.ToonRP
                 );
 
             _tiledLighting.Setup(_context, _extensionContext);
+        }
+
+        private void UpdateRtHandles(int rtWidth, int rtHeight)
+        {
+            if (_additionalCameraData.RtWidth != rtWidth || _additionalCameraData.RtHeight != rtHeight)
+            {
+                RTHandles.ResetReferenceSize(rtWidth, rtHeight);
+            }
+            else
+            {
+                RTHandles.SetReferenceSize(rtWidth, rtHeight);
+            }
+
+            _additionalCameraData.RtWidth = rtWidth;
+            _additionalCameraData.RtHeight = rtHeight;
         }
 
         private bool RequireStencil(in ToonRenderingExtensionSettings extensionSettings)

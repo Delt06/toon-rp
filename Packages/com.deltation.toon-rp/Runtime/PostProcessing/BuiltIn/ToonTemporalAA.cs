@@ -28,15 +28,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static void EnsureHistoryIsAllocated(ToonPostProcessingContext context,
             ToonTemporalAAPersistentData persistentData)
         {
-            if (persistentData.HistoryRt != null)
-            {
-                return;
-            }
-
             ToonCameraRendererSettings cameraRendererSettings = context.CameraRendererSettings;
-            persistentData.HistoryRt = RTHandles.Alloc(Vector2.one,
-                colorFormat: ToonCameraRenderer.GetRenderTextureColorFormat(cameraRendererSettings, true),
-                filterMode: cameraRendererSettings.RenderTextureFilterMode, name: HistoryRtName
+            RTHandleSystem rtHandleSystem = context.AdditionalCameraData.RTHandleSystem;
+            rtHandleSystem.EnsureAllocatedCameraTarget(
+                ref persistentData.HistoryRt, HistoryRtName,
+                cameraRendererSettings, false
             );
         }
 

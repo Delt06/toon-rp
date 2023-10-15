@@ -21,6 +21,7 @@ namespace DELTation.ToonRP
 
         public ToonMotionVectorsPersistentData MotionVectorsPersistentData { get; } = new();
         public ToonTemporalAAPersistentData TemporalAAPersistentData { get; } = new();
+        public RTHandleSystem RTHandleSystem { get; } = new();
 
         private void Awake()
         {
@@ -30,6 +31,7 @@ namespace DELTation.ToonRP
         private void OnDestroy()
         {
             TemporalAAPersistentData.Dispose();
+            RTHandleSystem.Dispose();
         }
 
         public void SetCustomProjectionMatrix(Matrix4x4 projectionMatrix)

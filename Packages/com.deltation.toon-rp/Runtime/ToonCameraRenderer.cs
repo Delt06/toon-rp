@@ -5,6 +5,7 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -55,6 +56,7 @@ namespace DELTation.ToonRP
         private static GraphicsFormat GetDefaultGraphicsFormat() =>
             GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, true);
 
+        [Pure]
         public static GraphicsFormat GetRenderTextureColorFormat(in ToonCameraRendererSettings settings,
             bool ignoreMsaa = false)
         {
@@ -368,11 +370,11 @@ namespace DELTation.ToonRP
         {
             if (_additionalCameraData.RtWidth != rtWidth || _additionalCameraData.RtHeight != rtHeight)
             {
-                RTHandles.ResetReferenceSize(rtWidth, rtHeight);
+                _additionalCameraData.RTHandleSystem.ResetReferenceSize(rtWidth, rtHeight);
             }
             else
             {
-                RTHandles.SetReferenceSize(rtWidth, rtHeight);
+                _additionalCameraData.RTHandleSystem.SetReferenceSize(rtWidth, rtHeight);
             }
 
             _additionalCameraData.RtWidth = rtWidth;

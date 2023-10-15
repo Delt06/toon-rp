@@ -6,7 +6,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
     public class ToonTemporalAAPersistentData : IDisposable
     {
-        [CanBeNull] public RTHandle HistoryRt { get; set; }
+        [CanBeNull] public RTHandle HistoryRt;
         public bool HistoryRtStoredValidData { get; private set; }
 
         public void Dispose()

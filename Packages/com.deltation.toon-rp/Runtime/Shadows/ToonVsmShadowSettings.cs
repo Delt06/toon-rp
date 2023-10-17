@@ -86,6 +86,7 @@ namespace DELTation.ToonRP.Shadows
         [Serializable]
         public struct SoftShadowsSettings
         {
+            [ToonRpHeader("Soft Shadows", Size = 12.0f)]
             public bool Enabled;
 
             [ToonRpShowIf(nameof(Enabled))]

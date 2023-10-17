@@ -11,6 +11,9 @@ namespace DELTation.ToonRP.Shadows
         public const string DirectionalCascadedShadowsKeywordName = "_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS";
         public const string VsmKeywordName = "_TOON_RP_VSM";
         public const string PcfKeywordName = "_TOON_RP_PCF";
+        public const string PoissonStratifiedKeywordName = "_TOON_RP_POISSON_SAMPLING_STRATIFIED";
+        public const string PoissonRotatedKeywordName = "_TOON_RP_POISSON_SAMPLING_ROTATED";
+        public const string PoissonEarlyBailKeywordName = "_TOON_RP_POISSON_SAMPLING_EARLY_BAIL";
         public const string BlobShadowsKeywordName = "_TOON_RP_BLOB_SHADOWS";
         public const string ShadowsRampCrispKeywordName = "_TOON_RP_SHADOWS_RAMP_CRISP";
         public const string ShadowsPatternKeywordName = "_TOON_RP_SHADOWS_PATTERN";
@@ -34,6 +37,9 @@ namespace DELTation.ToonRP.Shadows
             DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalCascadedShadowsKeywordName);
             VsmGlobalKeyword = GlobalKeyword.Create(VsmKeywordName);
             PcfGlobalKeyword = GlobalKeyword.Create(PcfKeywordName);
+            PoissonStratifiedGlobalKeyword = GlobalKeyword.Create(PoissonStratifiedKeywordName);
+            PoissonRotatedGlobalKeyword = GlobalKeyword.Create(PoissonRotatedKeywordName);
+            PoissonEarlyBailGlobalKeyword = GlobalKeyword.Create(PoissonEarlyBailKeywordName);
             BlobShadowsGlobalKeyword = GlobalKeyword.Create(BlobShadowsKeywordName);
             ShadowsRampCrisp = GlobalKeyword.Create(ShadowsRampCrispKeywordName);
             ShadowsPattern = GlobalKeyword.Create(ShadowsPatternKeywordName);
@@ -43,6 +49,9 @@ namespace DELTation.ToonRP.Shadows
         public static GlobalKeyword DirectionalCascadedShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword VsmGlobalKeyword { get; private set; }
         public static GlobalKeyword PcfGlobalKeyword { get; private set; }
+        public static GlobalKeyword PoissonStratifiedGlobalKeyword { get; private set; }
+        public static GlobalKeyword PoissonRotatedGlobalKeyword { get; private set; }
+        public static GlobalKeyword PoissonEarlyBailGlobalKeyword { get; private set; }
         public static GlobalKeyword BlobShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
         public static GlobalKeyword ShadowsPattern { get; private set; }
@@ -61,6 +70,9 @@ namespace DELTation.ToonRP.Shadows
                 cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
                 cmd.DisableKeyword(VsmGlobalKeyword);
                 cmd.DisableKeyword(PcfGlobalKeyword);
+                cmd.DisableKeyword(PoissonStratifiedGlobalKeyword);
+                cmd.DisableKeyword(PoissonRotatedGlobalKeyword);
+                cmd.DisableKeyword(PoissonEarlyBailGlobalKeyword);
             }
 
             cmd.SetKeyword(BlobShadowsGlobalKeyword, settings.Mode == ToonShadowSettings.ShadowMode.Blobs);

@@ -1,6 +1,7 @@
 ﻿using System;
 using DELTation.ToonRP.Attributes;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace DELTation.ToonRP.Shadows
 {
@@ -20,6 +21,19 @@ namespace DELTation.ToonRP.Shadows
             _16 = 16,
             _24 = 24,
             _32 = 32,
+        }
+
+        public enum SoftShadowsMode
+        {
+            Poisson,
+            PoissonStratified,
+            PoissonRotated,
+        }
+
+        public enum SoftShadowsQuality
+        {
+            Low,
+            High,
         }
 
         public enum VsmTexturePrecision
@@ -44,8 +58,10 @@ namespace DELTation.ToonRP.Shadows
         public float BlurScatter;
         [ToonRpShowIf(nameof(IsBlurEnabled))]
         public VsmTexturePrecision VsmPrecision;
+
         [ToonRpShowIf(nameof(IsBlurDisabled))]
-        public bool SoftShadows;
+        public SoftShadowsSettings SoftShadows;
+
         [ToonRpShowIf(nameof(IsBlurEnabled))]
         [Range(0.001f, 0.999f)]
         public float LightBleedingReduction;
@@ -65,6 +81,29 @@ namespace DELTation.ToonRP.Shadows
             }
 
             return (int) DepthBits;
+        }
+
+        [Serializable]
+        public struct SoftShadowsSettings
+        {
+            public bool Enabled;
+
+            [ToonRpShowIf(nameof(Enabled))]
+            public SoftShadowsQuality Quality;
+            [ToonRpShowIf(nameof(Enabled))]
+            public SoftShadowsMode Mode;
+            [ToonRpShowIf(nameof(EarlyBailAvailable))]
+            public bool EarlyBail;
+
+            [FormerlySerializedAs("PoissonSpread")]
+            [ToonRpShowIf(nameof(Enabled))]
+            [Range(0.0f, 0.99f)]
+            public float Spread;
+
+            [ToonRpShowIf(nameof(Enabled))]
+            public Texture3D RotatedPoissonSamplingTexture;
+
+            private bool EarlyBailAvailable => Enabled && Quality == SoftShadowsQuality.High;
         }
 
         [Serializable]

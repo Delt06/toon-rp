@@ -42,7 +42,7 @@ Light GetMainLight(const v2f IN)
     #ifdef _TOON_RP_SHADOW_MAPS
     const uint tileIndex = ComputeShadowTileIndex(IN.positionWs);
     const float3 shadowCoords = TransformWorldToShadowCoords(IN.positionWs, tileIndex);
-    Light light = GetMainLight(shadowCoords);
+    Light light = GetMainLight(shadowCoords, IN.positionWs);
     #else // !_TOON_RP_SHADOW_MAPS
     Light light = GetMainLight();
     #endif // _TOON_RP_SHADOW_MAPS

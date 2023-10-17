@@ -74,6 +74,10 @@ namespace DELTation.ToonRP
                     CascadeRatio2 = 0.25f,
                     CascadeRatio3 = 0.5f,
                 },
+                SoftShadows =
+                {
+                    Spread = 0.8f,
+                },
             },
             Blobs = new ToonBlobShadowsSettings
             {
@@ -112,6 +116,11 @@ namespace DELTation.ToonRP
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 
+        private void Reset()
+        {
+            EnsureRequiredValuesArePresent();
+        }
+
         protected override void OnValidate()
         {
             base.OnValidate();
@@ -120,6 +129,8 @@ namespace DELTation.ToonRP
             {
                 ForceIncludedShaders = ForceIncludedShaderNames.Select(Shader.Find).ToArray();
             }
+
+            EnsureRequiredValuesArePresent();
 
             if (ShadowSettings.Vsm.LightBleedingReduction == 0.0f)
             {
@@ -143,6 +154,20 @@ namespace DELTation.ToonRP
             }
 
             CameraRendererSettings.PrePass = CameraRendererSettings.PrePass.Sanitize();
+        }
+
+        private void EnsureRequiredValuesArePresent()
+        {
+#if UNITY_EDITOR
+            ref Texture3D texture = ref ShadowSettings.Vsm.SoftShadows.RotatedPoissonSamplingTexture;
+            if (texture == null)
+            {
+                ShadowSettings.Vsm.SoftShadows.RotatedPoissonSamplingTexture =
+                    AssetDatabase.LoadAssetAtPath<Texture3D>(
+                        "Packages/com.deltation.toon-rp/Assets/DefaultRotatedPoissonSamplingTexture.asset"
+                    );
+            }
+#endif // UNITY_EDITOR
         }
 
         public PrePassMode GetEffectiveDepthPrePassMode() =>

@@ -40,7 +40,7 @@ CBUFFER_START(_ToonRpShadows)
     uint _ToonRP_PoissonDiskSize;
     float _ToonRP_fPoissonDiskSize;
     float _ToonRP_InvPoissonDiskSize;
-    float4 _ToonRP_DirectionalShadowPoissonDisk[16];
+    float2 _ToonRP_DirectionalShadowPoissonDisk[16];
 CBUFFER_END
 
 TEXTURE3D(_ToonRP_RotatedPoissonSamplingTexture);

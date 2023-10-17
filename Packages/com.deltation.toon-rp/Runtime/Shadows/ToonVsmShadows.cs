@@ -46,6 +46,12 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int LightBleedingReductionId =
             Shader.PropertyToID("_ToonRP_ShadowLightBleedingReduction");
         private static readonly int BlurScatterId = Shader.PropertyToID("_ToonRP_VSM_BlurScatter");
+        private static readonly int PoissonDiskSizeId = Shader.PropertyToID("_ToonRP_PoissonDiskSize");
+        private static readonly int FPoissonDiskSizeId = Shader.PropertyToID("_ToonRP_fPoissonDiskSize");
+        private static readonly int InvPoissonDiskSizeId = Shader.PropertyToID("_ToonRP_InvPoissonDiskSize");
+        private static readonly int RotatedPoissonSamplingTextureId =
+            Shader.PropertyToID("_ToonRP_RotatedPoissonSamplingTexture");
+
         private static readonly Vector2[] PoissonDiskRaw =
         {
             new(-0.94201624f, -0.39906216f),
@@ -297,14 +303,14 @@ namespace DELTation.ToonRP.Shadows
                     SoftShadowsQuality.High => 16,
                     _ => throw new ArgumentOutOfRangeException(),
                 };
-                cmd.SetGlobalInt("_ToonRP_PoissonDiskSize", poissonDiskSize);
-                cmd.SetGlobalFloat("_ToonRP_fPoissonDiskSize", poissonDiskSize);
-                cmd.SetGlobalFloat("_ToonRP_InvPoissonDiskSize", 1.0f / poissonDiskSize);
+                cmd.SetGlobalInt(PoissonDiskSizeId, poissonDiskSize);
+                cmd.SetGlobalFloat(FPoissonDiskSizeId, poissonDiskSize);
+                cmd.SetGlobalFloat(InvPoissonDiskSizeId, 1.0f / poissonDiskSize);
 
-                const int referenceResolution = 1024;
+                const int spreadReferenceResolution = 1024;
                 float spread = 1.0f / Mathf.Max(1 - _vsmSettings.SoftShadows.Spread, 0.0001f) /
-                               referenceResolution;
-                cmd.SetGlobalTexture("_ToonRP_RotatedPoissonSamplingTexture",
+                               spreadReferenceResolution;
+                cmd.SetGlobalTexture(RotatedPoissonSamplingTextureId,
                     _vsmSettings.SoftShadows.RotatedPoissonSamplingTexture
                 );
                 FillPoissonDiskValues(poissonDiskSize, spread);

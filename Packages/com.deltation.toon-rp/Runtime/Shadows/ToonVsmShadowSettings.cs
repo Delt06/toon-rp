@@ -101,9 +101,10 @@ namespace DELTation.ToonRP.Shadows
             [Range(0.0f, 0.99f)]
             public float Spread;
 
-            [ToonRpShowIf(nameof(Enabled))]
+            [ToonRpShowIf(nameof(UsingRotatedPoisson))]
             public Texture3D RotatedPoissonSamplingTexture;
 
+            private bool UsingRotatedPoisson => Enabled && Mode == SoftShadowsMode.PoissonRotated;
             private bool EarlyBailAvailable => Enabled && Quality == SoftShadowsQuality.High;
         }
 

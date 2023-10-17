@@ -14,6 +14,7 @@ using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.Shadows.ToonVsmShadowSettings;
 
 namespace DELTation.ToonRP.Editor.Stripping
 {
@@ -95,27 +96,55 @@ namespace DELTation.ToonRP.Editor.Stripping
             }
 
             if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Blur != ToonVsmShadowSettings.BlurMode.None
+                                                       a.ShadowSettings.Vsm.Blur != BlurMode.None
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
             }
 
-            // PCF
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Blur ==
-                                                       ToonVsmShadowSettings.BlurMode.None &&
-                                                       a.ShadowSettings.Vsm.SoftShadows
-                ))
+            // Soft Shadows (Poisson PCF)
             {
-                _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PcfKeywordName));
+                bool AnyPipelineAssetHasSoftShadows([CanBeNull] Predicate<SoftShadowsSettings> extraCondition = null) =>
+                    _allToonRenderPipelineAssets.Any(a => a.ShadowSettings is
+                        {
+                            Mode: ToonShadowSettings.ShadowMode.Vsm, Vsm:
+                            {
+                                Blur: BlurMode.None,
+                                SoftShadows:
+                                {
+                                    Enabled: true,
+                                },
+                            },
+                        } && (extraCondition?.Invoke(a.ShadowSettings.Vsm.SoftShadows) ?? true)
+                    );
+
+                if (!AnyPipelineAssetHasSoftShadows())
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PcfKeywordName));
+                }
+
+                if (!AnyPipelineAssetHasSoftShadows(s => s is { Mode : SoftShadowsMode.PoissonStratified }))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PoissonStratifiedKeywordName));
+                }
+
+                if (!AnyPipelineAssetHasSoftShadows(s => s is { Mode : SoftShadowsMode.PoissonRotated }))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PoissonRotatedKeywordName));
+                }
+
+                if (!AnyPipelineAssetHasSoftShadows(s => s is { Quality : SoftShadowsQuality.High, EarlyBail: true }))
+                {
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.PoissonEarlyBailKeywordName));
+                }
             }
+
 
             // ToonRPVsmBlur
             {
                 if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                            a.ShadowSettings.Vsm.Blur !=
-                                                           ToonVsmShadowSettings.BlurMode.None
+                                                           BlurMode.None
                     ))
                 {
                     _shadersToStrip.Add(ToonVsmShadows.BlurShaderName);
@@ -123,7 +152,7 @@ namespace DELTation.ToonRP.Editor.Stripping
 
                 if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
                                                            a.ShadowSettings.Vsm.Blur ==
-                                                           ToonVsmShadowSettings.BlurMode.GaussianHighQuality
+                                                           BlurMode.GaussianHighQuality
                     ))
                 {
                     AddLocalKeywordToStrip(ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName);

@@ -38,12 +38,12 @@ Light GetMainLight()
     return light;
 }
 
-Light GetMainLight(const float3 shadowCoords)
+Light GetMainLight(const float3 shadowCoords, const float3 positionWs)
 {
     Light light;
     light.color = _DirectionalLightColor;
     light.direction = _DirectionalLightDirection;
-    light.shadowAttenuation = SampleShadowAttenuation(shadowCoords);
+    light.shadowAttenuation = SampleShadowAttenuation(shadowCoords, positionWs);
     light.distanceAttenuation = 1.0f;
     return light;
 }

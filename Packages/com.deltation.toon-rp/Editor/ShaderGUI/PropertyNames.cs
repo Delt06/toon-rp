@@ -23,7 +23,13 @@
 
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";
         public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
+        
+        public const string CastShadows = "_CastShadows";
+        public const string ReceiveShadows = "_ReceiveShadows";
 
+        // For ShaderGraph shaders only
+        public const string ZTest = "_ZTest";
         public const string QueueOffset = "_QueueOffset";
+        public const string ZWriteControl = "_ZWriteControl";
     }
 }

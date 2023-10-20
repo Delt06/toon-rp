@@ -102,4 +102,54 @@ float OrthographicDepthBufferToLinear(float rawDepth)
     return (_ProjectionParams.z - _ProjectionParams.y) * rawDepth + _ProjectionParams.y;
 }
 
+struct VertexPositionInputs
+{
+    float3 positionWS; // World space position
+    float3 positionVS; // View space position
+    float4 positionCS; // Homogeneous clip space position
+    float4 positionNDC; // Homogeneous normalized device coordinates
+};
+
+struct VertexNormalInputs
+{
+    real3 tangentWS;
+    real3 bitangentWS;
+    float3 normalWS;
+};
+
+VertexPositionInputs GetVertexPositionInputs(const float3 positionOS)
+{
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = TransformWorldToView(input.positionWS);
+    input.positionCS = TransformWorldToHClip(input.positionWS);
+
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+
+    return input;
+}
+
+VertexNormalInputs GetVertexNormalInputs(const float3 normalOS)
+{
+    VertexNormalInputs tbn;
+    tbn.tangentWS = real3(1.0, 0.0, 0.0);
+    tbn.bitangentWS = real3(0.0, 1.0, 0.0);
+    tbn.normalWS = TransformObjectToWorldNormal(normalOS);
+    return tbn;
+}
+
+VertexNormalInputs GetVertexNormalInputs(const float3 normalOs, const float4 tangentOs)
+{
+    VertexNormalInputs tbn;
+
+    // mikkts space compliant. only normalize when extracting normal at frag.
+    const real sign = real(tangentOs.w) * GetOddNegativeScale();
+    tbn.normalWS = TransformObjectToWorldNormal(normalOs);
+    tbn.tangentWS = real3(TransformObjectToWorldDir(tangentOs.xyz));
+    tbn.bitangentWS = real3(cross(tbn.normalWS, float3(tbn.tangentWS))) * sign;
+    return tbn;
+}
+
 #endif // TOON_RP_COMMON

@@ -6,7 +6,7 @@ namespace DELTation.ToonRP
 {
     public class MotionVectorsPrePass
     {
-        private static readonly ShaderTagId MotionVectorsShaderTagId = new("ToonRPMotionVectors");
+        private static readonly ShaderTagId MotionVectorsShaderTagId = new(ToonPasses.MotionVectors.LightMode);
         private static readonly int PrevViewProjMatrixId = Shader.PropertyToID("_PrevViewProjMatrix");
         private static readonly int NonJitteredViewProjMatrixId = Shader.PropertyToID("_NonJitteredViewProjMatrix");
         public readonly int MotionVectorsTextureId = Shader.PropertyToID("_ToonRP_MotionVectorsTexture");

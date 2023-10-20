@@ -4,6 +4,7 @@ using DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -25,11 +26,23 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         private GUIStyle _headerStyle;
         private MaterialEditor _materialEditor;
 
-        private MaterialProperty[] Properties { get; set; }
+        protected MaterialProperty[] Properties { get; set; }
 
         protected Object[] Targets => _materialEditor.targets;
 
         public virtual bool OutlinesStencilLayer => false;
+
+        protected virtual bool ControlQueue => true;
+
+        protected void DrawShaderGraphProperties(IEnumerable<MaterialProperty> properties)
+        {
+            if (properties == null)
+            {
+                return;
+            }
+
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(_materialEditor, properties);
+        }
 
         protected void ForEachMaterial(Action<Material> action)
         {
@@ -58,11 +71,15 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (DrawFoldout(HeaderNames.Misc))
                 {
                     materialEditor.EnableInstancingField();
-                    DrawQueueOffset();
-                    if (EditorGUI.EndChangeCheck())
+                    if (ControlQueue)
                     {
-                        UpdateQueue();
+                        DrawQueueOffset();
                     }
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateQueue();
                 }
             }
 
@@ -121,6 +138,11 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         private void UpdateQueue()
         {
+            if (!ControlQueue)
+            {
+                return;
+            }
+
             ForEachMaterial(m =>
                 {
                     RenderQueue renderQueue = GetRenderQueue(m);

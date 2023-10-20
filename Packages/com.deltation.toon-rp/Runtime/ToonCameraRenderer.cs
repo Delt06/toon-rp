@@ -18,7 +18,7 @@ namespace DELTation.ToonRP
         private const string DefaultCmdName = "Render Camera";
         public static readonly ShaderTagId[] ShaderTagIds =
         {
-            new("ToonRPForward"),
+            new(ToonPasses.Forward.LightMode),
             new("SRPDefaultUnlit"),
         };
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");

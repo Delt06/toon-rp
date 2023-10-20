@@ -7,8 +7,8 @@ namespace DELTation.ToonRP
 {
     public class DepthPrePass
     {
-        private static readonly ShaderTagId DepthOnlyShaderTagId = new("ToonRPDepthOnly");
-        private static readonly ShaderTagId DepthNormalsShaderTagId = new("ToonRPDepthNormals");
+        private static readonly ShaderTagId DepthOnlyShaderTagId = new(ToonPasses.DepthOnly.LightMode);
+        private static readonly ShaderTagId DepthNormalsShaderTagId = new(ToonPasses.DepthNormals.LightMode);
 
         public static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
         public static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");

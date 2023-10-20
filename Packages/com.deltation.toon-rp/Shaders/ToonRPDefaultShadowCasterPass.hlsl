@@ -56,11 +56,7 @@ v2f VS(const appdata IN)
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
     #ifdef _TOON_RP_VSM
-    float viewZ = TransformWorldToView(positionWs).z;
-    #ifdef UNITY_REVERSED_Z
-    viewZ *= -1.0f;
-    #endif // UNITY_REVERSED_Z
-    OUT.depth = PackVsmDepth(viewZ);
+    OUT.depth = GetPackedVsmDepth(positionWs);
     #endif // _TOON_RP_VSM
 
     return OUT;

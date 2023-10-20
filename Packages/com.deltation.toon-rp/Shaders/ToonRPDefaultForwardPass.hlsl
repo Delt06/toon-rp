@@ -76,9 +76,6 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
-    #ifdef UNITY_FRAGMENT_SHADER
-    return 1;
-    #endif
     float4 albedo = SampleAlbedo(IN.uv);
     AlphaClip(albedo);
 

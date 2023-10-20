@@ -310,17 +310,17 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             public static readonly KeywordCollection Forward = new()
             {
                 CoreKeywordDescriptors.ToonRpGlobalRamp,
-                
+
                 CoreKeywordDescriptors.ToonRpDirectionalShadows,
                 CoreKeywordDescriptors.ToonRpShadowSmoothingMode,
                 CoreKeywordDescriptors.ToonRpPoissonSamplingMode,
                 CoreKeywordDescriptors.ToonRpPoissonSamplingEarlyBail,
                 CoreKeywordDescriptors.ToonRpShadowsRampCrisp,
                 CoreKeywordDescriptors.ToonRpShadowsPattern,
-                
+
                 CoreKeywordDescriptors.ToonRpAdditionalLights,
                 CoreKeywordDescriptors.ToonRpTiledLighting,
-                
+
                 CoreKeywordDescriptors.ToonRpSsao,
             };
         }
@@ -333,12 +333,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             private const string ForwardPass =
                 "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DefaultPass.hlsl";
+            private const string ToonLighting =
+                "Packages/com.deltation.toon-rp/ShaderLibrary/ToonLighting.hlsl";
 
             public static readonly IncludeCollection Forward = new()
             {
                 // Pre-graph
                 CoreIncludes.CorePregraph,
                 CoreIncludes.ShaderGraphPregraph,
+                { ToonLighting, IncludeLocation.Pregraph },
 
                 // Post-graph
                 CoreIncludes.CorePostgraph,

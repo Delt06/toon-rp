@@ -45,7 +45,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 new NormalControl(CoordinateSpace.World), ShaderStage.Fragment
             );
 
-            public static BlockFieldDescriptor Emission = new(Name, "Emission", "SURFACEDESCRIPTION_EMISSION",
+            public static readonly BlockFieldDescriptor Emission = new(Name, "Emission", "SURFACEDESCRIPTION_EMISSION",
                 new ColorControl(Color.black, true), ShaderStage.Fragment
             );
             public static readonly BlockFieldDescriptor Alpha = new(Name, "Alpha", "SURFACEDESCRIPTION_ALPHA",
@@ -56,12 +56,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLD",
                 new FloatControl(0.5f), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor GlobalRampUV = new(Name, "GlobalRampUV", "Global Ramp UV",
                 "SURFACEDESCRIPTION_GLOBALRAMPUV",
                 new Vector2Control(Vector2.zero), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor ShadowColor = new(Name, "ShadowColor", "Shadow Color",
                 "SURFACEDESCRIPTION_SHADOWCOLOR",
                 new ColorRGBAControl(new Color(0.0f, 0.0f, 0.0f, 0.75f)), ShaderStage.Fragment

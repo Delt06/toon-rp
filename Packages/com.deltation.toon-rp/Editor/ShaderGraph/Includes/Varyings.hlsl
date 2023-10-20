@@ -146,14 +146,19 @@ Varyings BuildVaryings(Attributes input)
     #endif
 
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    
     half fogFactor = ComputeFogFactor(output.positionCS.z);
     #ifdef SHADERGRAPH_PREVIEW
     fogFactor = 1.0;
-    #endif // SHADERGRAPH_PREVIEW 
-    // TODO: implement vertex light
-    // half3 vertexLight = VertexLighting(positionWS, normalWS);
-    half3 vertexLight = 0;
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    #endif // SHADERGRAPH_PREVIEW
+    
+    #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+    const float3 vertexLight = ComputeAdditionalLightsRawDiffuse(output.positionCS, positionWS, normalWS, 0, 1);
+    #else
+    const float3 vertexLight = 0;
+    #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+    output.fogFactorAndVertexLight = float4(fogFactor, vertexLight);
+    
     #endif
 
     #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)

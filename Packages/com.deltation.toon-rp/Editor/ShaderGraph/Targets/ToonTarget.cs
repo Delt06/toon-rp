@@ -1299,7 +1299,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             {
                 new() { displayName = "Off", referenceName = "" },
                 new() { displayName = "Per Pixel", referenceName = "TOON_RP_ADDITIONAL_LIGHTS" },
-                new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_PER_VERTEX" },
+                new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_VERTEX" },
             },
         };
         

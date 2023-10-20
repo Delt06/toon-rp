@@ -1,15 +1,15 @@
 ﻿#ifndef TOON_RP_TOON_LIGHTING
 #define TOON_RP_TOON_LIGHTING
 
-#include "../ShaderLibrary/BlobShadows.hlsl"
-#include "../ShaderLibrary/Common.hlsl"
-#include "../ShaderLibrary/Fog.hlsl"
-#include "../ShaderLibrary/Lighting.hlsl"
-#include "../ShaderLibrary/NormalMap.hlsl"
-#include "../ShaderLibrary/Matcap.hlsl"
-#include "../ShaderLibrary/Ramp.hlsl"
-#include "../ShaderLibrary/SSAO.hlsl"
-#include "../ShaderLibrary/TiledLighting.hlsl"
+#include "BlobShadows.hlsl"
+#include "Common.hlsl"
+#include "Fog.hlsl"
+#include "Lighting.hlsl"
+#include "NormalMap.hlsl"
+#include "Matcap.hlsl"
+#include "Ramp.hlsl"
+#include "SSAO.hlsl"
+#include "TiledLighting.hlsl"
 
 float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const float3 lightDirectionWs)
 {
@@ -146,7 +146,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
 }
 
 float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 positionWs, const half3 normalWs,
-                                         const float2 uv,
+                                         const float2 globalRampUv,
                                          const float ssao)
 {
     #ifdef _TOON_RP_TILED_LIGHTING
@@ -172,7 +172,7 @@ float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 p
         #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
         const float diffuseRamp = saturate(nDotL);
         #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-        const float diffuseRamp = ComputeRampDiffuse(nDotL, uv);
+        const float diffuseRamp = ComputeRampDiffuse(nDotL, globalRampUv);
         #endif  // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
         lights += diffuseRamp * step(0.001, attenuation) * light.color;

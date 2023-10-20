@@ -66,7 +66,7 @@ v2f VS(const appdata IN)
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(positionWs, normalWs, uv, 1);
+    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(positionCs, positionWs, normalWs, uv, 1);
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);

@@ -826,14 +826,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
     }
 
     #endregion
-    
+
     #region Keywords
 
     internal static class DefaultKeywords
     {
         public static readonly KeywordCollection ShadowCaster = new()
         {
-            CoreKeywordDescriptors.ToonRpVsm
+            CoreKeywordDescriptors.ToonRpVsmShadowCaster,
         };
     }
 
@@ -1156,59 +1156,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
-        public static readonly KeywordDescriptor ToonRpVsm = new()
-        {
-            displayName = "Toon RP VSM",
-            referenceName = ShaderKeywords.ToonRpVsm,
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
         
-        public static readonly KeywordDescriptor MainLightShadows = new()
-        {
-            displayName = "Main Light Shadows",
-            referenceName = "",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new() { displayName = "Off", referenceName = "" },
-                new() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
-                new() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
-                new() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
-            },
-        };
-
-
-        public static readonly KeywordDescriptor AdditionalLights = new()
-        {
-            displayName = "Additional Lights",
-            referenceName = "",
-            type = KeywordType.Enum,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            entries = new KeywordEntry[]
-            {
-                new() { displayName = "Off", referenceName = "" },
-                new() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
-                new() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
-            },
-        };
-
-        // TODO: change to PCF
-        public static readonly KeywordDescriptor ShadowsSoft = new()
-        {
-            displayName = "Shadows Soft",
-            referenceName = "_SHADOWS_SOFT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-        };
-
         public static readonly KeywordDescriptor SurfaceTypeTransparent = new()
         {
             displayName = ShaderKeywords.SurfaceTypeTransparent,
@@ -1219,14 +1167,165 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             stages = KeywordShaderStage.Fragment,
         };
 
-        // TODO: change to tiled lighting
-        public static readonly KeywordDescriptor ClusteredRendering = new()
+        public static readonly KeywordDescriptor ToonRpVsmShadowCaster = new()
         {
-            displayName = "Clustered Rendering",
-            referenceName = "_CLUSTERED_RENDERING",
+            displayName = "Toon RP VSM",
+            referenceName = ShaderKeywords.ToonRpVsm,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+        };
+
+        // // Global Ramp
+        // + #pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP _TOON_RP_GLOBAL_RAMP_TEXTURE
+        //
+        // // Shadows
+        // + #pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS _TOON_RP_BLOB_SHADOWS
+        // + #pragma multi_compile_fragment _ _TOON_RP_PCF _TOON_RP_VSM
+        // + #pragma multi_compile_fragment _ _TOON_RP_POISSON_SAMPLING_STRATIFIED _TOON_RP_POISSON_SAMPLING_ROTATED
+        // + #pragma multi_compile_fragment _ _TOON_RP_POISSON_SAMPLING_EARLY_BAIL
+        // + #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
+        // + #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_PATTERN
+        //
+        // // Lights
+        // + #pragma multi_compile _ _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+        // + #pragma multi_compile _ _TOON_RP_TILED_LIGHTING
+        //
+        // // SSAO
+        // + #pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
+        
+        public static readonly KeywordDescriptor ToonRpGlobalRamp = new()
+        {
+            displayName = "Toon RP Global Ramp",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Default", referenceName = "" },
+                new() { displayName = "Crisp", referenceName = "TOON_RP_GLOBAL_RAMP_CRISP" },
+                new() { displayName = "Texture", referenceName = "TOON_RP_GLOBAL_RAMP_TEXTURE" },
+            },
+        };
+
+        public static readonly KeywordDescriptor ToonRpDirectionalShadows = new()
+        {
+            displayName = "Toon RP Directional Shadows",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Off", referenceName = "" },
+                new() { displayName = "No Cascade", referenceName = "TOON_RP_DIRECTIONAL_SHADOWS" },
+                new() { displayName = "Cascade", referenceName = "TOON_RP_DIRECTIONAL_CASCADED_SHADOWS" },
+                new() { displayName = "Blob", referenceName = "TOON_RP_BLOB_SHADOWS" },
+            },
+        };
+        
+        public static readonly KeywordDescriptor ToonRpShadowSmoothingMode = new()
+        {
+            displayName = "Toon RP Shadow Smoothing Mode",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Default", referenceName = "" },
+                new() { displayName = "PCF", referenceName = "TOON_RP_PCF" },
+                new() { displayName = "VSM", referenceName = "TOON_RP_VSM" },
+            },
+        };
+        
+        public static readonly KeywordDescriptor ToonRpPoissonSamplingMode = new()
+        {
+            displayName = "Toon RP Poisson Sampling Mode",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Default", referenceName = "" },
+                new() { displayName = "Stratified", referenceName = "TOON_RP_POISSON_SAMPLING_STRATIFIED" },
+                new() { displayName = "Rotated", referenceName = "TOON_RP_POISSON_SAMPLING_ROTATED" },
+            },
+        };
+        
+        public static readonly KeywordDescriptor ToonRpPoissonSamplingEarlyBail = new()
+        {
+            displayName = "Toon RP Poisson Sampling Early Bail",
+            referenceName = "_TOON_RP_POISSON_SAMPLING_EARLY_BAIL",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+        
+        public static readonly KeywordDescriptor ToonRpShadowsRampCrisp = new()
+        {
+            displayName = "Toon RP Shadows Ramp Crisp",
+            referenceName = "_TOON_RP_SHADOWS_RAMP_CRISP",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+        
+        public static readonly KeywordDescriptor ToonRpShadowsPattern = new()
+        {
+            displayName = "Toon RP Shadows Pattern",
+            referenceName = "_TOON_RP_SHADOWS_PATTERN",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+        
+        public static readonly KeywordDescriptor ToonRpAdditionalLights = new()
+        {
+            displayName = "Toon RP Additional Lights",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Off", referenceName = "" },
+                new() { displayName = "Per Pixel", referenceName = "TOON_RP_ADDITIONAL_LIGHTS" },
+                new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_PER_VERTEX" },
+            },
+        };
+        
+        public static readonly KeywordDescriptor ToonRpTiledLighting = new()
+        {
+            displayName = "Toon RP Tiled Lighting",
+            referenceName = "_TOON_RP_TILED_LIGHTING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+        
+        public static readonly KeywordDescriptor ToonRpSsao = new()
+        {
+            displayName = "Toon RP SSAO",
+            referenceName = "",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+            entries = new KeywordEntry[]
+            {
+                new() { displayName = "Off", referenceName = "" },
+                new() { displayName = "Default", referenceName = "TOON_RP_SSAO" },
+                new() { displayName = "Pattern", referenceName = "TOON_RP_SSAO_PATTERN" },
+            },
         };
     }
 

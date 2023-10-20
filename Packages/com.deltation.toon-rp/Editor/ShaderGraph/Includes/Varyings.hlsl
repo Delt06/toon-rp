@@ -88,6 +88,7 @@ Varyings BuildVaryings(Attributes input)
     #endif
 
     #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
+    
     positionWS = ApplyShadowBias(positionWS, normalWS, _DirectionalLightDirection);
     output.positionCS = TransformWorldToHClip(positionWS);
     #if UNITY_REVERSED_Z
@@ -95,6 +96,11 @@ Varyings BuildVaryings(Attributes input)
     #else
     output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #endif
+
+    #ifdef _TOON_RP_VSM
+    output.vsmDepth = GetPackedVsmDepth(positionWS);
+    #endif // _TOON_RP_VSM
+    
     #else
     output.positionCS = TransformWorldToHClip(positionWS);
     #endif

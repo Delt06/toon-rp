@@ -21,9 +21,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.AssetCallbacks
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
                 ToonBlockFields.VertexDescription.Tangent,
+                
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.NormalTs,
                 ToonBlockFields.SurfaceDescription.Emission,
+                ToonBlockFields.SurfaceDescription.GlobalRampUV,
+                ToonBlockFields.SurfaceDescription.ShadowColor,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new Target[] { target }, blockDescriptors);

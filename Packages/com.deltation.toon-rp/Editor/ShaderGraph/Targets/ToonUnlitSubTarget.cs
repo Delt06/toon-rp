@@ -131,7 +131,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             public static PassDescriptor Forward(ToonTarget target)
             {
-                ref readonly ToonPasses.Pass pass = ref ToonPasses.Forward;
+                ref readonly ToonPasses.Pass pass = ref ToonPasses.ForwardUnlit;
                 var result = new PassDescriptor
                 {
                     // Definition

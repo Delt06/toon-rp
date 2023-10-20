@@ -20,10 +20,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Tangent = new(Name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex
             );
-
-            // public static readonly BlockFieldDescriptor Position = BlockFields.VertexDescription.Position;
-            // public static readonly BlockFieldDescriptor Normal = BlockFields.VertexDescription.Normal;
-            // public static readonly BlockFieldDescriptor Tangent = BlockFields.VertexDescription.Tangent;
         }
 
         [GenerateBlocks]
@@ -35,6 +31,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_ALBEDO",
                 new ColorControl(Color.grey, false), ShaderStage.Fragment
             );
+
             public static readonly BlockFieldDescriptor NormalTs = new(Name, "NormalTS", "Normal (Tangent Space)",
                 "SURFACEDESCRIPTION_NORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment
@@ -58,6 +55,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "Alpha Clip Threshold",
                 "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLD",
                 new FloatControl(0.5f), ShaderStage.Fragment
+            );
+            
+            public static readonly BlockFieldDescriptor GlobalRampUV = new(Name, "GlobalRampUV", "Global Ramp UV",
+                "SURFACEDESCRIPTION_GLOBALRAMPUV",
+                new Vector2Control(Vector2.zero), ShaderStage.Fragment
+            );
+            
+            public static readonly BlockFieldDescriptor ShadowColor = new(Name, "ShadowColor", "Shadow Color",
+                "SURFACEDESCRIPTION_SHADOWCOLOR",
+                new ColorRGBAControl(new Color(0.0f, 0.0f, 0.0f, 0.75f)), ShaderStage.Fragment
             );
         }
     }

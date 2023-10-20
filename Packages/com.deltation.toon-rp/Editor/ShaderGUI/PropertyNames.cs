@@ -1,4 +1,6 @@
-﻿namespace DELTation.ToonRP.Editor.ShaderGUI
+﻿using UnityEditor.ShaderGraph;
+
+namespace DELTation.ToonRP.Editor.ShaderGUI
 {
     public static class PropertyNames
     {

@@ -40,7 +40,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             // Process SubShaders
             context.AddSubShader(
-                PostProcessSubShader(SubShaders.LitGlesSubShader(target, target.RenderType, target.RenderQueue))
+                PostProcessSubShader(SubShaders.DefaultSubShader(target, target.RenderType, target.RenderQueue))
             );
         }
 
@@ -96,6 +96,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
                 target.AlphaClip || target.AllowMaterialOverride
             );
+
+            context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -157,13 +160,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class SubShaders
         {
-            public static SubShaderDescriptor LitGlesSubShader(ToonTarget target, string renderType, string renderQueue)
+            public static SubShaderDescriptor DefaultSubShader(ToonTarget target, string renderType, string renderQueue)
             {
-                // SM 2.0, GLES
-
-                // ForwardOnly pass is used as complex Lit SM 2.0 fallback for GLES.
-                // Drops advanced features and renders materials as Lit.
-
                 var result = new SubShaderDescriptor
                 {
                     pipelineTag = ToonRenderPipeline.PipelineTag,
@@ -188,7 +186,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     result.passes.Add(CorePasses.DepthNormals(target));
                     result.passes.Add(CorePasses.MotionVectors(target));
                 }
-
 
                 return result;
             }
@@ -229,12 +226,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
 
                     // Port Mask
-                    validVertexBlocks = CoreBlockMasks.Vertex,
-                    validPixelBlocks = DefaultBlockMasks.FragmentLit,
+                    validVertexBlocks = DefaultBlockMasks.VertexDefault,
+                    validPixelBlocks = DefaultBlockMasks.FragmentDefault,
 
                     // Fields
                     structs = CoreStructCollections.Default,
-                    requiredFields = LitRequiredFields.Forward,
+                    requiredFields = DefaultRequiredFields.Forward,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -261,19 +258,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class DefaultBlockMasks
         {
-            public static readonly BlockFieldDescriptor[] FragmentLit =
+            public static readonly BlockFieldDescriptor[] VertexDefault =
             {
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.NormalOS,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalWS,
-                BlockFields.SurfaceDescription.Emission,
-                BlockFields.SurfaceDescription.Metallic,
-                BlockFields.SurfaceDescription.Specular,
-                BlockFields.SurfaceDescription.Smoothness,
-                BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                ToonBlockFields.VertexDescription.Position,
+                ToonBlockFields.VertexDescription.Normal,
+                ToonBlockFields.VertexDescription.Tangent,
+            };
+
+            public static readonly BlockFieldDescriptor[] FragmentDefault =
+            {
+                ToonBlockFields.SurfaceDescription.Albedo,
+                ToonBlockFields.SurfaceDescription.Alpha,
+                ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+                ToonBlockFields.SurfaceDescription.GlobalRampUV,
+                ToonBlockFields.SurfaceDescription.ShadowColor,
             };
         }
 
@@ -281,16 +279,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         #region RequiredFields
 
-        private static class LitRequiredFields
+        private static class DefaultRequiredFields
         {
             public static readonly FieldCollection Forward = new()
             {
-                StructFields.Attributes.uv1,
-                StructFields.Attributes.uv2,
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS, // needed for vertex lighting
+                StructFields.Varyings.tangentWS,
                 StructFields.Varyings.viewDirectionWS,
+                ToonStructFields.Varyings.fogFactorAndVertexLight,
             };
         }
 
@@ -310,23 +307,21 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 scope = KeywordScope.Local,
             };
 
-            private static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new()
-            {
-                displayName = "Screen Space Ambient Occlusion",
-                referenceName = "_SCREEN_SPACE_OCCLUSION",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-                stages = KeywordShaderStage.Fragment,
-            };
-
             public static readonly KeywordCollection Forward = new()
             {
-                ScreenSpaceAmbientOcclusion,
-                CoreKeywordDescriptors.MainLightShadows,
-                CoreKeywordDescriptors.AdditionalLights,
-                CoreKeywordDescriptors.ShadowsSoft,
-                CoreKeywordDescriptors.ClusteredRendering,
+                CoreKeywordDescriptors.ToonRpGlobalRamp,
+                
+                CoreKeywordDescriptors.ToonRpDirectionalShadows,
+                CoreKeywordDescriptors.ToonRpShadowSmoothingMode,
+                CoreKeywordDescriptors.ToonRpPoissonSamplingMode,
+                CoreKeywordDescriptors.ToonRpPoissonSamplingEarlyBail,
+                CoreKeywordDescriptors.ToonRpShadowsRampCrisp,
+                CoreKeywordDescriptors.ToonRpShadowsPattern,
+                
+                CoreKeywordDescriptors.ToonRpAdditionalLights,
+                CoreKeywordDescriptors.ToonRpTiledLighting,
+                
+                CoreKeywordDescriptors.ToonRpSsao,
             };
         }
 
@@ -336,16 +331,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class DefaultIncludes
         {
-            // TODO: correct theses to TOON RP
-            private const string Shadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             private const string ForwardPass =
-                "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+                "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DefaultPass.hlsl";
 
             public static readonly IncludeCollection Forward = new()
             {
                 // Pre-graph
                 CoreIncludes.CorePregraph,
-                { Shadows, IncludeLocation.Pregraph },
                 CoreIncludes.ShaderGraphPregraph,
 
                 // Post-graph

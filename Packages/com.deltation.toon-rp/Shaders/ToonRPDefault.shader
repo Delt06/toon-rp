@@ -105,7 +105,7 @@
 			#pragma shader_feature_local _NORMAL_MAP
 
 			#define _TOON_LIGHTING_SPECULAR
-			#define RIM
+			#define _RIM
 			#define EMISSION
 			#include "ToonRPDefaultForwardPass.hlsl"
 			

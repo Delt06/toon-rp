@@ -36,14 +36,14 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     // ReSharper disable once CppEntityAssignedButNoRead
     float shadowAttenuation;
     const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
-
+    
+    #ifdef _RIM
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
     const float rimRamp = ComputeRampRim(fresnel, IN.uv);
-    #ifdef RIM
     const float3 rim = _RimColor * rimRamp;
-    #else // !RIM
+    #else // !_RIM
     const float3 rim = 0;
-    #endif // RIM
+    #endif // _RIM
 
     #ifdef _FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = 0;

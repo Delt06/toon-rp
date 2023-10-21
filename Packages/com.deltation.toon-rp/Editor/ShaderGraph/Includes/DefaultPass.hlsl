@@ -67,6 +67,14 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     float shadowAttenuation;
     const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
 
+    #if _RIM
+    const float fresnel = 1 - saturate(dot(unpacked.viewDirectionWS, normalWs));
+    const float rimRamp = ComputeRampRim(fresnel + surfaceDescription.RimSizeOffset, surfaceDescription.GlobalRampUV);
+    const float3 rim = surfaceDescription.RimColor * rimRamp;
+    #else // !_RIM
+    const float3 rim = 0;
+    #endif // _RIM
+
     #if _FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = 0;
     #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
@@ -75,7 +83,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     const float3 emission = surfaceDescription.Emission * albedo.a;
 
-    float3 outputColor = lights + ambient + emission;
+    float3 outputColor = lights + rim + ambient + emission;
 
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;

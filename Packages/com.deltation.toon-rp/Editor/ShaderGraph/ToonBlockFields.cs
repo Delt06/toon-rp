@@ -76,6 +76,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_SHADOWCOLOR",
                 new ColorRGBAControl(new Color(0.0f, 0.0f, 0.0f, 0.75f)), ShaderStage.Fragment
             );
+            
+            public static readonly BlockFieldDescriptor RimColor = new(Name, "RimColor", "Rim Color",
+                "SURFACEDESCRIPTION_RIMCOLOR",
+                new ColorControl(Color.white, true), ShaderStage.Fragment
+            );
+
+            public static readonly BlockFieldDescriptor RimSizeOffset = new(Name, "RimSizeOffset", "Rim Size Offset",
+                "SURFACEDESCRIPTION_RIMSIZEOFFSET",
+                new FloatControl(0.0f), ShaderStage.Fragment
+            );
         }
     }
 }

@@ -54,6 +54,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
                 material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -107,6 +108,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
                 Specular
             );
+            
+            context.AddBlock(ToonBlockFields.SurfaceDescription.RimColor,
+                Rim
+            );
+            
+            context.AddBlock(ToonBlockFields.SurfaceDescription.RimSizeOffset,
+                Rim
+            );
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
@@ -124,6 +133,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
                 collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -159,6 +169,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                     registerUndo("Change Specular");
                     Specular = evt.newValue;
+                    onChange();
+                }
+            );
+            
+            context.AddProperty("Rim", new Toggle { value = Rim }, evt =>
+                {
+                    if (Equals(Rim, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Rim");
+                    Rim = evt.newValue;
                     onChange();
                 }
             );
@@ -279,6 +302,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     pass.defines.Add(CoreKeywordDescriptors.Specular, 1);
                 }
             }
+            
+            private static void AddRimControlToPass(ref PassDescriptor pass, ToonTarget target,
+                bool rim)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.Rim);
+                }
+                else if (rim)
+                {
+                    pass.defines.Add(CoreKeywordDescriptors.Rim, 1);
+                }
+            }
 
             public static PassDescriptor Forward(ToonTarget target, ToonDefaultSubTarget subTarget,
                 PragmaCollection pragmas = null)
@@ -320,6 +356,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 AddReceiveShadowsControlToPass(ref result, target, target.ReceiveShadows);
                 AddEnvironmentLightingControlToPass(ref result, target, subTarget.EnvironmentLighting);
                 AddSpecularControlToPass(ref result, target, subTarget.Specular);
+                AddRimControlToPass(ref result, target, subTarget.Rim);
 
                 return result;
             }
@@ -348,6 +385,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.ShadowColor,
                 ToonBlockFields.SurfaceDescription.SpecularColor,
                 ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
+                ToonBlockFields.SurfaceDescription.RimColor,
+                ToonBlockFields.SurfaceDescription.RimSizeOffset,
             };
         }
 
@@ -434,6 +473,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         // ReSharper disable Unity.RedundantSerializeFieldAttribute
         [field: SerializeField]
         private bool Specular { get; set; } = true;
+        
+        [field: SerializeField]
+        private bool Rim { get; set; } = true;
         
         [field: SerializeField]
         private bool EnvironmentLighting { get; set; } = true;

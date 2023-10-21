@@ -22,6 +22,7 @@
         public const string NormalMapPropertyName = "_NormalMap";
 
         public const string Specular = "_ToonLightingSpecular";
+        public const string Rim = "_Rim";
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";
         public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
 

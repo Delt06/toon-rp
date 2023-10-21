@@ -1220,6 +1220,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
+        
+        public static readonly KeywordDescriptor Rim = new()
+        {
+            displayName = ShaderKeywords.Rim,
+            referenceName = ShaderKeywords.Rim,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
 
         public static readonly KeywordDescriptor ForceDisableFog = new()
         {

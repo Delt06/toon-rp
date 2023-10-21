@@ -47,6 +47,16 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     lightComputationParameters.globalRampUv = surfaceDescription.GlobalRampUV;
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = surfaceDescription.ShadowColor;
+
+    #if _TOON_LIGHTING_SPECULAR
+    lightComputationParameters.specularSizeOffset = surfaceDescription.SpecularSizeOffset;
+    lightComputationParameters.specularColor = surfaceDescription.SpecularColor;
+    #else // !_TOON_LIGHTING_SPECULAR
+    lightComputationParameters.specularSizeOffset = 0.0f;
+    lightComputationParameters.specularColor = 1.0f;
+    #endif // _TOON_LIGHTING_SPECULAR
+    
+    
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     lightComputationParameters.perVertexAdditionalLights = unpacked.fogFactorAndVertexLight.yzw;
     #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX

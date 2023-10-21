@@ -104,7 +104,7 @@
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultShaderFeatureList.hlsl"
 			#pragma shader_feature_local _NORMAL_MAP
 
-			#define SPECULAR
+			#define _TOON_LIGHTING_SPECULAR
 			#define RIM
 			#define EMISSION
 			#include "ToonRPDefaultForwardPass.hlsl"

@@ -70,6 +70,8 @@ struct LightComputationParameters
     
     float4 albedo;
     float4 shadowColor;
+    float3 specularColor;
+    float specularSizeOffset;
 };
 
 float GetSsao(in LightComputationParameters parameters)
@@ -133,14 +135,14 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
     const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, diffuseRamp);
 
-    #ifdef SPECULAR
+    #ifdef _TOON_LIGHTING_SPECULAR
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH + _SpecularSizeOffset, parameters.globalRampUv);
+    float specularRamp = ComputeRampSpecular(nDotH + parameters.specularSizeOffset, parameters.globalRampUv);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
-    const float3 specular = _SpecularColor * specularRamp;
-    #else // !SPECULAR
+    const float3 specular = parameters.specularColor * specularRamp;
+    #else // !_TOON_LIGHTING_SPECULAR
     const float3 specular = 0;
-    #endif // SPECULAR
+    #endif // _TOON_LIGHTING_SPECULAR
 
     return light.color * (diffuse + specular);
 }

@@ -53,6 +53,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.SurfaceType, (float) target.SurfaceType);
                 material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
                 material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -98,6 +99,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
                 target.AlphaClip || target.AllowMaterialOverride
             );
+            
+            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularColor,
+                Specular
+            );
+            
+            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
+                Specular
+            );
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
@@ -114,6 +123,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.SurfaceType, (float) target.SurfaceType);
                 collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
                 collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -139,6 +149,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
 
             target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, true);
+            
+            context.AddProperty("Specular", new Toggle { value = Specular }, evt =>
+                {
+                    if (Equals(Specular, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Specular");
+                    Specular = evt.newValue;
+                    onChange();
+                }
+            );
 
             context.AddProperty("Environment Lighting", new Toggle { value = EnvironmentLighting }, evt =>
                 {
@@ -243,6 +266,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     pass.defines.Add(CoreKeywordDescriptors.ForceDisableEnvironmentLight, 1);
                 }
             }
+            
+            private static void AddSpecularControlToPass(ref PassDescriptor pass, ToonTarget target,
+                bool specular)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.Specular);
+                }
+                else if (specular)
+                {
+                    pass.defines.Add(CoreKeywordDescriptors.Specular, 1);
+                }
+            }
 
             public static PassDescriptor Forward(ToonTarget target, ToonDefaultSubTarget subTarget,
                 PragmaCollection pragmas = null)
@@ -283,6 +319,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 AddReceiveShadowsControlToPass(ref result, target, target.ReceiveShadows);
                 AddEnvironmentLightingControlToPass(ref result, target, subTarget.EnvironmentLighting);
+                AddSpecularControlToPass(ref result, target, subTarget.Specular);
 
                 return result;
             }
@@ -309,6 +346,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.Emission,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
+                ToonBlockFields.SurfaceDescription.SpecularColor,
+                ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
             };
         }
 
@@ -393,6 +432,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         #endregion
 
         // ReSharper disable Unity.RedundantSerializeFieldAttribute
+        [field: SerializeField]
+        private bool Specular { get; set; } = true;
+        
         [field: SerializeField]
         private bool EnvironmentLighting { get; set; } = true;
 

@@ -61,6 +61,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_GLOBALRAMPUV",
                 new Vector2Control(Vector2.zero), ShaderStage.Fragment
             );
+            
+            public static readonly BlockFieldDescriptor SpecularColor = new(Name, "SpecularColor", "Specular Color",
+                "SURFACEDESCRIPTION_SPECULARCOLOR",
+                new ColorControl(Color.white, true), ShaderStage.Fragment
+            );
+            
+            public static readonly BlockFieldDescriptor SpecularSizeOffset = new(Name, "SpecularSizeOffset", "Specular Size Offset",
+                "SURFACEDESCRIPTION_SPECULARSIZEOFFSET",
+                new FloatControl(0.0f), ShaderStage.Fragment
+            );
 
             public static readonly BlockFieldDescriptor ShadowColor = new(Name, "ShadowColor", "Shadow Color",
                 "SURFACEDESCRIPTION_SHADOWCOLOR",

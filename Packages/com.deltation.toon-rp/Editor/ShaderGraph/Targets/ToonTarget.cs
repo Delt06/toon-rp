@@ -1156,11 +1156,21 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-        
+
         public static readonly KeywordDescriptor SurfaceTypeTransparent = new()
         {
             displayName = ShaderKeywords.SurfaceTypeTransparent,
             referenceName = ShaderKeywords.SurfaceTypeTransparent,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ReceiveBlobShadows = new()
+        {
+            displayName = ShaderKeywords.ReceiveBlobShadows,
+            referenceName = ShaderKeywords.ReceiveBlobShadows,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
@@ -1176,24 +1186,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
         };
 
-        // // Global Ramp
-        // + #pragma multi_compile_fragment _ _TOON_RP_GLOBAL_RAMP_CRISP _TOON_RP_GLOBAL_RAMP_TEXTURE
-        //
-        // // Shadows
-        // + #pragma multi_compile _ _TOON_RP_DIRECTIONAL_SHADOWS _TOON_RP_DIRECTIONAL_CASCADED_SHADOWS _TOON_RP_BLOB_SHADOWS
-        // + #pragma multi_compile_fragment _ _TOON_RP_PCF _TOON_RP_VSM
-        // + #pragma multi_compile_fragment _ _TOON_RP_POISSON_SAMPLING_STRATIFIED _TOON_RP_POISSON_SAMPLING_ROTATED
-        // + #pragma multi_compile_fragment _ _TOON_RP_POISSON_SAMPLING_EARLY_BAIL
-        // + #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
-        // + #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_PATTERN
-        //
-        // // Lights
-        // + #pragma multi_compile _ _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-        // + #pragma multi_compile _ _TOON_RP_TILED_LIGHTING
-        //
-        // // SSAO
-        // + #pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN
-        
         public static readonly KeywordDescriptor ToonRpGlobalRamp = new()
         {
             displayName = "Toon RP Global Ramp",
@@ -1225,7 +1217,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Blob", referenceName = "TOON_RP_BLOB_SHADOWS" },
             },
         };
-        
+
         public static readonly KeywordDescriptor ToonRpShadowSmoothingMode = new()
         {
             displayName = "Toon RP Shadow Smoothing Mode",
@@ -1241,7 +1233,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "VSM", referenceName = "TOON_RP_VSM" },
             },
         };
-        
+
         public static readonly KeywordDescriptor ToonRpPoissonSamplingMode = new()
         {
             displayName = "Toon RP Poisson Sampling Mode",
@@ -1257,7 +1249,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Rotated", referenceName = "TOON_RP_POISSON_SAMPLING_ROTATED" },
             },
         };
-        
+
         public static readonly KeywordDescriptor ToonRpPoissonSamplingEarlyBail = new()
         {
             displayName = "Toon RP Poisson Sampling Early Bail",
@@ -1267,7 +1259,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-        
+
         public static readonly KeywordDescriptor ToonRpShadowsRampCrisp = new()
         {
             displayName = "Toon RP Shadows Ramp Crisp",
@@ -1277,7 +1269,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-        
+
         public static readonly KeywordDescriptor ToonRpShadowsPattern = new()
         {
             displayName = "Toon RP Shadows Pattern",
@@ -1287,7 +1279,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-        
+
         public static readonly KeywordDescriptor ToonRpAdditionalLights = new()
         {
             displayName = "Toon RP Additional Lights",
@@ -1302,7 +1294,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_VERTEX" },
             },
         };
-        
+
         public static readonly KeywordDescriptor ToonRpTiledLighting = new()
         {
             displayName = "Toon RP Tiled Lighting",
@@ -1311,7 +1303,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-        
+
         public static readonly KeywordDescriptor ToonRpSsao = new()
         {
             displayName = "Toon RP SSAO",

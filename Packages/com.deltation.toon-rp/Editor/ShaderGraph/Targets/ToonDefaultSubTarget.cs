@@ -61,6 +61,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
                 material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
             }
+
+            material.SetFloat(PropertyNames.ReceiveBlobShadows, 0.0f);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -103,7 +105,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            // if using material control, add the material property to control workflow mode
             if (target.AllowMaterialOverride)
             {
                 collector.AddFloatProperty(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
@@ -124,6 +125,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.RenderFace, (float) target.RenderFace
                 ); // render face enum is designed to directly pass as a cull mode
             }
+
+            collector.AddFloatProperty(PropertyNames.ReceiveBlobShadows, 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
@@ -309,6 +312,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             public static readonly KeywordCollection Forward = new()
             {
+                // multi_compile
                 CoreKeywordDescriptors.ToonRpGlobalRamp,
 
                 CoreKeywordDescriptors.ToonRpDirectionalShadows,
@@ -322,6 +326,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CoreKeywordDescriptors.ToonRpTiledLighting,
 
                 CoreKeywordDescriptors.ToonRpSsao,
+                
+                // shader_feature
+                CoreKeywordDescriptors.ReceiveBlobShadows,
             };
         }
 

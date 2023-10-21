@@ -390,7 +390,23 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         protected void DrawBlobShadows()
         {
-            DrawProperty("_ReceiveBlobShadows");
+            MaterialProperty property = FindProperty(PropertyNames.ReceiveBlobShadows, Properties);
+            if (property == null)
+            {
+                return;
+            }
+
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            bool currentValue = property.floatValue > 0.5f;
+            bool newValue = EditorGUILayout.Toggle("Receive Blob Shadows", currentValue);
+            if (currentValue != newValue)
+            {
+                property.floatValue = newValue ? 1.0f : 0.0f;
+                ForEachMaterial(m => m.SetKeyword(ShaderKeywords.ReceiveBlobShadows, newValue));
+                _materialEditor.PropertiesChanged();
+            }
+
+            EditorGUI.showMixedValue = false;
         }
     }
 }

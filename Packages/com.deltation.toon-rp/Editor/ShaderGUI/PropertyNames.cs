@@ -1,6 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
-
-namespace DELTation.ToonRP.Editor.ShaderGUI
+﻿namespace DELTation.ToonRP.Editor.ShaderGUI
 {
     public static class PropertyNames
     {
@@ -25,9 +23,10 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";
         public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
-        
+
         public const string CastShadows = "_CastShadows";
         public const string ReceiveShadows = "_ReceiveShadows";
+        public const string ReceiveBlobShadows = "_ReceiveBlobShadows";
 
         // For ShaderGraph shaders only
         public const string ZTest = "_ZTest";

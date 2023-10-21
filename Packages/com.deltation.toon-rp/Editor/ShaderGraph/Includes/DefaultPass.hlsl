@@ -37,10 +37,12 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     albedo.rgb *= albedo.a;
     #endif // _ALPHAPREMULTIPLY_ON
 
+    const float3 normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);
+
     LightComputationParameters lightComputationParameters;
     lightComputationParameters.positionWs = unpacked.positionWS;
     lightComputationParameters.positionCs = unpacked.positionCS;
-    lightComputationParameters.normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);;
+    lightComputationParameters.normalWs = normalWs;
     lightComputationParameters.viewDirectionWs = unpacked.viewDirectionWS;
     lightComputationParameters.globalRampUv = surfaceDescription.GlobalRampUV;
     lightComputationParameters.albedo = albedo;
@@ -55,7 +57,13 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     float shadowAttenuation;
     const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
 
-    float3 outputColor = lights;
+    #if _FORCE_DISABLE_ENVIRONMENT_LIGHT
+    const float3 ambient = 0;
+    #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
+    const float3 ambient = SampleSH(normalWs) * albedo.rgb;
+    #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
+
+    float3 outputColor = lights + ambient;
 
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;

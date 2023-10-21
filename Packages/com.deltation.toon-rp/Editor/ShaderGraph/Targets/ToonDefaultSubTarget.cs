@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;
 
 namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
@@ -18,11 +19,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public ToonDefaultSubTarget() => displayName = "Default";
 
         protected override ShaderID ShaderID => ShaderID.SgDefault;
-
-        // ReSharper disable Unity.RedundantSerializeFieldAttribute
-        [field: SerializeField]
-        private NormalDropOffSpace NormalDropOffSpace { get; set; } = NormalDropOffSpace.Tangent;
-        // ReSharper restore Unity.RedundantSerializeFieldAttribute
 
         public override bool IsActive() => true;
 
@@ -40,7 +36,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             // Process SubShaders
             context.AddSubShader(
-                PostProcessSubShader(SubShaders.DefaultSubShader(target, target.RenderType, target.RenderQueue))
+                PostProcessSubShader(SubShaders.DefaultSubShader(target, this, target.RenderType, target.RenderQueue))
             );
         }
 
@@ -58,6 +54,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
                 material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
+                    !EnvironmentLighting ? 1.0f : 0.0f
+                );
                 material.SetFloat(PropertyNames.RenderFace, (int) target.RenderFace);
                 material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
                 material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
@@ -116,6 +115,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
                 collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
+                    !EnvironmentLighting ? 1.0f : 0.0f
+                );
                 collector.AddFloatProperty(PropertyNames.BlendSrc, 1.0f
                 ); // always set by material inspector, ok to have incorrect values here
                 collector.AddFloatProperty(PropertyNames.BlendDst, 0.0f
@@ -137,6 +139,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
 
             target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, true);
+
+            context.AddProperty("Environment Lighting", new Toggle { value = EnvironmentLighting }, evt =>
+                {
+                    if (Equals(EnvironmentLighting, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Environment Lighting");
+                    EnvironmentLighting = evt.newValue;
+                    onChange();
+                }
+            );
 
             context.AddProperty("Fragment Normal Space",
                 new EnumField(NormalDropOffSpace.Tangent) { value = NormalDropOffSpace }, evt =>
@@ -165,7 +180,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class SubShaders
         {
-            public static SubShaderDescriptor DefaultSubShader(ToonTarget target, string renderType, string renderQueue)
+            public static SubShaderDescriptor DefaultSubShader(ToonTarget target, ToonDefaultSubTarget subTarget,
+                string renderType, string renderQueue)
             {
                 var result = new SubShaderDescriptor
                 {
@@ -175,7 +191,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        DefaultPasses.Forward(target),
+                        DefaultPasses.Forward(target, subTarget),
                     },
                 };
 
@@ -215,7 +231,21 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
 
-            public static PassDescriptor Forward(ToonTarget target, PragmaCollection pragmas = null)
+            private static void AddEnvironmentLightingControlToPass(ref PassDescriptor pass, ToonTarget target,
+                bool environmentLighting)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.ForceDisableEnvironmentLight);
+                }
+                else if (!environmentLighting)
+                {
+                    pass.defines.Add(CoreKeywordDescriptors.ForceDisableEnvironmentLight, 1);
+                }
+            }
+
+            public static PassDescriptor Forward(ToonTarget target, ToonDefaultSubTarget subTarget,
+                PragmaCollection pragmas = null)
             {
                 ref readonly ToonPasses.Pass pass = ref ToonPasses.Forward;
                 var result = new PassDescriptor
@@ -252,6 +282,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 AddReceiveShadowsControlToPass(ref result, target, target.ReceiveShadows);
+                AddEnvironmentLightingControlToPass(ref result, target, subTarget.EnvironmentLighting);
 
                 return result;
             }
@@ -328,7 +359,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CoreKeywordDescriptors.ToonRpTiledLighting,
 
                 CoreKeywordDescriptors.ToonRpSsao,
-                
+
                 // shader_feature
                 CoreKeywordDescriptors.ReceiveBlobShadows,
             };
@@ -359,5 +390,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         }
 
         #endregion
+
+        // ReSharper disable Unity.RedundantSerializeFieldAttribute
+        [field: SerializeField]
+        private bool EnvironmentLighting { get; set; } = true;
+
+        [field: SerializeField]
+        private NormalDropOffSpace NormalDropOffSpace { get; set; } = NormalDropOffSpace.Tangent;
+        // ReSharper restore Unity.RedundantSerializeFieldAttribute
     }
 }

@@ -63,7 +63,9 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
-    float3 outputColor = lights + ambient;
+    const float3 emission = surfaceDescription.Emission * albedo.a;
+
+    float3 outputColor = lights + ambient + emission;
 
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;

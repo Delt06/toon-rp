@@ -21,7 +21,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.AssetCallbacks
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
                 ToonBlockFields.VertexDescription.Tangent,
-                
+
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.NormalTs,
                 ToonBlockFields.SurfaceDescription.Emission,

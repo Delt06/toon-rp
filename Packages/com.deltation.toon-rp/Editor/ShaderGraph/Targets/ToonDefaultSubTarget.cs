@@ -306,6 +306,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.Alpha,
                 ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+                ToonBlockFields.SurfaceDescription.Emission,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
             };

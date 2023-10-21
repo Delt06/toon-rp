@@ -169,7 +169,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             get => _receiveShadows;
             private set => _receiveShadows = value;
         }
-        
+
         public bool Fog
         {
             get => _fog;
@@ -267,6 +267,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.VertexDescription.Normal);
             context.AddBlock(ToonBlockFields.VertexDescription.Tangent);
             context.AddBlock(ToonBlockFields.SurfaceDescription.Albedo);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.Emission);
 
             // SubTarget blocks
             _activeSubTarget.value.GetActiveBlocks(ref context);
@@ -426,7 +427,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     onChange();
                 }
             );
-            
+
             context.AddProperty("Fog", new Toggle { value = Fog }, evt =>
                 {
                     if (Equals(Fog, evt.newValue))
@@ -578,7 +579,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
             }
         }
-        
+
         private static void AddFogControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
@@ -1209,7 +1210,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-        
+
         public static readonly KeywordDescriptor ForceDisableFog = new()
         {
             displayName = ShaderKeywords.ForceDisableFog,
@@ -1218,7 +1219,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
         };
-        
+
         public static readonly KeywordDescriptor ForceDisableEnvironmentLight = new()
         {
             displayName = ShaderKeywords.ForceDisableEnvironmentLight,

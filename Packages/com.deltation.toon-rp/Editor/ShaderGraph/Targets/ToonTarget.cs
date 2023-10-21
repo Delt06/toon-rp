@@ -169,6 +169,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             get => _receiveShadows;
             private set => _receiveShadows = value;
         }
+        
+        public bool Fog
+        {
+            get => _fog;
+            private set => _fog = value;
+        }
 
         private string CustomEditorGUI
         {
@@ -420,6 +426,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     onChange();
                 }
             );
+            
+            context.AddProperty("Fog", new Toggle { value = Fog }, evt =>
+                {
+                    if (Equals(Fog, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Fog");
+                    Fog = evt.newValue;
+                    onChange();
+                }
+            );
 
             context.AddProperty("Cast Shadows", new Toggle { value = CastShadows }, evt =>
                 {
@@ -510,6 +529,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private bool _alphaClip;
         [SerializeField] private bool _castShadows = true;
         [SerializeField] private bool _receiveShadows = true;
+        [SerializeField] private bool _fog = true;
         [SerializeField] private string _customEditorGUI;
         // ReSharper restore Unity.RedundantSerializeFieldAttribute
 
@@ -558,6 +578,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
             }
         }
+        
+        private static void AddFogControlToPass(ref PassDescriptor pass, ToonTarget target)
+        {
+            if (target.AllowMaterialOverride)
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.ForceDisableFog);
+            }
+            else if (!target.Fog)
+            {
+                pass.defines.Add(CoreKeywordDescriptors.ForceDisableFog, 1);
+            }
+        }
 
         internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, ToonTarget target)
         {
@@ -583,6 +615,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             }
 
             AddAlphaClipControlToPass(ref pass, target);
+            AddFogControlToPass(ref pass, target);
         }
 
         public static PassDescriptor DepthOnly(ToonTarget target)
@@ -1171,6 +1204,25 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             displayName = ShaderKeywords.ReceiveBlobShadows,
             referenceName = ShaderKeywords.ReceiveBlobShadows,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+        
+        public static readonly KeywordDescriptor ForceDisableFog = new()
+        {
+            displayName = ShaderKeywords.ForceDisableFog,
+            referenceName = ShaderKeywords.ForceDisableFog,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+        
+        public static readonly KeywordDescriptor ForceDisableEnvironmentLight = new()
+        {
+            displayName = ShaderKeywords.ForceDisableEnvironmentLight,
+            referenceName = ShaderKeywords.ForceDisableEnvironmentLight,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

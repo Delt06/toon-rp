@@ -99,7 +99,7 @@
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultShaderFeatureList.hlsl"
 			#pragma shader_feature_local _FORCE_DISABLE_FOG
-			#pragma shader_feature_local _FORCE_DISABLE_ENVIRONMENT_LIGHT
+			#pragma shader_feature_local_fragment _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
 			#define DEFAULT_LITE
 			#include "ToonRPDefaultForwardPass.hlsl"

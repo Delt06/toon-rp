@@ -31,6 +31,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             );
             public static readonly FieldDescriptor fogFactorAndVertexLight = new(Name, "fogFactorAndVertexLight",
                 "VARYINGS_NEED_FOG_AND_VERTEX_LIGHT", ShaderValueType.Float4,
+                preprocessor: "!_FORCE_DISABLE_FOG || defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX)",
                 subscriptOptions: StructFieldOptions.Optional
             );
             public static readonly FieldDescriptor vsmDepth = new(Name, "vsmDepth",

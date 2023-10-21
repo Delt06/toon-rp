@@ -145,12 +145,16 @@ Varyings BuildVaryings(Attributes input)
     output.screenPosition = vertexInput.positionNDC;
     #endif
 
-    #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    #if defined(VARYINGS_NEED_FOG_AND_VERTEX_LIGHT) && (!_FORCE_DISABLE_FOG || defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX))
     
     half fogFactor = ComputeFogFactor(output.positionCS.z);
     #ifdef SHADERGRAPH_PREVIEW
     fogFactor = 1.0;
     #endif // SHADERGRAPH_PREVIEW
+
+    #if _FORCE_DISABLE_FOG
+    fogFactor = 1.0;
+    #endif // _FORCE_DISABLE_FOG
     
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     const float3 vertexLight = ComputeAdditionalLightsRawDiffuse(output.positionCS, positionWS, normalWS, 0, 1);

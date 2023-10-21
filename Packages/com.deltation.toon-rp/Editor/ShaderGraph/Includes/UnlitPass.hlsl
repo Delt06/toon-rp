@@ -38,8 +38,10 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     float3 outputColor = albedo.rgb;
 
+    #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;
     outputColor = MixFog(outputColor.rgb, fogFactor);
+    #endif // !_FORCE_DISABLE_FOG 
 
     return float4(outputColor, albedo.a);
 }

@@ -45,7 +45,11 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     lightComputationParameters.globalRampUv = surfaceDescription.GlobalRampUV;
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = surfaceDescription.ShadowColor;
+    #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     lightComputationParameters.perVertexAdditionalLights = unpacked.fogFactorAndVertexLight.yzw;
+    #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+    lightComputationParameters.perVertexAdditionalLights = 0;
+    #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     
     // ReSharper disable once CppEntityAssignedButNoRead
     float shadowAttenuation;
@@ -53,8 +57,10 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     float3 outputColor = lights;
 
+    #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;
     outputColor = MixFog(outputColor.rgb, fogFactor);
+    #endif // !_FORCE_DISABLE_FOG 
 
     return float4(outputColor, albedo.a);
 }

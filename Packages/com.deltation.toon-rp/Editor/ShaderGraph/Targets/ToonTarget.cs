@@ -329,20 +329,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo)
         {
-            // At some point we may want to convert this to be a per-property control
-            // or Unify the UX with the upcoming "lock" feature of the Material Variant properties
-            context.AddProperty("Allow Material Override", new Toggle { value = AllowMaterialOverride }, evt =>
-                {
-                    if (Equals(AllowMaterialOverride, evt.newValue))
-                    {
-                        return;
-                    }
-
-                    registerUndo("Change Allow Material Override");
-                    AllowMaterialOverride = evt.newValue;
-                    onChange();
-                }
-            );
+            // context.AddProperty("Allow Material Override", new Toggle { value = AllowMaterialOverride }, evt =>
+            //     {
+            //         if (Equals(AllowMaterialOverride, evt.newValue))
+            //         {
+            //             return;
+            //         }
+            //
+            //         registerUndo("Change Allow Material Override");
+            //         AllowMaterialOverride = evt.newValue;
+            //         onChange();
+            //     }
+            // );
         }
 
         public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,

@@ -15,6 +15,13 @@
         public const string RenderFace = "_RenderFace";
         public const string EmissionColor = "_EmissionColor";
 
+        public const string ControlOutlinesStencilLayer = "_ControlOutlinesStencilLayer";
+        public const string OutlinesStencilLayer = "_OutlinesStencilLayer";
+        public const string ForwardStencilRef = "_ForwardStencilRef";
+        public const string ForwardStencilWriteMask = "_ForwardStencilWriteMask";
+        public const string ForwardStencilComp = "_ForwardStencilComp";
+        public const string ForwardStencilPass = "_ForwardStencilPass";
+
         public const string ShadowColorPropertyName = "_ShadowColor";
         public const string SpecularColorPropertyName = "_SpecularColor";
         public const string SpecularSizePropertyName = "_SpecularSizeOffset";

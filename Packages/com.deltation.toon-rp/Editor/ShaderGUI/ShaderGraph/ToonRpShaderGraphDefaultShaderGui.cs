@@ -1,22 +1,11 @@
-﻿using UnityEngine;
-using UnityEngine.Rendering;
-
-namespace DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph
+﻿namespace DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph
 {
-    public class ToonRpShaderGraphDefaultShaderGui : ToonRpShaderGuiBase
+    public class ToonRpShaderGraphDefaultShaderGui : ToonRpShaderGraphShaderGuiBase
     {
-        protected override bool ControlQueue => false;
-
-        protected override void DrawProperties()
+        protected override void DrawExtraBuiltInProperties()
         {
-            DrawShaderGraphProperties(Properties);
-
-            if (DrawFoldout("Built-In"))
-            {
-                DrawBlobShadows();
-            }
+            base.DrawExtraBuiltInProperties();
+            DrawBlobShadows();
         }
-
-        protected override RenderQueue GetRenderQueue(Material m) => default;
     }
 }

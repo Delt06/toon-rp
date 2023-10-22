@@ -36,6 +36,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public override void ProcessPreviewMaterial(Material material)
         {
+            base.ProcessPreviewMaterial(material);
+
             if (target.AllowMaterialOverride)
             {
                 // copy our target's default settings into the material
@@ -51,6 +53,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
                 material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
             }
+
+            material.SetFloat(PropertyNames.ControlOutlinesStencilLayer,
+                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
+            );
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -65,6 +71,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            base.CollectShaderProperties(collector, generationMode);
+
             if (target.AllowMaterialOverride)
             {
                 collector.AddFloatProperty(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
@@ -115,7 +123,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     result.passes.Add(CorePasses.DepthNormals(target));
                     result.passes.Add(CorePasses.MotionVectors(target));
                 }
-                
+
                 if (target.CastShadows || target.AllowMaterialOverride)
                 {
                     result.passes.Add(CorePasses.ShadowCaster(target));

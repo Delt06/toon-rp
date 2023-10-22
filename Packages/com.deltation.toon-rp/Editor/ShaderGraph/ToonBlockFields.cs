@@ -86,6 +86,31 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_RIMSIZEOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment
             );
+            
+            public static readonly BlockFieldDescriptor OverrideRampThreshold = new(Name, "OverrideRampThreshold", "Override Ramp Threshold",
+                "SURFACEDESCRIPTION_OVERRIDERAMPTHRESHOLD",
+                new FloatControl(0.0f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor OverrideRampSmoothness = new(Name, "OverrideRampSmoothness", "Override Ramp Smoothness",
+                "SURFACEDESCRIPTION_OVERRIDERAMPSMOOTHNESS",
+                new FloatControl(0.083f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor OverrideRampSpecularThreshold = new(Name, "OverrideRampSpecularThreshold", "Override Ramp Specular Threshold",
+                "SURFACEDESCRIPTION_OVERRIDERAMPSPECULARTHRESHOLD",
+                new FloatControl(0.095f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor OverrideRampSpecularSmoothness = new(Name, "OverrideRampSpecularSmoothness", "Override Ramp Specular Smoothness",
+                "SURFACEDESCRIPTION_OVERRIDERAMPSPECULARSMOOTHNESS",
+                new FloatControl(0.005f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor OverrideRampRimThreshold = new(Name, "OverrideRampRimThreshold", "Override Ramp Rim Threshold",
+                "SURFACEDESCRIPTION_OVERRIDERAMPRIMTHRESHOLD",
+                new FloatControl(0.5f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor OverrideRampRimSmoothness = new(Name, "OverrideRampRimSmoothness", "Override Ramp Rim Smoothness",
+                "SURFACEDESCRIPTION_OVERRIDERAMPRIMSMOOTHNESS",
+                new FloatControl(0.1f), ShaderStage.Fragment
+            );
         }
     }
 }

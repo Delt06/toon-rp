@@ -39,28 +39,35 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     const float3 normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);
 
-    LightComputationParameters lightComputationParameters;
+    LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
     lightComputationParameters.positionWs = unpacked.positionWS;
     lightComputationParameters.positionCs = unpacked.positionCS;
     lightComputationParameters.normalWs = normalWs;
     lightComputationParameters.viewDirectionWs = unpacked.viewDirectionWS;
-    lightComputationParameters.globalRampUv = surfaceDescription.GlobalRampUV;
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = surfaceDescription.ShadowColor;
 
     #if _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = surfaceDescription.SpecularSizeOffset;
     lightComputationParameters.specularColor = surfaceDescription.SpecularColor;
-    #else // !_TOON_LIGHTING_SPECULAR
-    lightComputationParameters.specularSizeOffset = 0.0f;
-    lightComputationParameters.specularColor = 1.0f;
     #endif // _TOON_LIGHTING_SPECULAR
     
+    #if _OVERRIDE_RAMP
+    lightComputationParameters.overrideRampDiffuse = ConstructOverrideRamp(surfaceDescription.OverrideRampThreshold, surfaceDescription.OverrideRampSmoothness);
+    #else //!_OVERRIDE_RAMP
+    lightComputationParameters.globalRampUv = surfaceDescription.GlobalRampUV;
+    #endif // _OVERRIDE_RAMP
+
+    #if _OVERRIDE_RAMP && _TOON_LIGHTING_SPECULAR
+    lightComputationParameters.overrideRampSpecular = ConstructOverrideRamp(surfaceDescription.OverrideRampSpecularThreshold, surfaceDescription.OverrideRampSpecularSmoothness);
+    #endif // _OVERRIDE_RAMP && _TOON_LIGHTING_SPECULAR
+
+    #if _OVERRIDE_RAMP && _RIM
+    lightComputationParameters.overrideRampRim = ConstructOverrideRamp(surfaceDescription.OverrideRampRimThreshold, surfaceDescription.OverrideRampRimSmoothness);
+    #endif // _OVERRIDE_RAMP && _RIM
     
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     lightComputationParameters.perVertexAdditionalLights = unpacked.fogFactorAndVertexLight.yzw;
-    #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-    lightComputationParameters.perVertexAdditionalLights = 0;
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     
     // ReSharper disable once CppEntityAssignedButNoRead
@@ -69,7 +76,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     #if _RIM
     const float fresnel = 1 - saturate(dot(unpacked.viewDirectionWS, normalWs));
-    const float rimRamp = ComputeRampRim(fresnel + surfaceDescription.RimSizeOffset, surfaceDescription.GlobalRampUV);
+    const float rimRamp = ComputeRampRim(lightComputationParameters, fresnel + surfaceDescription.RimSizeOffset);
     const float3 rim = surfaceDescription.RimColor * rimRamp;
     #else // !_RIM
     const float3 rim = 0;

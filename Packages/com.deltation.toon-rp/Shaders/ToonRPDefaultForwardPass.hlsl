@@ -3,6 +3,7 @@
 
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Fog.hlsl"
+#include "../ShaderLibrary/ToonLighting.hlsl"
 #include "../ShaderLibrary/Matcap.hlsl"
 
 #ifdef UNLIT
@@ -66,7 +67,11 @@ v2f VS(const appdata IN)
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(positionCs, positionWs, normalWs, uv, 1);
+    LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
+    lightComputationParameters.positionWs = positionWs;
+    lightComputationParameters.positionCs = positionCs;
+    lightComputationParameters.normalWs = normalWs;
+    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(lightComputationParameters, 1);
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);

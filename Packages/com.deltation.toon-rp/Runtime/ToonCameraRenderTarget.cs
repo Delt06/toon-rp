@@ -6,7 +6,8 @@ namespace DELTation.ToonRP
 {
     public sealed class ToonCameraRenderTarget
     {
-        private static readonly int ScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
+        private static readonly int ToonScreenParamsId = Shader.PropertyToID("_ToonScreenParams");
+        private static readonly int ScreenParamsId = Shader.PropertyToID("_ScreenParams");
         public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private Camera _camera;
@@ -99,22 +100,36 @@ namespace DELTation.ToonRP
 
         public void SetScreenParams(CommandBuffer cmd)
         {
-            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
+            cmd.SetGlobalVector(ToonScreenParamsId, new Vector4(
                     1.0f / Width,
                     1.0f / Height,
                     Width,
                     Height
                 )
             );
+            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
+                    Width,
+                    Height,
+                    1.0f + 1.0f / Width,
+                    1.0f + 1.0f / Height
+                )
+            );
         }
 
         public void SetScreenParamsOverride(CommandBuffer cmd, int width, int height)
         {
-            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
+            cmd.SetGlobalVector(ToonScreenParamsId, new Vector4(
                     1.0f / width,
                     1.0f / height,
                     width,
                     height
+                )
+            );
+            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
+                    width,
+                    height,
+                    1.0f + 1.0f / width,
+                    1.0f + 1.0f / height
                 )
             );
         }

@@ -53,6 +53,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.SurfaceType, (float) target.SurfaceType);
                 material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
                 material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
@@ -101,23 +102,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 target.AlphaClip || target.AllowMaterialOverride
             );
             
-            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularColor,
-                Specular
-            );
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampThreshold, OverrideRamp);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampSmoothness, OverrideRamp);
             
-            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
-                Specular
-            );
+            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularColor, Specular);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.SpecularSizeOffset, Specular);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampSpecularThreshold, OverrideRamp && Specular);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampSpecularSmoothness, OverrideRamp && Specular);
             
-            context.AddBlock(ToonBlockFields.SurfaceDescription.RimColor,
-                Rim
-            );
-            
-            context.AddBlock(ToonBlockFields.SurfaceDescription.RimSizeOffset,
-                Rim
-            );
+            context.AddBlock(ToonBlockFields.SurfaceDescription.RimColor, Rim);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.RimSizeOffset, Rim);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampRimThreshold, OverrideRamp && Rim);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampRimSmoothness, OverrideRamp && Rim);
 
-            context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV, !OverrideRamp);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
         }
 
@@ -132,6 +130,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.SurfaceType, (float) target.SurfaceType);
                 collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
                 collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
@@ -159,6 +158,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
 
             target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, true);
+            
+            context.AddProperty("Override Ramp", new Toggle { value = OverrideRamp }, evt =>
+                {
+                    if (Equals(OverrideRamp, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Override Ramp");
+                    OverrideRamp = evt.newValue;
+                    onChange();
+                }
+            );
             
             context.AddProperty("Specular", new Toggle { value = Specular }, evt =>
                 {
@@ -290,6 +302,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
             
+            private static void AddOverrideRampControlToPass(ref PassDescriptor pass, ToonTarget target,
+                bool overrideRamp)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.OverrideRamp);
+                }
+                else if (overrideRamp)
+                {
+                    pass.defines.Add(CoreKeywordDescriptors.OverrideRamp, 1);
+                }
+            }
+            
             private static void AddSpecularControlToPass(ref PassDescriptor pass, ToonTarget target,
                 bool specular)
             {
@@ -355,6 +380,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 AddReceiveShadowsControlToPass(ref result, target, target.ReceiveShadows);
                 AddEnvironmentLightingControlToPass(ref result, target, subTarget.EnvironmentLighting);
+                AddOverrideRampControlToPass(ref result, target, subTarget.OverrideRamp);
                 AddSpecularControlToPass(ref result, target, subTarget.Specular);
                 AddRimControlToPass(ref result, target, subTarget.Rim);
 
@@ -383,10 +409,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.Emission,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
+                
+                ToonBlockFields.SurfaceDescription.OverrideRampThreshold,
+                ToonBlockFields.SurfaceDescription.OverrideRampSmoothness,
+                
                 ToonBlockFields.SurfaceDescription.SpecularColor,
                 ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
+                ToonBlockFields.SurfaceDescription.OverrideRampSpecularThreshold,
+                ToonBlockFields.SurfaceDescription.OverrideRampSpecularSmoothness,
+                
                 ToonBlockFields.SurfaceDescription.RimColor,
                 ToonBlockFields.SurfaceDescription.RimSizeOffset,
+                ToonBlockFields.SurfaceDescription.OverrideRampRimThreshold,
+                ToonBlockFields.SurfaceDescription.OverrideRampRimSmoothness,
             };
         }
 
@@ -471,6 +506,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         #endregion
 
         // ReSharper disable Unity.RedundantSerializeFieldAttribute
+        [field: SerializeField]
+        private bool OverrideRamp { get; set; }
+        
         [field: SerializeField]
         private bool Specular { get; set; } = true;
         

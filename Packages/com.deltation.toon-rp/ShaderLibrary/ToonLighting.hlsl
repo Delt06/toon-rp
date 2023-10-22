@@ -17,48 +17,6 @@ float ComputeNDotH(const float3 viewDirectionWs, const float3 normalWs, const fl
     return dot(normalWs, halfVector);
 }
 
-float ComputeRampDiffuse(const float nDotL, const float2 uv)
-{
-    #ifdef _OVERRIDE_RAMP
-
-    const float2 ramp = ConstructOverrideRampDiffuse();
-    return ComputeRamp(nDotL, ramp);
-    
-    #else // !_OVERRIDE_RAMP
-
-    return ComputeGlobalRampDiffuse(nDotL, uv);
-
-    #endif // _OVERRIDE_RAMP
-}
-
-float ComputeRampSpecular(const float nDotH, const float2 uv)
-{
-    #ifdef _OVERRIDE_RAMP
-
-    const float2 ramp = ConstructOverrideRampSpecular();
-    return ComputeRamp(nDotH, ramp);
-    
-    #else // !_OVERRIDE_RAMP
-
-    return ComputeGlobalRampSpecular(nDotH, uv);
-
-    #endif // _OVERRIDE_RAMP
-}
-
-float ComputeRampRim(const float fresnel, const float2 uv)
-{
-    #ifdef _OVERRIDE_RAMP
-
-    const float2 ramp = ConstructOverrideRampRim();
-    return ComputeRamp(fresnel, ramp);
-    
-    #else // !_OVERRIDE_RAMP
-
-    return ComputeGlobalRampRim(fresnel, uv);
-
-    #endif // _OVERRIDE_RAMP
-}
-
 struct LightComputationParameters
 {
     float4 positionCs;
@@ -72,9 +30,52 @@ struct LightComputationParameters
     float4 shadowColor;
     float3 specularColor;
     float specularSizeOffset;
+
+    float2 overrideRampDiffuse;
+    float2 overrideRampSpecular;
+    float2 overrideRampRim;
 };
 
-float GetSsao(in LightComputationParameters parameters)
+float ComputeRampDiffuse(const LightComputationParameters parameters, const float nDotL)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    return ComputeRamp(nDotL, parameters.overrideRampDiffuse);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampDiffuse(nDotL, parameters.globalRampUv);
+
+    #endif // _OVERRIDE_RAMP
+}
+
+float ComputeRampSpecular(const LightComputationParameters parameters, const float nDotH)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    return ComputeRamp(nDotH, parameters.overrideRampSpecular);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampSpecular(nDotH, parameters.globalRampUv);
+
+    #endif // _OVERRIDE_RAMP
+}
+
+float ComputeRampRim(const LightComputationParameters parameters, const float fresnel)
+{
+    #ifdef _OVERRIDE_RAMP
+
+    return ComputeRamp(fresnel, parameters.overrideRampRim);
+    
+    #else // !_OVERRIDE_RAMP
+
+    return ComputeGlobalRampRim(fresnel, parameters.globalRampUv);
+
+    #endif // _OVERRIDE_RAMP
+}
+
+float GetSsao(const LightComputationParameters parameters)
 {
     #ifdef TOON_RP_SSAO_ANY
     const float2 screenUv = PositionHClipToScreenUv(parameters.positionCs);
@@ -128,7 +129,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     const float3 mixedShadowColor = MixShadowColor(parameters.albedo.rgb, parameters.shadowColor);
     const Light light = GetMainLight(parameters);
     const float nDotL = dot(parameters.normalWs, light.direction);
-    float diffuseRamp = ComputeRampDiffuse(nDotL, parameters.globalRampUv);
+    float diffuseRamp = ComputeRampDiffuse(parameters, nDotL);
     shadowAttenuation = GetShadowAttenuation(parameters, light);
     shadowAttenuation *= ssao;
 
@@ -137,7 +138,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
 
     #ifdef _TOON_LIGHTING_SPECULAR
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(nDotH + parameters.specularSizeOffset, parameters.globalRampUv);
+    float specularRamp = ComputeRampSpecular(parameters, nDotH + parameters.specularSizeOffset);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = parameters.specularColor * specularRamp;
     #else // !_TOON_LIGHTING_SPECULAR
@@ -147,12 +148,10 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     return light.color * (diffuse + specular);
 }
 
-float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 positionWs, const half3 normalWs,
-                                         const float2 globalRampUv,
-                                         const float ssao)
+float3 ComputeAdditionalLightsRawDiffuse(const LightComputationParameters parameters, const float ssao)
 {
     #ifdef _TOON_RP_TILED_LIGHTING
-    TiledLighting_LightGridCell cell = TiledLighting_GetLightGridCell(positionCs.xy);
+    TiledLighting_LightGridCell cell = TiledLighting_GetLightGridCell(parameters.positionCs.xy);
     const uint lightCount = cell.lightCount;
     #else // !_TOON_RP_TILED_LIGHTING
     const uint lightCount = GetPerObjectAdditionalLightCount();
@@ -163,18 +162,19 @@ float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 p
     for (uint i = 0; i < lightCount; ++i)
     {
         #ifdef _TOON_RP_TILED_LIGHTING
-        const Light light = GetAdditionalLightTiled(i, cell, positionWs);
+        const Light light = GetAdditionalLightTiled(i, cell, parameters.positionWs);
         #else // !_TOON_RP_TILED_LIGHTING
-        const Light light = GetAdditionalLight(i, positionWs);
+        const Light light = GetAdditionalLight(i, parameters.positionWs);
         #endif // _TOON_RP_TILED_LIGHTING
-        float nDotL = dot(normalWs, light.direction);
+        float nDotL = dot(parameters.normalWs, light.direction);
         const float attenuation = light.distanceAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
+        const float rampCutoff = step(0.00001f, nDotL);
 
         #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
         const float diffuseRamp = saturate(nDotL);
         #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-        const float diffuseRamp = ComputeRampDiffuse(nDotL, globalRampUv);
+        const float diffuseRamp = ComputeRampDiffuse(parameters, nDotL) * rampCutoff;
         #endif  // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
         lights += diffuseRamp * step(0.001, attenuation) * light.color;
@@ -186,9 +186,7 @@ float3 ComputeAdditionalLightsRawDiffuse(const float4 positionCs, const float3 p
 float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
 {
     const float3 rawDiffuse = ComputeAdditionalLightsRawDiffuse(
-        parameters.positionCs,
-        parameters.positionWs,
-        parameters.normalWs, parameters.globalRampUv,
+        parameters,
         ssao);
     return rawDiffuse * parameters.albedo.rgb;
 }

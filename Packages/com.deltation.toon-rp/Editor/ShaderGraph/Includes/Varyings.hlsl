@@ -155,9 +155,15 @@ Varyings BuildVaryings(Attributes input)
     #if _FORCE_DISABLE_FOG
     fogFactor = 1.0;
     #endif // _FORCE_DISABLE_FOG
+
+    
     
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-    const float3 vertexLight = ComputeAdditionalLightsRawDiffuse(output.positionCS, positionWS, normalWS, 0, 1);
+    LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
+    lightComputationParameters.positionWs = positionWS;
+    lightComputationParameters.positionCs = output.positionCS;
+    lightComputationParameters.normalWs = normalWS;
+    const float3 vertexLight = ComputeAdditionalLightsRawDiffuse(lightComputationParameters, 1);
     #else
     const float3 vertexLight = 0;
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX

@@ -16,7 +16,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     normalWs = normalize(normalWs);
 
     const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(IN.positionWs));
-    LightComputationParameters lightComputationParameters;
+    LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
     lightComputationParameters.positionWs = IN.positionWs;
     lightComputationParameters.positionCs = IN.positionCs;
     lightComputationParameters.normalWs = normalWs;
@@ -28,10 +28,11 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     #ifdef _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = _SpecularSizeOffset;
     lightComputationParameters.specularColor = _SpecularColor;
-    #else // !_TOON_LIGHTING_SPECULAR
-    lightComputationParameters.specularSizeOffset = 0;
-    lightComputationParameters.specularColor = 0;
     #endif // _TOON_LIGHTING_SPECULAR
+
+    lightComputationParameters.overrideRampDiffuse = ConstructOverrideRampDiffuse();
+    lightComputationParameters.overrideRampSpecular = ConstructOverrideRampSpecular();
+    lightComputationParameters.overrideRampRim = ConstructOverrideRampRim();
     
     // ReSharper disable once CppEntityAssignedButNoRead
     float shadowAttenuation;
@@ -39,7 +40,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     
     #ifdef _RIM
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
-    const float rimRamp = ComputeRampRim(fresnel, IN.uv);
+    const float rimRamp = ComputeRampRim(lightComputationParameters, fresnel);
     const float3 rim = _RimColor * rimRamp;
     #else // !_RIM
     const float3 rim = 0;

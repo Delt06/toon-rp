@@ -23,6 +23,7 @@
 
         public const string Specular = "_ToonLightingSpecular";
         public const string Rim = "_Rim";
+        public const string OverrideRamp = "_OverrideRamp";
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";
         public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
 

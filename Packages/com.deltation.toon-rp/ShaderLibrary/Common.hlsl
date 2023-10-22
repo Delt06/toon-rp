@@ -18,6 +18,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution
+float4 _ScreenParams; // xy = resolution, zw = 1 + 1 / resolution
 float4 _ProjectionParams;
 
 #if UNITY_REVERSED_Z

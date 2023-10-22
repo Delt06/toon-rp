@@ -1211,6 +1211,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             stages = KeywordShaderStage.Fragment,
         };
         
+        public static readonly KeywordDescriptor OverrideRamp = new()
+        {
+            displayName = ShaderKeywords.OverrideRamp,
+            referenceName = ShaderKeywords.OverrideRamp,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+        
         public static readonly KeywordDescriptor Specular = new()
         {
             displayName = ShaderKeywords.Specular,

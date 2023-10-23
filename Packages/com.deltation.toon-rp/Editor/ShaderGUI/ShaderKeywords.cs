@@ -7,6 +7,7 @@
         public const string ToonRpVsm = "_TOON_RP_VSM";
         public const string NormalMap = "_NORMAL_MAP";
         public const string AlphaTestOn = "_ALPHATEST_ON";
+        public const string ReceiveShadowsOff = "_RECEIVE_SHADOWS_OFF";
         public const string ReceiveBlobShadows = "_RECEIVE_BLOB_SHADOWS";
         public const string OverrideRamp = "_OVERRIDE_RAMP";
         public const string Specular = "_TOON_LIGHTING_SPECULAR";

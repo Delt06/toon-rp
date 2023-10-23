@@ -129,7 +129,11 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     const Light light = GetMainLight(parameters);
     const float nDotL = dot(parameters.normalWs, light.direction);
     float diffuseRamp = ComputeRampDiffuse(parameters, nDotL);
+    #if _RECEIVE_SHADOWS_OFF
+    shadowAttenuation = 1.0f;
+    #else // !_RECEIVE_SHADOWS_OFF
     shadowAttenuation = GetShadowAttenuation(parameters, light);
+    #endif // _RECEIVE_SHADOWS_OFF
     shadowAttenuation *= ssao;
 
     diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);

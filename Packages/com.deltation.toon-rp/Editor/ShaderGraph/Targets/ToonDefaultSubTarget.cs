@@ -426,11 +426,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class DefaultKeywords
         {
-            // TODO: implement or remove this
             public static readonly KeywordDescriptor ReceiveShadowsOff = new()
             {
                 displayName = "Receive Shadows Off",
-                referenceName = "Receive Shadows Off",
+                referenceName = ShaderKeywords.ReceiveShadowsOff,
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,

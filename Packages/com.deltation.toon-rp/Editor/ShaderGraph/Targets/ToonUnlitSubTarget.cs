@@ -32,23 +32,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.RenderType, target.RenderQueue)));
         }
 
-        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
-        {
-            context.AddBlock(ToonBlockFields.SurfaceDescription.Alpha,
-                target.SurfaceType == SurfaceType.Transparent || target.AlphaClip || target.AllowMaterialOverride
-            );
-            context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
-                target.AlphaClip || target.AllowMaterialOverride
-            );
-        }
-
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
-            Action<string> registerUndo)
-        {
-            target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
-            target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, false);
-        }
-
         #region SubShader
 
         private static class SubShaders

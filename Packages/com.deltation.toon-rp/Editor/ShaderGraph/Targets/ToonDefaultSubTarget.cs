@@ -76,6 +76,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            base.GetActiveBlocks(ref context);
+
             context.AddBlock(ToonBlockFields.SurfaceDescription.NormalOs,
                 NormalDropOffSpace == NormalDropOffSpace.Object
             );
@@ -83,13 +85,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 NormalDropOffSpace == NormalDropOffSpace.Tangent
             );
             context.AddBlock(ToonBlockFields.SurfaceDescription.NormalWs, NormalDropOffSpace == NormalDropOffSpace.World
-            );
-
-            context.AddBlock(ToonBlockFields.SurfaceDescription.Alpha,
-                target.SurfaceType == SurfaceType.Transparent || target.AlphaClip || target.AllowMaterialOverride
-            );
-            context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
-                target.AlphaClip || target.AllowMaterialOverride
             );
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.OverrideRampThreshold, OverrideRamp);
@@ -134,7 +129,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             Action<string> registerUndo)
         {
             target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
-
             target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, true);
 
             context.AddProperty("Override Ramp", new Toggle { value = OverrideRamp }, evt =>

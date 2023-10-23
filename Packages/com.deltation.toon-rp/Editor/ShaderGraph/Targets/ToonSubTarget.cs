@@ -33,6 +33,23 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddAssetDependency(SourceCodeGuid, AssetCollection.Flags.SourceDependency);
         }
 
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(ToonBlockFields.SurfaceDescription.Alpha,
+                target.SurfaceType == SurfaceType.Transparent || target.AlphaClip || target.AllowMaterialOverride
+            );
+            context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+                target.AlphaClip || target.AllowMaterialOverride
+            );
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
+            Action<string> registerUndo)
+        {
+            target.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
+            target.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, false);
+        }
+
         public override void ProcessPreviewMaterial(Material material)
         {
             base.ProcessPreviewMaterial(material);

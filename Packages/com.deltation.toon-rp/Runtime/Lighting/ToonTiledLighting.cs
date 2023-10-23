@@ -83,16 +83,16 @@ namespace DELTation.ToonRP.Lighting
             _context = context;
             _enabled = toonContext.CameraRendererSettings.IsTiledLightingEnabledAndSupported();
 
+            if (!_enabled)
+            {
+                return;
+            }
+
             if (toonContext.Camera.orthographic)
             {
                 Debug.LogError(
                     "Tiled lighting is not yet supported for orthographic cameras. See https://github.com/Delt06/toon-rp/issues/125."
                 );
-            }
-
-            if (!_enabled)
-            {
-                return;
             }
 
             EnsureComputeShadersAreValid();

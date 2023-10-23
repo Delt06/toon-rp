@@ -38,12 +38,13 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #endif // _ALPHAPREMULTIPLY_ON
 
     const float3 normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);
+    const float3 viewDirectionWs = normalize(unpacked.viewDirectionWS);
 
     LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
     lightComputationParameters.positionWs = unpacked.positionWS;
     lightComputationParameters.positionCs = unpacked.positionCS;
     lightComputationParameters.normalWs = normalWs;
-    lightComputationParameters.viewDirectionWs = unpacked.viewDirectionWS;
+    lightComputationParameters.viewDirectionWs = viewDirectionWs;
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = surfaceDescription.ShadowColor;
 
@@ -75,7 +76,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
 
     #if _RIM
-    const float fresnel = 1 - saturate(dot(unpacked.viewDirectionWS, normalWs));
+    const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
     const float rimRamp = ComputeRampRim(lightComputationParameters, fresnel + surfaceDescription.RimSizeOffset);
     const float3 rim = surfaceDescription.RimColor * rimRamp;
     #else // !_RIM

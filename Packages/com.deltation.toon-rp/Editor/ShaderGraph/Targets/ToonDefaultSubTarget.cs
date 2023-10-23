@@ -68,9 +68,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddField(ToonFields.NormalDropOffOS, NormalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(ToonFields.NormalDropOffTs, NormalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(ToonFields.NormalDropOffWs, NormalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(ToonFields.Normal, descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
-                                                descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
-                                                descs.Contains(BlockFields.SurfaceDescription.NormalWS)
+            context.AddField(ToonFields.Normal, descs.Contains(ToonBlockFields.SurfaceDescription.NormalOs) ||
+                                                descs.Contains(ToonBlockFields.SurfaceDescription.NormalTs) ||
+                                                descs.Contains(ToonBlockFields.SurfaceDescription.NormalWs)
             );
         }
 
@@ -375,6 +375,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             public static readonly BlockFieldDescriptor[] FragmentDefault =
             {
+                ToonBlockFields.SurfaceDescription.NormalTs,
+                ToonBlockFields.SurfaceDescription.NormalOs,
+                ToonBlockFields.SurfaceDescription.NormalWs,
+                
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.Alpha,
                 ToonBlockFields.SurfaceDescription.AlphaClipThreshold,

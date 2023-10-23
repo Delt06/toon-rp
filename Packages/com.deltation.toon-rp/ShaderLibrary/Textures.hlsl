@@ -2,6 +2,7 @@
 #define TOON_RP_TEXTURES
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 #define CONSTRUCT_TILING_OFFSET_NAME(textureName) textureName ## _ST
 #define DECLARE_TILING_OFFSET(textureName) float4 CONSTRUCT_TILING_OFFSET_NAME(textureName);

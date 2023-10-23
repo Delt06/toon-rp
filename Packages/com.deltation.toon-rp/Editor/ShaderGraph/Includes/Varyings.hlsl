@@ -200,7 +200,7 @@ float3 GetNormalWsFromVaryings(SurfaceDescription surfaceDescription, Varyings v
     #if defined(_NORMALMAP)
     #if _NORMAL_DROPOFF_TS
     // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-    float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+    float crossSign = (varyings.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
     float3 bitangent = crossSign * cross(varyings.normalWS.xyz, varyings.tangentWS.xyz);
     float3 normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, float3x3(varyings.tangentWS.xyz, bitangent, varyings.normalWS.xyz));
     #elif _NORMAL_DROPOFF_OS

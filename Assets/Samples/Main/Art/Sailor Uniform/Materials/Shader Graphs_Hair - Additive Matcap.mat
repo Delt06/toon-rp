@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs_Hair - Additive Matcap
+  m_Shader: {fileID: -6465566751694194690, guid: 2cf7adda0605af64fa9a41c2c1e7a755, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Matcap:
+        m_Texture: {fileID: 2800000, guid: b9c9ba2744297fb47b909958f732348c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture:
+        m_Texture: {fileID: 2800000, guid: bb2dbafa79a9b7941858d92afb487735, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ControlOutlinesStencilLayer: 1
+    - _ForwardStencilComp: 0
+    - _ForwardStencilPass: 0
+    - _ForwardStencilRef: 0
+    - _ForwardStencilWriteMask: 0
+    - _MatcapShadowBlend: 0.164
+    - _OutlinesStencilLayer: 0
+    - _ReceiveBlobShadows: 0
+    m_Colors:
+    - _Albedo: {r: 1, g: 0.7921569, b: 0.37254897, a: 1}
+    - _MatcapTint: {r: 3.4415908, g: 2.7748952, b: 1.3153723, a: 1}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.6117647}
+  m_BuildTextureStacks: []

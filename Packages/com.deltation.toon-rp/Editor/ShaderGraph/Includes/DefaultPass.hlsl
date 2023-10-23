@@ -89,7 +89,8 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     const float3 ambient = SampleSH(normalWs) * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
-    const float3 emission = surfaceDescription.Emission * albedo.a;
+    float3 emission = surfaceDescription.Emission * albedo.a;
+    emission = lerp(emission * shadowAttenuation, emission, surfaceDescription.EmissionShadowBlend);
 
     float3 outputColor = lights + rim + ambient + emission;
 

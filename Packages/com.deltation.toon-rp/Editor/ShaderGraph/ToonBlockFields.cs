@@ -48,6 +48,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Emission = new(Name, "Emission", "SURFACEDESCRIPTION_EMISSION",
                 new ColorControl(Color.black, true), ShaderStage.Fragment
             );
+            public static readonly BlockFieldDescriptor EmissionShadowBlend = new(Name, "EmissionShadowBlend", "Emission Shadow Blend", 
+                "SURFACEDESCRIPTION_EMISSIONSHADOWBLEND",
+                new FloatControl(1.0f), ShaderStage.Fragment
+            );
             public static readonly BlockFieldDescriptor Alpha = new(Name, "Alpha", "SURFACEDESCRIPTION_ALPHA",
                 new FloatControl(1.0f), ShaderStage.Fragment
             );

@@ -77,6 +77,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
+            
+            context.AddBlock(ToonBlockFields.SurfaceDescription.EmissionShadowBlend);
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.NormalOs,
                 NormalDropOffSpace == NormalDropOffSpace.Object
@@ -383,6 +385,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.Alpha,
                 ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
                 ToonBlockFields.SurfaceDescription.Emission,
+                ToonBlockFields.SurfaceDescription.EmissionShadowBlend,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
 

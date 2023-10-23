@@ -25,6 +25,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.AssetCallbacks
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.NormalTs,
                 ToonBlockFields.SurfaceDescription.Emission,
+                ToonBlockFields.SurfaceDescription.EmissionShadowBlend,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
                 ToonBlockFields.SurfaceDescription.SpecularColor,

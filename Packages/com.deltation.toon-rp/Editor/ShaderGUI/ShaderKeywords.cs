@@ -14,5 +14,6 @@
         public const string ForceDisableFog = "_FORCE_DISABLE_FOG";
         public const string ForceDisableEnvironmentLight = "_FORCE_DISABLE_ENVIRONMENT_LIGHT";
         public const string HasOutlinesStencilLayer = "_HAS_OUTLINES_STENCIL_LAYER";
+        public const string SoftParticles = "_SOFT_PARTICLES";
     }
 }

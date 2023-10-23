@@ -10,7 +10,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     public sealed class ToonRpParticlesUnlitShaderGui : ToonRpShaderGuiBase
     {
         private const string SoftParticlesPropertyName = "_SoftParticles";
-        private const string SoftParticlesKeyword = "_SOFT_PARTICLES";
+        private const string SoftParticlesKeyword = ShaderKeywords.SoftParticles;
         private static readonly int SoftParticlesPropertyId = Shader.PropertyToID(SoftParticlesPropertyName);
 
         protected override void DrawProperties()

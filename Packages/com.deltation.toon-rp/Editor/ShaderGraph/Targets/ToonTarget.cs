@@ -89,6 +89,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
+        internal override bool prefersSpritePreview => _activeSubTarget.value is ToonParticlesUnlitSubTarget;
 
         public string RenderType => SurfaceType == SurfaceType.Transparent
             ? $"{UnityEditor.ShaderGraph.RenderType.Transparent}"

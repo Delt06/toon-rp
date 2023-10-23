@@ -3,7 +3,11 @@
     public static class ToonPasses
     {
         public static readonly Pass Forward = new("Toon RP Forward", "ToonRPForward", "SHADERPASS_FORWARD");
-        public static readonly Pass ForwardUnlit = new("Toon RP Forward (Unlit)", "ToonRPForward", "SHADERPASS_FORWARD_UNLIT");
+        public static readonly Pass ForwardUnlit =
+            new("Toon RP Forward (Unlit)", "ToonRPForward", "SHADERPASS_FORWARD_UNLIT");
+        public static readonly Pass ForwardParticlesUnlit = new("Toon RP Forward (Particles Unlit)", "ToonRPForward",
+            "SHADERPASS_FORWARD_PARTICLES_UNLIT"
+        );
         public static readonly Pass DepthOnly = new("Toon RP Depth Only", "ToonRPDepthOnly", "SHADERPASS_DEPTHONLY"
         );
         public static readonly Pass DepthNormals =

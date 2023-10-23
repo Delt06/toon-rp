@@ -6,7 +6,7 @@ namespace DELTation.ToonRP
 {
     public sealed class ToonCameraRenderTarget
     {
-        private static readonly int ToonScreenParamsId = Shader.PropertyToID("_ToonScreenParams");
+        private static readonly int ToonScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ScreenParams");
         public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");

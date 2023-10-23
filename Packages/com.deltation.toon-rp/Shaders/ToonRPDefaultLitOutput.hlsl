@@ -59,8 +59,6 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     #endif // EMISSION
 
     float3 outputColor = lights + rim + ambient + emission;
-    TOON_RP_MATCAP_APPLY_MULTIPLICATIVE(outputColor, IN, _MatcapBlend, _MatcapTint);
-    TOON_RP_MATCAP_APPLY_ADDITIVE(outputColor, IN, shadowAttenuation, _MatcapBlend, _MatcapTint);
     return outputColor;
 }
 

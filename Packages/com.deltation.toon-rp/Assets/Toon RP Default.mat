@@ -44,7 +44,6 @@ Material:
     - _ForwardStencilRef: 0
     - _ForwardStencilWriteMask: 0
     - _MatcapBlend: 1
-    - _MatcapMode: 0
     - _OutlinesStencilLayer: 0
     - _OverrideRamp: 0
     - _OverrideRamp_RimSmoothness: 0.1

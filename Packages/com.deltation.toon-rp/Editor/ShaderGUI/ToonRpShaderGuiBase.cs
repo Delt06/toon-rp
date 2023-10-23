@@ -357,45 +357,6 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             EditorGUI.indentLevel--;
         }
 
-        protected void DrawMatcap()
-        {
-            EditorGUI.BeginChangeCheck();
-            const string matcapMode = "_MatcapMode";
-            DrawProperty(matcapMode, out MaterialProperty matcapModeProperty);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                ForEachMaterial(m =>
-                    {
-                        var matcapModeValue = (MatcapMode) m.GetFloat(matcapMode);
-                        m.SetKeyword("_MATCAP_ADDITIVE", matcapModeValue == MatcapMode.Additive);
-                        m.SetKeyword("_MATCAP_MULTIPLICATIVE", matcapModeValue == MatcapMode.Multiplicative);
-                    }
-                );
-            }
-
-            if (matcapModeProperty.hasMixedValue || matcapModeProperty.floatValue == 0)
-            {
-                return;
-            }
-
-            EditorGUI.indentLevel++;
-            DrawProperty("_MatcapTexture");
-            DrawProperty("_MatcapTint");
-
-            const string matcapBlend = "_MatcapBlend";
-            if ((MatcapMode) matcapModeProperty.floatValue == MatcapMode.Additive)
-            {
-                DrawProperty(matcapBlend, "Matcap Shadow Blend");
-            }
-            else
-            {
-                DrawProperty(matcapBlend);
-            }
-
-            EditorGUI.indentLevel--;
-        }
-
         protected void DrawBlobShadows()
         {
             MaterialProperty property = FindProperty(PropertyNames.ReceiveBlobShadows, Properties);

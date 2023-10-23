@@ -2,7 +2,6 @@
 #define TOON_RP_DEFAULT_V2F
 
 #include "../ShaderLibrary/Fog.hlsl"
-#include "../ShaderLibrary/Matcap.hlsl"
 
 struct v2f
 {
@@ -22,7 +21,6 @@ struct v2f
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
     TOON_RP_FOG_FACTOR_INTERPOLANT
-    TOON_RP_MATCAP_UV_INTERPOLANT
 
     float4 positionCs : SV_POSITION;
 };

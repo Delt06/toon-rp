@@ -4,7 +4,6 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Fog.hlsl"
 #include "../ShaderLibrary/ToonLighting.hlsl"
-#include "../ShaderLibrary/Matcap.hlsl"
 
 #ifdef UNLIT
 
@@ -55,7 +54,6 @@ v2f VS(const appdata IN)
     const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
     OUT.positionWs = positionWs;
-    TOON_RP_MATCAP_UV_TRANSFER(OUT, normalWs);
 
     #endif // !UNLIT
 

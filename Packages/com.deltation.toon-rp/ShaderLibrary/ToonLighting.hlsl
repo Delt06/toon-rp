@@ -6,7 +6,6 @@
 #include "Fog.hlsl"
 #include "Lighting.hlsl"
 #include "NormalMap.hlsl"
-#include "Matcap.hlsl"
 #include "Ramp.hlsl"
 #include "SSAO.hlsl"
 #include "TiledLighting.hlsl"

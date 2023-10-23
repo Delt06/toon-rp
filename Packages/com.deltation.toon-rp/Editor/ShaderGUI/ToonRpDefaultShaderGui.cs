@@ -35,7 +35,6 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 DrawNormalMap();
                 DrawBlobShadows();
                 DrawOverrideRamp();
-                DrawMatcap();
             }
 
             EditorGUILayout.Space();

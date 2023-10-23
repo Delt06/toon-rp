@@ -839,6 +839,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
             ToonBlockFields.SurfaceDescription.Albedo,
+            ToonBlockFields.SurfaceDescription.Emission,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };

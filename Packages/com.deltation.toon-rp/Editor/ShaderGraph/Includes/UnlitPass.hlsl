@@ -36,7 +36,8 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     albedo.rgb *= albedo.a;
     #endif // _ALPHAPREMULTIPLY_ON
 
-    float3 outputColor = albedo.rgb;
+    const float3 emission = surfaceDescription.Emission * albedo.a;
+    float3 outputColor = albedo.rgb + emission;
 
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;

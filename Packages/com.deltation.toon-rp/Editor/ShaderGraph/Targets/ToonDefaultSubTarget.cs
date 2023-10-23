@@ -46,30 +46,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             if (target.AllowMaterialOverride)
             {
-                // copy our target's default settings into the material
-                // (technically not necessary since we are always recreating the material from the shader each time,
-                // which will pull over the defaults from the shader definition)
-                // but if that ever changes, this will ensure the defaults are set
-                material.SetFloat(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ReceiveShadows, target.ReceiveShadows ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.SurfaceType, (float) target.SurfaceType);
-                material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
-                material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
                 );
-                material.SetFloat(PropertyNames.RenderFace, (int) target.RenderFace);
-                material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
-                material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
             }
 
-            material.SetFloat(PropertyNames.ControlOutlinesStencilLayer,
-                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
-            );
             material.SetFloat(PropertyNames.ReceiveBlobShadows, 0.0f);
         }
 
@@ -132,35 +117,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             if (target.AllowMaterialOverride)
             {
-                collector.AddFloatProperty(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ReceiveShadows, target.ReceiveShadows ? 1.0f : 0.0f);
 
-                // setup properties using the defaults
-                collector.AddFloatProperty(PropertyNames.SurfaceType, (float) target.SurfaceType);
-                collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
-                collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
                 );
-                collector.AddFloatProperty(PropertyNames.BlendSrc, 1.0f
-                ); // always set by material inspector, ok to have incorrect values here
-                collector.AddFloatProperty(PropertyNames.BlendDst, 0.0f
-                ); // always set by material inspector, ok to have incorrect values here
-                collector.AddToggleProperty(PropertyNames.ZWrite, target.SurfaceType == SurfaceType.Opaque);
-                collector.AddFloatProperty(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
-                collector.AddFloatProperty(PropertyNames.ZTest, (float) target.ZTestMode
-                ); // ztest mode is designed to directly pass as ztest
-                collector.AddFloatProperty(PropertyNames.RenderFace, (float) target.RenderFace
-                ); // render face enum is designed to directly pass as a cull mode
             }
 
-            collector.AddFloatProperty(PropertyNames.ControlOutlinesStencilLayer,
-                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
-            );
             collector.AddFloatProperty(PropertyNames.ReceiveBlobShadows, 0.0f);
         }
 

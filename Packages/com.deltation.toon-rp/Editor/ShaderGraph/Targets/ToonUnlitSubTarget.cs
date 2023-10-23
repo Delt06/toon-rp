@@ -1,9 +1,7 @@
 using System;
-using DELTation.ToonRP.Editor.ShaderGUI;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
-using UnityEngine;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;
 
 namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
@@ -34,31 +32,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.RenderType, target.RenderQueue)));
         }
 
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            base.ProcessPreviewMaterial(material);
-
-            if (target.AllowMaterialOverride)
-            {
-                // copy our target's default settings into the material
-                // (technically not necessary since we are always recreating the material from the shader each time,
-                // which will pull over the defaults from the shader definition)
-                // but if that ever changes, this will ensure the defaults are set
-                material.SetFloat(PropertyNames.SurfaceType, (float) target.SurfaceType);
-                material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
-                material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.RenderFace, (int) target.RenderFace);
-                material.SetFloat(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
-                material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
-            }
-
-            material.SetFloat(PropertyNames.ControlOutlinesStencilLayer,
-                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
-            );
-        }
-
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(ToonBlockFields.SurfaceDescription.Alpha,
@@ -67,29 +40,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
                 target.AlphaClip || target.AllowMaterialOverride
             );
-        }
-
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            base.CollectShaderProperties(collector, generationMode);
-
-            if (target.AllowMaterialOverride)
-            {
-                collector.AddFloatProperty(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
-
-                collector.AddFloatProperty(PropertyNames.SurfaceType, (float) target.SurfaceType);
-                collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
-                collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
-                collector.AddFloatProperty(PropertyNames.BlendSrc, 1.0f); // always set by material inspector
-                collector.AddFloatProperty(PropertyNames.BlendDst, 0.0f); // always set by material inspector
-                collector.AddToggleProperty(PropertyNames.ZWrite, target.SurfaceType == SurfaceType.Opaque);
-                collector.AddFloatProperty(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
-                collector.AddFloatProperty(PropertyNames.ZTest, (float) target.ZTestMode
-                ); // ztest mode is designed to directly pass as ztest
-                collector.AddFloatProperty(PropertyNames.RenderFace, (float) target.RenderFace
-                ); // render face enum is designed to directly pass as a cull mode
-            }
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,

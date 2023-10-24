@@ -448,13 +448,12 @@ namespace DELTation.ToonRP.Editor.Stripping
         {
             for (int i = 0; i < data.Count; i++)
             {
-                ShaderCompilerData shaderCompilerData = data[i];
-                if (!ShouldStripComputeShader(shader, shaderCompilerData))
+                if (!ShouldStripComputeShader(shader))
                 {
                     continue;
                 }
 
-                data.RemoveAt(i);
+                FastRemoveAt(data, i);
                 --i;
             }
         }
@@ -466,14 +465,28 @@ namespace DELTation.ToonRP.Editor.Stripping
             for (int i = 0; i < data.Count; i++)
             {
                 ShaderCompilerData shaderCompilerData = data[i];
-                if (!ShouldStripShader(shader, shaderCompilerData))
+                if (!ShouldStripShader(shader, ref shaderCompilerData))
                 {
                     continue;
                 }
 
-                data.RemoveAt(i);
+                FastRemoveAt(data, i);
                 --i;
             }
+        }
+
+        private static void FastRemoveAt<T>(IList<T> list, int index)
+        {
+            int lastIndex = list.Count - 1;
+            if (index == lastIndex)
+            {
+                list.RemoveAt(index);
+                return;
+            }
+            
+            // move the deleted item to the end then remove it
+            (list[lastIndex], list[index]) = (list[index], list[lastIndex]);
+            list.RemoveAt(lastIndex);
         }
 
         private void AddLocalKeywordToStrip(string shaderName, string keyword)
@@ -486,7 +499,7 @@ namespace DELTation.ToonRP.Editor.Stripping
             keywords.Add(keyword);
         }
 
-        private bool ShouldStripComputeShader(ComputeShader computeShader, ShaderCompilerData shaderCompilerData) =>
+        private bool ShouldStripComputeShader(ComputeShader computeShader) =>
             _computeShadersToStrip.Contains(computeShader.name);
 
         private void ReportStrippingConfiguration()
@@ -611,7 +624,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 a.PostProcessing.Passes.OfType<TPass>().Any()
             );
 
-        private bool ShouldStripShader(Shader shader, ShaderCompilerData shaderCompilerData)
+        private bool ShouldStripShader(Shader shader, ref ShaderCompilerData shaderCompilerData)
         {
             if (_shadersToStrip.Contains(shader.name))
             {

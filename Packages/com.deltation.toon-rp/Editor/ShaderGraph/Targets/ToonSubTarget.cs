@@ -127,22 +127,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         protected static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor) =>
             subShaderDescriptor;
-
-        // TODO: Check if we need this
-        // private int lastMaterialNeedsUpdateHash = 0;
-        // protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
-        // public override object saveContext
-        // {
-        //     get
-        //     {
-        //         int hash = ComputeMaterialNeedsUpdateHash();
-        //         bool needsUpdate = hash != lastMaterialNeedsUpdateHash;
-        //         if (needsUpdate)
-        //             lastMaterialNeedsUpdateHash = hash;
-        //
-        //         return new ToonShaderGraphSaveContext { updateMaterials = needsUpdate };
-        //     }
-        // }
     }
 
     internal static class SubShaderUtils

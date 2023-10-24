@@ -200,14 +200,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             );
         }
 
-        // TODO: check if we need this
-        // protected override int ComputeMaterialNeedsUpdateHash()
-        // {
-        //     int hash = base.ComputeMaterialNeedsUpdateHash();
-        //     hash = hash * 23 + target.allowMaterialOverride.GetHashCode();
-        //     return hash;
-        // }
-
         #region SubShader
 
         private static class SubShaders

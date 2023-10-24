@@ -86,7 +86,11 @@ float GetSsao(const LightComputationParameters parameters)
 
 float GetShadowAttenuation(const LightComputationParameters parameters, const Light light)
 {
-    #if defined(_TOON_RP_ANY_SHADOWS) || defined(_RECEIVE_BLOB_SHADOWS)
+    #if defined(_TOON_RP_BLOB_SHADOWS) && !defined(_RECEIVE_BLOB_SHADOWS)
+    return 1.0f;
+    #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
+    
+    #if defined(_TOON_RP_ANY_SHADOWS)
     
     float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, parameters.positionWs);
     #ifdef _TOON_RP_SHADOWS_PATTERN
@@ -95,11 +99,11 @@ float GetShadowAttenuation(const LightComputationParameters parameters, const Li
     #endif // _TOON_RP_SHADOWS_PATTERN
     return shadowAttenuation;
 
-    #else // !_TOON_RP_ANY_SHADOWS && !_TOON_RP_BLOB_SHADOWS
+    #else // !_TOON_RP_ANY_SHADOWS
 
     return 1.0f;
 
-    #endif  // _TOON_RP_ANY_SHADOWS || _TOON_RP_BLOB_SHADOWS
+    #endif  // _TOON_RP_ANY_SHADOWS
 }
 
 Light GetMainLight(const LightComputationParameters parameters)

@@ -19,9 +19,6 @@ float _OverrideRamp_Smoothness;
 float _OverrideRamp_SpecularSmoothness;
 float _OverrideRamp_RimSmoothness;
 
-float3 _MatcapTint;
-float _MatcapBlend;
-
 CBUFFER_END
 
 TEXTURE2D(_MainTexture);

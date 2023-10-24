@@ -3,7 +3,7 @@
 
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Fog.hlsl"
-#include "../ShaderLibrary/Matcap.hlsl"
+#include "../ShaderLibrary/ToonLighting.hlsl"
 
 #ifdef UNLIT
 
@@ -54,7 +54,6 @@ v2f VS(const appdata IN)
     const half3 normalWs = TransformObjectToWorldNormal(IN.normal);
     OUT.normalWs = normalWs;
     OUT.positionWs = positionWs;
-    TOON_RP_MATCAP_UV_TRANSFER(OUT, normalWs);
 
     #endif // !UNLIT
 
@@ -66,7 +65,11 @@ v2f VS(const appdata IN)
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(positionWs, normalWs, uv, 1);
+    LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
+    lightComputationParameters.positionWs = positionWs;
+    lightComputationParameters.positionCs = positionCs;
+    lightComputationParameters.normalWs = normalWs;
+    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(lightComputationParameters, 1);
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
@@ -76,9 +79,6 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
-    #ifdef UNITY_FRAGMENT_SHADER
-    return 1;
-    #endif
     float4 albedo = SampleAlbedo(IN.uv);
     AlphaClip(albedo);
 

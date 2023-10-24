@@ -32,7 +32,7 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType" = "Transparent" "Queue" = "Transparent" "PreviewType" = "Plane" }
+		Tags { "RenderType" = "Transparent" "Queue" = "Transparent" "PreviewType" = "Plane" "RenderPipeline" = "ToonRP" }
 		ZWrite [_ZWrite]
 		Cull [_RenderFace]
 		LOD 100

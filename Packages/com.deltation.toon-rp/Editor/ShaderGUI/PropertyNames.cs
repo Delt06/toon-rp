@@ -15,15 +15,34 @@
         public const string RenderFace = "_RenderFace";
         public const string EmissionColor = "_EmissionColor";
 
+        public const string ControlOutlinesStencilLayer = "_ControlOutlinesStencilLayer";
+        public const string OutlinesStencilLayer = "_OutlinesStencilLayer";
+        public const string ForwardStencilRef = "_ForwardStencilRef";
+        public const string ForwardStencilWriteMask = "_ForwardStencilWriteMask";
+        public const string ForwardStencilComp = "_ForwardStencilComp";
+        public const string ForwardStencilPass = "_ForwardStencilPass";
+
         public const string ShadowColorPropertyName = "_ShadowColor";
         public const string SpecularColorPropertyName = "_SpecularColor";
         public const string SpecularSizePropertyName = "_SpecularSizeOffset";
         public const string RimColorPropertyName = "_RimColor";
         public const string NormalMapPropertyName = "_NormalMap";
 
+        public const string Specular = "_ToonLightingSpecular";
+        public const string Rim = "_Rim";
+        public const string OverrideRamp = "_OverrideRamp";
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";
         public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
 
+        public const string CastShadows = "_CastShadows";
+        public const string ReceiveShadows = "_ReceiveShadows";
+        public const string ReceiveBlobShadows = "_ReceiveBlobShadows";
+
+        // For ShaderGraph shaders only
+        public const string ZTest = "_ZTest";
+        public const string RenderQueue = "_RenderQueue";
         public const string QueueOffset = "_QueueOffset";
+        public const string QueueControl = "_QueueControl";
+        public const string ZWriteControl = "_ZWriteControl";
     }
 }

@@ -4,6 +4,7 @@ using DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -15,21 +16,31 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
     {
         private const string ShadowCasterPassName = "ShadowCaster";
 
-        private const string OutlinesStencilLayerPropertyName = "_OutlinesStencilLayer";
         private static readonly Dictionary<string, bool> Foldouts = new();
-        private static readonly int ForwardStencilRefId = Shader.PropertyToID("_ForwardStencilRef");
-        private static readonly int ForwardStencilWriteMaskId = Shader.PropertyToID("_ForwardStencilWriteMask");
-        private static readonly int ForwardStencilCompId = Shader.PropertyToID("_ForwardStencilComp");
-        private static readonly int ForwardStencilPassId = Shader.PropertyToID("_ForwardStencilPass");
-        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(OutlinesStencilLayerPropertyName);
+        private static readonly int ForwardStencilRefId = Shader.PropertyToID(PropertyNames.ForwardStencilRef);
+        private static readonly int ForwardStencilWriteMaskId =
+            Shader.PropertyToID(PropertyNames.ForwardStencilWriteMask);
+        private static readonly int ForwardStencilCompId = Shader.PropertyToID(PropertyNames.ForwardStencilComp);
+        private static readonly int ForwardStencilPassId = Shader.PropertyToID(PropertyNames.ForwardStencilPass);
+        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(PropertyNames.OutlinesStencilLayer);
         private GUIStyle _headerStyle;
-        private MaterialEditor _materialEditor;
+        protected MaterialEditor MaterialEditor { get; private set; }
 
-        private MaterialProperty[] Properties { get; set; }
+        protected MaterialProperty[] Properties { get; private set; }
 
-        protected Object[] Targets => _materialEditor.targets;
+        protected Object[] Targets => MaterialEditor.targets;
 
         public virtual bool OutlinesStencilLayer => false;
+
+        protected void DrawShaderGraphProperties(IEnumerable<MaterialProperty> properties)
+        {
+            if (properties == null)
+            {
+                return;
+            }
+
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(MaterialEditor, properties);
+        }
 
         protected void ForEachMaterial(Action<Material> action)
         {
@@ -39,14 +50,27 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
         }
 
-        protected Material GetFirstMaterial() => (Material) _materialEditor.target;
+        protected bool AllMaterials(Predicate<Material> predicate)
+        {
+            foreach (Object target in Targets)
+            {
+                if (!predicate((Material) target))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        protected Material GetFirstMaterial() => (Material) MaterialEditor.target;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             _headerStyle = GUI.skin.label;
             _headerStyle.richText = true;
 
-            _materialEditor = materialEditor;
+            MaterialEditor = materialEditor;
             Properties = properties;
 
             {
@@ -58,15 +82,16 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (DrawFoldout(HeaderNames.Misc))
                 {
                     materialEditor.EnableInstancingField();
-                    DrawQueueOffset();
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        UpdateQueue();
-                    }
+                    DrawQueue();
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateQueue();
                 }
             }
 
-            _materialEditor = null;
+            MaterialEditor = null;
             Properties = null;
         }
 
@@ -96,14 +121,14 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         {
             property = FindProperty(propertyName, Properties);
             EditorGUI.BeginChangeCheck();
-            _materialEditor.ShaderProperty(property, labelOverride ?? property.displayName);
+            MaterialEditor.ShaderProperty(property, labelOverride ?? property.displayName);
             bool changed = EditorGUI.EndChangeCheck();
             return changed;
         }
 
         protected MaterialProperty FindProperty(string propertyName) => FindProperty(propertyName, Properties);
 
-        private void DrawQueueOffset()
+        protected virtual void DrawQueue()
         {
             MaterialProperty property = FindProperty(PropertyNames.QueueOffset, Properties);
             EditorGUI.showMixedValue = property.hasMixedValue;
@@ -113,7 +138,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             if (currentValue != newValue)
             {
                 property.floatValue = newValue;
-                _materialEditor.PropertiesChanged();
+                MaterialEditor.PropertiesChanged();
             }
 
             EditorGUI.showMixedValue = false;
@@ -209,7 +234,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
                 DrawProperty(PropertyNames.RenderFace);
 
-                if (OutlinesStencilLayer)
+                if (OutlinesStencilLayer && !IsCanUseOutlinesStencilLayerMixed())
                 {
                     DrawOutlinesStencilLayer();
                 }
@@ -246,7 +271,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             OnSetZWrite(zWrite);
         }
 
-        protected static bool IsZWriteOn(Material m) => m.GetFloat(PropertyNames.ZWrite) > 0.5f;
+        private static bool IsZWriteOn(Material m) => m.GetFloat(PropertyNames.ZWrite) > 0.5f;
 
         protected virtual void OnSetZWrite(bool zWrite) { }
 
@@ -263,16 +288,11 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             };
         }
 
-        private void DrawOutlinesStencilLayer()
+        protected void DrawOutlinesStencilLayer()
         {
-            if (IsCanUseOutlinesStencilLayerMixed())
-            {
-                return;
-            }
-
             EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer(GetFirstMaterial()));
 
-            if (DrawProperty(OutlinesStencilLayerPropertyName))
+            if (DrawProperty(PropertyNames.OutlinesStencilLayer))
             {
                 ForEachMaterial(UpdateStencil);
             }
@@ -284,7 +304,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         {
             var stencilLayer = (StencilLayer) m.GetFloat(OutlinesStencilLayerId);
 
-            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, "_HAS_OUTLINES_STENCIL_LAYER");
+            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, ShaderKeywords.HasOutlinesStencilLayer);
             if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
             {
                 byte reference = stencilLayer.ToReference();
@@ -304,7 +324,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             }
         }
 
-        private static bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
+        protected virtual bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
 
         private bool IsCanUseOutlinesStencilLayerMixed() => FindProperty(PropertyNames.ZWrite).hasMixedValue;
 
@@ -327,48 +347,25 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             EditorGUI.indentLevel--;
         }
 
-        protected void DrawMatcap()
+        protected void DrawBlobShadows()
         {
-            EditorGUI.BeginChangeCheck();
-            const string matcapMode = "_MatcapMode";
-            DrawProperty(matcapMode, out MaterialProperty matcapModeProperty);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                ForEachMaterial(m =>
-                    {
-                        var matcapModeValue = (MatcapMode) m.GetFloat(matcapMode);
-                        m.SetKeyword("_MATCAP_ADDITIVE", matcapModeValue == MatcapMode.Additive);
-                        m.SetKeyword("_MATCAP_MULTIPLICATIVE", matcapModeValue == MatcapMode.Multiplicative);
-                    }
-                );
-            }
-
-            if (matcapModeProperty.hasMixedValue || matcapModeProperty.floatValue == 0)
+            MaterialProperty property = FindProperty(PropertyNames.ReceiveBlobShadows, Properties);
+            if (property == null)
             {
                 return;
             }
 
-            EditorGUI.indentLevel++;
-            DrawProperty("_MatcapTexture");
-            DrawProperty("_MatcapTint");
-
-            const string matcapBlend = "_MatcapBlend";
-            if ((MatcapMode) matcapModeProperty.floatValue == MatcapMode.Additive)
+            EditorGUI.showMixedValue = property.hasMixedValue;
+            bool currentValue = property.floatValue > 0.5f;
+            bool newValue = EditorGUILayout.Toggle("Receive Blob Shadows", currentValue);
+            if (currentValue != newValue)
             {
-                DrawProperty(matcapBlend, "Matcap Shadow Blend");
-            }
-            else
-            {
-                DrawProperty(matcapBlend);
+                property.floatValue = newValue ? 1.0f : 0.0f;
+                ForEachMaterial(m => m.SetKeyword(ShaderKeywords.ReceiveBlobShadows, newValue));
+                MaterialEditor.PropertiesChanged();
             }
 
-            EditorGUI.indentLevel--;
-        }
-
-        protected void DrawBlobShadows()
-        {
-            DrawProperty("_ReceiveBlobShadows");
+            EditorGUI.showMixedValue = false;
         }
     }
 }

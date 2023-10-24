@@ -29,14 +29,6 @@
 	    _OverrideRamp_SpecularSmoothness ("Specular Smoothness", Range(0, 2)) = 0.005
 	    _OverrideRamp_RimSmoothness ("Rim Smoothness", Range(0, 2)) = 0.1
 	    
-	    [Enum(DELTation.ToonRP.MatcapMode)]
-	    _MatcapMode ("Matcap Mode", Float) = 0
-	    [NoScaleOffset]
-	    _MatcapTexture ("Matcap", 2D) = "black" {}
-	    [HDR]
-	    _MatcapTint ("Matcap Tint", Color) = (1, 1, 1, 1)
-	    _MatcapBlend ("Matcap Blend", Range(0, 1)) = 1
-	    
 	    [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
         _SurfaceType ("Surface Type", Float) = 0
         [Enum(DELTation.ToonRP.ToonBlendMode)]
@@ -62,7 +54,7 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType" = "Opaque" }
+		Tags { "RenderType" = "Opaque" "RenderPipeline" = "ToonRP" }
 		Cull [_RenderFace]
 		LOD 100
 	    
@@ -99,7 +91,7 @@
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultMultiCompileList.hlsl"
 			#include_with_pragmas "PragmaIncludes/ToonRPDefaultShaderFeatureList.hlsl"
 			#pragma shader_feature_local _FORCE_DISABLE_FOG
-			#pragma shader_feature_local _FORCE_DISABLE_ENVIRONMENT_LIGHT
+			#pragma shader_feature_local_fragment _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
 			#define DEFAULT_LITE
 			#include "ToonRPDefaultForwardPass.hlsl"

@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "com.unity.render-pipelines.core": "12.1.6",
+        "com.unity.shadergraph": "12.1.8",
         "com.unity.modules.uielements": "1.0.0"
     }
 }

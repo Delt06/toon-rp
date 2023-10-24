@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Default SG Material
+  m_Shader: {fileID: -6465566751694194690, guid: 87f56e4e225b28b4bac9adf6a640b4cd, type: 3}
+  m_ValidKeywords:
+  - _HAS_OUTLINES_STENCIL_LAYER
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2000
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Texture2D:
+        m_Texture: {fileID: 2800000, guid: 711563c8d3059ce47ab2f15089f480c9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ControlOutlinesStencilLayer: 1
+    - _ForwardStencilComp: 8
+    - _ForwardStencilPass: 2
+    - _ForwardStencilRef: 128
+    - _ForwardStencilWriteMask: 128
+    - _OutlinesStencilLayer: 8
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ReceiveBlobShadows: 0
+    - _RenderQueue: 2000
+    - _Smoothness: 0.081
+    - _Threshold: -0.126
+    - _ThresholdAmplitude: 0.5
+    m_Colors:
+    - _RampScale: {r: 150, g: 150, b: 0, a: 0}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.9019608}
+  m_BuildTextureStacks: []

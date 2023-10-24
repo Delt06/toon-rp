@@ -4,6 +4,7 @@
 #include "../../ShaderLibrary/Common.hlsl"
 #include "../../ShaderLibrary/DepthNormals.hlsl"
 #include "../../ShaderLibrary/Fog.hlsl"
+#include "../../ShaderLibrary/Particles.hlsl"
 
 #include "ToonRPParticlesUnlitInput.hlsl"
 
@@ -55,13 +56,6 @@ v2f VS(const appdata IN)
 #define ALBEDO_MUL albedo.a
 #endif
 
-float ComputeSoftParticlesFade(const float depth, const float bufferDepth)
-{
-    const float depthDelta = bufferDepth - depth;
-    const float nearAttenuation = (depthDelta - _SoftParticlesDistance) / _SoftParticlesRange;
-    return saturate(nearAttenuation);
-}
-
 float4 PS(const v2f IN) : SV_TARGET
 {
     float4 albedo = SampleAlbedo(IN.uv) * IN.color;
@@ -81,7 +75,7 @@ float4 PS(const v2f IN) : SV_TARGET
                       : LinearEyeDepth(bufferDepth, _ZBufferParams);
 
     #ifdef _SOFT_PARTICLES
-    ALBEDO_MUL *= ComputeSoftParticlesFade(depth, bufferDepth);
+    ALBEDO_MUL *= ComputeSoftParticlesFade(depth, bufferDepth, _SoftParticlesDistance, _SoftParticlesRange);
     #endif // _SOFT_PARTICLES
 
     float3 outputColor = albedo.rgb;

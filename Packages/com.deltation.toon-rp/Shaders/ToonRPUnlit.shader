@@ -33,7 +33,7 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType" = "Opaque" }
+		Tags { "RenderType" = "Opaque" "RenderPipeline" = "ToonRP" }
 		Cull [_RenderFace]
 		LOD 100
 	    

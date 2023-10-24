@@ -63,7 +63,13 @@ MonoBehaviour:
       BlurEarlyBailThreshold: 0.25
       BlurScatter: 1
       VsmPrecision: 0
-      SoftShadows: 0
+      SoftShadows:
+        Enabled: 0
+        Quality: 0
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.8
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.9
       Directional:
         Enabled: 1
@@ -73,7 +79,7 @@ MonoBehaviour:
         CascadeRatio2: 0.58
         CascadeRatio3: 0.85
         DepthBias: 0.102
-        NormalBias: 0.025
+        NormalBias: 0.02
         SlopeBias: 0
     Blobs:
       AtlasSize: 128

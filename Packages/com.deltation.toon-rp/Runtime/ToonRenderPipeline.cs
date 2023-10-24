@@ -8,6 +8,8 @@ namespace DELTation.ToonRP
 {
     public sealed class ToonRenderPipeline : RenderPipeline
     {
+        public const string PipelineTag = "ToonRP";
+
         private readonly ToonCameraRenderer _cameraRenderer = new();
         private readonly ToonCameraRendererSettings _cameraRendererSettings;
         private readonly ToonRenderingExtensionSettings _extensions;
@@ -19,6 +21,8 @@ namespace DELTation.ToonRP
             in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings,
             in ToonPostProcessingSettings postProcessingSettings, ToonRenderingExtensionSettings extensions)
         {
+            Shader.globalRenderPipeline = PipelineTag;
+
             _cameraRendererSettings = cameraRendererSettings;
             _globalRampSettings = globalRampSettings;
             _shadowSettings = shadowSettings;

@@ -36,7 +36,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             // Process SubShaders
             context.AddSubShader(
-                PostProcessSubShader(SubShaders.DefaultSubShader(target, this, target.RenderType, target.RenderQueue))
+                PostProcessSubShader(SubShaders.DefaultSubShader(target, this, target.RenderType,
+                        target.RenderQueueString
+                    )
+                )
             );
         }
 
@@ -77,7 +80,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
-            
+
             context.AddBlock(ToonBlockFields.SurfaceDescription.EmissionShadowBlend);
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.NormalOs,
@@ -372,7 +375,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.NormalTs,
                 ToonBlockFields.SurfaceDescription.NormalOs,
                 ToonBlockFields.SurfaceDescription.NormalWs,
-                
+
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.Alpha,
                 ToonBlockFields.SurfaceDescription.AlphaClipThreshold,

@@ -29,7 +29,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             }
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.Unlit(target, target.RenderType, target.RenderQueue)));
+            context.AddSubShader(
+                PostProcessSubShader(SubShaders.Unlit(target, target.RenderType, target.RenderQueueString))
+            );
         }
 
         #region SubShader

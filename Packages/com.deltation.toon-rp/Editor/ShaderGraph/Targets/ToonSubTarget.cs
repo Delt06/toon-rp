@@ -54,6 +54,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             base.ProcessPreviewMaterial(material);
 
+            material.SetFloat(PropertyNames.RenderQueue, (float) target.RenderQueue);
+            material.SetFloat(PropertyNames.QueueOffset, 0.0f);
+
             if (target.AllowMaterialOverride)
             {
                 // copy our target's default settings into the material
@@ -87,6 +90,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
+
+            collector.AddFloatProperty(PropertyNames.RenderQueue, (float) target.RenderQueue);
+            collector.AddFloatProperty(PropertyNames.QueueOffset, 0.0f);
 
             if (target.AllowMaterialOverride)
             {

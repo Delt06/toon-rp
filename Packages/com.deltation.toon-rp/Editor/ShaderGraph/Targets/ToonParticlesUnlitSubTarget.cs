@@ -44,7 +44,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             // Process SubShaders
             context.AddSubShader(PostProcessSubShader(SubShaders.ParticlesUnlit(target, target.RenderType,
-                        target.RenderQueue, SoftParticlesEffectivelyEnabled
+                        target.RenderQueueString, SoftParticlesEffectivelyEnabled
                     )
                 )
             );

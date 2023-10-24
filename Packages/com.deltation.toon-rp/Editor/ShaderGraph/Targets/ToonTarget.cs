@@ -10,6 +10,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 {
@@ -96,18 +97,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             : $"{UnityEditor.ShaderGraph.RenderType.Opaque}";
 
         // this sets up the default renderQueue -- but it can be overridden by ResetMaterialKeywords()
-        public string RenderQueue
+        public string RenderQueueString => RenderQueue.ToString();
+
+        public RenderQueue RenderQueue
         {
             get
             {
                 if (SurfaceType == SurfaceType.Transparent)
                 {
-                    return $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}";
+                    return RenderQueue.Transparent;
                 }
 
                 return AlphaClip
-                    ? $"{UnityEditor.ShaderGraph.RenderQueue.AlphaTest}"
-                    : $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
+                    ? RenderQueue.AlphaTest
+                    : RenderQueue.Geometry;
             }
         }
 

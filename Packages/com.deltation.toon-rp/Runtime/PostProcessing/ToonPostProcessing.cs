@@ -37,7 +37,7 @@ namespace DELTation.ToonRP.PostProcessing
             _enabledFullScreenPasses ??= new List<IToonPostProcessingPass>();
             _enabledFullScreenPasses.Clear();
 
-            if (camera.cameraType > CameraType.SceneView)
+            if (camera.cameraType > CameraType.SceneView || ToonSceneViewUtils.IsDrawingWireframes(camera))
             {
                 return;
             }

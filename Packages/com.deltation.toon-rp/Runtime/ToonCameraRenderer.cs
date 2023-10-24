@@ -279,6 +279,11 @@ namespace DELTation.ToonRP
             int rtHeight = _camera.pixelHeight;
 
             GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
+            if (ToonSceneViewUtils.IsDrawingWireframes(_camera))
+            {
+                renderTextureColorFormat = GetDefaultGraphicsFormat();
+            }
+
             bool renderToTexture = renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                                    msaaSamples > 1 ||
                                    _postProcessing.AnyFullScreenEffectsEnabled ||

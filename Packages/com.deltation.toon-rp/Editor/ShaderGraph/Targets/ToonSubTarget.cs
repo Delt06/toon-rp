@@ -1,10 +1,12 @@
 using System;
 using DELTation.ToonRP.Editor.ShaderGUI;
+using DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;
+using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 {
@@ -55,6 +57,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             base.ProcessPreviewMaterial(material);
 
             material.SetFloat(PropertyNames.RenderQueue, (float) target.RenderQueue);
+            material.SetFloat(PropertyNames.QueueControl, (float) QueueControl.Auto);
             material.SetFloat(PropertyNames.QueueOffset, 0.0f);
 
             if (target.AllowMaterialOverride)
@@ -91,7 +94,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             base.CollectShaderProperties(collector, generationMode);
 
-            collector.AddFloatProperty(PropertyNames.RenderQueue, (float) target.RenderQueue);
+            collector.AddEnumProperty(PropertyNames.RenderQueue, (float) target.RenderQueue, typeof(RenderQueue),
+                "Render Queue"
+            );
+            collector.AddEnumProperty(PropertyNames.QueueControl, (float) QueueControl.Auto, typeof(QueueControl),
+                "Queue Control"
+            );
             collector.AddFloatProperty(PropertyNames.QueueOffset, 0.0f);
 
             if (target.AllowMaterialOverride)

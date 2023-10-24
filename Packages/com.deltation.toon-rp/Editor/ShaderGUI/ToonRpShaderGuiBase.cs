@@ -32,8 +32,6 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         public virtual bool OutlinesStencilLayer => false;
 
-        protected virtual bool ControlQueue => true;
-
         protected void DrawShaderGraphProperties(IEnumerable<MaterialProperty> properties)
         {
             if (properties == null)
@@ -84,10 +82,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (DrawFoldout(HeaderNames.Misc))
                 {
                     materialEditor.EnableInstancingField();
-                    if (ControlQueue)
-                    {
-                        DrawQueueOffset();
-                    }
+                    DrawQueue();
                 }
 
                 if (EditorGUI.EndChangeCheck())
@@ -122,7 +117,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
         protected bool DrawProperty(string propertyName, string labelOverride = null) =>
             DrawProperty(propertyName, out MaterialProperty _, labelOverride);
 
-        private bool DrawProperty(string propertyName, out MaterialProperty property, string labelOverride = null)
+        protected bool DrawProperty(string propertyName, out MaterialProperty property, string labelOverride = null)
         {
             property = FindProperty(propertyName, Properties);
             EditorGUI.BeginChangeCheck();
@@ -133,7 +128,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         protected MaterialProperty FindProperty(string propertyName) => FindProperty(propertyName, Properties);
 
-        private void DrawQueueOffset()
+        protected virtual void DrawQueue()
         {
             MaterialProperty property = FindProperty(PropertyNames.QueueOffset, Properties);
             EditorGUI.showMixedValue = property.hasMixedValue;
@@ -151,11 +146,6 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         private void UpdateQueue()
         {
-            if (!ControlQueue)
-            {
-                return;
-            }
-
             ForEachMaterial(m =>
                 {
                     RenderQueue renderQueue = GetRenderQueue(m);

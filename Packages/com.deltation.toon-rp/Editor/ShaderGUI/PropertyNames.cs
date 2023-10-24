@@ -42,6 +42,7 @@
         public const string ZTest = "_ZTest";
         public const string RenderQueue = "_RenderQueue";
         public const string QueueOffset = "_QueueOffset";
+        public const string QueueControl = "_QueueControl";
         public const string ZWriteControl = "_ZWriteControl";
     }
 }

@@ -119,7 +119,7 @@ namespace DELTation.ToonRP.Shadows
             public float CascadeRatio1, CascadeRatio2, CascadeRatio3;
             [Range(0.0f, 2.0f)]
             public float DepthBias;
-            [Range(0.0f, 2.0f)]
+            [Range(-2.0f, 2.0f)]
             public float NormalBias;
             [Range(0.0f, 20.0f)]
             public float SlopeBias;

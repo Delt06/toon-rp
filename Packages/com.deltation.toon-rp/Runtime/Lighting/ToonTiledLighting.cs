@@ -19,7 +19,7 @@ namespace DELTation.ToonRP.Lighting
         public const string ComputeFrustumsComputeShaderName = "TiledLighting_ComputeFrustums";
         public const string CullLightsComputeShaderName = "TiledLighting_CullLights";
         public const string TiledLightingKeywordName = "_TOON_RP_TILED_LIGHTING";
-        private static readonly int ReservedLightsPerTileId = Shader.PropertyToID("_ReservedLightsPerTile");
+
         private readonly ToonStructuredComputeBuffer _frustumsBuffer = new(FrustumSize);
         private readonly ToonStructuredComputeBuffer _lightGrid = new(sizeof(uint) * 2);
         private readonly ToonStructuredComputeBuffer _lightIndexList = new(sizeof(uint));
@@ -113,7 +113,6 @@ namespace DELTation.ToonRP.Lighting
                 MaxLightsPerTile
             );
             _lightIndexList.Update(totalTilesCount * _reservedLightsPerTile * 2 + LightIndexListBaseIndexOffset);
-            _cullLightsKernel.Cs.SetInt(ReservedLightsPerTileId, _reservedLightsPerTile);
 
             _lighting.GetTiledAdditionalLightsBuffer(out _, out int tiledLightsCount);
             _tiledLightsBuffer.Update(tiledLightsCount);
@@ -142,6 +141,7 @@ namespace DELTation.ToonRP.Lighting
                     cmd.SetGlobalInt(ShaderIds.TilesYId, (int) _tilesY);
                     cmd.SetGlobalInt(ShaderIds.CurrentLightIndexListOffsetId, 0);
                     cmd.SetGlobalInt(ShaderIds.CurrentLightGridOffsetId, 0);
+                    cmd.SetGlobalInt(ShaderIds.ReservedLightsPerTileId, _reservedLightsPerTile);
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Clear Counters")))
                     {
@@ -178,10 +178,10 @@ namespace DELTation.ToonRP.Lighting
             PrepareForGeometryPass(cmd, TotalTilesCount);
         }
 
-        private static void PrepareForGeometryPass(CommandBuffer cmd, int offset)
+        private void PrepareForGeometryPass(CommandBuffer cmd, int offset)
         {
             cmd.SetGlobalInt(ShaderIds.CurrentLightIndexListOffsetId,
-                LightIndexListBaseIndexOffset + offset * ReservedLightsPerTileId
+                LightIndexListBaseIndexOffset + offset * _reservedLightsPerTile
             );
             cmd.SetGlobalInt(ShaderIds.CurrentLightGridOffsetId, offset);
         }
@@ -199,6 +199,8 @@ namespace DELTation.ToonRP.Lighting
                 Shader.PropertyToID("_TiledLighting_CurrentLightIndexListOffset");
             public static readonly int CurrentLightGridOffsetId =
                 Shader.PropertyToID("_TiledLighting_CurrentLightGridOffset");
+            public static readonly int ReservedLightsPerTileId =
+                Shader.PropertyToID("_TiledLighting_ReservedLightsPerTile");
         }
 
         private class ComputeShaderKernel
@@ -215,7 +217,7 @@ namespace DELTation.ToonRP.Lighting
                 Setup();
             }
 
-            public ComputeShader Cs { get; }
+            private ComputeShader Cs { get; }
 
             public void Setup()
             {

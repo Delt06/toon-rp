@@ -75,7 +75,12 @@
                         const uint lightGridIndex = TiledLighting_GetOpaqueLightGridIndex(flatTileIndex);
                         const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
                     
-                        output.r = (float) lightCount / _AdditionalLightCount;
+                        output.r = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
+
+                        if (output.r > 0.0f)
+                        {
+                            output.rg = lerp(float2(0.0f, 1.0f), float2(1.0f, 0.0f), output.r);
+                        }
                     }
 
                     if (_TiledLighting_ShowTransparent)
@@ -83,11 +88,16 @@
                         const uint lightGridIndex = TiledLighting_GetTransparentLightGridIndex(flatTileIndex);
                         const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
                     
-                        output.g = (float) lightCount / _AdditionalLightCount;
-                    }    
+                        output.b = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
+
+                        if (output.b > 0.0f)
+                        {
+                            output.b = output.g * 0.75f + 0.25f;
+                        }
+                    }
                 }
                 
-                return float4(lerp(SampleSource(IN.uv), output, 0.5), 1.0f);
+                return float4(lerp(SampleSource(IN.uv), output, 0.75f), 1.0f);
             }
 
 			ENDHLSL

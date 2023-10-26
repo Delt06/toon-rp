@@ -4,7 +4,6 @@
 // https://www.3dgep.com/forward-plus/
 
 #define TILE_SIZE 16
-#define RESERVED_LIGHTS_PER_TILE 2
 
 // the opaque and transparent light counters are stored in the beginning of the buffer
 #define LIGHT_INDEX_LIST_BASE_INDEX_OFFSET 2
@@ -19,6 +18,8 @@ CBUFFER_START(TiledLighting)
 
     uint _TiledLighting_CurrentLightIndexListOffset;
     uint _TiledLighting_CurrentLightGridOffset;
+
+    uint _TiledLighting_ReservedLightsPerTile;
 CBUFFER_END
 
 struct TiledLight
@@ -134,7 +135,7 @@ uint TiledLighting_GetOpaqueLightIndexListIndex(const uint tileIndex)
 
 uint TiledLighting_GetTransparentLightIndexListIndex(const uint tileIndex)
 {
-    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY * RESERVED_LIGHTS_PER_TILE;
+    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY * _TiledLighting_ReservedLightsPerTile;
     return transparentOffset + TiledLighting_GetOpaqueLightIndexListIndex(tileIndex);
 }
 

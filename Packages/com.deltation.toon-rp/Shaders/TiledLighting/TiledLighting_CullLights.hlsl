@@ -3,7 +3,6 @@
 StructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
 RWStructuredBuffer<uint2> _TiledLighting_LightGrid;
-uint _ReservedLightsPerTile;
 
 groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
@@ -24,7 +23,7 @@ void AppendLight_Opaque(const uint lightIndex)
     uint index;
     InterlockedAdd(g_LightList_Count_Opaque, 1, index);
 
-    if (index < _ReservedLightsPerTile)
+    if (index < _TiledLighting_ReservedLightsPerTile)
     {
         g_LightList_Opaque[index] = lightIndex;
     }
@@ -35,7 +34,7 @@ void AppendLight_Transparent(const uint lightIndex)
     uint index;
     InterlockedAdd(g_LightList_Count_Transparent, 1, index);
 
-    if (index < _ReservedLightsPerTile)
+    if (index < _TiledLighting_ReservedLightsPerTile)
     {
         g_LightList_Transparent[index] = lightIndex;
     }
@@ -129,7 +128,7 @@ void CS(
     {
         const uint tileIndex = TiledLighting_GetFlatTileIndex(groupId.x, groupId.y);
 
-        g_LightList_Count_Opaque = min(_ReservedLightsPerTile, g_LightList_Count_Opaque);
+        g_LightList_Count_Opaque = min(_TiledLighting_ReservedLightsPerTile, g_LightList_Count_Opaque);
         InterlockedAdd(_TiledLighting_LightIndexList[0],
                        g_LightList_Count_Opaque,
                        g_LightList_IndexStartOffset_Opaque);
@@ -137,7 +136,7 @@ void CS(
             g_LightList_IndexStartOffset_Opaque,
             g_LightList_Count_Opaque);
 
-        g_LightList_Count_Transparent = min(_ReservedLightsPerTile, g_LightList_Count_Transparent);
+        g_LightList_Count_Transparent = min(_TiledLighting_ReservedLightsPerTile, g_LightList_Count_Transparent);
         InterlockedAdd(_TiledLighting_LightIndexList[1],
                        g_LightList_Count_Transparent,
                        g_LightList_IndexStartOffset_Transparent);

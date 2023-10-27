@@ -10,6 +10,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private ToonAdditionalCameraData _additionalCameraData;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonRenderObjectsSettings _settings;
@@ -23,6 +24,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _camera = context.Camera;
             _cameraRendererSettings = context.CameraRendererSettings;
             _cullingResults = context.CullingResults;
+            _cameraRenderTarget = context.CameraRenderTarget;
             _additionalCameraData = context.AdditionalCameraData;
         }
 
@@ -46,7 +48,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     }
                 }
 
-                var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData);
+                var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData, _cameraRenderTarget);
                 cameraOverride.OverrideIfEnabled(cmd, _settings.Overrides.Camera);
                 _context.ExecuteCommandBufferAndClear(cmd);
 

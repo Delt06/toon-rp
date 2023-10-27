@@ -12,11 +12,14 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private bool _overriden;
         private readonly ToonAdditionalCameraData _additionalCameraData;
         private readonly bool _setInverse;
+        private readonly ToonCameraRenderTarget _cameraRenderTarget;
 
-        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData, bool setInverse = false)
+        public ToonCameraOverride(Camera camera, ToonAdditionalCameraData additionalCameraData,
+            ToonCameraRenderTarget cameraRenderTarget, bool setInverse = false)
         {
             _camera = camera;
             _additionalCameraData = additionalCameraData;
+            _cameraRenderTarget = cameraRenderTarget;
             Rect pixelRect = camera.pixelRect;
             _aspectRatio = pixelRect.width / pixelRect.height;
             _zNear = camera.nearClipPlane;
@@ -44,7 +47,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 _zNear,
                 _zFar
             );
-            Matrix4x4 projectionMatrix = ToonRpUtils.GetGPUProjectionMatrix(matrix);
+            Matrix4x4 projectionMatrix =
+                ToonRpUtils.GetGPUProjectionMatrix(matrix, _cameraRenderTarget.RenderToTexture);
             ToonRpUtils.SetViewAndProjectionMatrices(cmd, _camera.worldToCameraMatrix, projectionMatrix,
                 _setInverse
             );

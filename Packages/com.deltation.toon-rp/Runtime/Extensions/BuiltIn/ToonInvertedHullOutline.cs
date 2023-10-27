@@ -30,12 +30,26 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
 
         private ToonInvertedHullOutlineSettings _outlineSettings;
 
         public override bool ShouldRender(in ToonRenderingExtensionContext context) => IsGameOrSceneView(context);
+
+        public override void Setup(in ToonRenderingExtensionContext context,
+            IToonRenderingExtensionSettingsStorage settingsStorage)
+        {
+            _cameraRendererSettings = context.CameraRendererSettings;
+            _camera = context.Camera;
+            _context = context.ScriptableRenderContext;
+            _cullingResults = context.CullingResults;
+            _cameraRenderTarget = context.CameraRenderTarget;
+            _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
+            _additionalCameraData = context.AdditionalCameraData;
+            PopulateMaterialsForAllPasses();
+        }
 
         public override void Render()
         {
@@ -46,7 +60,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData);
+            var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData, _cameraRenderTarget);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
@@ -155,18 +169,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        public override void Setup(in ToonRenderingExtensionContext context,
-            IToonRenderingExtensionSettingsStorage settingsStorage)
-        {
-            _cameraRendererSettings = context.CameraRendererSettings;
-            _camera = context.Camera;
-            _context = context.ScriptableRenderContext;
-            _cullingResults = context.CullingResults;
-            _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
-            _additionalCameraData = context.AdditionalCameraData;
-            PopulateMaterialsForAllPasses();
         }
 
         private void PopulateMaterialsForAllPasses()

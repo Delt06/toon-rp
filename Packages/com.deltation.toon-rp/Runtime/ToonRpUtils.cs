@@ -75,8 +75,8 @@ namespace DELTation.ToonRP
             cmd.SetGlobalMatrix(ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjection);
         }
 
-        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix) =>
-            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop);
+        public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix, bool renderIntoTexture) =>
+            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop && renderIntoTexture);
 
         public static Vector4 BuildRampVectorFromEdges(float edge1, float edge2) =>
             BuildRampVectorFromSmoothness(edge1, edge2 - edge1);

@@ -33,9 +33,9 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 - [Shadows](https://github.com/Delt06/toon-rp/wiki/Shadows): multiple options for soft shadows and stylization.
 
-![Shadows](https://github.com/Delt06/toon-rp/assets/32465621/ad145e2c-b09d-40b1-a20c-537978e400dc) 
-![VSM Shadows](https://github.com/Delt06/toon-rp/assets/32465621/251fa5a1-03cf-4aaf-83de-4959e28fb6e8)
-![Blob Shadows](https://github.com/Delt06/toon-rp/assets/32465621/b28fc531-734b-4bc7-867d-9cfb0030cb02)
+| Crisp Shadows | Soft Shadows | Blob Shadows |
+|-|-|-|
+|![Shadows](https://github.com/Delt06/toon-rp/assets/32465621/ad145e2c-b09d-40b1-a20c-537978e400dc)|![VSM Shadows](https://github.com/Delt06/toon-rp/assets/32465621/251fa5a1-03cf-4aaf-83de-4959e28fb6e8)|![Blob Shadows](https://github.com/Delt06/toon-rp/assets/32465621/b28fc531-734b-4bc7-867d-9cfb0030cb02)|
 
 - Optional [Tiled Lighting (Forward+)](https://github.com/Delt06/toon-rp/wiki/Tiled-Lighting-(Forward-Plus)): render high counts of realtime lights.
 

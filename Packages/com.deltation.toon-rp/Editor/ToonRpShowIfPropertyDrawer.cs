@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using DELTation.ToonRP.Attributes;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine.UIElements;
 
@@ -18,12 +17,8 @@ namespace DELTation.ToonRP.Editor
 
         private const BindingFlags MemberBindingFlags = BindingFlags.Instance | BindingFlags.Static |
                                                         BindingFlags.Public | BindingFlags.NonPublic;
-        [CanBeNull]
-        private string _conditionPath;
-        [CanBeNull]
-        private Func<bool?> _getPropertyValue;
-        [CanBeNull]
-        private HelpBox _helpBox;
+
+        private readonly Dictionary<SerializedProperty, HelpBox> _helpBoxes = new();
 
         private static IEnumerable<string> BuildPropertyPathPieces(string basePath, int lastSkips,
             params string[] appends)
@@ -88,8 +83,9 @@ namespace DELTation.ToonRP.Editor
                 return;
             }
 
-            _helpBox = new HelpBox(showIfAttribute.HelpBoxMessage, showIfAttribute.HelpBoxMessageType);
-            root.Add(_helpBox);
+            var helpBox = new HelpBox(showIfAttribute.HelpBoxMessage, showIfAttribute.HelpBoxMessageType);
+            _helpBoxes[property] = helpBox;
+            root.Add(helpBox);
         }
 
         protected override VisualElement AddProperty(VisualElement root, SerializedProperty property)
@@ -97,16 +93,15 @@ namespace DELTation.ToonRP.Editor
             var showIfAttribute = (ToonRpShowIfAttribute) attribute;
             string basePropertyPath = property.propertyPath;
 
-            {
-                _conditionPath = BuildPropertyPath(basePropertyPath, 1, showIfAttribute.FieldName);
-            }
+            string conditionPath = BuildPropertyPath(basePropertyPath, 1, showIfAttribute.FieldName);
+            Func<bool?> getPropertyValue = null;
 
             {
                 if (showIfAttribute.FieldName != null)
                 {
                     IEnumerable<string> propertyPathPieces = BuildPropertyPathPieces(basePropertyPath, 1);
 
-                    _getPropertyValue = () =>
+                    getPropertyValue = () =>
                     {
                         object baseObject =
                             GetFieldValueRecursive(property.serializedObject.targetObject, propertyPathPieces);
@@ -116,9 +111,9 @@ namespace DELTation.ToonRP.Editor
                             ? (bool) propertyInfo.GetValue(baseObject)
                             : null;
                     };
-                    if (_getPropertyValue() == null)
+                    if (getPropertyValue() == null)
                     {
-                        _getPropertyValue = null;
+                        getPropertyValue = null;
                     }
                 }
             }
@@ -136,15 +131,15 @@ namespace DELTation.ToonRP.Editor
                     return;
                 }
 
-                SerializedProperty conditionProperty = property.serializedObject.FindProperty(_conditionPath);
+                SerializedProperty conditionProperty = property.serializedObject.FindProperty(conditionPath);
                 if (conditionProperty == null)
                 {
-                    if (_getPropertyValue != null)
+                    if (getPropertyValue != null)
                     {
-                        bool? propertyValue = _getPropertyValue();
+                        bool? propertyValue = getPropertyValue();
                         if (propertyValue.HasValue)
                         {
-                            SetTargetVisible(visualElement, propertyValue.Value);
+                            SetTargetVisible(visualElement, property, propertyValue.Value);
                         }
 
                         return;
@@ -162,15 +157,15 @@ namespace DELTation.ToonRP.Editor
                     return;
                 }
 
-                SetTargetVisible(visualElement, conditionProperty.boolValue);
+                SetTargetVisible(visualElement, property, conditionProperty.boolValue);
             };
 
             return visualElement;
         }
 
-        private void SetTargetVisible(VisualElement visualElement, bool visible)
+        private void SetTargetVisible(VisualElement visualElement, SerializedProperty property, bool visible)
         {
-            VisualElement target = _helpBox ?? visualElement;
+            VisualElement target = _helpBoxes.TryGetValue(property, out HelpBox helpBox) ? helpBox : visualElement;
             target.SetVisible(visible);
         }
     }

@@ -24,14 +24,36 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ## Features
 
-- [Full customization of the lighting ramp](https://github.com/Delt06/toon-rp/wiki/Global-Ramp);
-- Forward and [Forward+](https://github.com/Delt06/toon-rp/wiki/Tiled-Lighting-(Forward-Plus)) rendering paths;
-- [Shadows](https://github.com/Delt06/toon-rp/wiki/Shadows);
-- [Shader Graph support](https://github.com/Delt06/toon-rp/wiki/Shader-Graph);
-- [Screen-Space](https://github.com/Delt06/toon-rp/wiki/Screen‐Space-Outline) and [Inverted Hull Outlines](https://github.com/Delt06/toon-rp/wiki/Inverted-Hull-Outline);
-- Stylized post-processing effects ([bloom](https://github.com/Delt06/toon-rp/wiki/Bloom), [SSAO](https://github.com/Delt06/toon-rp/wiki/SSAO), etc.).
+> See the [project Wiki](https://github.com/Delt06/toon-rp/wiki) for the full feature list.
 
-See the [project Wiki](https://github.com/Delt06/toon-rp/wiki) for the full feature list.
+- [Full customization of the lighting ramp](https://github.com/Delt06/toon-rp/wiki/Global-Ramp): arbitrary threshold, smoothness, and number of steps.
+
+![Ramp](https://github.com/Delt06/toon-rp/assets/32465621/4bd838bf-afd6-46d7-9437-e1042b00dfe8)
+![Ramp Texture](https://user-images.githubusercontent.com/32465621/278110582-b180659a-da28-4c87-a374-375439725c5a.png)
+
+- [Shadows](https://github.com/Delt06/toon-rp/wiki/Shadows): multiple options for soft shadows and stylization.
+
+![Shadows](https://github.com/Delt06/toon-rp/assets/32465621/ad145e2c-b09d-40b1-a20c-537978e400dc) 
+![VSM Shadows](https://github.com/Delt06/toon-rp/assets/32465621/251fa5a1-03cf-4aaf-83de-4959e28fb6e8)
+![Blob Shadows](https://github.com/Delt06/toon-rp/assets/32465621/b28fc531-734b-4bc7-867d-9cfb0030cb02)
+
+- Optional [Tiled Lighting (Forward+)](https://github.com/Delt06/toon-rp/wiki/Tiled-Lighting-(Forward-Plus)): render high counts of realtime lights.
+
+![Tiled Lighting](https://github.com/Delt06/toon-rp/assets/32465621/a896782f-7f7a-49d5-acd3-c9b848390dc2)
+
+- [Shader Graph support](https://github.com/Delt06/toon-rp/wiki/Shader-Graph).
+
+![Shader Graph](https://user-images.githubusercontent.com/32465621/278428880-83cd2645-a14a-4548-b7c6-f1d54c4837c2.png)
+
+- [Screen-Space](https://github.com/Delt06/toon-rp/wiki/Screen‐Space-Outline) and [Inverted Hull Outlines](https://github.com/Delt06/toon-rp/wiki/Inverted-Hull-Outline).
+
+![Screen-Space Outlines](https://github.com/Delt06/toon-rp/assets/32465621/3b164de2-d7ad-4e70-b150-e2346e2a64f9)
+![Inverted HullOutlines](https://user-images.githubusercontent.com/32465621/278466766-627bf696-a9cf-4a79-ac7c-b7d41415e5ef.png)
+
+- Stylized post-processing effects: [bloom](https://github.com/Delt06/toon-rp/wiki/Bloom), [SSAO](https://github.com/Delt06/toon-rp/wiki/SSAO), etc.
+
+![Bloom](https://github.com/Delt06/toon-rp/assets/32465621/daa436eb-ee5b-45a9-9c5f-670c5557cc5d)
+![SSAO](https://user-images.githubusercontent.com/32465621/278386089-dc03df40-093a-4e9f-9b77-abbb79692ca5.png)
 
 ## Installation
 

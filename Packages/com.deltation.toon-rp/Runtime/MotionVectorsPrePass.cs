@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DELTation.ToonRP.Extensions;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -16,17 +17,20 @@ namespace DELTation.ToonRP
         private ScriptableRenderContext _context;
 
         private CullingResults _cullingResults;
+        private ToonRenderingExtensionsCollection _extensionsCollection;
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
+            ToonRenderingExtensionsCollection extensionsCollection,
             ToonAdditionalCameraData additionalCameraData,
             in ToonCameraRendererSettings settings, int rtWidth, int rtHeight)
         {
             _context = context;
             _cullingResults = cullingResults;
             _camera = camera;
+            _extensionsCollection = extensionsCollection;
             _additionalCameraData = additionalCameraData;
             _settings = settings;
             _rtWidth = rtWidth;
@@ -60,7 +64,7 @@ namespace DELTation.ToonRP
 
                 _context.ExecuteCommandBufferAndClear(cmd);
 
-                DrawRenderers();
+                DrawRenderers(cmd);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -75,7 +79,7 @@ namespace DELTation.ToonRP
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers()
+        private void DrawRenderers(CommandBuffer cmd)
         {
             var sortingSettings = new SortingSettings(_camera)
             {
@@ -97,6 +101,11 @@ namespace DELTation.ToonRP
             };
 
             _context.DrawRenderers(_cullingResults,
+                ref drawingSettings, ref filteringSettings, ref renderStateBlock
+            );
+
+            _extensionsCollection.OnPrePass(PrePassMode.MotionVectors,
+                ref _context, cmd,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
         }

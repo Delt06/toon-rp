@@ -5,6 +5,7 @@ namespace DELTation.ToonRP.Extensions
 {
     public readonly struct ToonRenderingExtensionContext
     {
+        public readonly ToonRenderingExtensionsCollection Collection;
         public readonly ScriptableRenderContext ScriptableRenderContext;
         public readonly Camera Camera;
         public readonly ToonCameraRendererSettings CameraRendererSettings;
@@ -12,7 +13,8 @@ namespace DELTation.ToonRP.Extensions
         public readonly ToonCameraRenderTarget CameraRenderTarget;
         public readonly ToonAdditionalCameraData AdditionalCameraData;
 
-        public ToonRenderingExtensionContext(ScriptableRenderContext scriptableRenderContext, Camera camera,
+        public ToonRenderingExtensionContext(ToonRenderingExtensionsCollection collection,
+            ScriptableRenderContext scriptableRenderContext, Camera camera,
             ToonCameraRendererSettings cameraRendererSettings, CullingResults cullingResults,
             ToonCameraRenderTarget cameraRenderTarget, ToonAdditionalCameraData additionalCameraData)
         {
@@ -22,6 +24,7 @@ namespace DELTation.ToonRP.Extensions
             CullingResults = cullingResults;
             CameraRenderTarget = cameraRenderTarget;
             AdditionalCameraData = additionalCameraData;
+            Collection = collection;
         }
     }
 }

@@ -46,6 +46,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public float MaxDistance;
             [Range(0.001f, 1f)]
             public float DistanceFade;
+            public PrePassMode PrePassIgnoreMask;
             public ToonCameraOverrideSettings CameraOverrides;
 
             public bool IsNoiseEnabled => NoiseAmplitude > 0.0f && NoiseFrequency > 0.0f;

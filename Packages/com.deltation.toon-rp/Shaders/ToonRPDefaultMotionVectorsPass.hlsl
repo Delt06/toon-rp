@@ -48,7 +48,7 @@ v2f VS(const appdata IN)
     OUT.positionCs = TransformWorldToHClip(positionWs);
     OUT.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
 
-    const float3 previousPosition = (unity_MotionVectorsParams.x == 1) ? IN.positionOld.xyz : IN.vertex;
+    const float3 previousPosition = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
     OUT.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));
 
     ApplyMotionVectorZBias(OUT.positionCs);

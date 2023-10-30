@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions
 {
@@ -183,6 +184,28 @@ namespace DELTation.ToonRP.Extensions
                 foreach (IToonRenderingExtension extension in extensions)
                 {
                     extension.Cleanup();
+                }
+            }
+        }
+
+        public void OnPrePass(PrePassMode prePassMode, ref ScriptableRenderContext context,
+            CommandBuffer cmd,
+            ref DrawingSettings drawingSettings, ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock)
+        {
+            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            {
+                if (extensions == null)
+                {
+                    continue;
+                }
+
+                foreach (IToonRenderingExtension extension in extensions)
+                {
+                    extension.OnPrePass(prePassMode,
+                        ref context, cmd,
+                        ref drawingSettings, ref filteringSettings, ref renderStateBlock
+                    );
                 }
             }
         }

@@ -1013,9 +1013,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
 
+            StencilControlRenderState(target, result);
+
+            return result;
+        }
+
+        public static void StencilControlRenderState(ToonTarget target, RenderStateCollection collection)
+        {
             if (target.ControlOutlinesStencilLayerEffectivelyEnabled)
             {
-                result.Add(RenderState.Stencil(new StencilDescriptor
+                collection.Add(RenderState.Stencil(new StencilDescriptor
                         {
                             Ref = Uniforms.ForwardStencilRef,
                             WriteMask = Uniforms.ForwardStencilWriteMask,
@@ -1025,8 +1032,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     )
                 );
             }
-
-            return result;
         }
 
         private static RenderStateDescriptor UberSwitchedCullRenderState(ToonTarget target) =>
@@ -1056,6 +1061,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask 0"),
             };
 
+            StencilControlRenderState(target, result);
+
             return result;
         }
 
@@ -1069,6 +1076,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask RGB"),
             };
 
+            StencilControlRenderState(target, result);
+
             return result;
         }
 
@@ -1081,6 +1090,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 UberSwitchedCullRenderState(target),
                 RenderState.ColorMask("ColorMask RG"),
             };
+
+            StencilControlRenderState(target, result);
 
             return result;
         }

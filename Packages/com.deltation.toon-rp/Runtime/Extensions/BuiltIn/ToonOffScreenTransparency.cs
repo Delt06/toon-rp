@@ -29,6 +29,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
         private CullingResults _cullingResults;
+        private ToonRenderingExtensionsCollection _extensionsCollection;
         private int _height;
         private ToonOffScreenTransparencySettings _settings;
         private ScriptableRenderContext _srpContext;
@@ -44,6 +45,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _camera = context.Camera;
             _cameraRendererSettings = context.CameraRendererSettings;
             _cameraRenderTarget = context.CameraRenderTarget;
+            _extensionsCollection = context.Collection;
 
             _width = Mathf.Max(1, _cameraRenderTarget.Width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _cameraRenderTarget.Height / _settings.ResolutionFactor);
@@ -64,7 +66,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 {
                     const bool stencil = true;
                     _depthPrePass.Setup(_srpContext, _cullingResults,
-                        _camera, _cameraRendererSettings,
+                        _camera, _extensionsCollection, _cameraRendererSettings,
                         PrePassMode.Depth,
                         _width, _height,
                         stencil

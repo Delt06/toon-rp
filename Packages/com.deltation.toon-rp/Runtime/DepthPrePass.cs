@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DELTation.ToonRP.Extensions;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -20,6 +21,7 @@ namespace DELTation.ToonRP
         private ScriptableRenderContext _context;
 
         private CullingResults _cullingResults;
+        private ToonRenderingExtensionsCollection _extensionsCollection;
         private bool _normals;
         private int _rtHeight;
         private int _rtWidth;
@@ -35,6 +37,7 @@ namespace DELTation.ToonRP
         }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
+            ToonRenderingExtensionsCollection extensionsCollection,
             in ToonCameraRendererSettings settings, PrePassMode mode, int rtWidth, int rtHeight,
             bool stencil = false)
         {
@@ -43,6 +46,7 @@ namespace DELTation.ToonRP
             _context = context;
             _cullingResults = cullingResults;
             _camera = camera;
+            _extensionsCollection = extensionsCollection;
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
@@ -83,7 +87,7 @@ namespace DELTation.ToonRP
 
                 _context.ExecuteCommandBufferAndClear(cmd);
 
-                DrawRenderers();
+                DrawRenderers(cmd);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -103,7 +107,7 @@ namespace DELTation.ToonRP
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers()
+        private void DrawRenderers(CommandBuffer cmd)
         {
             var sortingSettings = new SortingSettings(_camera)
             {
@@ -115,9 +119,16 @@ namespace DELTation.ToonRP
                 enableDynamicBatching = _settings.UseDynamicBatching,
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, _camera.cullingMask);
+            var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
             _context.DrawRenderers(_cullingResults,
-                ref drawingSettings, ref filteringSettings
+                ref drawingSettings, ref filteringSettings, ref renderStateBlock
+            );
+
+            _extensionsCollection.OnPrePass(
+                _normals ? PrePassMode.Normals | PrePassMode.Depth : PrePassMode.Depth,
+                ref _context, cmd,
+                ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
         }
     }

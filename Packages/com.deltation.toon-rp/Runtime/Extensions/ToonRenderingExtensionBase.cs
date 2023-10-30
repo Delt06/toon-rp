@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions
 {
@@ -12,6 +13,13 @@ namespace DELTation.ToonRP.Extensions
             IToonRenderingExtensionSettingsStorage settingsStorage) { }
 
         public virtual void Cleanup() { }
+
+        public virtual void OnPrePass(PrePassMode prePassMode, ref ScriptableRenderContext context,
+            CommandBuffer cmd,
+            ref DrawingSettings drawingSettings,
+            ref FilteringSettings filteringSettings,
+            ref RenderStateBlock renderStateBlock) { }
+
 
         protected static bool IsGameOrSceneView(in ToonRenderingExtensionContext context) =>
             context.Camera.cameraType <= CameraType.SceneView;

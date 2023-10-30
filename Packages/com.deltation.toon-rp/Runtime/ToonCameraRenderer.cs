@@ -44,6 +44,7 @@ namespace DELTation.ToonRP
         private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private PrePassMode _prePassMode;
+        private bool _requireStencil;
         private ToonCameraRendererSettings _settings;
 
         public ToonCameraRenderer() => _tiledLighting = new ToonTiledLighting(_lighting);
@@ -169,15 +170,17 @@ namespace DELTation.ToonRP
 
                 if (_prePassMode.Includes(PrePassMode.Depth))
                 {
-                    _depthPrePass.Setup(_context, _cullingResults, _camera, settings, _prePassMode,
-                        _renderTarget.Width, _renderTarget.Height
+                    _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
+                        settings, _prePassMode,
+                        _renderTarget.Width, _renderTarget.Height, _requireStencil
                     );
                     _depthPrePass.Render();
                 }
 
                 if (_prePassMode.Includes(PrePassMode.MotionVectors))
                 {
-                    _motionVectorsPrePass.Setup(_context, _cullingResults, _camera, additionalCameraData,
+                    _motionVectorsPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
+                        additionalCameraData,
                         settings,
                         _renderTarget.Width, _renderTarget.Height
                     );
@@ -292,8 +295,8 @@ namespace DELTation.ToonRP
                                    rtHeight > maxRtHeight
                 ;
 
-            bool requireStencil = RequireStencil(extensionSettings);
-            _depthStencilFormat = requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
+            _requireStencil = RequireStencil(extensionSettings);
+            _depthStencilFormat = _requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
 
             if (renderToTexture)
             {
@@ -371,8 +374,8 @@ namespace DELTation.ToonRP
             }
 
             _extensionContext =
-                new ToonRenderingExtensionContext(_context, _camera, _settings, _cullingResults, _renderTarget,
-                    _additionalCameraData
+                new ToonRenderingExtensionContext(_extensionsCollection, _context, _camera, _settings, _cullingResults,
+                    _renderTarget, _additionalCameraData
                 );
 
             _tiledLighting.Setup(_context, _extensionContext);

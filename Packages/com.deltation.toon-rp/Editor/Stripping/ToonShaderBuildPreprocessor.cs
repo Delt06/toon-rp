@@ -296,6 +296,32 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonInvertedHullOutline.VertexColorThicknessAKeywordName
                     );
                 }
+
+                bool AnyExtensionHasNormalSource(
+                    ToonInvertedHullOutlineSettings.NormalsSource normalsSource) =>
+                    AnyExtension<ToonInvertedHullOutlineAsset>(e =>
+                        e.Settings.Passes.Any(p =>
+                            p.NormalsSource == normalsSource
+                        )
+                    );
+
+                if (!AnyExtensionHasNormalSource(
+                        ToonInvertedHullOutlineSettings.NormalsSource.UV2
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.NormalSemanticUV2KeywordName
+                    );
+                }
+
+                if (!AnyExtensionHasNormalSource(
+                        ToonInvertedHullOutlineSettings.NormalsSource.Tangents
+                    ))
+                {
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.NormalSemanticTangentKeywordName
+                    );
+                }
             }
 
             // ToonRPScreenSpaceOutline
@@ -483,7 +509,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 list.RemoveAt(index);
                 return;
             }
-            
+
             // move the deleted item to the end then remove it
             (list[lastIndex], list[index]) = (list[index], list[lastIndex]);
             list.RemoveAt(lastIndex);

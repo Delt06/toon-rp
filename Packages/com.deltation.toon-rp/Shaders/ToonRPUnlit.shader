@@ -107,6 +107,14 @@
 		{
 		    Name "Toon RP Depth Only (Unlit)"
 			Tags{ "LightMode" = "ToonRPDepthOnly" }
+			
+			Stencil
+            {
+                Ref [_ForwardStencilRef]
+                WriteMask [_ForwardStencilWriteMask]
+                Comp [_ForwardStencilComp]
+                Pass [_ForwardStencilPass]
+            }
 		    
 		    ColorMask 0
 			
@@ -127,6 +135,14 @@
 		{
 		    Name "Toon RP Depth Normals (Unlit)"
 			Tags{ "LightMode" = "ToonRPDepthNormals" }
+			
+			Stencil
+            {
+                Ref [_ForwardStencilRef]
+                WriteMask [_ForwardStencilWriteMask]
+                Comp [_ForwardStencilComp]
+                Pass [_ForwardStencilPass]
+            }
 		    
 		    ColorMask RGB
 			
@@ -147,6 +163,14 @@
 		{
 		    Name "Toon RP Motion Vectors (Unlit)"
 			Tags{ "LightMode" = "ToonRPMotionVectors" }
+			
+			Stencil
+            {
+                Ref [_ForwardStencilRef]
+                WriteMask [_ForwardStencilWriteMask]
+                Comp [_ForwardStencilComp]
+                Pass [_ForwardStencilPass]
+            }
 		    
 		    ColorMask RG
 			

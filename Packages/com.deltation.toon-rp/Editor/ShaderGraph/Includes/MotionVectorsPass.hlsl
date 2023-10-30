@@ -12,7 +12,7 @@ PackedVaryings VS(Attributes input)
     const float3 positionWs = TransformObjectToWorld(input.positionOS);
     output.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
 
-    const float3 previousPosition = (unity_MotionVectorsParams.x == 1) ? input.positionOld : input.positionOS;
+    const float3 previousPosition = UseLastFramePositions() ? input.positionOld : input.positionOS;
     output.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));
 
     ApplyMotionVectorZBias(output.positionCS);

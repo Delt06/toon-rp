@@ -3,8 +3,6 @@
 ![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/Delt06/toon-rp?include_prereleases)
 ![GitHub license](https://img.shields.io/github/license/Delt06/toon-rp)
 
-
-
 A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
 > 🚧 The project is in its very **early** stages and has **not** been tested in production.
@@ -19,11 +17,43 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ### Table of Contents
 
-- [Installation](#installation)
 - [Features](#features)
+- [Installation](#installation)
 - [References](#references)  
 - [Used Assets](#used-assets)  
 
+## Features
+
+> See the [project Wiki](https://github.com/Delt06/toon-rp/wiki) for the full feature list.
+
+- [Full customization of the lighting ramp](https://github.com/Delt06/toon-rp/wiki/Global-Ramp): arbitrary threshold, smoothness, and number of steps.
+
+![Ramp](https://github.com/Delt06/toon-rp/assets/32465621/4bd838bf-afd6-46d7-9437-e1042b00dfe8)
+![Ramp Texture](https://user-images.githubusercontent.com/32465621/278110582-b180659a-da28-4c87-a374-375439725c5a.png)
+
+- [Shadows](https://github.com/Delt06/toon-rp/wiki/Shadows): multiple options for soft shadows and stylization.
+
+| Crisp Shadows | Soft Shadows | Blob Shadows |
+|-|-|-|
+|![Shadows](https://github.com/Delt06/toon-rp/assets/32465621/ad145e2c-b09d-40b1-a20c-537978e400dc)|![VSM Shadows](https://github.com/Delt06/toon-rp/assets/32465621/251fa5a1-03cf-4aaf-83de-4959e28fb6e8)|![Blob Shadows](https://github.com/Delt06/toon-rp/assets/32465621/b28fc531-734b-4bc7-867d-9cfb0030cb02)|
+
+- Optional [Tiled Lighting (Forward+)](https://github.com/Delt06/toon-rp/wiki/Tiled-Lighting-(Forward-Plus)): render high counts of realtime lights.
+
+![Tiled Lighting](https://github.com/Delt06/toon-rp/assets/32465621/a896782f-7f7a-49d5-acd3-c9b848390dc2)
+
+- [Shader Graph support](https://github.com/Delt06/toon-rp/wiki/Shader-Graph).
+
+![Shader Graph](https://user-images.githubusercontent.com/32465621/278428880-83cd2645-a14a-4548-b7c6-f1d54c4837c2.png)
+
+- [Screen-Space](https://github.com/Delt06/toon-rp/wiki/Screen‐Space-Outline) and [Inverted Hull Outlines](https://github.com/Delt06/toon-rp/wiki/Inverted-Hull-Outline).
+
+![Screen-Space Outlines](https://github.com/Delt06/toon-rp/assets/32465621/3b164de2-d7ad-4e70-b150-e2346e2a64f9)
+![Inverted HullOutlines](https://user-images.githubusercontent.com/32465621/278466766-627bf696-a9cf-4a79-ac7c-b7d41415e5ef.png)
+
+- Stylized post-processing effects: [bloom](https://github.com/Delt06/toon-rp/wiki/Bloom), [SSAO](https://github.com/Delt06/toon-rp/wiki/SSAO), etc.
+
+![Bloom](https://github.com/Delt06/toon-rp/assets/32465621/daa436eb-ee5b-45a9-9c5f-670c5557cc5d)
+![SSAO](https://user-images.githubusercontent.com/32465621/278386089-dc03df40-093a-4e9f-9b77-abbb79692ca5.png)
 
 ## Installation
 
@@ -52,99 +82,9 @@ Inside the Project window, right click and select `Create/Rendering/Toon Render 
 
 Go to `Edit/Project Settings/Graphics` and set the field `Scriptable Render Pipeline Settings` with the newly created pipeline asset.
 
-## Features
-
-
-- Toon Shader
-  - Globally/locally configurable ramp
-  - Alpha Clipping and Transparency
-  - Normal Map
-  - GPU Instancing
-  - SRP Batcher Support
-
-![Toon Shader](./Documentation/features_toon_shader.jpg?raw=true)
-
-- Crisp anti-aliased ramp
-
-![Crisp AA Ramp](./Documentation/features_crips_aa_ramp.jpg?raw=true)
-
-- Variance Shadow Mapping (VSM)
-  - _Optional_: crisp anti-aliased ramp
-  - _Optional_: up to four cascades
-
-![VSM](./Documentation/features_vsm.jpg?raw=true)
-
-- Blob Shadows
-    - _Optional_: crisp anti-aliased ramp
-
-![Blob Shadows](./Documentation/features_blob_shadows.jpg?raw=true)
-
-- Additional Lights
-
-![Additional Lights](./Documentation/features_additional_lights.jpg?raw=true)
-
-- MSAA
-
-![MSAA](./Documentation/features_msaa.jpg?raw=true)
-
-- FXAA
-    - _Optional_: low quality variant, about 1.5-2 times faster
-
-![FXAA](./Documentation/features_fxaa.jpg?raw=true)
-
-- HDR
-- Bloom
-  - _Optional_: stylized pattern
-
-![Bloom](./Documentation/features_bloom.jpg?raw=true)
-
-- Light Scattering (Post FX)
-
-![Light Scattering](./Documentation/features_light_scattering.jpg?raw=true)
-
-- Outline (Inverted Hull)
-  - Distance fade
-  - _Optional_: get normals from a custom channel to improve outlines quality. Comes with a utility to bake these custom normals.
-  - _Optional_: remove inner outlines via stencil.
-  - _Optional_: randomize thickness.
-
-![Outline (Inverted Hull)](./Documentation/features_outlines_inverted_hull.jpg?raw=true)
-
-![Outline Fade](./Documentation/features_outlines_fade.gif?raw=true)
-
-- Outline (Screen Space)
-  - Based on colors, normals, and depth.
-
-![Outline (Screen Space)](./Documentation/features_outlines_screen_space.jpg?raw=true)
-
-- SSAO
-  - _Optional_: stylized pattern
-
-![SSAO](./Documentation/features_ssao.jpg?raw=true)
-
-- Fog:
-  - Affects the outlines too
-
-![Fog](./Documentation/features_fog.jpg?raw=true)
-
-- Matcap:
-  - Additive (e.g., fake lighting)
-  - Multiplicative: (e.g., fake reflections)
-
-![Matcap: Additive](./Documentation/features_matcap_additive.jpg?raw=true)
-
-
-![Matcap: Multiplicative](./Documentation/features_matcap_multiplicative.jpg?raw=true)
-
-
 ## References
+
 - [Catlike Coding](https://catlikecoding.com/)
-- [LearnOpenGL - SSAO](https://learnopengl.com/Advanced-Lighting/SSAO)
-- [Ronja's tutorials - Partial Derivatives (fwidth)](https://www.ronja-tutorials.com/post/046-fwidth/)
-- [Geeks 3D - Fast Approximate Anti-Aliasing (FXAA) Demo](https://www.geeks3d.com/20110405/fxaa-fast-approximate-anti-aliasing-demo-glsl-opengl-test-radeon-geforce/3/)
-- [Forward vs Deferred vs Forward+ Rendering with DirectX 11](https://www.3dgep.com/forward-plus/)
-- [Sharpen](https://lettier.github.io/3d-game-shaders-for-beginners/sharpen.html)
-- [Temporal Anti-Aliasing(TAA) Tutorial - Sugu Lee](https://sugulee.wordpress.com/2021/06/21/temporal-anti-aliasingtaa-tutorial/)
 
 ## Used Assets
 - [Quaternius - Animated Mech Pack](https://quaternius.com/packs/animatedmech.html)

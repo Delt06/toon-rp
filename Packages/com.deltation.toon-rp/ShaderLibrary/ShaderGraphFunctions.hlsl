@@ -5,6 +5,7 @@
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/Fog.hlsl"
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_ToonSampleSceneDepth(uv)
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_ToonSampleSceneColor(uv)
 #define SHADERGRAPH_FOG(position, color, density) shadergraph_ToonFog(position, color, density)
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
@@ -14,10 +15,23 @@
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/DepthNormals.hlsl"
 #endif
 
+#if defined(REQUIRE_OPAQUE_TEXTURE)
+#include "Packages/com.deltation.toon-rp/ShaderLibrary/OpaqueTexture.hlsl"
+#endif
+
 float shadergraph_ToonSampleSceneDepth(float2 uv)
 {
     #if defined(REQUIRE_DEPTH_TEXTURE)
     return SampleDepthTexture(uv);
+    #else
+    return 0;
+    #endif
+}
+
+float3 shadergraph_ToonSampleSceneColor(float2 uv)
+{
+    #if defined(REQUIRE_OPAQUE_TEXTURE)
+    return SampleOpaqueTexture(uv);
     #else
     return 0;
     #endif

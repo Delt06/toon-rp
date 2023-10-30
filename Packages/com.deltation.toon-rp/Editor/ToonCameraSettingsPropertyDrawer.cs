@@ -90,6 +90,9 @@ namespace DELTation.ToonRP.Editor
                 }
             );
 
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.OpaqueTexture)))
+            );
+
             root.Add(new PropertyField(
                     property.FindPropertyRelative(nameof(ToonCameraRendererSettings.OpaqueLayerMask))
                 )

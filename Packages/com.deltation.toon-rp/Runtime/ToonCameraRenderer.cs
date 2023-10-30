@@ -22,12 +22,14 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
+        private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
         private readonly MotionVectorsPrePass _motionVectorsPrePass = new();
+        private readonly ToonOpaqueTexture _opaqueTexture;
         private readonly ToonPostProcessing _postProcessing = new();
 
         private readonly ToonCameraRenderTarget _renderTarget = new();
@@ -47,7 +49,11 @@ namespace DELTation.ToonRP
         private bool _requireStencil;
         private ToonCameraRendererSettings _settings;
 
-        public ToonCameraRenderer() => _tiledLighting = new ToonTiledLighting(_lighting);
+        public ToonCameraRenderer()
+        {
+            _tiledLighting = new ToonTiledLighting(_lighting);
+            _opaqueTexture = new ToonOpaqueTexture(_renderTarget);
+        }
 
         public void Dispose()
         {
@@ -190,13 +196,17 @@ namespace DELTation.ToonRP
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
             }
 
+            _opaqueTexture.Setup(ref _context, settings);
+
             _tiledLighting.CullLights();
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
             {
-                SetRenderTargets(cmd);
+                _renderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.DontCare);
                 ClearRenderTargets(cmd);
             }
+
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();
@@ -218,13 +228,6 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
         }
-
-        private void SetRenderTargets(CommandBuffer cmd)
-        {
-            _renderTarget.SetRenderTarget(cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
-        }
-
 
         private void PrepareMsaa(Camera camera, out int msaaSamples)
         {
@@ -261,6 +264,7 @@ namespace DELTation.ToonRP
             int msaaSamples)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
+            SetShaderTimeValues(cmd, Time.time);
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
             int maxRtWidth = int.MaxValue;
@@ -537,11 +541,19 @@ namespace DELTation.ToonRP
                 }
             }
 
+            _opaqueTexture.Cleanup();
+
             _extensionsCollection.Cleanup();
             _postProcessing.Cleanup();
             _renderTarget.ReleaseTemporaryRTs(cmd);
 
             _context.ExecuteCommandBufferAndClear(cmd);
+        }
+
+        private void SetShaderTimeValues(CommandBuffer cmd, float time)
+        {
+            var timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+            cmd.SetGlobalVector(TimeParametersId, timeParametersVector);
         }
 
         private void Submit(CommandBuffer cmd)
@@ -575,6 +587,8 @@ namespace DELTation.ToonRP
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeSkybox);
             _context.DrawSkybox(_camera);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
+
+            _opaqueTexture.Capture();
 
             {
                 _tiledLighting.PrepareForTransparentGeometry(cmd);

@@ -138,7 +138,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compose with Camera Render Target")))
                 {
-                    _cameraRenderTarget.SetRenderTarget(cmd);
+                    _cameraRenderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.Load);
                     _material.SetVector(TintId, _settings.Tint);
                     _material.SetTexture(PatternId,
                         _settings.Pattern != null ? _settings.Pattern : Texture2D.whiteTexture

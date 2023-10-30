@@ -20,6 +20,10 @@ namespace DELTation.ToonRP
         public int Height { get; private set; }
         public int Width { get; private set; }
 
+        public RenderTargetIdentifier ColorBufferId => RenderToTexture
+            ? CameraColorBufferId
+            : BuiltinRenderTextureType.CameraTarget;
+
         public void FinalBlit(CommandBuffer cmd)
         {
             if (RenderToTexture)
@@ -58,20 +62,22 @@ namespace DELTation.ToonRP
             cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
         }
 
-        public void SetRenderTarget(CommandBuffer cmd)
+        public void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadAction)
         {
+            const RenderBufferStoreAction storeAction = RenderBufferStoreAction.Store;
+
             if (RenderToTexture)
             {
                 cmd.SetRenderTarget(
-                    CameraColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    CameraDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                    CameraColorBufferId, loadAction, storeAction,
+                    CameraDepthBufferId, loadAction, storeAction
                 );
             }
             else
             {
                 cmd.SetRenderTarget(
-                    BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare,
-                    RenderBufferStoreAction.Store
+                    BuiltinRenderTextureType.CameraTarget, loadAction,
+                    storeAction
                 );
                 cmd.SetViewport(_camera.pixelRect);
             }

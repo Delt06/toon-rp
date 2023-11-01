@@ -45,6 +45,8 @@ Material:
     - _RenderQueue: 2450
     - _RimSmoothness: 0.76
     - _RimThreshold: 0.42
+    - _SidewaysPowerSmoothness: 0.25
+    - _SidewaysPowerThreshold: 0
     - _Smoothness: 0.7
     - _SpecularSmoothness: 6.44
     - _SpecularThreshold: 0.62

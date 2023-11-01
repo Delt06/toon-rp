@@ -72,6 +72,11 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     return tangentToWorld;
 }
 
+float3 GetWorldSpaceNormalizeViewDir(const float3 positionWs)
+{
+    return normalize(GetWorldSpaceViewDir(positionWs));
+}
+
 // Always include Shader Graph version
 // Always include last to avoid double macros
 #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"

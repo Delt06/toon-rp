@@ -53,7 +53,7 @@ Material:
     - _Threshold: 0.3
     m_Colors:
     - _BottomColor: {r: 0.18867922, g: 0.18867922, b: 0.18867922, a: 1}
-    - _GravityVector: {r: 0, g: -0.27, b: 0, a: 0}
+    - _GravityVector: {r: 0, g: -0.75, b: 0, a: 0}
     - _Rim: {r: 0.047169805, g: 0.046502307, b: 0.046502307, a: 0}
     - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.8784314}
     - _Specular: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 0}

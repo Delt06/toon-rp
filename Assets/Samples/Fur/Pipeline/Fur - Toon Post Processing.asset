@@ -21,7 +21,7 @@ MonoBehaviour:
       HighQuality: 1
       FixedContrastThresholdId: 0.0833
       RelativeContrastThreshold: 0.166
-      SubpixelBlendingFactor: 0.75
+      SubpixelBlendingFactor: 1
     ToneMapping:
       Enabled: 0
       Exposure: 1.5

@@ -68,8 +68,8 @@ namespace DELTation.ToonRP.PostProcessing
                 if (settings.Passes != null)
                 {
                     foreach ((ToonPostProcessingPassAsset passAsset, int order) in settings.Passes
+                                 .Where(p => p != null)
                                  .Select(p => (Pass: p, Order: p.Order()))
-                                 .Where(i => i.Pass != null)
                                  .OrderBy(i => i.Order)
                             )
                     {

@@ -253,7 +253,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _materialPreset: {fileID: 2100000, guid: 16af7f44b79585a4fbe4fab63dc6bd71, type: 2}
-  _height: 0.1
+  _height: 0.075
   _layersCount: 15
 --- !u!135 &1577363535
 SphereCollider:

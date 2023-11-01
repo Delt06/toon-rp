@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Fur_Layer
+  m_Shader: {fileID: -6465566751694194690, guid: af0f43a5b20cd9d409b0d6359c807b15, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2450
+  stringTagMap:
+    RenderType: TransparentCutout
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _BladeWidth: 1
+    - _CellsDensity: 200
+    - _CellsDensity2: 400
+    - _CellsLayer2Power: 0
+    - _ControlOutlinesStencilLayer: 1
+    - _Curvature: 1.5
+    - _ForwardStencilComp: 0
+    - _ForwardStencilPass: 0
+    - _ForwardStencilRef: 0
+    - _ForwardStencilWriteMask: 0
+    - _Height: 1.02
+    - _NoiseMax: 1
+    - _NoiseMin: 0
+    - _NoiseScale: 100
+    - _NormalizedHeight: 0.178
+    - _OutlinesStencilLayer: 0
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ReceiveBlobShadows: 0
+    - _RenderQueue: 2450
+    - _RimSmoothness: 0.76
+    - _RimThreshold: 0.42
+    - _Smoothness: 0.7
+    - _SpecularSmoothness: 6.44
+    - _SpecularThreshold: 0.62
+    - _Threshold: 0.3
+    m_Colors:
+    - _BottomColor: {r: 0.18867922, g: 0.18867922, b: 0.18867922, a: 1}
+    - _GravityVector: {r: 0, g: -0.05, b: 0, a: 0}
+    - _Rim: {r: 0.047169805, g: 0.046502307, b: 0.046502307, a: 0}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.8784314}
+    - _Specular: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 0}
+    - _TopColor: {r: 0.26415092, g: 0.26415092, b: 0.26415092, a: 1}
+  m_BuildTextureStacks: []

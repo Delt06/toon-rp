@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: Fur - Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  GlobalRampSettings:
+    Threshold: 0
+    SpecularThreshold: 0.99
+    RimThreshold: 0.5
+    Mode: 0
+    Smoothness: 0.02
+    SpecularSmoothness: 0.005
+    RimSmoothness: 0.1
+    RampTexture: {fileID: 0}
+  CameraRendererSettings:
+    AdditionalLights: 0
+    TiledLighting: 0
+    MaxLightsPerTile: 32
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 4
+    AllowHdr: 0
+    Stencil: 0
+    Msaa: 1
+    RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 1
+    PrePass: 0
+    OpaqueTexture: 0
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+  ShadowSettings:
+    Mode: 0
+    Threshold: 0.5
+    CrispAntiAliased: 0
+    Smoothness: 0.075
+    MaxDistance: 100
+    DistanceFade: 0.1
+    Pattern: {fileID: 0}
+    PatternScale: {x: 1, y: 0, z: 1}
+    Vsm:
+      DepthBits: 32
+      Blur: 1
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.01
+      BlurScatter: 1
+      VsmPrecision: 0
+      SoftShadows:
+        Enabled: 0
+        Quality: 0
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.8
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
+      LightBleedingReduction: 0.4
+      Directional:
+        Enabled: 1
+        AtlasSize: 1024
+        CascadeCount: 4
+        CascadeRatio1: 0.1
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
+        DepthBias: 0
+        NormalBias: 0
+        SlopeBias: 0
+    Blobs:
+      AtlasSize: 128
+      Mode: 0
+      Saturation: 1
+  Extensions:
+    Extensions: []
+  PostProcessing:
+    Enabled: 1
+    Passes:
+    - {fileID: 11400000, guid: 6619db7e62ccad2409256604426b7042, type: 2}

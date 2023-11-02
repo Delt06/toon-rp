@@ -38,7 +38,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #endif // _ALPHAPREMULTIPLY_ON
 
     const float3 normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);
-    const float3 viewDirectionWs = normalize(unpacked.viewDirectionWS);
+    const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(unpacked.positionWS));
 
     LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
     lightComputationParameters.positionWs = unpacked.positionWS;

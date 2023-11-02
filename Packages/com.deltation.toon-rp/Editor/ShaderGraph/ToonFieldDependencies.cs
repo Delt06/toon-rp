@@ -181,9 +181,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 StructFields.Varyings.positionPredisplacementWS
             ),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,
-                StructFields.Varyings.viewDirectionWS
-            ),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,
                 StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection
             ),

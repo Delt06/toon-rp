@@ -121,7 +121,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     StructFields.Varyings.positionWS,
                     StructFields.Varyings.normalWS,
-                    StructFields.Varyings.viewDirectionWS,
                     ToonStructFields.Varyings.fogFactorAndVertexLight,
                 };
             }

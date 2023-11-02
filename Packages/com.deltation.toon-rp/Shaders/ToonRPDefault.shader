@@ -19,6 +19,7 @@
 	    _SpecularSizeOffset ("Specular Size Offset", Range(-2, 2)) = 0
 	    [HDR]
 		_RimColor ("Rim Color", Color) = (0, 0, 0, 0)
+		_RimSizeOffset ("Rim Size Offset", Range(-2, 2)) = 0
 	    
 	    [NoScaleOffset]
 	    _NormalMap ("Normal Map", 2D) = "bump" {}

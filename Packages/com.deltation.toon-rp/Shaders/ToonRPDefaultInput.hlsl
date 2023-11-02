@@ -17,6 +17,7 @@ float4 _ShadowColor;
 float3 _SpecularColor;
 float _SpecularSizeOffset;
 float3 _RimColor;
+float _RimSizeOffset;
 
 float _AlphaClipThreshold;
 

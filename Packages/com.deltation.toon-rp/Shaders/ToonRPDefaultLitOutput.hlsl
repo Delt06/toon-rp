@@ -40,7 +40,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     
     #ifdef _RIM
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
-    const float rimRamp = ComputeRampRim(lightComputationParameters, fresnel);
+    const float rimRamp = ComputeRampRim(lightComputationParameters, fresnel + _RimSizeOffset);
     const float3 rim = _RimColor * rimRamp;
     #else // !_RIM
     const float3 rim = 0;

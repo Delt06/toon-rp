@@ -31,6 +31,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 DrawProperty(PropertyNames.SpecularColorPropertyName);
                 DrawProperty(PropertyNames.SpecularSizePropertyName);
                 DrawProperty(PropertyNames.RimColorPropertyName);
+                DrawProperty(PropertyNames.RimSizePropertyName);
                 DrawProperty(PropertyNames.EmissionColor);
                 DrawNormalMap();
                 DrawBlobShadows();

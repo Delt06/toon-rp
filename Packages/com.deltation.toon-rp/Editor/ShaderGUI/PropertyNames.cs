@@ -26,6 +26,7 @@
         public const string SpecularColorPropertyName = "_SpecularColor";
         public const string SpecularSizePropertyName = "_SpecularSizeOffset";
         public const string RimColorPropertyName = "_RimColor";
+        public const string RimSizePropertyName = "_RimSizeOffset";
         public const string NormalMapPropertyName = "_NormalMap";
 
         public const string Specular = "_ToonLightingSpecular";

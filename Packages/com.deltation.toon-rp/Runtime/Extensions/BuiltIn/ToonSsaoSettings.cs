@@ -6,7 +6,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [Serializable]
     public struct ToonSsaoSettings
     {
-        [Min(0.05f)]
+        [Min(0.001f)]
         public float Radius;
         [Min(0.0001f)]
         public float Power;

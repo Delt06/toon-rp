@@ -109,6 +109,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV, !OverrideRamp);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.DiffuseOffset);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -383,6 +384,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.EmissionShadowBlend,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
+                ToonBlockFields.SurfaceDescription.DiffuseOffset,
 
                 ToonBlockFields.SurfaceDescription.OverrideRampThreshold,
                 ToonBlockFields.SurfaceDescription.OverrideRampSmoothness,

@@ -27,6 +27,7 @@ struct LightComputationParameters
     
     float4 albedo;
     float4 shadowColor;
+    float diffuseOffset;
     float3 specularColor;
     float specularSizeOffset;
 
@@ -39,11 +40,11 @@ float ComputeRampDiffuse(const LightComputationParameters parameters, const floa
 {
     #ifdef _OVERRIDE_RAMP
 
-    return ComputeRamp(nDotL, parameters.overrideRampDiffuse);
+    return ComputeRamp(nDotL + parameters.diffuseOffset, parameters.overrideRampDiffuse);
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampDiffuse(nDotL, parameters.globalRampUv);
+    return ComputeGlobalRampDiffuse(nDotL + parameters.diffuseOffset, parameters.globalRampUv);
 
     #endif // _OVERRIDE_RAMP
 }

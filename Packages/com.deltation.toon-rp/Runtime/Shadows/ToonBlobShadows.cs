@@ -30,11 +30,8 @@ namespace DELTation.ToonRP.Shadows
         public ToonBlobShadows()
         {
             _shadowMeshes = new DynamicBlobShadowsMesh[BlobShadowTypes.Count];
-
-            for (int i = 0; i < BlobShadowTypes.Count; i++)
-            {
-                _shadowMeshes[i] = new DynamicBlobShadowsMesh((BlobShadowType) i);
-            }
+            _shadowMeshes[(int) BlobShadowType.Circle] = new DynamicCircleBlobShadowsMesh();
+            _shadowMeshes[(int) BlobShadowType.Square] = new DynamicSquareBlobShadowsMesh();
         }
 
         private void EnsureAssetsAreCreated()
@@ -105,8 +102,7 @@ namespace DELTation.ToonRP.Shadows
 
             for (int shadowType = 0; shadowType < BlobShadowTypes.Count; shadowType++)
             {
-                ref DynamicBlobShadowsMesh dynamicShadowMesh = ref _shadowMeshes[shadowType];
-                dynamicShadowMesh ??= new DynamicBlobShadowsMesh((BlobShadowType) shadowType);
+                DynamicBlobShadowsMesh dynamicShadowMesh = _shadowMeshes[shadowType];
                 Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
                 if (mesh != null)
                 {

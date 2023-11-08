@@ -10,5 +10,6 @@ namespace DELTation.ToonRP.Shadows
         public BlobShadowsMode Mode;
         [Min(0f)]
         public float Saturation;
+        public Vector2 ShadowPositionOffset;
     }
 }

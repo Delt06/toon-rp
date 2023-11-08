@@ -13,6 +13,7 @@ namespace DELTation.ToonRP.Shadows
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
+        private static readonly int CoordsOffsetId = Shader.PropertyToID("_ToonRP_BlobShadowCoordsOffset");
         private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
@@ -79,6 +80,8 @@ namespace DELTation.ToonRP.Shadows
                     );
                     cmd.SetGlobalVector(MinSizeId, minSize);
                 }
+
+                cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

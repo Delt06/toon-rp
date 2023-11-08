@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif // UNITY_EDITOR
-using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows
 {
@@ -26,9 +26,9 @@ namespace DELTation.ToonRP.Shadows
 
             foreach (BlobShadowRenderer renderer in renderers)
             {
-                float radius = renderer.Radius;
+                float halfSize = renderer.HalfSize;
                 Vector3 position = renderer.Position;
-                Bounds2D bounds = ComputeBounds(radius, position);
+                Bounds2D bounds = ComputeBounds(halfSize, position);
 
 #if UNITY_EDITOR
                 PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
@@ -54,8 +54,10 @@ namespace DELTation.ToonRP.Shadows
 
                 Renderers.Add(new RendererData
                     {
-                        Position = position,
-                        Radius = radius,
+                        Position = new Vector2(position.x, position.z),
+                        HalfSize = halfSize,
+                        ShadowType = renderer.ShadowType,
+                        Params = renderer.Params,
                     }
                 );
             }
@@ -77,17 +79,19 @@ namespace DELTation.ToonRP.Shadows
             return Matrix4x4.Ortho(-halfSizeH, halfSizeH, -halfSizeV, halfSizeV, camera.nearClipPlane, farPlane);
         }
 
-        private static Bounds2D ComputeBounds(float radius, Vector3 position)
+        private static Bounds2D ComputeBounds(float halfSize, Vector3 position)
         {
-            float diameter = radius * 2;
-            var bounds = new Bounds2D(new Vector2(position.x, position.z), new Vector2(diameter, diameter));
+            float size = halfSize * 2;
+            var bounds = new Bounds2D(new Vector2(position.x, position.z), new Vector2(size, size));
             return bounds;
         }
 
         public struct RendererData
         {
-            public Vector3 Position;
-            public float Radius;
+            public Vector2 Position;
+            public float HalfSize;
+            public BlobShadowType ShadowType;
+            public Vector4 Params;
         }
     }
 }

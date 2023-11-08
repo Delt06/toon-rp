@@ -1,33 +1,106 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Shadows
 {
-    public class DynamicBlobShadowsMesh
+    public abstract class DynamicBlobShadowsMesh
+    {
+        protected static readonly VertexAttributeDescriptor[] VertexAttributeDescriptorsDefault =
+        {
+            new(VertexAttribute.Position, VertexAttributeFormat.Float16, 2),
+            new(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2),
+        };
+
+        protected static readonly VertexAttributeDescriptor[] VertexAttributeDescriptorsParams =
+        {
+            new(VertexAttribute.Position, VertexAttributeFormat.Float16, 2),
+            new(VertexAttribute.Color, VertexAttributeFormat.Float16, 4),
+            new(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2),
+        };
+
+        protected static readonly List<ushort> TempIndices = new();
+
+        public abstract BlobShadowType ShadowType { get; }
+
+        [CanBeNull]
+        public abstract Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds);
+
+        public struct Vertex
+        {
+            // ReSharper disable once NotAccessedField.Local
+            public Vector2Half Position;
+            // ReSharper disable once NotAccessedField.Local
+            public Vector2Half UV;
+        }
+
+        public struct VertexParams
+        {
+            // ReSharper disable once NotAccessedField.Local
+            public Vector2Half Position;
+            // ReSharper disable once NotAccessedField.Local
+            public Vector4Half Params;
+            // ReSharper disable once NotAccessedField.Local
+            public Vector2Half UV;
+        }
+
+        public struct Vector2Half
+        {
+            // ReSharper disable once NotAccessedField.Local
+            public ushort X;
+            // ReSharper disable once NotAccessedField.Local
+            public ushort Y;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static Vector2Half FromVector2(Vector2 vector) =>
+                new()
+                {
+                    X = Mathf.FloatToHalf(vector.x),
+                    Y = Mathf.FloatToHalf(vector.y),
+                };
+        }
+
+        public struct Vector4Half
+        {
+            // ReSharper disable once NotAccessedField.Local
+            public ushort X;
+            // ReSharper disable once NotAccessedField.Local
+            public ushort Y;
+            // ReSharper disable once NotAccessedField.Local
+            public ushort Z;
+            // ReSharper disable once NotAccessedField.Local
+            public ushort W;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static Vector4Half FromVector4(Vector4 vector) =>
+                new()
+                {
+                    X = Mathf.FloatToHalf(vector.x),
+                    Y = Mathf.FloatToHalf(vector.y),
+                    Z = Mathf.FloatToHalf(vector.z),
+                    W = Mathf.FloatToHalf(vector.w),
+                };
+        }
+    }
+
+    public abstract class DynamicBlobShadowsMesh<TVertex> : DynamicBlobShadowsMesh where TVertex : struct
     {
         private const MeshUpdateFlags MeshUpdateFlags = UnityEngine.Rendering.MeshUpdateFlags.DontResetBoneBounds |
                                                         UnityEngine.Rendering.MeshUpdateFlags.DontRecalculateBounds |
                                                         UnityEngine.Rendering.MeshUpdateFlags.DontNotifyMeshUsers;
         private const IndexFormat IndexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
-        private readonly List<ushort> _indices = new();
-        private readonly VertexAttributeDescriptor[] _vertexAttributes;
-        private readonly List<Vertex> _vertices = new();
+
+
+        private static readonly List<TVertex> TempVertices = new();
+
         private Bounds2D _bounds;
         private Vector2 _inverseWorldSize;
         private Mesh _mesh;
+        private int _renderersCount;
 
-        public DynamicBlobShadowsMesh()
-        {
-            EnsureMeshIsCreated();
-            _vertexAttributes = new[]
-            {
-                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float16, 2),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float16, 2),
-            };
-        }
+        protected abstract VertexAttributeDescriptor[] VertexAttributeDescriptors { get; }
 
         private void EnsureMeshIsCreated()
         {
@@ -38,48 +111,63 @@ namespace DELTation.ToonRP.Shadows
 
             _mesh = new Mesh
             {
-                name = "Dynamic Blob Shadows Mesh",
+                name = $"Dynamic Blob Shadows Mesh ({ShadowType.ToString()})",
             };
             _mesh.MarkDynamic();
         }
 
-        public Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds)
+        public override Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds)
         {
             _bounds = bounds;
 
             Prepare();
             FillBuffers(renderers);
-            UploadBuffers();
 
-            return _mesh;
+            if (_renderersCount > 0)
+            {
+                EnsureMeshIsCreated();
+                UploadBuffers();
+                return _mesh;
+            }
+
+            return null;
         }
 
         private void Prepare()
         {
-            _vertices.Clear();
-            _indices.Clear();
+            TempVertices.Clear();
+            TempIndices.Clear();
+            _renderersCount = 0;
 
             _inverseWorldSize = _bounds.Size;
             _inverseWorldSize.x = 1.0f / _inverseWorldSize.x;
             _inverseWorldSize.y = 1.0f / _inverseWorldSize.y;
-
-            EnsureMeshIsCreated();
         }
 
         private void FillBuffers(List<ToonBlobShadowsCulling.RendererData> renderers)
         {
+            _renderersCount = 0;
+
+            BlobShadowType shadowType = ShadowType;
+
             foreach (ToonBlobShadowsCulling.RendererData renderer in renderers)
             {
-                int baseVertexIndex = _vertices.Count;
+                if (renderer.ShadowType != shadowType)
+                {
+                    continue;
+                }
+
+                ++_renderersCount;
 
                 // vertices
-                var position = new Vector2(renderer.Position.x, renderer.Position.z);
+                var position = new Vector2(renderer.Position.x, renderer.Position.y);
                 position = WorldToHClip(position);
 
-                AddVertex(new Vector2(-1, -1), position, renderer.Radius);
-                AddVertex(new Vector2(1, -1), position, renderer.Radius);
-                AddVertex(new Vector2(1, 1), position, renderer.Radius);
-                AddVertex(new Vector2(-1, 1), position, renderer.Radius);
+                int baseVertexIndex = TempVertices.Count;
+                AddVertex(new Vector2(-1, -1), position, renderer.HalfSize, renderer.Params);
+                AddVertex(new Vector2(1, -1), position, renderer.HalfSize, renderer.Params);
+                AddVertex(new Vector2(1, 1), position, renderer.HalfSize, renderer.Params);
+                AddVertex(new Vector2(-1, 1), position, renderer.HalfSize, renderer.Params);
 
                 // indices
                 AddIndex(baseVertexIndex + 0);
@@ -90,18 +178,16 @@ namespace DELTation.ToonRP.Shadows
                 AddIndex(baseVertexIndex + 3);
                 AddIndex(baseVertexIndex + 0);
             }
-
-            Assert.AreEqual(_vertices.Count, renderers.Count * 4);
-            Assert.AreEqual(_indices.Count, renderers.Count * 6);
         }
 
         private void UploadBuffers()
         {
-            _mesh.SetVertexBufferParams(_vertices.Count, _vertexAttributes);
-            _mesh.SetVertexBufferData(_vertices, 0, 0, _vertices.Count, 0, MeshUpdateFlags);
+            int vertexCount = TempVertices.Count;
+            _mesh.SetVertexBufferParams(vertexCount, VertexAttributeDescriptors);
+            _mesh.SetVertexBufferData(TempVertices, 0, 0, vertexCount, 0, MeshUpdateFlags);
 
-            _mesh.SetIndexBufferParams(_indices.Count, IndexFormat);
-            _mesh.SetIndexBufferData(_indices, 0, 0, _indices.Count, MeshUpdateFlags);
+            _mesh.SetIndexBufferParams(TempIndices.Count, IndexFormat);
+            _mesh.SetIndexBufferData(TempIndices, 0, 0, TempIndices.Count, MeshUpdateFlags);
 
             _mesh.SetSubMesh(0, new SubMeshDescriptor
                 {
@@ -109,26 +195,32 @@ namespace DELTation.ToonRP.Shadows
                     topology = MeshTopology.Triangles,
                     baseVertex = 0,
                     firstVertex = 0,
-                    indexCount = _indices.Count,
+                    indexCount = TempIndices.Count,
                     indexStart = 0,
-                    vertexCount = _vertices.Count,
+                    vertexCount = vertexCount,
                 }, MeshUpdateFlags
             );
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddVertex(Vector2 originalVertex, Vector2 translation, float radius)
+        private void AddVertex(Vector2 originalVertex, Vector2 translation, float halfSize, Vector4 @params)
         {
-            float diameter = radius * 2.0f;
-            Vector2 scale = _inverseWorldSize * diameter;
+            ComputePositionAndUv(originalVertex, translation, halfSize, out Vector2 position, out Vector2 uv);
+            TempVertices.Add(BuildVertex(position, uv, @params));
+        }
 
-            Vector2 resultingVertex = originalVertex * scale + translation;
-            _vertices.Add(new Vertex
-                {
-                    Position = Vector2Half.FromVector2(resultingVertex),
-                    UV = Vector2Half.FromVector2(originalVertex),
-                }
-            );
+        protected abstract TVertex BuildVertex(Vector2 position, Vector2 uv, Vector4 @params);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ComputePositionAndUv(Vector2 originalVertex, Vector2 translation, float halfSize,
+            out Vector2 position, out Vector2 uv
+        )
+        {
+            float size = halfSize * 2.0f;
+            Vector2 scale = _inverseWorldSize * size;
+
+            position = originalVertex * scale + translation;
+            uv = originalVertex;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -154,33 +246,9 @@ namespace DELTation.ToonRP.Shadows
             a != b ? (value - a) / (b - a) : 0.0f;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddIndex(int index)
+        private static void AddIndex(int index)
         {
-            _indices.Add((ushort) index);
-        }
-
-        private struct Vertex
-        {
-            // ReSharper disable once NotAccessedField.Local
-            public Vector2Half Position;
-            // ReSharper disable once NotAccessedField.Local
-            public Vector2Half UV;
-        }
-
-        private struct Vector2Half
-        {
-            // ReSharper disable once NotAccessedField.Local
-            public ushort X;
-            // ReSharper disable once NotAccessedField.Local
-            public ushort Y;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static Vector2Half FromVector2(Vector2 vector) =>
-                new()
-                {
-                    X = Mathf.FloatToHalf(vector.x),
-                    Y = Mathf.FloatToHalf(vector.y),
-                };
+            TempIndices.Add((ushort) index);
         }
     }
 }

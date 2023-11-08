@@ -8,7 +8,6 @@ namespace DELTation.ToonRP.Shadows
     public class ToonBlobShadows
     {
         private const int SubmeshIndex = 0;
-        private const int ShaderPass = 0;
 
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
@@ -19,13 +18,24 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private readonly ToonBlobShadowsCulling _culling = new();
-        private readonly DynamicBlobShadowsMesh _dynamicMesh = new();
+
+        private readonly DynamicBlobShadowsMesh[] _shadowMeshes;
 
         private ToonBlobShadowsSettings _blobShadowsSettings;
         private Camera _camera;
         private ScriptableRenderContext _context;
         private Material _material;
         private ToonShadowSettings _settings;
+
+        public ToonBlobShadows()
+        {
+            _shadowMeshes = new DynamicBlobShadowsMesh[BlobShadowTypes.Count];
+
+            for (int i = 0; i < BlobShadowTypes.Count; i++)
+            {
+                _shadowMeshes[i] = new DynamicBlobShadowsMesh((BlobShadowType) i);
+            }
+        }
 
         private void EnsureAssetsAreCreated()
         {
@@ -93,8 +103,16 @@ namespace DELTation.ToonRP.Shadows
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
 
-            Mesh mesh = _dynamicMesh.Construct(_culling.Renderers, _culling.Bounds);
-            cmd.DrawMesh(mesh, Matrix4x4.identity, _material, SubmeshIndex, ShaderPass);
+            for (int shadowType = 0; shadowType < BlobShadowTypes.Count; shadowType++)
+            {
+                ref DynamicBlobShadowsMesh dynamicShadowMesh = ref _shadowMeshes[shadowType];
+                dynamicShadowMesh ??= new DynamicBlobShadowsMesh((BlobShadowType) shadowType);
+                Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
+                if (mesh != null)
+                {
+                    cmd.DrawMesh(mesh, Matrix4x4.identity, _material, SubmeshIndex, shadowType);
+                }
+            }
         }
 
         private void SetupBlending()

@@ -8,7 +8,7 @@ namespace DELTation.ToonRP
         public const string DefaultBlitShaderPath = "Hidden/Toon RP/Blit";
 
         private const int SubmeshIndex = 0;
-        private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        public static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static Mesh _triangleMesh;
         private static Material _defaultBlitMaterial;
 

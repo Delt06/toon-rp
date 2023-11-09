@@ -26,7 +26,7 @@ namespace DELTation.ToonRP.Shadows
         public abstract BlobShadowType ShadowType { get; }
 
         public List<int> UsedRenderers { get; } = new();
-        public List<SubMeshData> SubMeshes { get; } = new();
+        public List<BatchData> Batches { get; } = new();
 
         [CanBeNull]
         public abstract Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds);
@@ -87,7 +87,7 @@ namespace DELTation.ToonRP.Shadows
                 };
         }
 
-        public struct SubMeshData
+        public struct BatchData
         {
             public Texture2D BakedShadowTexture;
             public List<int> Renderers;
@@ -105,7 +105,7 @@ namespace DELTation.ToonRP.Shadows
 
 
         private static readonly List<TVertex> TempVertices = new();
-        private readonly Dictionary<Texture2D, int> _subMeshMap = new();
+        private readonly Dictionary<Texture2D, int> _batchMap = new();
 
         private Bounds2D _bounds;
         private Vector2 _inverseWorldSize;
@@ -149,8 +149,8 @@ namespace DELTation.ToonRP.Shadows
         private void Prepare()
         {
             UsedRenderers.Clear();
-            SubMeshes.Clear();
-            _subMeshMap.Clear();
+            Batches.Clear();
+            _batchMap.Clear();
 
             TempVertices.Clear();
             TempIndices.Clear();
@@ -175,11 +175,11 @@ namespace DELTation.ToonRP.Shadows
                 UsedRenderers.Add(index);
 
                 Texture2D textureKey = GetTextureKey(renderer.BakedShadowTexture);
-                if (!_subMeshMap.TryGetValue(textureKey, out int subMeshIndex))
+                if (!_batchMap.TryGetValue(textureKey, out int batchIndex))
                 {
-                    subMeshIndex = SubMeshes.Count;
-                    _subMeshMap.Add(textureKey, subMeshIndex);
-                    SubMeshes.Add(new SubMeshData
+                    batchIndex = Batches.Count;
+                    _batchMap.Add(textureKey, batchIndex);
+                    Batches.Add(new BatchData
                         {
                             BakedShadowTexture = renderer.BakedShadowTexture,
                             Renderers = ListPool<int>.Get(),
@@ -187,14 +187,14 @@ namespace DELTation.ToonRP.Shadows
                     );
                 }
 
-                SubMeshes[subMeshIndex].Renderers.Add(index);
+                Batches[batchIndex].Renderers.Add(index);
             }
 
-            for (int index = 0; index < SubMeshes.Count; index++)
+            for (int index = 0; index < Batches.Count; index++)
             {
-                SubMeshData subMeshData = SubMeshes[index];
+                BatchData batchData = Batches[index];
 
-                foreach (int rendererIndex in subMeshData.Renderers)
+                foreach (int rendererIndex in batchData.Renderers)
                 {
                     ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
 
@@ -202,12 +202,12 @@ namespace DELTation.ToonRP.Shadows
                     var position = new Vector2(renderer.Position.x, renderer.Position.y);
                     position = WorldToHClip(position);
 
-                    int baseVertexIndex = subMeshData.VertexCount;
+                    int baseVertexIndex = batchData.VertexCount;
                     AddVertex(new Vector2(-1, -1), position, renderer.HalfSize, renderer.Params);
                     AddVertex(new Vector2(1, -1), position, renderer.HalfSize, renderer.Params);
                     AddVertex(new Vector2(1, 1), position, renderer.HalfSize, renderer.Params);
                     AddVertex(new Vector2(-1, 1), position, renderer.HalfSize, renderer.Params);
-                    subMeshData.VertexCount += 4;
+                    batchData.VertexCount += 4;
 
                     // indices
                     AddIndex(baseVertexIndex + 0);
@@ -217,10 +217,10 @@ namespace DELTation.ToonRP.Shadows
                     AddIndex(baseVertexIndex + 2);
                     AddIndex(baseVertexIndex + 3);
                     AddIndex(baseVertexIndex + 0);
-                    subMeshData.IndexCount += 6;
+                    batchData.IndexCount += 6;
                 }
 
-                SubMeshes[index] = subMeshData;
+                Batches[index] = batchData;
             }
         }
 
@@ -241,7 +241,7 @@ namespace DELTation.ToonRP.Shadows
                 int baseVertex = 0;
                 int indexStart = 0;
 
-                foreach (SubMeshData subMeshData in SubMeshes)
+                foreach (BatchData batchData in Batches)
                 {
                     subMeshDescriptors.Add(new SubMeshDescriptor
                         {
@@ -249,14 +249,14 @@ namespace DELTation.ToonRP.Shadows
                             topology = MeshTopology.Triangles,
                             baseVertex = baseVertex,
                             firstVertex = 0,
-                            indexCount = subMeshData.IndexCount,
+                            indexCount = batchData.IndexCount,
                             indexStart = indexStart,
-                            vertexCount = subMeshData.VertexCount,
+                            vertexCount = batchData.VertexCount,
                         }
                     );
 
-                    baseVertex += subMeshData.VertexCount;
-                    indexStart += subMeshData.IndexCount;
+                    baseVertex += batchData.VertexCount;
+                    indexStart += batchData.IndexCount;
                 }
 
                 _mesh.SetSubMeshes(subMeshDescriptors, MeshUpdateFlags);
@@ -265,13 +265,13 @@ namespace DELTation.ToonRP.Shadows
 
         private void Cleanup()
         {
-            foreach (SubMeshData subMesh in SubMeshes)
+            foreach (BatchData batchData in Batches)
             {
-                ListPool<int>.Release(subMesh.Renderers);
-                subMesh.Renderers.Clear();
+                ListPool<int>.Release(batchData.Renderers);
+                batchData.Renderers.Clear();
             }
 
-            _subMeshMap.Clear();
+            _batchMap.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

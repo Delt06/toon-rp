@@ -106,16 +106,18 @@ namespace DELTation.ToonRP.Shadows
                 Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
                 if (mesh != null)
                 {
-                    for (int subMeshIndex = 0; subMeshIndex < mesh.subMeshCount; subMeshIndex++)
+                    // Each batch corresponds to a submesh.
+                    // Renderers are batched based on their baked shadow textures.
+                    for (int batchIndex = 0; batchIndex < dynamicShadowMesh.Batches.Count; batchIndex++)
                     {
-                        Texture2D bakedShadowTexture = dynamicShadowMesh.SubMeshes[subMeshIndex].BakedShadowTexture;
+                        Texture2D bakedShadowTexture = dynamicShadowMesh.Batches[batchIndex].BakedShadowTexture;
 
                         if (bakedShadowTexture)
                         {
                             cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
                         }
 
-                        cmd.DrawMesh(mesh, Matrix4x4.identity, _material, subMeshIndex, shadowType);
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, _material, batchIndex, shadowType);
                     }
                 }
             }

@@ -6,6 +6,7 @@ namespace DELTation.ToonRP.Shadows
     {
         Circle = 0,
         Square,
+        Baked,
     }
 
     public static class BlobShadowTypes

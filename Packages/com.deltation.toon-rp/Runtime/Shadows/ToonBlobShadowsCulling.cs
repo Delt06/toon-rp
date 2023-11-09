@@ -58,6 +58,9 @@ namespace DELTation.ToonRP.Shadows
                         HalfSize = halfSize,
                         ShadowType = renderer.ShadowType,
                         Params = renderer.Params,
+                        BakedShadowTexture = renderer.ShadowType == BlobShadowType.Baked
+                            ? renderer.Baked.BakedShadowTexture
+                            : null,
                     }
                 );
             }
@@ -92,6 +95,7 @@ namespace DELTation.ToonRP.Shadows
             public float HalfSize;
             public BlobShadowType ShadowType;
             public Vector4 Params;
+            public Texture2D BakedShadowTexture;
         }
     }
 }

@@ -7,8 +7,6 @@ namespace DELTation.ToonRP.Shadows
 {
     public class ToonBlobShadows
     {
-        private const int SubmeshIndex = 0;
-
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
@@ -17,6 +15,7 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
+        private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
         private readonly ToonBlobShadowsCulling _culling = new();
 
         private readonly DynamicBlobShadowsMesh[] _shadowMeshes;
@@ -32,6 +31,7 @@ namespace DELTation.ToonRP.Shadows
             _shadowMeshes = new DynamicBlobShadowsMesh[BlobShadowTypes.Count];
             _shadowMeshes[(int) BlobShadowType.Circle] = new DynamicCircleBlobShadowsMesh();
             _shadowMeshes[(int) BlobShadowType.Square] = new DynamicSquareBlobShadowsMesh();
+            _shadowMeshes[(int) BlobShadowType.Baked] = new DynamicBakedBlobShadowsMesh();
         }
 
         private void EnsureAssetsAreCreated()
@@ -91,46 +91,6 @@ namespace DELTation.ToonRP.Shadows
                 cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
             }
 
-            {
-                const int resolution = 32;
-                const TextureFormat textureFormat = TextureFormat.R8;
-                var texture = new Texture2D(resolution, resolution, textureFormat, false, true);
-
-                int depthRt = Shader.PropertyToID("DepthRT");
-                cmd.GetTemporaryRT(depthRt, resolution, resolution, 32, FilterMode.Point, RenderTextureFormat.Depth);
-                int tempRt = Shader.PropertyToID("TempRT");
-                cmd.GetTemporaryRT(tempRt, resolution, resolution, 0, FilterMode.Point, RenderTextureFormat.R8);
-
-                var viewMatrix = Matrix4x4.Inverse(
-                    Matrix4x4.TRS(Vector3.zero, Quaternion.LookRotation(Vector3.down, Vector3.forward), Vector3.one)
-                );
-                var projectionMatrix = Matrix4x4.Ortho(-2.0f, 2.0f, -2.0f, 2.0f, -100.0f, 100.0f);
-
-                cmd.SetRenderTarget(depthRt);
-                cmd.ClearRenderTarget(true, false, Color.black);
-                cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
-                foreach (MeshRenderer meshRenderer in _settings.Blobs.Model.GetComponentsInChildren<MeshRenderer>())
-                {
-                    MeshFilter meshFilter = meshRenderer.GetComponent<MeshFilter>();
-                    Material[] sharedMaterials = meshRenderer.sharedMaterials;
-                    int subMeshCount = Mathf.Min(sharedMaterials.Length, meshFilter.sharedMesh.subMeshCount);
-                    for (int index = 0; index < subMeshCount; index++)
-                    {
-                        Material material = sharedMaterials[index];
-                        cmd.DrawRenderer(meshRenderer, material, index, 2);
-                    }
-                }
-
-                cmd.SetRenderTarget(tempRt);
-                ToonBlitter.BlitDefault(cmd, depthRt);
-
-                cmd.CopyTexture(tempRt, texture);
-
-                // RenderTexture.ReleaseTemporary(depthRt);
-                // RenderTexture.ReleaseTemporary(tempRt);
-            }
-
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -146,7 +106,17 @@ namespace DELTation.ToonRP.Shadows
                 Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
                 if (mesh != null)
                 {
-                    cmd.DrawMesh(mesh, Matrix4x4.identity, _material, SubmeshIndex, shadowType);
+                    for (int subMeshIndex = 0; subMeshIndex < mesh.subMeshCount; subMeshIndex++)
+                    {
+                        Texture2D bakedShadowTexture = dynamicShadowMesh.SubMeshes[subMeshIndex].BakedShadowTexture;
+
+                        if (bakedShadowTexture)
+                        {
+                            cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
+                        }
+
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, _material, subMeshIndex, shadowType);
+                    }
                 }
             }
         }

@@ -13,6 +13,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
         private static readonly List<Material> Materials = new();
         private static readonly List<Renderer> Renderers = new();
+        private static readonly int ApplyStepToSourceSamplesId = Shader.PropertyToID("_ApplyStepToSourceSamples");
+        private static readonly int DirectionId = Shader.PropertyToID("_Direction");
         [Min(4)]
         public int Width = 32;
         [Min(4)]
@@ -26,6 +28,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
         [Min(0)]
         public int BlurIterations = 4;
+
+        public bool GenerateMipMaps = true;
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -43,7 +47,10 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             ctx.DependsOnArtifact(AssetDatabase.GetAssetPath(Model));
 
             const TextureFormat textureFormat = TextureFormat.R8;
-            var texture = new Texture2D(Width, Height, textureFormat, false, true);
+            var texture = new Texture2D(Width, Height, textureFormat, GenerateMipMaps, true)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+            };
 
             var depthRt = RenderTexture.GetTemporary(Width, Height, 32, RenderTextureFormat.Depth);
             var tempRt1 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8);
@@ -116,7 +123,7 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             RenderTexture previousActive = RenderTexture.active;
             RenderTexture.active = sourceRt;
             destination.ReadPixels(new Rect(0, 0, Height, Height), 0, 0, false);
-            destination.Apply();
+            destination.Apply(GenerateMipMaps, true);
             RenderTexture.active = previousActive;
         }
 
@@ -164,15 +171,15 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             // Horizontal
             cmd.SetRenderTarget(rt2);
             cmd.SetGlobalTexture(ToonBlitter.MainTexId, rt1);
-            cmd.SetGlobalInt("_ApplyStepToSourceSamples", i == 0 ? 1 : 0);
-            cmd.SetGlobalVector("_Direction", new Vector2(1, 0));
+            cmd.SetGlobalInt(ApplyStepToSourceSamplesId, i == 0 ? 1 : 0);
+            cmd.SetGlobalVector(DirectionId, new Vector2(1, 0));
             ToonBlitter.Blit(cmd, blurMaterial);
 
             // Vertical
             cmd.SetRenderTarget(rt1);
             cmd.SetGlobalTexture(ToonBlitter.MainTexId, rt2);
-            cmd.SetGlobalInt("_ApplyStepToSourceSamples", 0);
-            cmd.SetGlobalVector("_Direction", new Vector2(0, 1));
+            cmd.SetGlobalInt(ApplyStepToSourceSamplesId, 0);
+            cmd.SetGlobalVector(DirectionId, new Vector2(0, 1));
             ToonBlitter.Blit(cmd, blurMaterial);
         }
     }

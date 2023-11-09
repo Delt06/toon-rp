@@ -25,6 +25,9 @@ namespace DELTation.ToonRP.Shadows
 
         public abstract BlobShadowType ShadowType { get; }
 
+        public List<int> UsedRenderers { get; } = new();
+        public List<SubMeshData> SubMeshes { get; } = new();
+
         [CanBeNull]
         public abstract Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds);
 
@@ -83,6 +86,14 @@ namespace DELTation.ToonRP.Shadows
                     W = Mathf.FloatToHalf(vector.w),
                 };
         }
+
+        public struct SubMeshData
+        {
+            public Texture2D BakedShadowTexture;
+            public List<int> Renderers;
+            public int VertexCount;
+            public int IndexCount;
+        }
     }
 
     public abstract class DynamicBlobShadowsMesh<TVertex> : DynamicBlobShadowsMesh where TVertex : struct
@@ -94,11 +105,11 @@ namespace DELTation.ToonRP.Shadows
 
 
         private static readonly List<TVertex> TempVertices = new();
+        private readonly Dictionary<Texture2D, int> _subMeshMap = new();
 
         private Bounds2D _bounds;
         private Vector2 _inverseWorldSize;
         private Mesh _mesh;
-        private int _renderersCount;
 
         protected abstract VertexAttributeDescriptor[] VertexAttributeDescriptors { get; }
 
@@ -116,28 +127,33 @@ namespace DELTation.ToonRP.Shadows
             _mesh.MarkDynamic();
         }
 
-        public override Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds)
+        public sealed override Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds)
         {
             _bounds = bounds;
 
             Prepare();
             FillBuffers(renderers);
 
-            if (_renderersCount > 0)
+            if (UsedRenderers.Count > 0)
             {
                 EnsureMeshIsCreated();
                 UploadBuffers();
+                Cleanup();
                 return _mesh;
             }
 
+            Cleanup();
             return null;
         }
 
         private void Prepare()
         {
+            UsedRenderers.Clear();
+            SubMeshes.Clear();
+            _subMeshMap.Clear();
+
             TempVertices.Clear();
             TempIndices.Clear();
-            _renderersCount = 0;
 
             _inverseWorldSize = _bounds.Size;
             _inverseWorldSize.x = 1.0f / _inverseWorldSize.x;
@@ -146,39 +162,70 @@ namespace DELTation.ToonRP.Shadows
 
         private void FillBuffers(List<ToonBlobShadowsCulling.RendererData> renderers)
         {
-            _renderersCount = 0;
-
             BlobShadowType shadowType = ShadowType;
 
-            foreach (ToonBlobShadowsCulling.RendererData renderer in renderers)
+            for (int index = 0; index < renderers.Count; index++)
             {
+                ToonBlobShadowsCulling.RendererData renderer = renderers[index];
                 if (renderer.ShadowType != shadowType)
                 {
                     continue;
                 }
 
-                ++_renderersCount;
+                UsedRenderers.Add(index);
 
-                // vertices
-                var position = new Vector2(renderer.Position.x, renderer.Position.y);
-                position = WorldToHClip(position);
+                Texture2D textureKey = GetTextureKey(renderer.BakedShadowTexture);
+                if (!_subMeshMap.TryGetValue(textureKey, out int subMeshIndex))
+                {
+                    subMeshIndex = SubMeshes.Count;
+                    _subMeshMap.Add(textureKey, subMeshIndex);
+                    SubMeshes.Add(new SubMeshData
+                        {
+                            BakedShadowTexture = renderer.BakedShadowTexture,
+                            Renderers = ListPool<int>.Get(),
+                        }
+                    );
+                }
 
-                int baseVertexIndex = TempVertices.Count;
-                AddVertex(new Vector2(-1, -1), position, renderer.HalfSize, renderer.Params);
-                AddVertex(new Vector2(1, -1), position, renderer.HalfSize, renderer.Params);
-                AddVertex(new Vector2(1, 1), position, renderer.HalfSize, renderer.Params);
-                AddVertex(new Vector2(-1, 1), position, renderer.HalfSize, renderer.Params);
+                SubMeshes[subMeshIndex].Renderers.Add(index);
+            }
 
-                // indices
-                AddIndex(baseVertexIndex + 0);
-                AddIndex(baseVertexIndex + 1);
-                AddIndex(baseVertexIndex + 2);
+            for (int index = 0; index < SubMeshes.Count; index++)
+            {
+                SubMeshData subMeshData = SubMeshes[index];
 
-                AddIndex(baseVertexIndex + 2);
-                AddIndex(baseVertexIndex + 3);
-                AddIndex(baseVertexIndex + 0);
+                foreach (int rendererIndex in subMeshData.Renderers)
+                {
+                    ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
+
+                    // vertices
+                    var position = new Vector2(renderer.Position.x, renderer.Position.y);
+                    position = WorldToHClip(position);
+
+                    int baseVertexIndex = subMeshData.VertexCount;
+                    AddVertex(new Vector2(-1, -1), position, renderer.HalfSize, renderer.Params);
+                    AddVertex(new Vector2(1, -1), position, renderer.HalfSize, renderer.Params);
+                    AddVertex(new Vector2(1, 1), position, renderer.HalfSize, renderer.Params);
+                    AddVertex(new Vector2(-1, 1), position, renderer.HalfSize, renderer.Params);
+                    subMeshData.VertexCount += 4;
+
+                    // indices
+                    AddIndex(baseVertexIndex + 0);
+                    AddIndex(baseVertexIndex + 1);
+                    AddIndex(baseVertexIndex + 2);
+
+                    AddIndex(baseVertexIndex + 2);
+                    AddIndex(baseVertexIndex + 3);
+                    AddIndex(baseVertexIndex + 0);
+                    subMeshData.IndexCount += 6;
+                }
+
+                SubMeshes[index] = subMeshData;
             }
         }
+
+        private static Texture2D GetTextureKey(Texture2D texture) =>
+            texture ? texture : Texture2D.whiteTexture;
 
         private void UploadBuffers()
         {
@@ -189,17 +236,42 @@ namespace DELTation.ToonRP.Shadows
             _mesh.SetIndexBufferParams(TempIndices.Count, IndexFormat);
             _mesh.SetIndexBufferData(TempIndices, 0, 0, TempIndices.Count, MeshUpdateFlags);
 
-            _mesh.SetSubMesh(0, new SubMeshDescriptor
+            using (ListPool<SubMeshDescriptor>.Get(out List<SubMeshDescriptor> subMeshDescriptors))
+            {
+                int baseVertex = 0;
+                int indexStart = 0;
+
+                foreach (SubMeshData subMeshData in SubMeshes)
                 {
-                    bounds = default,
-                    topology = MeshTopology.Triangles,
-                    baseVertex = 0,
-                    firstVertex = 0,
-                    indexCount = TempIndices.Count,
-                    indexStart = 0,
-                    vertexCount = vertexCount,
-                }, MeshUpdateFlags
-            );
+                    subMeshDescriptors.Add(new SubMeshDescriptor
+                        {
+                            bounds = default,
+                            topology = MeshTopology.Triangles,
+                            baseVertex = baseVertex,
+                            firstVertex = 0,
+                            indexCount = subMeshData.IndexCount,
+                            indexStart = indexStart,
+                            vertexCount = subMeshData.VertexCount,
+                        }
+                    );
+
+                    baseVertex += subMeshData.VertexCount;
+                    indexStart += subMeshData.IndexCount;
+                }
+
+                _mesh.SetSubMeshes(subMeshDescriptors, MeshUpdateFlags);
+            }
+        }
+
+        private void Cleanup()
+        {
+            foreach (SubMeshData subMesh in SubMeshes)
+            {
+                ListPool<int>.Release(subMesh.Renderers);
+                subMesh.Renderers.Clear();
+            }
+
+            _subMeshMap.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

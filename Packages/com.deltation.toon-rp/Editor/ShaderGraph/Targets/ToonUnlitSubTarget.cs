@@ -52,17 +52,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     },
                 };
 
-                if (target.MayWriteDepth)
-                {
-                    result.passes.Add(CorePasses.DepthOnly(target));
-                    result.passes.Add(CorePasses.DepthNormals(target));
-                    result.passes.Add(CorePasses.MotionVectors(target));
-                }
-
-                if (target.CastShadows || target.AllowMaterialOverride)
-                {
-                    result.passes.Add(CorePasses.ShadowCaster(target));
-                }
+                CorePasses.AddPrePasses(target, ref result);
+                CorePasses.AddShadowCasterPass(target, ref result);
 
                 return result;
             }

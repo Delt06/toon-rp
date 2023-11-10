@@ -193,6 +193,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             private set => _receiveShadows = value;
         }
 
+        public PrePassMode IgnoredPrePasses
+        {
+            get => _ignoredPrePasses;
+            private set => _ignoredPrePasses = value;
+        }
+
         public bool Fog
         {
             get => _fog;
@@ -524,6 +530,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     }
                 );
             }
+
+            context.AddProperty("Ignored Pre-Passes", new EnumFlagsField(PrePassMode.Off) { value = IgnoredPrePasses },
+                evt =>
+                {
+                    if (Equals(IgnoredPrePasses, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Ignored Pre-Passes");
+                    IgnoredPrePasses = (PrePassMode) evt.newValue;
+                    onChange();
+                }
+            );
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -587,6 +607,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private bool _controlOutlinesStencilLayer = true;
         [SerializeField] private bool _castShadows = true;
         [SerializeField] private bool _receiveShadows = true;
+        [SerializeField] private PrePassMode _ignoredPrePasses = PrePassMode.Off;
         [SerializeField] private bool _fog = true;
         [SerializeField] private string _customEditorGUI;
         // ReSharper restore Unity.RedundantSerializeFieldAttribute
@@ -685,7 +706,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             AddOutlinesControlToPass(ref pass, target);
         }
 
-        public static PassDescriptor DepthOnly(ToonTarget target)
+        private static PassDescriptor DepthOnly(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthOnly;
             var result = new PassDescriptor
@@ -724,7 +745,30 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             return result;
         }
 
-        public static PassDescriptor DepthNormals(ToonTarget target)
+        public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
+        {
+            // cull pre-passes if we know they will never be used
+            if (target.MayWriteDepth)
+            {
+                // skip generating a pre-pass if it is in the ignore mask
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth))
+                {
+                    subShaderDescriptor.passes.Add(DepthOnly(target));
+                }
+
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth | PrePassMode.Normals))
+                {
+                    subShaderDescriptor.passes.Add(DepthNormals(target));
+                }
+
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.MotionVectors))
+                {
+                    subShaderDescriptor.passes.Add(MotionVectors(target));
+                }
+            }
+        }
+
+        private static PassDescriptor DepthNormals(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthNormals;
             var result = new PassDescriptor
@@ -764,7 +808,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             return result;
         }
 
-        public static PassDescriptor MotionVectors(ToonTarget target)
+        private static PassDescriptor MotionVectors(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.MotionVectors;
             var result = new PassDescriptor
@@ -804,7 +848,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             return result;
         }
 
-        public static PassDescriptor ShadowCaster(ToonTarget target)
+        public static void AddShadowCasterPass(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
+        {
+            // cull the shadowcaster pass if we know it will never be used
+            if (target.CastShadows || target.AllowMaterialOverride)
+            {
+                subShaderDescriptor.passes.Add(ShadowCaster(target));
+            }
+        }
+
+        private static PassDescriptor ShadowCaster(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.ShadowCaster;
             var result = new PassDescriptor

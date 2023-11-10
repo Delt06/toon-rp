@@ -244,18 +244,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     },
                 };
 
-                // cull the shadowcaster pass if we know it will never be used
-                if (target.CastShadows || target.AllowMaterialOverride)
-                {
-                    result.passes.Add(CorePasses.ShadowCaster(target));
-                }
-
-                if (target.MayWriteDepth)
-                {
-                    result.passes.Add(CorePasses.DepthOnly(target));
-                    result.passes.Add(CorePasses.DepthNormals(target));
-                    result.passes.Add(CorePasses.MotionVectors(target));
-                }
+                CorePasses.AddPrePasses(target, ref result);
+                CorePasses.AddShadowCasterPass(target, ref result);
 
                 return result;
             }

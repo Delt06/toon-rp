@@ -52,6 +52,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.ReceiveShadows, target.ReceiveShadows ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.AdditionalLightsSpecular, AdditionalLightsSpecular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -122,6 +123,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                 collector.AddFloatProperty(PropertyNames.OverrideRamp, OverrideRamp ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.AdditionalLightsSpecular,
+                    AdditionalLightsSpecular ? 1.0f : 0.0f
+                );
                 collector.AddFloatProperty(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
                     !EnvironmentLighting ? 1.0f : 0.0f
@@ -162,6 +166,23 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     onChange();
                 }
             );
+
+            if (Specular)
+            {
+                context.AddProperty("Additional Lights Specular", new Toggle { value = AdditionalLightsSpecular },
+                    evt =>
+                    {
+                        if (Equals(AdditionalLightsSpecular, evt.newValue))
+                        {
+                            return;
+                        }
+
+                        registerUndo("Change Additional Lights Specular");
+                        AdditionalLightsSpecular = evt.newValue;
+                        onChange();
+                    }
+                );
+            }
 
             context.AddProperty("Rim", new Toggle { value = Rim }, evt =>
                 {
@@ -298,6 +319,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
 
+            private static void AddAdditionalLightsSpecularControlToPass(ref PassDescriptor pass, ToonTarget target,
+                bool additionalLightsSpecular)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(CoreKeywordDescriptors.AdditionalLightsSpecular);
+                }
+                else if (additionalLightsSpecular)
+                {
+                    pass.defines.Add(CoreKeywordDescriptors.AdditionalLightsSpecular, 1);
+                }
+            }
+
+
             private static void AddRimControlToPass(ref PassDescriptor pass, ToonTarget target,
                 bool rim)
             {
@@ -352,6 +387,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 AddEnvironmentLightingControlToPass(ref result, target, subTarget.EnvironmentLighting);
                 AddOverrideRampControlToPass(ref result, target, subTarget.OverrideRamp);
                 AddSpecularControlToPass(ref result, target, subTarget.Specular);
+                AddAdditionalLightsSpecularControlToPass(ref result, target, subTarget.AdditionalLightsSpecular);
                 AddRimControlToPass(ref result, target, subTarget.Rim);
 
                 return result;
@@ -485,6 +521,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         [field: SerializeField]
         private bool Specular { get; set; } = true;
+
+        [field: SerializeField]
+        private bool AdditionalLightsSpecular { get; set; }
 
         [field: SerializeField]
         private bool Rim { get; set; } = true;

@@ -69,7 +69,9 @@ v2f VS(const appdata IN)
     lightComputationParameters.positionWs = positionWs;
     lightComputationParameters.positionCs = positionCs;
     lightComputationParameters.normalWs = normalWs;
-    OUT.additionalLights = ComputeAdditionalLightsRawDiffuse(lightComputationParameters, 1);
+
+    float3 additionalLightsSpecularUnused;
+    ComputeAdditionalLightsDiffuseSpecular(lightComputationParameters, 1, OUT.additionalLights, additionalLightsSpecularUnused);
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);

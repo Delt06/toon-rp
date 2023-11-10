@@ -30,6 +30,7 @@
         public const string NormalMapPropertyName = "_NormalMap";
 
         public const string Specular = "_ToonLightingSpecular";
+        public const string AdditionalLightsSpecular = "_ToonLightingAdditionalLightsSpecular";
         public const string Rim = "_Rim";
         public const string OverrideRamp = "_OverrideRamp";
         public const string ForceDisableFogPropertyName = "_ForceDisableFog";

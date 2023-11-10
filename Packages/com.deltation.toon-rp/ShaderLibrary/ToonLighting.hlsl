@@ -53,7 +53,7 @@ float ComputeRampSpecular(const LightComputationParameters parameters, const flo
 {
     #ifdef _OVERRIDE_RAMP
 
-    return ComputeRamp(nDotH, parameters.overrideRampSpecular);
+    return ComputeRamp(nDotH + parameters.specularSizeOffset, parameters.overrideRampSpecular);
     
     #else // !_OVERRIDE_RAMP
 
@@ -146,7 +146,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
 
     #ifdef _TOON_LIGHTING_SPECULAR
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
-    float specularRamp = ComputeRampSpecular(parameters, nDotH + parameters.specularSizeOffset);
+    float specularRamp = ComputeRampSpecular(parameters, nDotH);
     specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
     const float3 specular = parameters.specularColor * specularRamp;
     #else // !_TOON_LIGHTING_SPECULAR
@@ -156,7 +156,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     return light.color * (diffuse + specular);
 }
 
-float3 ComputeAdditionalLightsRawDiffuse(const LightComputationParameters parameters, const float ssao)
+void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters parameters, const float ssao, out float3 diffuse, out float3 specular)
 {
     #ifdef _TOON_RP_TILED_LIGHTING
     TiledLighting_LightGridCell cell = TiledLighting_GetLightGridCell(parameters.positionCs.xy);
@@ -164,7 +164,8 @@ float3 ComputeAdditionalLightsRawDiffuse(const LightComputationParameters parame
     #else // !_TOON_RP_TILED_LIGHTING
     const uint lightCount = GetPerObjectAdditionalLightCount();
     #endif // _TOON_RP_TILED_LIGHTING 
-    float3 lights = 0;
+    diffuse = 0;
+    specular = 0;
 
     UNITY_LOOP
     for (uint i = 0; i < lightCount; ++i)
@@ -177,26 +178,33 @@ float3 ComputeAdditionalLightsRawDiffuse(const LightComputationParameters parame
         float nDotL = dot(parameters.normalWs, light.direction);
         const float attenuation = light.distanceAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
-        const float rampCutoff = step(0.00001f, nDotL);
+
+        const float rampCutoffEdge = 0.00001f;
+        const float diffuseRampCutoff = step(rampCutoffEdge, nDotL);
+        const float attenuationCutoff = step(0.001, attenuation);
 
         #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
         const float diffuseRamp = saturate(nDotL);
         #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-        const float diffuseRamp = ComputeRampDiffuse(parameters, nDotL) * rampCutoff;
+        const float diffuseRamp = ComputeRampDiffuse(parameters, nDotL);
         #endif  // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
-        lights += diffuseRamp * step(0.001, attenuation) * light.color;
-    }
+        diffuse += diffuseRamp * attenuationCutoff * diffuseRampCutoff * light.color;
 
-    return lights;
+        #if !defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX) && defined(_TOON_LIGHTING_SPECULAR) && defined(_TOON_LIGHTING_ADDITIONAL_LIGHTS_SPECULAR)
+        const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
+        const float specularRampCutoff = step(rampCutoffEdge, nDotH);
+        const float specularRamp = ComputeRampSpecular(parameters, nDotH);
+        specular += specularRamp * attenuationCutoff * specularRampCutoff * light.color;
+        #endif // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX && _TOON_LIGHTING_SPECULAR && _TOON_LIGHTING_ADDITIONAL_LIGHTS_SPECULAR
+    }
 }
 
 float3 ComputeAdditionalLightComponent(const in LightComputationParameters parameters, const float ssao)
 {
-    const float3 rawDiffuse = ComputeAdditionalLightsRawDiffuse(
-        parameters,
-        ssao);
-    return rawDiffuse * parameters.albedo.rgb;
+    float3 diffuse, specular;
+    ComputeAdditionalLightsDiffuseSpecular(parameters, ssao, diffuse, specular);
+    return diffuse * parameters.albedo.rgb + specular;
 }
 
 float3 ComputeAdditionalLightComponentPerVertex(const in LightComputationParameters parameters)

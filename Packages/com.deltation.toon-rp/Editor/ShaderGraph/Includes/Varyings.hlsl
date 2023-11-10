@@ -163,7 +163,8 @@ Varyings BuildVaryings(Attributes input)
     lightComputationParameters.positionWs = positionWS;
     lightComputationParameters.positionCs = output.positionCS;
     lightComputationParameters.normalWs = normalWS;
-    const float3 vertexLight = ComputeAdditionalLightsRawDiffuse(lightComputationParameters, 1);
+    float3 vertexLight, vertexLightSpecularUnused;
+    ComputeAdditionalLightsDiffuseSpecular(lightComputationParameters, 1, vertexLight, vertexLightSpecularUnused);
     #else
     const float3 vertexLight = 0;
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX

@@ -1147,7 +1147,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask 0"),
             };
 
-            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;
@@ -1163,7 +1162,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask RGB"),
             };
 
-            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;
@@ -1179,7 +1177,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask RG"),
             };
 
-            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;

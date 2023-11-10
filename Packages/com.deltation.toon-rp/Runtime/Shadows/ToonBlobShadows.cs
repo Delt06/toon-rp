@@ -7,8 +7,6 @@ namespace DELTation.ToonRP.Shadows
 {
     public class ToonBlobShadows
     {
-        private const int SubmeshIndex = 0;
-
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
@@ -17,6 +15,7 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
+        private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
         private readonly ToonBlobShadowsCulling _culling = new();
 
         private readonly DynamicBlobShadowsMesh[] _shadowMeshes;
@@ -32,6 +31,7 @@ namespace DELTation.ToonRP.Shadows
             _shadowMeshes = new DynamicBlobShadowsMesh[BlobShadowTypes.Count];
             _shadowMeshes[(int) BlobShadowType.Circle] = new DynamicCircleBlobShadowsMesh();
             _shadowMeshes[(int) BlobShadowType.Square] = new DynamicSquareBlobShadowsMesh();
+            _shadowMeshes[(int) BlobShadowType.Baked] = new DynamicBakedBlobShadowsMesh();
         }
 
         private void EnsureAssetsAreCreated()
@@ -106,7 +106,19 @@ namespace DELTation.ToonRP.Shadows
                 Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
                 if (mesh != null)
                 {
-                    cmd.DrawMesh(mesh, Matrix4x4.identity, _material, SubmeshIndex, shadowType);
+                    // Each batch corresponds to a submesh.
+                    // Renderers are batched based on their baked shadow textures.
+                    for (int batchIndex = 0; batchIndex < dynamicShadowMesh.Batches.Count; batchIndex++)
+                    {
+                        Texture2D bakedShadowTexture = dynamicShadowMesh.Batches[batchIndex].BakedShadowTexture;
+
+                        if (bakedShadowTexture)
+                        {
+                            cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
+                        }
+
+                        cmd.DrawMesh(mesh, Matrix4x4.identity, _material, batchIndex, shadowType);
+                    }
                 }
             }
         }

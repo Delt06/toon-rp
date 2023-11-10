@@ -162,6 +162,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             private set => _alphaClip = value;
         }
 
+        public bool AlphaToCoverage
+        {
+            get => _alphaToCoverage;
+            private set => _alphaToCoverage = value;
+        }
+
         public bool ControlOutlinesStencilLayer
         {
             get => _controlOutlinesStencilLayer;
@@ -443,6 +449,22 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             );
 
+            if (AlphaClip)
+            {
+                context.AddProperty("Alpha To Coverage", new Toggle { value = AlphaToCoverage }, evt =>
+                    {
+                        if (Equals(AlphaToCoverage, evt.newValue))
+                        {
+                            return;
+                        }
+
+                        registerUndo("Change Alpha To Coverage");
+                        AlphaToCoverage = evt.newValue;
+                        onChange();
+                    }
+                );
+            }
+
             if (ControlOutlinesStencilLayerCanBeEnabled)
             {
                 context.AddProperty("Control Outlines Stencil Layer",
@@ -561,6 +583,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private AlphaMode _alphaMode = AlphaMode.Alpha;
         [SerializeField] private RenderFace _renderFace = RenderFace.Front;
         [SerializeField] private bool _alphaClip;
+        [SerializeField] private bool _alphaToCoverage;
         [SerializeField] private bool _controlOutlinesStencilLayer = true;
         [SerializeField] private bool _castShadows = true;
         [SerializeField] private bool _receiveShadows = true;
@@ -1013,16 +1036,17 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
 
+            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;
         }
 
-        public static void StencilControlRenderState(ToonTarget target, RenderStateCollection collection)
+        public static void StencilControlRenderState(ToonTarget target, RenderStateCollection renderStateCollection)
         {
             if (target.ControlOutlinesStencilLayerEffectivelyEnabled)
             {
-                collection.Add(RenderState.Stencil(new StencilDescriptor
+                renderStateCollection.Add(RenderState.Stencil(new StencilDescriptor
                         {
                             Ref = Uniforms.ForwardStencilRef,
                             WriteMask = Uniforms.ForwardStencilWriteMask,
@@ -1038,6 +1062,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             target.AllowMaterialOverride
                 ? RenderState.Cull(Uniforms.CullMode)
                 : RenderState.Cull(RenderFaceToCull(target.RenderFace));
+
+        private static void UberSwitchedAlphaToCoverageRenderState(ToonTarget target,
+            RenderStateCollection renderStateCollection)
+        {
+            if (target.AlphaClip && target.AlphaToCoverage)
+            {
+                renderStateCollection.Add(RenderState.AlphaToMask("On"));
+            }
+        }
 
         public static RenderStateCollection ShadowCaster(ToonTarget target)
         {
@@ -1061,6 +1094,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask 0"),
             };
 
+            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;
@@ -1076,6 +1110,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask RGB"),
             };
 
+            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;
@@ -1091,6 +1126,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ColorMask("ColorMask RG"),
             };
 
+            UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
 
             return result;

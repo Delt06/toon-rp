@@ -7,6 +7,7 @@
 
         public const string SurfaceType = "_SurfaceType";
         public const string AlphaClipping = "_AlphaClipping";
+        public const string AlphaToCoverage = "_AlphaToCoverage";
         public const string AlphaClipThreshold = "_AlphaClipThreshold";
         public const string BlendMode = "_BlendMode";
         public const string BlendSrc = "_BlendSrc";

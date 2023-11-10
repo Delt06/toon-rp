@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.AssetImporters;
+using UnityEngine.UIElements;
 
 namespace DELTation.ToonRP.Editor.BlobShadowBake
 {
@@ -12,6 +13,14 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             ProjectWindowUtil.CreateAssetWithContent(
                 "New Baked Blob Shadow." + BakedBlobShadowImporter.Extension, string.Empty
             );
+        }
+
+        public override VisualElement CreateInspectorGUI()
+        {
+            var root = new VisualElement();
+            UiElementsUtils.AddAllFields(serializedObject, root);
+            root.Add(new IMGUIContainer(ApplyRevertGUI));
+            return root;
         }
     }
 }

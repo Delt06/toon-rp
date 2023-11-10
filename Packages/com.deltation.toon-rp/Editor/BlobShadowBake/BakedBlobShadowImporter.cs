@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DELTation.ToonRP.Attributes;
 using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
@@ -32,6 +34,11 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
         public int BlurIterations = 4;
 
         public bool GenerateMipMaps = true;
+
+        [ToonRpHeader("Compression")]
+        public bool Compressed = true;
+        [ToonRpShowIf(nameof(Compressed))]
+        public CompressionSettings Compression;
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -117,7 +124,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
             DestroyImmediate(blurMaterial);
 
-            // EditorUtility.CompressTexture(texture, TextureFormat.ETC2_RGB, TextureCompressionQuality.Best);
+            Compress(texture);
+
             ctx.AddObjectToAsset("texture", texture);
             ctx.SetMainObject(texture);
         }
@@ -185,6 +193,46 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             cmd.SetGlobalInt(ApplyStepToSourceSamplesId, 0);
             cmd.SetGlobalVector(DirectionId, new Vector2(0, 1));
             ToonBlitter.Blit(cmd, blurMaterial);
+        }
+
+        private void Compress(Texture2D texture)
+        {
+            if (Compressed)
+            {
+                (TextureFormat format, TextureCompressionQuality quality) = GetCompressionTextureFormatAndQuality();
+                EditorUtility.CompressTexture(texture, format, quality);
+            }
+        }
+
+        private (TextureFormat format, TextureCompressionQuality quality) GetCompressionTextureFormatAndQuality()
+        {
+            BuildTarget activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
+
+            foreach (CompressionPlatformOverride platformOverride in Compression.PlatformOverrides)
+            {
+                if (platformOverride.Platform == activeBuildTarget)
+                {
+                    return (platformOverride.Format, platformOverride.Quality);
+                }
+            }
+
+            return (Compression.Format, Compression.Quality);
+        }
+
+        [Serializable]
+        public class CompressionSettings
+        {
+            public TextureFormat Format = TextureFormat.R8;
+            public TextureCompressionQuality Quality = TextureCompressionQuality.Best;
+            public List<CompressionPlatformOverride> PlatformOverrides = new();
+        }
+
+        [Serializable]
+        public class CompressionPlatformOverride
+        {
+            public BuildTarget Platform;
+            public TextureFormat Format = TextureFormat.R8;
+            public TextureCompressionQuality Quality = TextureCompressionQuality.Best;
         }
     }
 }

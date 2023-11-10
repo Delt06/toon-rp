@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -22,6 +23,23 @@ namespace DELTation.ToonRP.Shadows
         };
 
         protected static readonly List<ushort> TempIndices = new();
+
+        protected static readonly ProfilerMarker FillBuffersMarker =
+            new("BlobShadows.FillBuffers");
+        protected static readonly ProfilerMarker FillBuffersBuildBatchesMarker =
+            new("BlobShadows.FillBuffers.BuildBatches");
+        protected static readonly ProfilerMarker FillBuffersBuildMeshMarker =
+            new("BlobShadows.FillBuffers.BuildMesh");
+        protected static readonly ProfilerMarker UploadBuffersMarker =
+            new("BlobShadows.UploadBuffers");
+
+        protected static readonly Vector2[] QuadVertices =
+        {
+            new(-1, -1),
+            new(1, -1),
+            new(1, 1),
+            new(-1, 1),
+        };
 
         public abstract BlobShadowType ShadowType { get; }
 
@@ -105,10 +123,11 @@ namespace DELTation.ToonRP.Shadows
 
 
         private static readonly List<TVertex> TempVertices = new();
-        private readonly Dictionary<Texture2D, int> _batchMap = new();
 
         private Bounds2D _bounds;
         private Vector2 _inverseWorldSize;
+        private int _lastIndexCount = -1;
+        private int _lastVertexCount = -1;
         private Mesh _mesh;
 
         protected abstract VertexAttributeDescriptor[] VertexAttributeDescriptors { get; }
@@ -150,7 +169,6 @@ namespace DELTation.ToonRP.Shadows
         {
             UsedRenderers.Clear();
             Batches.Clear();
-            _batchMap.Clear();
 
             TempVertices.Clear();
             TempIndices.Clear();
@@ -162,79 +180,108 @@ namespace DELTation.ToonRP.Shadows
 
         private void FillBuffers(List<ToonBlobShadowsCulling.RendererData> renderers)
         {
+            using ProfilerMarker.AutoScope profilerScope = FillBuffersMarker.Auto();
+
             BlobShadowType shadowType = ShadowType;
 
-            for (int index = 0; index < renderers.Count; index++)
+            using (FillBuffersBuildBatchesMarker.Auto())
             {
-                ToonBlobShadowsCulling.RendererData renderer = renderers[index];
-                if (renderer.ShadowType != shadowType)
+                for (int index = 0; index < renderers.Count; index++)
                 {
-                    continue;
-                }
+                    ToonBlobShadowsCulling.RendererData renderer = renderers[index];
+                    if (renderer.ShadowType != shadowType)
+                    {
+                        continue;
+                    }
 
-                UsedRenderers.Add(index);
+                    UsedRenderers.Add(index);
 
-                Texture2D textureKey = GetTextureKey(renderer.BakedShadowTexture);
-                if (!_batchMap.TryGetValue(textureKey, out int batchIndex))
-                {
-                    batchIndex = Batches.Count;
-                    _batchMap.Add(textureKey, batchIndex);
-                    Batches.Add(new BatchData
+                    int thisBatchIndex = -1;
+
+                    for (int batchIndex = 0; batchIndex < Batches.Count; batchIndex++)
+                    {
+                        BatchData batchData = Batches[batchIndex];
+                        if (ReferenceEquals(batchData.BakedShadowTexture, renderer.BakedShadowTexture))
                         {
-                            BakedShadowTexture = renderer.BakedShadowTexture,
-                            Renderers = ListPool<int>.Get(),
+                            thisBatchIndex = batchIndex;
+                            break;
                         }
-                    );
-                }
+                    }
 
-                Batches[batchIndex].Renderers.Add(index);
+                    if (thisBatchIndex < 0)
+                    {
+                        thisBatchIndex = Batches.Count;
+                        Batches.Add(new BatchData
+                            {
+                                BakedShadowTexture = renderer.BakedShadowTexture,
+                                Renderers = ListPool<int>.Get(),
+                            }
+                        );
+                    }
+
+                    Batches[thisBatchIndex].Renderers.Add(index);
+                }
             }
 
-            for (int index = 0; index < Batches.Count; index++)
+            using (FillBuffersBuildMeshMarker.Auto())
             {
-                BatchData batchData = Batches[index];
-
-                foreach (int rendererIndex in batchData.Renderers)
+                for (int index = 0; index < Batches.Count; index++)
                 {
-                    ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
+                    BatchData batchData = Batches[index];
 
-                    // vertices
-                    var position = new Vector2(renderer.Position.x, renderer.Position.y);
-                    position = WorldToHClip(position);
+                    foreach (int rendererIndex in batchData.Renderers)
+                    {
+                        ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
 
-                    int baseVertexIndex = batchData.VertexCount;
-                    AddVertex(new Vector2(-1, -1), position, renderer.HalfSize, renderer.Params);
-                    AddVertex(new Vector2(1, -1), position, renderer.HalfSize, renderer.Params);
-                    AddVertex(new Vector2(1, 1), position, renderer.HalfSize, renderer.Params);
-                    AddVertex(new Vector2(-1, 1), position, renderer.HalfSize, renderer.Params);
-                    batchData.VertexCount += 4;
+                        // vertices
+                        var translation = new Vector2(renderer.Position.x, renderer.Position.y);
+                        translation = WorldToHClip(translation);
 
-                    // indices
-                    AddIndex(baseVertexIndex + 0);
-                    AddIndex(baseVertexIndex + 1);
-                    AddIndex(baseVertexIndex + 2);
+                        int baseVertexIndex = batchData.VertexCount;
 
-                    AddIndex(baseVertexIndex + 2);
-                    AddIndex(baseVertexIndex + 3);
-                    AddIndex(baseVertexIndex + 0);
-                    batchData.IndexCount += 6;
+                        AddVertex(QuadVertices[0], translation, renderer.HalfSize, renderer.Params);
+                        AddVertex(QuadVertices[1], translation, renderer.HalfSize, renderer.Params);
+                        AddVertex(QuadVertices[2], translation, renderer.HalfSize, renderer.Params);
+                        AddVertex(QuadVertices[3], translation, renderer.HalfSize, renderer.Params);
+                        batchData.VertexCount += 4;
+
+                        // indices
+                        AddIndex(baseVertexIndex + 0);
+                        AddIndex(baseVertexIndex + 1);
+                        AddIndex(baseVertexIndex + 2);
+
+                        AddIndex(baseVertexIndex + 2);
+                        AddIndex(baseVertexIndex + 3);
+                        AddIndex(baseVertexIndex + 0);
+                        batchData.IndexCount += 6;
+                    }
+
+                    Batches[index] = batchData;
                 }
-
-                Batches[index] = batchData;
             }
         }
 
-        private static Texture2D GetTextureKey(Texture2D texture) =>
-            texture ? texture : Texture2D.whiteTexture;
-
         private void UploadBuffers()
         {
-            int vertexCount = TempVertices.Count;
-            _mesh.SetVertexBufferParams(vertexCount, VertexAttributeDescriptors);
-            _mesh.SetVertexBufferData(TempVertices, 0, 0, vertexCount, 0, MeshUpdateFlags);
+            using ProfilerMarker.AutoScope profilerScope = UploadBuffersMarker.Auto();
 
-            _mesh.SetIndexBufferParams(TempIndices.Count, IndexFormat);
-            _mesh.SetIndexBufferData(TempIndices, 0, 0, TempIndices.Count, MeshUpdateFlags);
+            int vertexCount = TempVertices.Count;
+            if (vertexCount != _lastVertexCount)
+            {
+                _mesh.SetVertexBufferParams(vertexCount, VertexAttributeDescriptors);
+            }
+
+            _mesh.SetVertexBufferData(TempVertices, 0, 0, vertexCount, 0, MeshUpdateFlags);
+            _lastVertexCount = vertexCount;
+
+            int indexCount = TempIndices.Count;
+            if (indexCount != _lastIndexCount)
+            {
+                _mesh.SetIndexBufferParams(indexCount, IndexFormat);
+            }
+
+            _mesh.SetIndexBufferData(TempIndices, 0, 0, indexCount, MeshUpdateFlags);
+            _lastIndexCount = indexCount;
 
             using (ListPool<SubMeshDescriptor>.Get(out List<SubMeshDescriptor> subMeshDescriptors))
             {
@@ -270,8 +317,6 @@ namespace DELTation.ToonRP.Shadows
                 ListPool<int>.Release(batchData.Renderers);
                 batchData.Renderers.Clear();
             }
-
-            _batchMap.Clear();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

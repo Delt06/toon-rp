@@ -10,6 +10,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
     public class BakedBlobShadowImporter : ScriptedImporter
     {
         public const string Extension = "bakedblobshadow";
+        private const string BlurShaderPath =
+            "Packages/com.deltation.toon-rp/Shaders/Shadows/ToonRPBakedBlobShadowBlur.shader";
 
         private static readonly List<Material> Materials = new();
         private static readonly List<Renderer> Renderers = new();
@@ -45,6 +47,7 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             }
 
             ctx.DependsOnArtifact(AssetDatabase.GetAssetPath(Model));
+            ctx.DependsOnSourceAsset(BlurShaderPath);
 
             const TextureFormat textureFormat = TextureFormat.R8;
             var texture = new Texture2D(Width, Height, textureFormat, GenerateMipMaps, true)
@@ -56,7 +59,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             var tempRt1 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8);
             var tempRt2 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8);
 
-            var blurMaterial = new Material(Shader.Find("Hidden/Toon RP/Baked Blob Shadow Blur"));
+            Shader blurShader = AssetDatabase.LoadAssetAtPath<Shader>(BlurShaderPath);
+            var blurMaterial = new Material(blurShader);
 
             using (var cmd = new CommandBuffer())
             {

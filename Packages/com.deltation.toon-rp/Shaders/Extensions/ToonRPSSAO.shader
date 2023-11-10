@@ -111,7 +111,8 @@
                 const float4 positionVs = RestorePositionVs(positionNdc, UNITY_MATRIX_I_P);
                 const float3 positionWs = mul(UNITY_MATRIX_I_V, positionVs).xyz + normalWs * NORMAL_BIAS;
 
-                const float3 randomVector = float3(SAMPLE_TEXTURE2D_LOD(_NoiseTexture, sampler_NoiseTexture, uv * _ToonRP_SSAO_NoiseScale, 0).xy, 0);
+                float3 randomVector = float3(SAMPLE_TEXTURE2D_LOD(_NoiseTexture, sampler_NoiseTexture, uv * _ToonRP_SSAO_NoiseScale, 0).xy, 0);
+                randomVector.xy = randomVector.xy * 2 - 1;
 
                 const float3 tangent = normalize(randomVector - normalWs * dot(randomVector, normalWs));
                 const float3 bitangent = cross(normalWs, tangent);

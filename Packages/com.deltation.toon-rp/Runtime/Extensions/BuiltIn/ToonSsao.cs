@@ -134,9 +134,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Random.State oldState = Random.state;
             Random.InitState(0);
 
-            var texture = new Texture2D(noiseTextureWidth, noiseTextureHeight, GraphicsFormat.R32G32_SFloat, 0,
-                TextureCreationFlags.None
-            )
+            var texture = new Texture2D(noiseTextureWidth, noiseTextureHeight, TextureFormat.RG16, false, true)
             {
                 name = "SSAO Noise",
                 wrapMode = TextureWrapMode.Repeat,
@@ -148,8 +146,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 for (int j = 0; j < noiseTextureHeight; j++)
                 {
                     Color color;
-                    color.r = Random.value * 2 - 1;
-                    color.g = Random.value * 2 - 1;
+                    color.r = Random.value;
+                    color.g = Random.value;
                     color.b = color.a = 0;
                     texture.SetPixel(i, j, color);
                 }

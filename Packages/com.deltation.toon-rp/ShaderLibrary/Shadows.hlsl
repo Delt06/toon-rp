@@ -9,6 +9,7 @@
 #define _TOON_RP_ANY_SHADOWS
 #endif // _TOON_RP_SHADOW_MAPS || _TOON_RP_BLOB_SHADOWS
 
+#include "Common.hlsl"
 #include "Math.hlsl"
 #include "Ramp.hlsl"
 #include "VSM.hlsl"
@@ -16,11 +17,12 @@
 #define MAX_DIRECTIONAL_LIGHT_COUNT 1
 #define MAX_CASCADE_COUNT 4
 
-TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
 #ifdef _TOON_RP_VSM
+TEXTURE2D(_ToonRP_DirectionalShadowAtlas);
 SAMPLER(sampler_ToonRP_DirectionalShadowAtlas);
 #else // !_TOON_RP_VSM
-SAMPLER_CMP(sampler_ToonRP_DirectionalShadowAtlas);
+TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas);
+SAMPLER_CMP(sampler_LinearClampCompare);
 #endif //_TOON_RP_VSM
 
 TEXTURE2D(_ToonRP_ShadowPattern);
@@ -61,7 +63,7 @@ float3 ApplyShadowBias(float3 positionWs, const float3 normalWs, const float3 li
 
 float SampleShadowAttenuationNonVsm(const float3 shadowCoords)
 {
-    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_ToonRP_DirectionalShadowAtlas,
+    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_DirectionalShadowAtlas, sampler_LinearClampCompare,
                                    shadowCoords).r;
 }
 

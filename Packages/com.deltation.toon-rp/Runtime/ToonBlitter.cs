@@ -18,11 +18,14 @@ namespace DELTation.ToonRP
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, material, SubmeshIndex, shaderPass);
         }
 
-        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source)
+        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source,
+            bool pretransformToDisplayOrientation = false)
         {
             EnsureMeshIsInitialized();
             EnsureDefaultBlitMaterialIsInitialized();
             cmd.SetGlobalTexture(MainTexId, source);
+            var localKeyword = new LocalKeyword(_defaultBlitMaterial.shader, "PRETRANSFORM_TO_DISPLAY_ORIENTATION");
+            cmd.SetKeyword(_defaultBlitMaterial, localKeyword, pretransformToDisplayOrientation);
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, _defaultBlitMaterial, SubmeshIndex);
         }
 

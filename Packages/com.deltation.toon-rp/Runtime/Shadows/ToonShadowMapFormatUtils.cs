@@ -46,7 +46,9 @@ namespace DELTation.ToonRP.Shadows
                 var _ => floatFormat,
             };
 
-            return UnityEngine.SystemInfo.IsFormatSupported(desiredFormat, FormatUsage.Render | FormatUsage.Sample)
+            return UnityEngine.SystemInfo.IsFormatSupported(desiredFormat,
+                FormatUsage.Render | FormatUsage.Sample | FormatUsage.Linear
+            )
                 ? desiredFormat
                 : halfFormat;
         }

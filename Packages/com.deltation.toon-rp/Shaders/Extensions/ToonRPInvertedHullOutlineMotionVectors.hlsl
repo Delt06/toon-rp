@@ -29,7 +29,7 @@ v2f VS(const appdata IN)
 
     {
         const float3 previousPositionOs = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
-        const float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1));
+        const float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
         const float thickness = ComputeThickness(IN, previousPositionWs, normalWs);
         OUT.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);    
     }

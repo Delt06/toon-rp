@@ -300,7 +300,7 @@ namespace DELTation.ToonRP
                 ;
 
             _requireStencil = RequireStencil(extensionSettings);
-            _depthStencilFormat = _requireStencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D24_UNorm;
+            _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);
 
             if (renderToTexture)
             {

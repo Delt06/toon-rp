@@ -73,15 +73,8 @@ namespace DELTation.ToonRP.Shadows
 
         private bool IsBlurDisabled => Blur == BlurMode.None;
 
-        public int GetShadowMapDepthBits()
-        {
-            if (DepthBits == 0)
-            {
-                return (int) ShadowMapBits._32;
-            }
-
-            return (int) DepthBits;
-        }
+        public ShadowMapBits GetShadowMapDepthBits() =>
+            DepthBits == 0 ? ShadowMapBits._16 : DepthBits;
 
         [Serializable]
         public struct SoftShadowsSettings

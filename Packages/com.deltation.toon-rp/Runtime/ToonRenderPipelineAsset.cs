@@ -61,7 +61,7 @@ namespace DELTation.ToonRP
             PatternScale = new Vector3(1, 0, 1),
             Vsm = new ToonVsmShadowSettings
             {
-                DepthBits = ToonVsmShadowSettings.ShadowMapBits._32,
+                DepthBits = ToonVsmShadowSettings.ShadowMapBits._16,
                 Blur = ToonVsmShadowSettings.BlurMode.Box,
                 BlurEarlyBail = true,
                 BlurEarlyBailThreshold = 0.01f,

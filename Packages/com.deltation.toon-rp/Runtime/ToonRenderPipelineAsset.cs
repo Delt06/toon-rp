@@ -116,6 +116,8 @@ namespace DELTation.ToonRP
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 
+        public override string renderPipelineShaderTag => ToonRenderPipeline.PipelineTag;
+
         private void Reset()
         {
             EnsureRequiredValuesArePresent();

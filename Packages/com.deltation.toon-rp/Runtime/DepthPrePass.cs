@@ -61,7 +61,7 @@ namespace DELTation.ToonRP
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.DepthPrePass)))
             {
                 var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
-                    GraphicsFormat.None, _stencil ? GraphicsFormat.D24_UNorm_S8_UInt : GraphicsFormat.D32_SFloat,
+                    GraphicsFormat.None, ToonFormatUtils.GetDefaultDepthFormat(_stencil),
                     0
                 );
                 cmd.GetTemporaryRT(_depthTextureId, depthDesc);

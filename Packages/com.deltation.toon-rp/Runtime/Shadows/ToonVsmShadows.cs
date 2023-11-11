@@ -445,11 +445,11 @@ namespace DELTation.ToonRP.Shadows
                 {
                     {
                         cmd.SetRenderTarget(DirectionalShadowsAtlasId,
-                            RenderBufferLoadAction.DontCare,
+                            RenderBufferLoadAction.Load,
                             RenderBufferStoreAction.Store,
                             DirectionalShadowsAtlasDepthId,
                             RenderBufferLoadAction.Load,
-                            RenderBufferStoreAction.Store
+                            RenderBufferStoreAction.DontCare
                         );
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
@@ -474,7 +474,7 @@ namespace DELTation.ToonRP.Shadows
                     // Horizontal
                     {
                         cmd.SetRenderTarget(DirectionalShadowsAtlasTempId,
-                            RenderBufferLoadAction.DontCare,
+                            RenderBufferLoadAction.Load,
                             RenderBufferStoreAction.Store,
                             DirectionalShadowsAtlasDepthId,
                             RenderBufferLoadAction.Load,
@@ -493,7 +493,7 @@ namespace DELTation.ToonRP.Shadows
                             RenderBufferStoreAction.Store,
                             DirectionalShadowsAtlasDepthId,
                             RenderBufferLoadAction.Load,
-                            RenderBufferStoreAction.Store
+                            RenderBufferStoreAction.DontCare
                         );
                         ToonBlitter.Blit(cmd, _blurMaterial, gaussianVerticalPass);
                     }

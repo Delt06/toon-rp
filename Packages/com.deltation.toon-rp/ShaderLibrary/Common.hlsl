@@ -83,7 +83,15 @@ float GetLinearDepth(const float3 positionWs)
 
 float2 PositionHClipToScreenUv(const float4 positionCs)
 {
-    const float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
+    float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
+
+    #ifdef UNITY_UV_STARTS_AT_TOP
+    if (_ProjectionParams.x > 0.0)
+    {
+        screenUv.y = 1.0f - screenUv.y;    
+    }
+    #endif // UNITY_UV_STARTS_AT_TOP
+    
     return screenUv;
 }
 

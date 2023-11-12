@@ -15,15 +15,8 @@ TEXTURE2D(_ToonRP_SSAO_Pattern);
 SAMPLER(sampler_ToonRP_SSAO_Pattern);
 float3 _ToonRP_SSAO_PatternScale;
 
-float SampleAmbientOcclusionRaw(float2 screenUv)
+float SampleAmbientOcclusionRaw(const float2 screenUv)
 {
-    #if UNITY_UV_STARTS_AT_TOP
-    if (_ProjectionParams.x > 0.0)
-    {
-        screenUv.y = 1 - screenUv.y;
-    }
-    #endif // UNITY_UV_STARTS_AT_TOP
-
     return SAMPLE_TEXTURE2D(_ToonRP_SSAOTexture, sampler_ToonRP_SSAOTexture, screenUv).x;
 }
 

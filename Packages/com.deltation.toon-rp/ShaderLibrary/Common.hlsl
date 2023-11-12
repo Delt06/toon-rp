@@ -81,8 +81,27 @@ float GetLinearDepth(const float3 positionWs)
     return depth;
 }
 
-float2 PositionHClipToScreenUv(const float4 positionCs)
+#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+float4 ApplyPretransformRotationPixelCoords(float4 v)
 {
+    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
+    {
+    default:
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0: break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90: v.xy = float2(v.y, _ToonRP_ScreenParams.w - v.x); break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180: v.xy = _ToonRP_ScreenParams.zw - v.xy; break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270: v.xy = float2(_ToonRP_ScreenParams.z - v.y, v.x); break;
+    }
+    return v;
+}
+#endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+
+float2 PositionHClipToScreenUv(float4 positionCs)
+{
+    #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    positionCs = ApplyPretransformRotationPixelCoords(positionCs);
+    #endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    
     float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
 
     #ifdef UNITY_UV_STARTS_AT_TOP

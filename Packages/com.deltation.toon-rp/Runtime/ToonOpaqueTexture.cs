@@ -44,8 +44,6 @@ namespace DELTation.ToonRP
                 else
                 {
                     cmd.Blit(_renderTarget.ColorBufferId, OpaqueTextureId);
-                    // cmd.SetRenderTarget(OpaqueTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    // ToonBlitter.BlitDefault(cmd, _renderTarget.ColorBufferId);
                     _renderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.Load);
                 }
             }

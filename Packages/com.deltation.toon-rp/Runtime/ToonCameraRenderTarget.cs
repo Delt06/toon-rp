@@ -32,8 +32,7 @@ namespace DELTation.ToonRP
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
                 cmd.SetViewport(_camera.pixelRect);
 
-                bool pretransformToDisplayOrientation = _camera.targetTexture == null;
-                ToonBlitter.BlitDefault(cmd, CameraColorBufferId, pretransformToDisplayOrientation);
+                ToonBlitter.BlitDefault(cmd, CameraColorBufferId);
             }
         }
 

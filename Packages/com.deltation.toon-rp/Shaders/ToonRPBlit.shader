@@ -16,8 +16,6 @@
 	    #pragma vertex VS
 		#pragma fragment PS
 
-        #pragma multi_compile_local_vertex _ PRETRANSFORM_TO_DISPLAY_ORIENTATION
-        
         #include "../ShaderLibrary/CustomBlit.hlsl"
         #include "../ShaderLibrary/Textures.hlsl"
 

@@ -22,5 +22,7 @@ namespace DELTation.ToonRP.PostProcessing
         public int Order { get; set; }
 
         public virtual void Dispose() { }
+
+        public virtual bool RequireCameraDepthStore(in ToonPostProcessingContext context) => false;
     }
 }

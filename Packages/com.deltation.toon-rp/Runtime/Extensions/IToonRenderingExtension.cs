@@ -14,5 +14,7 @@ namespace DELTation.ToonRP.Extensions
             CommandBuffer cmd,
             ref DrawingSettings drawingSettings, ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock);
+
+        bool RequireCameraDepthStore(in ToonRenderingExtensionContext context);
     }
 }

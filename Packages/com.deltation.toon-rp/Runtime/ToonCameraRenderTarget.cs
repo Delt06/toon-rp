@@ -11,6 +11,7 @@ namespace DELTation.ToonRP
         public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private Camera _camera;
+        public bool StoreDepthAttachment { get; set; } = true;
 
         public int MsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
@@ -66,20 +67,22 @@ namespace DELTation.ToonRP
 
         public void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadAction)
         {
-            const RenderBufferStoreAction storeAction = RenderBufferStoreAction.Store;
+            const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
+            RenderBufferStoreAction depthStoreAction =
+                StoreDepthAttachment ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
 
             if (RenderToTexture)
             {
                 cmd.SetRenderTarget(
-                    CameraColorBufferId, loadAction, storeAction,
-                    CameraDepthBufferId, loadAction, storeAction
+                    CameraColorBufferId, loadAction, colorStoreAction,
+                    CameraDepthBufferId, loadAction, depthStoreAction
                 );
             }
             else
             {
                 cmd.SetRenderTarget(
-                    BuiltinRenderTextureType.CameraTarget, loadAction,
-                    storeAction
+                    BuiltinRenderTextureType.CameraTarget, loadAction, colorStoreAction,
+                    BuiltinRenderTextureType.CameraTarget, loadAction, depthStoreAction
                 );
                 cmd.SetViewport(_camera.pixelRect);
             }

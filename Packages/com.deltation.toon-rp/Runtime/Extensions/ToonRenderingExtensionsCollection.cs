@@ -8,6 +8,9 @@ namespace DELTation.ToonRP.Extensions
 {
     public sealed class ToonRenderingExtensionsCollection : IToonRenderingExtensionSettingsStorage
     {
+        public delegate bool ExtensionPredicate([NotNull] IToonRenderingExtension extension,
+            in ToonRenderingExtensionContext context);
+
         private static readonly int EventsCount;
         [ItemCanBeNull]
         private readonly List<IToonRenderingExtension>[] _extensions = new List<IToonRenderingExtension>[EventsCount];
@@ -208,6 +211,27 @@ namespace DELTation.ToonRP.Extensions
                     );
                 }
             }
+        }
+
+        public bool TrueForAny(ExtensionPredicate predicate)
+        {
+            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            {
+                if (extensions == null)
+                {
+                    continue;
+                }
+
+                foreach (IToonRenderingExtension extension in extensions)
+                {
+                    if (predicate(extension, _context))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         [NotNull]

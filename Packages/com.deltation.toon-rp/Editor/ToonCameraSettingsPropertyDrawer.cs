@@ -112,6 +112,12 @@ namespace DELTation.ToonRP.Editor
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.UseDynamicBatching)))
             );
 
+            root.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.ForceStoreCameraDepth)
+                    )
+                )
+            );
+
             return root;
         }
     }

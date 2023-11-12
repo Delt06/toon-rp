@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -10,6 +11,9 @@ namespace DELTation.ToonRP.PostProcessing
 {
     public class ToonPostProcessing : IDisposable
     {
+        public delegate bool PassPredicate([NotNull] IToonPostProcessingPass pass,
+            in ToonPostProcessingContext context);
+
         private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
         private static readonly int PostProcessingBufferNative0Id =
             Shader.PropertyToID("_ToonRP_PostProcessing_Native0");
@@ -239,6 +243,19 @@ namespace DELTation.ToonRP.PostProcessing
 
             _context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+        }
+
+        public bool TrueForAny(PassPredicate predicate)
+        {
+            foreach (IToonPostProcessingPass pass in _enabledFullScreenPasses)
+            {
+                if (predicate(pass, _postProcessingContext))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

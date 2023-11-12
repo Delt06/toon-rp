@@ -167,6 +167,10 @@ namespace DELTation.ToonRP
                 _renderTarget.Width,
                 _renderTarget.Height
             );
+            _renderTarget.StoreDepthAttachment = _settings.ForceStoreCameraDepth ||
+                                                 _opaqueTexture.Enabled ||
+                                                 _extensionsCollection.RequireCameraDepthStore() ||
+                                                 _postProcessing.RequireCameraDepthStore();
 
             if (_prePassMode != PrePassMode.Off)
             {
@@ -550,7 +554,7 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
         }
 
-        private void SetShaderTimeValues(CommandBuffer cmd, float time)
+        private static void SetShaderTimeValues(CommandBuffer cmd, float time)
         {
             var timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
             cmd.SetGlobalVector(TimeParametersId, timeParametersVector);

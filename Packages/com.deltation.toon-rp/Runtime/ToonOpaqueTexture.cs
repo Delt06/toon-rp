@@ -37,7 +37,17 @@ namespace DELTation.ToonRP
                     0, 1
                 );
                 cmd.GetTemporaryRT(OpaqueTextureId, desc);
-                cmd.CopyTexture(_renderTarget.ColorBufferId, OpaqueTextureId);
+                if (_renderTarget.RenderToTexture)
+                {
+                    cmd.CopyTexture(_renderTarget.ColorBufferId, OpaqueTextureId);
+                }
+                else
+                {
+                    cmd.Blit(_renderTarget.ColorBufferId, OpaqueTextureId);
+                    // cmd.SetRenderTarget(OpaqueTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    // ToonBlitter.BlitDefault(cmd, _renderTarget.ColorBufferId);
+                    _renderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.Load);
+                }
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

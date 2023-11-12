@@ -14,7 +14,7 @@ namespace DELTation.ToonRP.Shadows
         private const int MaxShadowedDirectionalLightCount = 1;
         public const int MaxCascades = 4;
 
-        // ShouldMirrorTheValue in VSM.hlsl
+        // Should mirror the value in VSM.hlsl
         private const float DepthScale = 0.1f;
         private const FilterMode ShadowmapFiltering = FilterMode.Bilinear;
         private const RenderTextureFormat DepthRenderTextureFormat = RenderTextureFormat.Shadowmap;

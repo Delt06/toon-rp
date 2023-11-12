@@ -52,7 +52,7 @@ namespace DELTation.ToonRP
             DepthStencilFormat = depthStencilFormat;
 
             var colorDesc = new RenderTextureDescriptor(width, height,
-                colorFormat, 0
+                colorFormat, 0, 1
             )
             {
                 msaaSamples = msaaSamples,
@@ -68,7 +68,7 @@ namespace DELTation.ToonRP
 
             var depthDesc = new RenderTextureDescriptor(width, height,
                 GraphicsFormat.None, depthStencilFormat,
-                0
+                1
             )
             {
                 msaaSamples = msaaSamples,

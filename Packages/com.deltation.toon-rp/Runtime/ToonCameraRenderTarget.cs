@@ -25,6 +25,8 @@ namespace DELTation.ToonRP
             ? CameraColorBufferId
             : BuiltinRenderTextureType.CameraTarget;
 
+        public bool UsingMsaa => MsaaSamples > 1;
+
         public void FinalBlit(CommandBuffer cmd)
         {
             if (RenderToTexture)
@@ -49,9 +51,19 @@ namespace DELTation.ToonRP
             MsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
 
+            var colorDesc = new RenderTextureDescriptor(width, height,
+                colorFormat, 0
+            )
+            {
+                msaaSamples = msaaSamples,
+            };
+            if (UsingMsaa)
+            {
+                colorDesc.memoryless |= RenderTextureMemoryless.MSAA;
+            }
+
             cmd.GetTemporaryRT(
-                CameraColorBufferId, width, height, 0,
-                filterMode, colorFormat, msaaSamples, false
+                CameraColorBufferId, colorDesc, filterMode
             );
 
             var depthDesc = new RenderTextureDescriptor(width, height,
@@ -60,25 +72,38 @@ namespace DELTation.ToonRP
             )
             {
                 msaaSamples = msaaSamples,
+                memoryless = StoreDepthAttachment ? RenderTextureMemoryless.None : RenderTextureMemoryless.Depth,
             };
+            if (!StoreDepthAttachment)
+            {
+                depthDesc.memoryless |= RenderTextureMemoryless.Depth;
+                if (UsingMsaa)
+                {
+                    depthDesc.memoryless |= RenderTextureMemoryless.MSAA;
+                }
+            }
+            
             cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
         }
 
         public void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadAction)
         {
-            const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
-            RenderBufferStoreAction depthStoreAction =
-                StoreDepthAttachment ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
-
             if (RenderToTexture)
             {
+                RenderBufferStoreAction storeAction =
+                    UsingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                RenderBufferStoreAction depthStoreAction =
+                    StoreDepthAttachment ? storeAction : RenderBufferStoreAction.DontCare;
                 cmd.SetRenderTarget(
-                    CameraColorBufferId, loadAction, colorStoreAction,
+                    CameraColorBufferId, loadAction, storeAction,
                     CameraDepthBufferId, loadAction, depthStoreAction
                 );
             }
             else
             {
+                const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
+                RenderBufferStoreAction depthStoreAction =
+                    StoreDepthAttachment ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
                 cmd.SetRenderTarget(
                     BuiltinRenderTextureType.CameraTarget, loadAction, colorStoreAction,
                     BuiltinRenderTextureType.CameraTarget, loadAction, depthStoreAction
@@ -97,6 +122,7 @@ namespace DELTation.ToonRP
             Width = width;
             Height = height;
             ColorFormat = colorFormat;
+            MsaaSamples = 1;
         }
 
         public void ReleaseTemporaryRTs(CommandBuffer cmd)

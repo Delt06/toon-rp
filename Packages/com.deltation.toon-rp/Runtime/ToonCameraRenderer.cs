@@ -492,7 +492,7 @@ namespace DELTation.ToonRP
         private void RenderPostProcessing(CommandBuffer cmd)
         {
             int sourceId;
-            if (_renderTarget.MsaaSamples > 1)
+            if (_renderTarget.UsingMsaa)
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ResolveCameraColor)))
                 {

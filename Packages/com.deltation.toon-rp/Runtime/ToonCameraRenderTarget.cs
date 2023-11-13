@@ -109,7 +109,7 @@ namespace DELTation.ToonRP
             }
         }
 
-        public void BeginRenderPass(ref ScriptableRenderContext context, RenderBufferLoadAction loadAction,
+        public void BeginRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd, RenderBufferLoadAction loadAction,
             in ToonClearValue clearValue = default)
         {
             var attachmentDescriptors =
@@ -169,6 +169,7 @@ namespace DELTation.ToonRP
                 attachmentDescriptors[depthIndex] = depthAttachment;
             }
 
+            context.ExecuteCommandBufferAndClear(cmd);
             context.BeginRenderPass(Width, Height, MsaaSamples, attachmentDescriptors, depthIndex);
             attachmentDescriptors.Dispose();
 
@@ -176,6 +177,9 @@ namespace DELTation.ToonRP
             colorIndices[0] = colorIndex;
             context.BeginSubPass(colorIndices);
             colorIndices.Dispose();
+            
+            cmd.SetViewport(_camera.pixelRect);
+            context.ExecuteCommandBufferAndClear(cmd);
         }
 
         public void EndRenderPass(ref ScriptableRenderContext context)

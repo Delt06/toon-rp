@@ -229,7 +229,7 @@ namespace DELTation.ToonRP
         private void GeometryRenderPass(CommandBuffer cmd)
         {
             ToonClearValue clearValue = GetRenderTargetsClearValue();
-            _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.DontCare, clearValue);
+            _renderTarget.BeginRenderPass(ref _context, cmd, RenderBufferLoadAction.DontCare, clearValue);
             _renderTarget.SetScreenParams(cmd);
             _context.ExecuteCommandBufferAndClear(cmd);
 
@@ -303,10 +303,12 @@ namespace DELTation.ToonRP
             }
 
             // Get the maximum supported MSAA level for this RT format
-            {
-                var rtDescriptor = new RenderTextureDescriptor(rtWidth, rtHeight, renderTextureColorFormat, 0, 1);
-                msaaSamples = Mathf.Min(msaaSamples, SystemInfo.GetRenderTextureSupportedMSAASampleCount(rtDescriptor));
-            }
+            msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(
+                new RenderTextureDescriptor(rtWidth, rtHeight, renderTextureColorFormat, 0, 1)
+                {
+                    msaaSamples = msaaSamples,
+                }
+            );
 
             bool renderToTexture = _camera.cameraType != CameraType.Game ||
                                    renderTextureColorFormat != GetDefaultGraphicsFormat() ||

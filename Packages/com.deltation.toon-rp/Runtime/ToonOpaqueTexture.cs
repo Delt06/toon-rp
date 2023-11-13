@@ -49,8 +49,7 @@ namespace DELTation.ToonRP
                     cmd.Blit(_renderTarget.ColorBufferId, OpaqueTextureId);
                 }
 
-                _context.ExecuteCommandBufferAndClear(cmd);
-                _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
+                _renderTarget.BeginRenderPass(ref _context, cmd, RenderBufferLoadAction.Load);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

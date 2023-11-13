@@ -1260,9 +1260,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly IncludeCollection CorePregraph = new()
         {
+            { Common, IncludeLocation.Pregraph },
             { CoreColor, IncludeLocation.Pregraph },
             { CoreTexture, IncludeLocation.Pregraph },
-            { Common, IncludeLocation.Pregraph },
             { Lighting, IncludeLocation.Pregraph },
             { Shadows, IncludeLocation.Pregraph },
             { Textures, IncludeLocation.Pregraph },

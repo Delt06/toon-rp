@@ -109,9 +109,20 @@ namespace DELTation.ToonRP
             }
         }
 
-        public void BeginRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd, RenderBufferLoadAction loadAction,
+        public void BeginRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
+            RenderBufferLoadAction loadAction,
             in ToonClearValue clearValue = default)
         {
+            // "Init" the render target. Prevents certain Unity bugs from happening...
+            {
+                cmd.SetRenderTarget(
+                    ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+                    RenderToTexture ? DepthBufferId : BuiltinRenderTextureType.CameraTarget,
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
+                );
+                context.ExecuteCommandBufferAndClear(cmd);
+            }
+
             var attachmentDescriptors =
                 new NativeArray<AttachmentDescriptor>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             (RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction) = GetStoreActions();

@@ -116,7 +116,9 @@ namespace DELTation.ToonRP
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 
+        #if UNITY_2022_3_OR_NEWER
         public override string renderPipelineShaderTag => ToonRenderPipeline.PipelineTag;
+        #endif // UNITY_2022_3_OR_NEWER
 
         private void Reset()
         {

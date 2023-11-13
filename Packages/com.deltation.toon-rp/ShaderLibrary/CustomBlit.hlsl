@@ -21,9 +21,9 @@ v2f VS(const appdata IN)
     float4 positionCs = float4(IN.uv, UNITY_RAW_FAR_CLIP_VALUE, 1);
     positionCs.xy = positionCs.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
 
-    #if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION)
+    #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     positionCs = ApplyPretransformRotation(positionCs);
-    #endif // PRETRANSFORM_TO_DISPLAY_ORIENTATION && UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     
     OUT.positionCs = positionCs;
     OUT.uv = IN.uv;

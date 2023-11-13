@@ -27,6 +27,6 @@ namespace DELTation.ToonRP.PostProcessing
             RenderTargetIdentifier destination);
 
         void Cleanup(CommandBuffer cmd);
-        bool RequireCameraDepthStore(in ToonPostProcessingContext context);
+        bool InterruptsGeometryRenderPass(in ToonPostProcessingContext context);
     }
 }

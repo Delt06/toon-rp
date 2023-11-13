@@ -15,6 +15,6 @@ namespace DELTation.ToonRP.Extensions
             ref DrawingSettings drawingSettings, ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock);
 
-        bool RequireCameraDepthStore(in ToonRenderingExtensionContext context);
+        bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context);
     }
 }

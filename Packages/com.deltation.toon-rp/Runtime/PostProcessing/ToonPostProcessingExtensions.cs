@@ -2,12 +2,12 @@
 {
     public static class ToonPostProcessingExtensions
     {
-        public static bool RequireCameraDepthStore(
+        public static bool InterruptsGeometryRenderPass(
             this ToonPostProcessing postProcessing
         ) =>
             postProcessing.TrueForAny(
                 (IToonPostProcessingPass pass, in ToonPostProcessingContext context) =>
-                    pass.RequireCameraDepthStore(context)
+                    pass.InterruptsGeometryRenderPass(context)
             );
     }
 }

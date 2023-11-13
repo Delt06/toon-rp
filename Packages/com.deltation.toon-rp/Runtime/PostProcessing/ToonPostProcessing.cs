@@ -36,7 +36,7 @@ namespace DELTation.ToonRP.PostProcessing
             }
         }
 
-        public void UpdatePasses(Camera camera, in ToonPostProcessingSettings settings)
+        public void PreSetup(Camera camera, in ToonPostProcessingSettings settings)
         {
             _enabledFullScreenPasses ??= new List<IToonPostProcessingPass>();
             _enabledFullScreenPasses.Clear();

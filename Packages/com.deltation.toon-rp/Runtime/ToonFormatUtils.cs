@@ -4,8 +4,11 @@ namespace DELTation.ToonRP
 {
     public static class ToonFormatUtils
     {
-        public const GraphicsFormat DefaultDepthFormat = GraphicsFormat.D16_UNorm;
-        public const GraphicsFormat DefaultDepthStencilFormat = GraphicsFormat.D16_UNorm_S8_UInt;
+        private const int DepthBits = 16;
+        public static readonly GraphicsFormat DefaultDepthFormat =
+            GraphicsFormatUtility.GetDepthStencilFormat(DepthBits, 0);
+        public static readonly GraphicsFormat DefaultDepthStencilFormat =
+            GraphicsFormatUtility.GetDepthStencilFormat(DepthBits, 8);
 
         public static GraphicsFormat GetDefaultDepthFormat(bool stencil) =>
             stencil ? DefaultDepthStencilFormat : DefaultDepthFormat;

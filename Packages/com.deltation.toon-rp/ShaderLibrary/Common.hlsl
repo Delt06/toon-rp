@@ -81,26 +81,30 @@ float GetLinearDepth(const float3 positionWs)
     return depth;
 }
 
-#ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+#if defined(UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION) && defined(UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0)
+#define TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+#endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION && UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0
+
+#ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
 float4 ApplyPretransformRotationPixelCoords(float4 v)
 {
-    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
+    switch (TOON_DISPLAY_ORIENTATION)
     {
     default:
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0: break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90: v.xy = float2(v.y, _ToonRP_ScreenParams.w - v.x); break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180: v.xy = _ToonRP_ScreenParams.zw - v.xy; break;
-    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270: v.xy = float2(_ToonRP_ScreenParams.z - v.y, v.x); break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0   :                                                   break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_90  : v.xy = float2(v.y, _ToonRP_ScreenParams.w - v.x); break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_180 : v.xy = _ToonRP_ScreenParams.zw - v.xy;            break;
+    case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270 : v.xy = float2(_ToonRP_ScreenParams.z - v.y, v.x); break;
     }
     return v;
 }
-#endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+#endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
 
 float2 PositionHClipToScreenUv(float4 positionCs)
 {
-    #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     positionCs = ApplyPretransformRotationPixelCoords(positionCs);
-    #endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     
     float2 screenUv = positionCs.xy * _ToonRP_ScreenParams.xy;
 

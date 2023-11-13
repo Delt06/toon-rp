@@ -177,8 +177,8 @@ namespace DELTation.ToonRP
             colorIndices[0] = colorIndex;
             context.BeginSubPass(colorIndices);
             colorIndices.Dispose();
-            
-            cmd.SetViewport(_camera.pixelRect);
+
+            cmd.SetViewport(RenderToTexture ? new Rect(0, 0, Width, Height) : _camera.pixelRect);
             context.ExecuteCommandBufferAndClear(cmd);
         }
 

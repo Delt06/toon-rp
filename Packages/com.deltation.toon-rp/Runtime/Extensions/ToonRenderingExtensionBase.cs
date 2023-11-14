@@ -20,7 +20,7 @@ namespace DELTation.ToonRP.Extensions
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock) { }
 
-        public virtual bool RequireCameraDepthStore(in ToonRenderingExtensionContext context) => false;
+        public virtual bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context) => false;
 
         protected static bool IsGameOrSceneView(in ToonRenderingExtensionContext context) =>
             context.Camera.cameraType <= CameraType.SceneView;

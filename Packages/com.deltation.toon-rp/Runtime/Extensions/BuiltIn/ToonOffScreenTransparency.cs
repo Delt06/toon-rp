@@ -35,7 +35,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private ScriptableRenderContext _srpContext;
         private int _width;
 
-        public override bool RequireCameraDepthStore(in ToonRenderingExtensionContext context) => true;
+        public override bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context) => true;
 
         public override void Setup(in ToonRenderingExtensionContext context,
             IToonRenderingExtensionSettingsStorage settingsStorage)

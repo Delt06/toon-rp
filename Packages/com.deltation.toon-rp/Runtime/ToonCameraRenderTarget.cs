@@ -10,8 +10,11 @@ namespace DELTation.ToonRP
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ScreenParams");
         public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
+        
         private Camera _camera;
-        public bool StoreDepthAttachment { get; set; } = true;
+        private FilterMode _filterMode;
+        
+        public bool ForceStoreAttachments { get; set; } = true;
 
         public int MsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
@@ -43,6 +46,7 @@ namespace DELTation.ToonRP
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
+            _filterMode = filterMode;
             RenderToTexture = true;
             _camera = camera;
             Width = width;
@@ -50,32 +54,38 @@ namespace DELTation.ToonRP
             ColorFormat = colorFormat;
             MsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
+        }
 
-            var colorDesc = new RenderTextureDescriptor(width, height,
-                colorFormat, 0, 1
-            )
+        public void GetTemporaryRTs(CommandBuffer cmd)
+        {
+            if (RenderToTexture)
             {
-                msaaSamples = msaaSamples,
-            };
+                var colorDesc = new RenderTextureDescriptor(Width, Height,
+                    ColorFormat, 0, 1
+                )
+                {
+                    msaaSamples = MsaaSamples,
+                };
 
-            cmd.GetTemporaryRT(
-                CameraColorBufferId, colorDesc, filterMode
-            );
+                cmd.GetTemporaryRT(
+                    CameraColorBufferId, colorDesc, _filterMode
+                );
 
-            var depthDesc = new RenderTextureDescriptor(width, height,
-                GraphicsFormat.None, depthStencilFormat,
-                1
-            )
-            {
-                msaaSamples = msaaSamples,
-                memoryless = StoreDepthAttachment ? RenderTextureMemoryless.None : RenderTextureMemoryless.Depth,
-            };
-            if (!StoreDepthAttachment)
-            {
-                depthDesc.memoryless |= RenderTextureMemoryless.Depth;
+                var depthDesc = new RenderTextureDescriptor(Width, Height,
+                    GraphicsFormat.None, DepthStencilFormat,
+                    1
+                )
+                {
+                    msaaSamples = MsaaSamples,
+                    memoryless = ForceStoreAttachments ? RenderTextureMemoryless.None : RenderTextureMemoryless.Depth,
+                };
+                if (!ForceStoreAttachments)
+                {
+                    depthDesc.memoryless |= RenderTextureMemoryless.Depth;
+                }
+
+                cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
             }
-            
-            cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
         }
 
         public void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadAction)
@@ -85,7 +95,7 @@ namespace DELTation.ToonRP
                 RenderBufferStoreAction storeAction =
                     UsingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction depthStoreAction =
-                    StoreDepthAttachment ? storeAction : RenderBufferStoreAction.DontCare;
+                    ForceStoreAttachments ? storeAction : RenderBufferStoreAction.DontCare;
                 cmd.SetRenderTarget(
                     CameraColorBufferId, loadAction, storeAction,
                     CameraDepthBufferId, loadAction, depthStoreAction
@@ -95,7 +105,7 @@ namespace DELTation.ToonRP
             {
                 const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
                 RenderBufferStoreAction depthStoreAction =
-                    StoreDepthAttachment ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+                    ForceStoreAttachments ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
                 cmd.SetRenderTarget(
                     BuiltinRenderTextureType.CameraTarget, loadAction, colorStoreAction,
                     BuiltinRenderTextureType.CameraTarget, loadAction, depthStoreAction

@@ -49,7 +49,7 @@ namespace DELTation.ToonRP.Extensions
             return castedSourceAsset.Settings;
         }
 
-        public void Update(in ToonRenderingExtensionSettings settings)
+        public void PreSetup(in ToonRenderingExtensionSettings settings)
         {
             CheckForReset();
 

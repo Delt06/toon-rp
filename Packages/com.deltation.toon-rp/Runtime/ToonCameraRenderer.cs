@@ -157,20 +157,25 @@ namespace DELTation.ToonRP
             PrepareMsaa(camera, out int msaaSamples);
             PrepareForSceneWindow();
 
-            _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
-            _postProcessing.UpdatePasses(camera, postProcessingSettings);
+            _postProcessing.PreSetup(camera, postProcessingSettings);
+            _extensionsCollection.PreSetup(extensionSettings);
             Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, postProcessingSettings, msaaSamples);
-            _extensionsCollection.Update(extensionSettings);
+
+            _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
+            _opaqueTexture.Setup(ref _context, settings);
             _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, additionalCameraData,
                 _renderTarget.ColorFormat, _camera,
                 _renderTarget.Width,
                 _renderTarget.Height
             );
-            _renderTarget.StoreDepthAttachment = _settings.ForceStoreCameraDepth ||
-                                                 _opaqueTexture.Enabled ||
-                                                 _extensionsCollection.RequireCameraDepthStore() ||
-                                                 _postProcessing.RequireCameraDepthStore();
+            _renderTarget.ForceStoreAttachments = _settings.ForceStoreCameraDepth ||
+                                                  _opaqueTexture.Enabled ||
+                                                  _extensionsCollection.InterruptsGeometryRenderPass() ||
+                                                  _postProcessing.InterruptsGeometryRenderPass();
+
+            _renderTarget.GetTemporaryRTs(cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             if (_prePassMode != PrePassMode.Off)
             {
@@ -199,8 +204,6 @@ namespace DELTation.ToonRP
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
             }
-
-            _opaqueTexture.Setup(ref _context, settings);
 
             _tiledLighting.CullLights();
 
@@ -294,6 +297,14 @@ namespace DELTation.ToonRP
             {
                 renderTextureColorFormat = GetDefaultGraphicsFormat();
             }
+
+            // Get the maximum supported MSAA level for this RT format
+            msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(
+                new RenderTextureDescriptor(rtWidth, rtHeight, renderTextureColorFormat, 0, 1)
+                {
+                    msaaSamples = msaaSamples,
+                }
+            );
 
             bool renderToTexture = renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                                    msaaSamples > 1 ||

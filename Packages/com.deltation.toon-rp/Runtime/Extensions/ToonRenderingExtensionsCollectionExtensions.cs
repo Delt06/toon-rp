@@ -2,12 +2,12 @@
 {
     public static class ToonRenderingExtensionsCollectionExtensions
     {
-        public static bool RequireCameraDepthStore(
+        public static bool InterruptsGeometryRenderPass(
             this ToonRenderingExtensionsCollection extensionsCollection
         ) =>
             extensionsCollection.TrueForAny(
                 (IToonRenderingExtension extension, in ToonRenderingExtensionContext context) =>
-                    extension.RequireCameraDepthStore(context)
+                    extension.InterruptsGeometryRenderPass(context)
             );
     }
 }

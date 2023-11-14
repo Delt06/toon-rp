@@ -207,17 +207,7 @@ namespace DELTation.ToonRP
 
             _tiledLighting.CullLights();
 
-            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PrepareRenderTargets)))
-            {
-                _renderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.DontCare);
-                ClearRenderTargets(cmd);
-            }
-
-            _context.ExecuteCommandBufferAndClear(cmd);
-
-            DrawVisibleGeometry(cmd);
-            DrawUnsupportedShaders();
-            DrawGizmosPreImageEffects();
+            GeometryRenderPass(cmd);
 
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
@@ -306,12 +296,14 @@ namespace DELTation.ToonRP
                 }
             );
 
-            bool renderToTexture = renderTextureColorFormat != GetDefaultGraphicsFormat() ||
-                                   msaaSamples > 1 ||
-                                   _postProcessing.AnyFullScreenEffectsEnabled ||
-                                   !Mathf.Approximately(renderScale, 1.0f) ||
-                                   rtWidth > maxRtWidth ||
-                                   rtHeight > maxRtHeight
+            bool renderToTexture =
+                    _camera.cameraType != CameraType.Game ||
+                    renderTextureColorFormat != GetDefaultGraphicsFormat() ||
+                    msaaSamples > 1 ||
+                    _postProcessing.AnyFullScreenEffectsEnabled ||
+                    !Mathf.Approximately(renderScale, 1.0f) ||
+                    rtWidth > maxRtWidth ||
+                    rtHeight > maxRtHeight
                 ;
 
             _requireStencil = RequireStencil(extensionSettings);
@@ -358,7 +350,10 @@ namespace DELTation.ToonRP
             }
             else
             {
-                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat);
+                _depthStencilFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, false);
+                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat,
+                    _depthStencilFormat
+                );
             }
 
             UpdateRtHandles(rtWidth, rtHeight);
@@ -469,12 +464,22 @@ namespace DELTation.ToonRP
             return default;
         }
 
-        private void ClearRenderTargets(CommandBuffer cmd)
+        private void GeometryRenderPass(CommandBuffer cmd)
         {
-            const string sampleName = "Clear Render Targets";
+            _context.ExecuteCommandBufferAndClear(cmd);
+            ToonClearValue clearValue = GetRenderTargetsClearValue();
+            _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.DontCare, clearValue);
 
-            cmd.BeginSample(sampleName);
+            DrawVisibleGeometry(cmd);
+            DrawUnsupportedShaders();
+            DrawGizmosPreImageEffects();
 
+            _context.ExecuteCommandBufferAndClear(cmd);
+            _renderTarget.EndRenderPass(ref _context);
+        }
+
+        private ToonClearValue GetRenderTargetsClearValue()
+        {
             CameraClearFlags cameraClearFlags = _camera.clearFlags;
             bool clearDepth = cameraClearFlags <= CameraClearFlags.Depth;
             bool clearColor;
@@ -494,10 +499,7 @@ namespace DELTation.ToonRP
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
             }
 
-            cmd.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
-
-            cmd.EndSample(sampleName);
-            _context.ExecuteCommandBufferAndClear(cmd);
+            return new ToonClearValue(clearColor, clearDepth, backgroundColor);
         }
 
         private void RenderPostProcessing(CommandBuffer cmd)

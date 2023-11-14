@@ -30,6 +30,10 @@ namespace DELTation.ToonRP
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueTexture)))
             {
+                _context.ExecuteCommandBufferAndClear(cmd);
+
+                _renderTarget.EndRenderPass(ref _context);
+
                 int rtWidth = _renderTarget.Width;
                 int rtHeight = _renderTarget.Height;
                 var desc = new RenderTextureDescriptor(rtWidth, rtHeight,
@@ -44,7 +48,9 @@ namespace DELTation.ToonRP
                 else
                 {
                     cmd.Blit(_renderTarget.ColorBufferId, OpaqueTextureId);
-                    _renderTarget.SetRenderTarget(cmd, RenderBufferLoadAction.Load);
+                    _context.ExecuteCommandBufferAndClear(cmd);
+
+                    _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
                 }
             }
 

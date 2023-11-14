@@ -229,7 +229,10 @@ namespace DELTation.ToonRP
             if (RenderToTexture)
             {
                 cmd.ReleaseTemporaryRT(CameraColorBufferId);
-                cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+                if (!UseNativeRenderPass)
+                {
+                    cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+                }
             }
         }
 

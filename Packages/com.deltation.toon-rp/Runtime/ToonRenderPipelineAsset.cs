@@ -143,7 +143,7 @@ namespace DELTation.ToonRP
 
             if (ShadowSettings.Vsm.DepthBits == 0)
             {
-                ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._32;
+                ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._16;
             }
 
             if (ShadowSettings.Vsm.BlurScatter < 1.0f)

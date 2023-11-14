@@ -114,6 +114,7 @@ namespace DELTation.ToonRP
             in ToonClearValue clearValue = default)
         {
             // "Init" the render target. Prevents certain Unity bugs from happening...
+            if (loadAction != RenderBufferLoadAction.Load)
             {
                 cmd.SetRenderTarget(
                     ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,

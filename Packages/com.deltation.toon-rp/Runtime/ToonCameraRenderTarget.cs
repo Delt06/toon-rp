@@ -57,10 +57,6 @@ namespace DELTation.ToonRP
             {
                 msaaSamples = msaaSamples,
             };
-            if (UsingMsaa)
-            {
-                colorDesc.memoryless |= RenderTextureMemoryless.MSAA;
-            }
 
             cmd.GetTemporaryRT(
                 CameraColorBufferId, colorDesc, filterMode
@@ -77,10 +73,6 @@ namespace DELTation.ToonRP
             if (!StoreDepthAttachment)
             {
                 depthDesc.memoryless |= RenderTextureMemoryless.Depth;
-                if (UsingMsaa)
-                {
-                    depthDesc.memoryless |= RenderTextureMemoryless.MSAA;
-                }
             }
             
             cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);

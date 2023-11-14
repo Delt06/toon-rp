@@ -5,7 +5,6 @@ namespace DELTation.ToonRP
 {
     public static class ToonGraphicsDevice
     {
-        public static bool SupportsTransientMsaa =>
-            SystemInfo.graphicsDeviceType is GraphicsDeviceType.Vulkan or GraphicsDeviceType.Metal;
+        public static bool SupportsMemorylessMsaa => SystemInfo.graphicsDeviceType is GraphicsDeviceType.Metal;
     }
 }

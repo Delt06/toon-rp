@@ -163,16 +163,16 @@ namespace DELTation.ToonRP
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _opaqueTexture.Setup(ref _context, settings);
+            _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings, additionalCameraData,
                 _renderTarget.ColorFormat, _camera,
                 _renderTarget.Width,
                 _renderTarget.Height
             );
-            _extensionsCollection.Setup(_extensionContext);
-            _renderTarget.RenderPassCanBeInterrupted = _settings.ForceStoreCameraDepth ||
-                                                       _opaqueTexture.Enabled ||
-                                                       _extensionsCollection.InterruptsGeometryRenderPass() ||
-                                                       _postProcessing.InterruptsGeometryRenderPass();
+            _renderTarget.ForceStoreAttachments = _settings.ForceStoreCameraDepth ||
+                                                  _opaqueTexture.Enabled ||
+                                                  _extensionsCollection.InterruptsGeometryRenderPass() ||
+                                                  _postProcessing.InterruptsGeometryRenderPass();
 
             _renderTarget.GetTemporaryRTs(cmd);
             _context.ExecuteCommandBufferAndClear(cmd);

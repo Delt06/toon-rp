@@ -13,12 +13,13 @@ namespace DELTation.ToonRP
         public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
         private Camera _camera;
         private FilterMode _filterMode;
-        public bool RenderPassCanBeInterrupted { get; set; } = true;
+        private bool _transientDepth;
+        public bool ForceStoreAttachments { get; set; }
 
         public int MsaaSamples { get; private set; }
 
-        public bool TransientMsaa =>
-            ToonGraphicsDevice.SupportsTransientMsaa && UsingMsaa && !RenderPassCanBeInterrupted;
+        public bool MemorylessMsaa =>
+            ToonGraphicsDevice.SupportsMemorylessMsaa && UsingMsaa && !ForceStoreAttachments;
 
         public bool RenderToTexture { get; private set; }
         public GraphicsFormat DepthStencilFormat { get; private set; }
@@ -53,6 +54,7 @@ namespace DELTation.ToonRP
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
+            _transientDepth = false;
             _filterMode = filterMode;
             RenderToTexture = true;
             _camera = camera;
@@ -66,6 +68,7 @@ namespace DELTation.ToonRP
         public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
+            _transientDepth = false;
             RenderToTexture = false;
             _camera = camera;
             Width = width;
@@ -79,24 +82,27 @@ namespace DELTation.ToonRP
         {
             if (RenderToTexture)
             {
+                _transientDepth = GetStoreActions().depthStoreAction == RenderBufferStoreAction.DontCare;
+
                 var colorDesc = new RenderTextureDescriptor(Width, Height,
                     ColorFormat, 0, 1
                 );
                 var depthDesc = new RenderTextureDescriptor(Width, Height,
-                    GraphicsFormat.None, DepthStencilFormat,
-                    1
+                    GraphicsFormat.None, DepthStencilFormat, 1
                 );
 
-                if (UsingMsaa && !TransientMsaa)
+                if (UsingMsaa && !MemorylessMsaa)
                 {
                     colorDesc.msaaSamples = MsaaSamples;
                     depthDesc.msaaSamples = MsaaSamples;
                 }
 
-                cmd.GetTemporaryRT(
-                    CameraColorBufferId, colorDesc, _filterMode
-                );
-                cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
+                cmd.GetTemporaryRT(CameraColorBufferId, colorDesc, _filterMode);
+
+                if (!_transientDepth)
+                {
+                    cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
+                }
             }
         }
 
@@ -105,7 +111,11 @@ namespace DELTation.ToonRP
             if (RenderToTexture)
             {
                 cmd.ReleaseTemporaryRT(CameraColorBufferId);
-                cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+
+                if (!_transientDepth)
+                {
+                    cmd.ReleaseTemporaryRT(CameraDepthBufferId);
+                }
             }
         }
 
@@ -114,15 +124,25 @@ namespace DELTation.ToonRP
             in ToonClearValue clearValue = default)
         {
             // "Init" the render target. Prevents certain Unity bugs from happening...
-            if (loadAction != RenderBufferLoadAction.Load)
-            {
-                cmd.SetRenderTarget(
-                    ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
-                    RenderToTexture ? DepthBufferId : BuiltinRenderTextureType.CameraTarget,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
-                );
-                context.ExecuteCommandBufferAndClear(cmd);
-            }
+            // if (loadAction != RenderBufferLoadAction.Load)
+            // {
+            //     if (_transientDepth)
+            //     {
+            //         cmd.SetRenderTarget(
+            //             ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
+            //         );    
+            //     }
+            //     else
+            //     {
+            //         cmd.SetRenderTarget(
+            //             ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+            //             RenderToTexture ? DepthBufferId : BuiltinRenderTextureType.CameraTarget,
+            //             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
+            //         );
+            //     }
+            //     
+            //     context.ExecuteCommandBufferAndClear(cmd);
+            // }
 
             var attachmentDescriptors =
                 new NativeArray<AttachmentDescriptor>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -143,12 +163,15 @@ namespace DELTation.ToonRP
                     colorAttachment.ConfigureClear(clearValue.BackgroundColor);
                 }
 
-                if (TransientMsaa && colorStoreAction == RenderBufferStoreAction.Resolve)
+                if (colorStoreAction is RenderBufferStoreAction.Resolve or RenderBufferStoreAction.StoreAndResolve)
                 {
                     colorAttachment.resolveTarget = ColorBufferId;
                 }
 
-                if (!TransientMsaa || colorAttachment.loadAction == RenderBufferLoadAction.Load)
+                if (
+                    loadAction == RenderBufferLoadAction.Load ||
+                    colorStoreAction is RenderBufferStoreAction.Store or RenderBufferStoreAction.StoreAndResolve
+                )
                 {
                     colorAttachment.loadStoreTarget = ColorBufferId;
                 }
@@ -168,13 +191,26 @@ namespace DELTation.ToonRP
                     depthAttachment.ConfigureClear(Color.black);
                 }
 
-                if (TransientMsaa && depthStoreAction == RenderBufferStoreAction.Resolve)
+                if (depthStoreAction is RenderBufferStoreAction.Resolve or RenderBufferStoreAction.StoreAndResolve)
                 {
+                    if (_transientDepth)
+                    {
+                        Debug.LogError("Cannot resolve to depth buffer: it is transient!");
+                    }
+
                     depthAttachment.resolveTarget = DepthBufferId;
                 }
 
-                if (!TransientMsaa || depthAttachment.loadAction == RenderBufferLoadAction.Load)
+                if (
+                    loadAction == RenderBufferLoadAction.Load ||
+                    depthStoreAction is RenderBufferStoreAction.Store or RenderBufferStoreAction.StoreAndResolve
+                )
                 {
+                    if (_transientDepth)
+                    {
+                        Debug.LogError("Cannot load depth buffer: it is transient!");
+                    }
+
                     depthAttachment.loadStoreTarget = DepthBufferId;
                 }
 
@@ -203,9 +239,9 @@ namespace DELTation.ToonRP
         private (RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction) GetStoreActions()
         {
             RenderBufferStoreAction storeAction =
-                TransientMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                MemorylessMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
             RenderBufferStoreAction depthStoreAction =
-                RenderPassCanBeInterrupted ? storeAction : RenderBufferStoreAction.DontCare;
+                ForceStoreAttachments ? storeAction : RenderBufferStoreAction.DontCare;
             return (storeAction, depthStoreAction);
         }
 

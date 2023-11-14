@@ -221,7 +221,7 @@ namespace DELTation.ToonRP
             context.BeginRenderPass(Width, Height, MsaaSamples, attachmentDescriptors, depthIndex);
             attachmentDescriptors.Dispose();
 
-            var colorIndices = new NativeArray<int>(1, Allocator.Temp);
+            var colorIndices = new NativeArray<int>(1, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             colorIndices[0] = colorIndex;
             context.BeginSubPass(colorIndices);
             colorIndices.Dispose();

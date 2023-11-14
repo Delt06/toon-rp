@@ -146,7 +146,7 @@ namespace DELTation.ToonRP
                         colorAttachment.ConfigureClear(clearValue.BackgroundColor);
                     }
 
-                    if (colorAttachment.storeAction == RenderBufferStoreAction.Store)
+                    if (!RenderToTexture || colorAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
                         colorAttachment.loadStoreTarget = ColorBufferId;
                     }
@@ -164,6 +164,11 @@ namespace DELTation.ToonRP
                     if (clearValue.ClearDepth)
                     {
                         depthAttachment.ConfigureClear(Color.black);
+                    }
+
+                    if (!RenderToTexture)
+                    {
+                        depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;
                     }
                 }
 

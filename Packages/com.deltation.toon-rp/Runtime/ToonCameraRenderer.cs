@@ -312,7 +312,7 @@ namespace DELTation.ToonRP
 
             bool renderToTexture = _camera.cameraType != CameraType.Game ||
                                    renderTextureColorFormat != GetDefaultGraphicsFormat() ||
-                                   msaaSamples > 1 && !ToonGraphicsDevice.SupportsTransientMsaa ||
+                                   msaaSamples > 1 ||
                                    _postProcessing.AnyFullScreenEffectsEnabled ||
                                    !Mathf.Approximately(renderScale, 1.0f) ||
                                    rtWidth > maxRtWidth ||

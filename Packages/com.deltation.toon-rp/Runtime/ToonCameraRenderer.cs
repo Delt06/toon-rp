@@ -144,6 +144,8 @@ namespace DELTation.ToonRP
             _settings = settings;
             _additionalCameraData = additionalCameraData;
 
+            PrepareForSceneWindow();
+
             if (!Cull(shadowSettings))
             {
                 return;
@@ -155,7 +157,6 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             PrepareMsaa(camera, out int msaaSamples);
-            PrepareForSceneWindow();
 
             _postProcessing.PreSetup(camera, postProcessingSettings);
             _extensionsCollection.PreSetup(extensionSettings);

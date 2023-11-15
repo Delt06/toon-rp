@@ -17,17 +17,20 @@ namespace DELTation.ToonRP
 
         public bool ForceStoreAttachments { get; set; } = true;
 
+        public bool ForceDisableNativeRenderPass { get; set; }
         public int MsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
         public GraphicsFormat DepthStencilFormat { get; private set; }
 
+
         public bool UseNativeRenderPass =>
-            !ForceStoreAttachments &&
+            !ForceStoreAttachments && !ForceDisableNativeRenderPass &&
             SystemInfo.graphicsDeviceType is GraphicsDeviceType.Vulkan or GraphicsDeviceType.Metal;
 
         public GraphicsFormat ColorFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
+
 
         public RenderTargetIdentifier ColorBufferId => RenderToTexture
             ? CameraColorBufferId

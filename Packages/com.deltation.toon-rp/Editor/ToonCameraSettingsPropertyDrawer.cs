@@ -113,6 +113,13 @@ namespace DELTation.ToonRP.Editor
             );
 
             root.Add(
+                new PropertyField(property.FindPropertyRelative(
+                        nameof(ToonCameraRendererSettings.ForceDisableNativeRenderPass)
+                    )
+                )
+            );
+
+            root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.ForceStoreCameraDepth)
                     )
                 )

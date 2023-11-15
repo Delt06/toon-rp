@@ -40,18 +40,13 @@ namespace DELTation.ToonRP
                     _renderTarget.ColorFormat,
                     0, 1
                 );
-                cmd.GetTemporaryRT(OpaqueTextureId, desc);
-                if (_renderTarget.RenderToTexture)
-                {
-                    cmd.CopyTexture(_renderTarget.ColorBufferId, OpaqueTextureId);
-                }
-                else
-                {
-                    cmd.Blit(_renderTarget.ColorBufferId, OpaqueTextureId);
-                    _context.ExecuteCommandBufferAndClear(cmd);
 
-                    _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
-                }
+                cmd.GetTemporaryRT(OpaqueTextureId, desc);
+                cmd.SetRenderTarget(OpaqueTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                ToonBlitter.BlitDefault(cmd, _renderTarget.ColorBufferId);
+                _context.ExecuteCommandBufferAndClear(cmd);
+
+                _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

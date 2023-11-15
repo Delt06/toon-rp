@@ -299,6 +299,7 @@ namespace DELTation.ToonRP
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     msaaSamples > 1 ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
+                    _opaqueTexture.Enabled ||
                     !Mathf.Approximately(renderScale, 1.0f) ||
                     rtWidth > maxRtWidth ||
                     rtHeight > maxRtHeight
@@ -580,9 +581,6 @@ namespace DELTation.ToonRP
 
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
-            _renderTarget.SetScreenParams(cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
-
             {
                 _tiledLighting.PrepareForOpaqueGeometry(cmd);
 

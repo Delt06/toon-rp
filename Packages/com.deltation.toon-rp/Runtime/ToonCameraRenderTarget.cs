@@ -123,6 +123,15 @@ namespace DELTation.ToonRP
             RenderBufferLoadAction loadAction,
             ToonClearValue clearValue)
         {
+            // "Init" the render target. Prevents certain Unity bugs from happening (e.g., misplaced immediate GUI). 
+            if (loadAction != RenderBufferLoadAction.Load)
+            {
+                cmd.SetRenderTarget(
+                    ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
+                );
+                context.ExecuteCommandBufferAndClear(cmd);
+            }
+
             const int colorIndex = 0;
             const int depthIndex = 1;
 
@@ -194,7 +203,7 @@ namespace DELTation.ToonRP
             cmd.SetViewport(RenderToTexture ? new Rect(0, 0, Width, Height) : _camera.pixelRect);
         }
 
-        private void BeginRenderPassFallback(RenderBufferLoadAction loadAction, ToonClearValue clearValue,
+        private void BeginRenderPassFallback(RenderBufferLoadAction loadAction, in ToonClearValue clearValue,
             CommandBuffer cmd)
         {
             const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;

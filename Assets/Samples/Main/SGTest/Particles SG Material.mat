@@ -24,7 +24,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ControlOutlinesStencilLayer: 1
-    - _Distance: 0.71
+    - _Distance: 0.41
     - _ForwardStencilComp: 0
     - _ForwardStencilPass: 0
     - _ForwardStencilRef: 0
@@ -32,8 +32,8 @@ Material:
     - _OutlinesStencilLayer: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Range: 1.89
+    - _Range: 0.68
     - _RenderQueue: 3000
     m_Colors:
-    - _Emission: {r: 6.93122, g: 0, b: 38.937145, a: 0}
+    - _Emission: {r: 0.39230314, g: 0, b: 0.6300626, a: 0}
   m_BuildTextureStacks: []

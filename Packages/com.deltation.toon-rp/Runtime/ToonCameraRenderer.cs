@@ -229,9 +229,7 @@ namespace DELTation.ToonRP
         private void PrepareMsaa(Camera camera, out int msaaSamples)
         {
             msaaSamples = (int) _settings.Msaa;
-            QualitySettings.antiAliasing = msaaSamples;
-            // QualitySettings.antiAliasing returns 0 if MSAA is not supported
-            msaaSamples = Mathf.Max(QualitySettings.antiAliasing, 1);
+            QualitySettings.antiAliasing = 1;
             msaaSamples = camera.allowMSAA ? msaaSamples : 1;
         }
 

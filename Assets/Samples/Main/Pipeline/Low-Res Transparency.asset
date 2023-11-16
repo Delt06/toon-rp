@@ -18,7 +18,7 @@ MonoBehaviour:
   Settings:
     PassName: Low-Res Transparency
     ResolutionFactor: 4
-    AfterTransparent: 1
+    AfterTransparent: 0
     LayerMask:
       serializedVersion: 2
       m_Bits: 256

@@ -353,7 +353,7 @@ namespace DELTation.ToonRP
             {
                 _depthStencilFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, false);
                 _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat,
-                    _depthStencilFormat
+                    _depthStencilFormat, 1
                 );
             }
 

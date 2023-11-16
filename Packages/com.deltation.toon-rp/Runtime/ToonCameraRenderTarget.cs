@@ -36,6 +36,10 @@ namespace DELTation.ToonRP
             ? CameraColorBufferId
             : BuiltinRenderTextureType.CameraTarget;
 
+        public RenderTargetIdentifier DepthBufferId => RenderToTexture
+            ? CameraDepthBufferId
+            : BuiltinRenderTextureType.CameraTarget;
+
         public bool UsingMsaa => MsaaSamples > 1;
 
         public void FinalBlit(CommandBuffer cmd)
@@ -65,14 +69,14 @@ namespace DELTation.ToonRP
         }
 
         public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
-            GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat)
+            GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
             RenderToTexture = false;
             _camera = camera;
             Width = width;
             Height = height;
             ColorFormat = colorFormat;
-            MsaaSamples = 1;
+            MsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
         }
 
@@ -158,7 +162,8 @@ namespace DELTation.ToonRP
                         colorAttachment.ConfigureClear(clearValue.BackgroundColor);
                     }
 
-                    if (!RenderToTexture || colorAttachment.storeAction == RenderBufferStoreAction.Store)
+                    if (colorAttachment.loadAction == RenderBufferLoadAction.Load ||
+                        colorAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
                         colorAttachment.loadStoreTarget = ColorBufferId;
                     }
@@ -178,9 +183,10 @@ namespace DELTation.ToonRP
                         depthAttachment.ConfigureClear(Color.black);
                     }
 
-                    if (!RenderToTexture)
+                    if (depthAttachment.loadAction == RenderBufferLoadAction.Load ||
+                        depthAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
-                        depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;
+                        colorAttachment.loadStoreTarget = DepthBufferId;
                     }
                 }
 

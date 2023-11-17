@@ -10,7 +10,6 @@
         public const string MotionVectorsPrePass = "Motion Vectors Pre-Pass";
         public const string Ssao = "SSAO";
         public const string TiledLighting = "Tiled Lighting";
-        public const string PrepareRenderTargets = "Prepare Render Targets";
         public const string OpaqueGeometry = "Opaque Geometry";
         public const string InvertedHullOutlines = "Outlines (Inverted Hull)";
         public const string ScreenSpaceOutlines = "Outlines (Screen-Space)";

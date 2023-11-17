@@ -57,6 +57,10 @@ namespace DELTation.ToonRP
         public bool UseDynamicBatching;
 
         [Tooltip(
+            "Use Vulkan/Metal render passes when possible. This feature is experimental."
+        )]
+        public bool NativeRenderPasses;
+        [Tooltip(
             "Enable this to always use StoreAction.Store for camera depth. By default, it uses StoreAction.DontCare unless any extension or post-processing effect overrides it."
         )]
         public bool ForceStoreCameraDepth;

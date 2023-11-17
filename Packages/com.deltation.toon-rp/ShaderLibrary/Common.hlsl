@@ -88,7 +88,7 @@ float GetLinearDepth(const float3 positionWs)
 #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
 float4 ApplyPretransformRotationPixelCoords(float4 v)
 {
-    switch (TOON_DISPLAY_ORIENTATION)
+    switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
     {
     default:
     case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0   :                                                   break;

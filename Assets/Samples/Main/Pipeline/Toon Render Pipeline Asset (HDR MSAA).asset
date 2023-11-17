@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: Toon Render Pipeline Asset (HDR MSAA)
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  GlobalRampSettings:
+    Threshold: 0
+    SpecularThreshold: 0.79
+    RimThreshold: -0.328
+    Mode: 2
+    Smoothness: 0.083
+    SpecularSmoothness: 0.367
+    RimSmoothness: 1.65
+    RampTexture: {fileID: 2800000, guid: 752a48c13df68ea4aae97103de1292d2, type: 3}
+  CameraRendererSettings:
+    AdditionalLights: 1
+    TiledLighting: 0
+    MaxLightsPerTile: 32
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 67
+    AllowHdr: 1
+    Stencil: 0
+    Msaa: 8
+    RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 1
+    PrePass: 1
+    OpaqueTexture: 0
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 247
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+    ForceDisableNativeRenderPass: 0
+    ForceStoreCameraDepth: 0
+  ShadowSettings:
+    Mode: 1
+    Threshold: 0.422
+    CrispAntiAliased: 1
+    Smoothness: 1
+    MaxDistance: 25
+    DistanceFade: 0.354
+    Pattern: {fileID: 2800000, guid: 370591c24596965498bac30a92b5a7cf, type: 3}
+    PatternScale: {x: 1, y: 0, z: 1}
+    Vsm:
+      DepthBits: 16
+      Blur: 0
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.25
+      BlurScatter: 1
+      VsmPrecision: 0
+      SoftShadows:
+        Enabled: 1
+        Quality: 1
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.426
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
+      LightBleedingReduction: 0.001
+      Directional:
+        Enabled: 1
+        AtlasSize: 1024
+        CascadeCount: 4
+        CascadeRatio1: 0.299
+        CascadeRatio2: 0.58
+        CascadeRatio3: 0.85
+        DepthBias: 0.034
+        NormalBias: 0.03
+        SlopeBias: 1.37
+    Blobs:
+      Model: {fileID: 0}
+      AtlasSize: 128
+      Mode: 0
+      Saturation: 1
+      ShadowPositionOffset: {x: 0, y: 0}
+  Extensions:
+    Extensions:
+    - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
+    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
+  PostProcessing:
+    Enabled: 0
+    Passes:
+    - {fileID: 11400000, guid: a2b9b9eff21d681439a54dd24d18aa73, type: 2}
+    - {fileID: 11400000, guid: 444443e987af20941be3a8f1b36ba921, type: 2}
+    - {fileID: 11400000, guid: fbec6b31b69fe924498065c60633b32a, type: 2}

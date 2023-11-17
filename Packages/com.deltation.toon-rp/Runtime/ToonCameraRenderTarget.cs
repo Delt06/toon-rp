@@ -47,7 +47,7 @@ namespace DELTation.ToonRP
             if (RenderToTexture)
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                cmd.SetViewport(_camera.pixelRect);
+                SetScreenParamsOverride(cmd, _camera.pixelWidth, _camera.pixelHeight);
 
                 ToonBlitter.BlitDefault(cmd, CameraColorBufferId);
             }

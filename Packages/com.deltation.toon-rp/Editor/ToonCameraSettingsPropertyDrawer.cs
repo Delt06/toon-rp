@@ -114,9 +114,12 @@ namespace DELTation.ToonRP.Editor
 
             root.Add(
                 new PropertyField(property.FindPropertyRelative(
-                        nameof(ToonCameraRendererSettings.ForceDisableNativeRenderPass)
+                        nameof(ToonCameraRendererSettings.NativeRenderPasses)
                     )
                 )
+                {
+                    label = "Native Render Passes (Experimental)",
+                }
             );
 
             root.Add(

@@ -174,7 +174,7 @@ namespace DELTation.ToonRP
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
-            _renderTarget.ForceDisableNativeRenderPass = _settings.ForceDisableNativeRenderPass;
+            _renderTarget.ForceDisableNativeRenderPass = !_settings.NativeRenderPasses;
 
             _renderTarget.GetTemporaryRTs(cmd);
             _context.ExecuteCommandBufferAndClear(cmd);

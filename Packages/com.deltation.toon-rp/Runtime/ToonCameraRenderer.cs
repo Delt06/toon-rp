@@ -297,7 +297,6 @@ namespace DELTation.ToonRP
             );
 
             bool renderToTexture =
-                    _camera.cameraType != CameraType.Game ||
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     msaaSamples > 1 ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
@@ -306,6 +305,11 @@ namespace DELTation.ToonRP
                     rtWidth > maxRtWidth ||
                     rtHeight > maxRtHeight
                 ;
+
+            if (_camera.cameraType != CameraType.Game)
+            {
+                renderToTexture = !ToonSceneViewUtils.IsDrawingWireframes(_camera);
+            }
 
             _requireStencil = RequireStencil(extensionSettings);
             _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);

@@ -98,7 +98,9 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;
     outputColor = MixFog(outputColor.rgb, fogFactor);
-    #endif // !_FORCE_DISABLE_FOG 
+    #endif // !_FORCE_DISABLE_FOG
+
+    ApplyCustomFog(outputColor, surfaceDescription);
 
     return float4(outputColor, albedo.a);
 }

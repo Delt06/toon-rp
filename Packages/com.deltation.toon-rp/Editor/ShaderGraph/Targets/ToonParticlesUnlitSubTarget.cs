@@ -183,6 +183,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     ToonBlockFields.SurfaceDescription.Albedo,
                     ToonBlockFields.SurfaceDescription.Emission,
+                    ToonBlockFields.SurfaceDescription.CustomFogFactor,
+                    ToonBlockFields.SurfaceDescription.CustomFogColor,
                     ToonBlockFields.SurfaceDescription.Alpha,
                     ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
 

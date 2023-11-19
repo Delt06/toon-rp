@@ -43,6 +43,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
                 target.AlphaClip || target.AllowMaterialOverride
             );
+
+            context.AddBlock(ToonBlockFields.SurfaceDescription.CustomFogFactor, target.CustomFog);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.CustomFogColor, target.CustomFog);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
@@ -70,7 +73,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.BlendMode, (float) target.AlphaMode);
                 material.SetFloat(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.AlphaToCoverage, target.AlphaToCoverage ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.ForceDisableFog, !target.Fog ? 1.0f : 0.0f);
+                material.SetFloat(PropertyNames.CustomFog, target.CustomFog ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.RenderFace, (int) target.RenderFace);
                 material.SetFloat(PropertyNames.CastShadows, target.CastShadows ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.ZWriteControl, (float) target.ZWriteControl);
@@ -112,7 +116,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 collector.AddFloatProperty(PropertyNames.BlendMode, (float) target.AlphaMode);
                 collector.AddFloatProperty(PropertyNames.AlphaClipping, target.AlphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.AlphaToCoverage, target.AlphaToCoverage ? 1.0f : 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForceDisableFogPropertyName, !target.Fog ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.ForceDisableFog, !target.Fog ? 1.0f : 0.0f);
+                collector.AddFloatProperty(PropertyNames.CustomFog, target.CustomFog ? 1.0f : 0.0f);
                 collector.AddFloatProperty(PropertyNames.BlendSrc, 1.0f
                 ); // always set by material inspector, ok to have incorrect values here
                 collector.AddFloatProperty(PropertyNames.BlendDst, 0.0f

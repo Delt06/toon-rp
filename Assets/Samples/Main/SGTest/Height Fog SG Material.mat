@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Height Fog SG Material
+  m_Shader: {fileID: -6465566751694194690, guid: 18467f129d2660a44b1ecbebddb72662, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 2000
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _ControlOutlinesStencilLayer: 1
+    - _FogColorDepthSmoothness: 0.05
+    - _FogSmoothness: 0.01
+    - _FogThreshold: 0.86
+    - _ForwardStencilComp: 0
+    - _ForwardStencilPass: 0
+    - _ForwardStencilRef: 0
+    - _ForwardStencilWriteMask: 0
+    - _NoiseAmplitude: 0.1
+    - _OutlinesStencilLayer: 0
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ReceiveBlobShadows: 0
+    - _RenderQueue: 2000
+    m_Colors:
+    - _FogColor: {r: 0, g: 0, b: 0, a: 0}
+    - _FogColorDeep: {r: 0, g: 0.66085297, b: 0.8207547, a: 0}
+    - _FogColorShallow: {r: 0.990566, g: 0.990566, b: 0.990566, a: 0}
+    - _WavesSpeed: {r: 0.1, g: 0.1, b: 0, a: 0}
+  m_BuildTextureStacks: []

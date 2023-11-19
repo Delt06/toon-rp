@@ -48,10 +48,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Emission = new(Name, "Emission", "SURFACEDESCRIPTION_EMISSION",
                 new ColorControl(Color.black, true), ShaderStage.Fragment
             );
-            public static readonly BlockFieldDescriptor EmissionShadowBlend = new(Name, "EmissionShadowBlend", "Emission Shadow Blend", 
+            public static readonly BlockFieldDescriptor EmissionShadowBlend = new(Name, "EmissionShadowBlend",
+                "Emission Shadow Blend",
                 "SURFACEDESCRIPTION_EMISSIONSHADOWBLEND",
                 new FloatControl(1.0f), ShaderStage.Fragment
             );
+
             public static readonly BlockFieldDescriptor Alpha = new(Name, "Alpha", "SURFACEDESCRIPTION_ALPHA",
                 new FloatControl(1.0f), ShaderStage.Fragment
             );
@@ -59,6 +61,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "Alpha Clip Threshold",
                 "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLD",
                 new FloatControl(0.5f), ShaderStage.Fragment
+            );
+
+            public static readonly BlockFieldDescriptor CustomFogFactor = new(Name, "CustomFogFactor",
+                "Custom Fog Factor", "SURFACEDESCRIPTION_CUSTOMFOGFACTOR",
+                new FloatControl(0.0f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor CustomFogColor = new(Name, "CustomFogColor", "Custom Fog Color",
+                "SURFACEDESCRIPTION_CUSTOMFOGCOLOR",
+                new ColorControl(Color.grey, false), ShaderStage.Fragment
             );
 
             public static readonly BlockFieldDescriptor GlobalRampUV = new(Name, "GlobalRampUV", "Global Ramp UV",
@@ -81,7 +92,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_SHADOWCOLOR",
                 new ColorRGBAControl(new Color(0.0f, 0.0f, 0.0f, 0.75f)), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor DiffuseOffset = new(Name, "DiffuseOffset",
                 "Diffuse Offset",
                 "SURFACEDESCRIPTION_DIFFUSEOFFSET",

@@ -4,7 +4,6 @@ using DELTation.ToonRP.Editor.ShaderGUI;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;
@@ -54,7 +53,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.Specular, Specular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.AdditionalLightsSpecular, AdditionalLightsSpecular ? 1.0f : 0.0f);
                 material.SetFloat(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
-                material.SetFloat(PropertyNames.ForceDisableEnvironmentLightPropertyName,
+                material.SetFloat(PropertyNames.ForceDisableEnvironmentLight,
                     !EnvironmentLighting ? 1.0f : 0.0f
                 );
             }
@@ -127,7 +126,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     AdditionalLightsSpecular ? 1.0f : 0.0f
                 );
                 collector.AddFloatProperty(PropertyNames.Rim, Rim ? 1.0f : 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName,
+                collector.AddFloatProperty(PropertyNames.ForceDisableEnvironmentLight,
                     !EnvironmentLighting ? 1.0f : 0.0f
                 );
             }
@@ -406,6 +405,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.Alpha,
                 ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+                ToonBlockFields.SurfaceDescription.CustomFogFactor,
+                ToonBlockFields.SurfaceDescription.CustomFogColor,
                 ToonBlockFields.SurfaceDescription.Emission,
                 ToonBlockFields.SurfaceDescription.EmissionShadowBlend,
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,

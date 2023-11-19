@@ -30,8 +30,8 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 DrawProperty(PropertyNames.ShadowColorPropertyName);
                 DrawBlobShadows();
                 DrawOverrideRamp();
-                DrawProperty(PropertyNames.ForceDisableFogPropertyName);
-                DrawProperty(PropertyNames.ForceDisableEnvironmentLightPropertyName);
+                DrawProperty(PropertyNames.ForceDisableFog);
+                DrawProperty(PropertyNames.ForceDisableEnvironmentLight);
             }
 
             EditorGUILayout.Space();

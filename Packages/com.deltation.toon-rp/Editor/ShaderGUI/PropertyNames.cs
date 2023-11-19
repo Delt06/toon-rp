@@ -34,8 +34,9 @@
         public const string AdditionalLightsSpecular = "_ToonLightingAdditionalLightsSpecular";
         public const string Rim = "_Rim";
         public const string OverrideRamp = "_OverrideRamp";
-        public const string ForceDisableFogPropertyName = "_ForceDisableFog";
-        public const string ForceDisableEnvironmentLightPropertyName = "_ForceDisableEnvironmentLight";
+        public const string ForceDisableFog = "_ForceDisableFog";
+        public const string CustomFog = "_CustomFog";
+        public const string ForceDisableEnvironmentLight = "_ForceDisableEnvironmentLight";
 
         public const string CastShadows = "_CastShadows";
         public const string ReceiveShadows = "_ReceiveShadows";

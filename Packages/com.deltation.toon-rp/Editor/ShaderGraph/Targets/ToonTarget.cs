@@ -205,6 +205,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             private set => _fog = value;
         }
 
+        public bool CustomFog
+        {
+            get => _customFog;
+            private set => _customFog = value;
+        }
+
         private string CustomEditorGUI
         {
             get => _customEditorGUI;
@@ -502,6 +508,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             );
 
+            context.AddProperty("Custom Fog", new Toggle { value = CustomFog }, evt =>
+                {
+                    if (Equals(CustomFog, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Custom Fog");
+                    CustomFog = evt.newValue;
+                    onChange();
+                }
+            );
+
             context.AddProperty("Cast Shadows", new Toggle { value = CastShadows }, evt =>
                 {
                     if (Equals(CastShadows, evt.newValue))
@@ -609,6 +628,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private bool _receiveShadows = true;
         [SerializeField] private PrePassMode _ignoredPrePasses = PrePassMode.Off;
         [SerializeField] private bool _fog = true;
+        [SerializeField] private bool _customFog;
         [SerializeField] private string _customEditorGUI;
         // ReSharper restore Unity.RedundantSerializeFieldAttribute
 
@@ -670,6 +690,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             }
         }
 
+        private static void AddCustomFogControlToPass(ref PassDescriptor pass, ToonTarget target)
+        {
+            if (target.AllowMaterialOverride)
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.CustomFog);
+            }
+            else if (target.CustomFog)
+            {
+                pass.defines.Add(CoreKeywordDescriptors.CustomFog, 1);
+            }
+        }
+
         private static void AddOutlinesControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.ControlOutlinesStencilLayerEffectivelyEnabled || target.AllowMaterialOverride)
@@ -703,6 +735,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             AddAlphaClipControlToPass(ref pass, target);
             AddFogControlToPass(ref pass, target);
+            AddCustomFogControlToPass(ref pass, target);
             AddOutlinesControlToPass(ref pass, target);
         }
 
@@ -920,6 +953,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             ToonBlockFields.SurfaceDescription.Albedo,
             ToonBlockFields.SurfaceDescription.Emission,
+            ToonBlockFields.SurfaceDescription.CustomFogFactor,
+            ToonBlockFields.SurfaceDescription.CustomFogColor,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
@@ -1417,6 +1452,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+        };
+
+        public static readonly KeywordDescriptor CustomFog = new()
+        {
+            displayName = ShaderKeywords.CustomFog,
+            referenceName = ShaderKeywords.CustomFog,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor ForceDisableEnvironmentLight = new()

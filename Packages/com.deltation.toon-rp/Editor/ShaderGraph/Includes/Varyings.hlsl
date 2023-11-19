@@ -222,3 +222,10 @@ float3 GetNormalWsFromVaryings(SurfaceDescription surfaceDescription, Varyings v
 
     return normalWS;
 }
+
+void ApplyCustomFog(inout float3 outputColor, const SurfaceDescription surfaceDescription)
+{
+    #if _CUSTOM_FOG
+    outputColor = lerp(outputColor, surfaceDescription.CustomFogColor, surfaceDescription.CustomFogFactor);
+    #endif // _CUSTOM_FOG
+}

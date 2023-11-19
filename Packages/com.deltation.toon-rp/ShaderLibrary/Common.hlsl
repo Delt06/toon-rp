@@ -18,8 +18,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution
-float4 _ScreenParams; // xy = resolution, zw = 1 + 1 / resolution
-float4 _ProjectionParams;
 
 #if UNITY_REVERSED_Z
 // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
@@ -42,6 +40,8 @@ float4 _ProjectionParams;
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
+
 // Returns 'true' if the current view performs a perspective projection.
 bool IsPerspectiveProjection()
 {
@@ -59,6 +59,8 @@ float3 GetViewForwardDir()
     float4x4 viewMat = GetWorldToViewMatrix();
     return -viewMat[2].xyz;
 }
+
+#endif // !UNITY_SHADER_VARIABLES_INCLUDED
 
 float3 GetWorldSpaceViewDir(const float3 positionWs)
 {

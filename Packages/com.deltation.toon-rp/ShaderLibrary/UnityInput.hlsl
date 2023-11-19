@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
 
 // Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
@@ -50,6 +51,9 @@ float4 _TimeParameters; // t, sin(t), cos(t)
 float3 _WorldSpaceCameraPos;
 float4 _ZBufferParams;
 
+float4 _ScreenParams; // xy = resolution, zw = 1 + 1 / resolution
+float4 _ProjectionParams;
+
 // x = orthographic camera's width
 // y = orthographic camera's height
 // z = unused
@@ -64,6 +68,8 @@ real4 unity_FogColor;
 
 float4x4 _PrevViewProjMatrix; // non-jittered. Motion vectors.
 float4x4 _NonJitteredViewProjMatrix; // non-jittered.
+
+#endif // !UNITY_SHADER_VARIABLES_INCLUDED
 
 bool IsOrthographicCamera()
 {

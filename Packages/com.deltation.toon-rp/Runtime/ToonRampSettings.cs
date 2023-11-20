@@ -20,5 +20,16 @@ namespace DELTation.ToonRP
         [Range(0.0f, 2.0f)]
         public float RimSmoothness;
         public Texture2D RampTexture;
+
+        public AdditionalLightsRamp AdditionalLights;
+
+        [Serializable]
+        public struct AdditionalLightsRamp
+        {
+            [Range(-2.0f, 2.0f)]
+            public float DiffuseOffset;
+            [Range(-2.0f, 2.0f)]
+            public float SpecularOffset;
+        }
     }
 }

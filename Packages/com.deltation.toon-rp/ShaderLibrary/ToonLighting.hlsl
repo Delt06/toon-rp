@@ -186,7 +186,7 @@ void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters par
         #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
         const float diffuseRamp = saturate(nDotL);
         #else // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX
-        const float diffuseRamp = ComputeRampDiffuse(parameters, nDotL);
+        const float diffuseRamp = ComputeRampDiffuse(parameters, nDotL + _AdditionalLightRampOffset.x);
         #endif  // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
         diffuse += diffuseRamp * attenuationCutoff * diffuseRampCutoff * light.color;
@@ -194,7 +194,7 @@ void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters par
         #if !defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX) && defined(_TOON_LIGHTING_SPECULAR) && defined(_TOON_LIGHTING_ADDITIONAL_LIGHTS_SPECULAR)
         const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
         const float specularRampCutoff = step(rampCutoffEdge, nDotH);
-        const float specularRamp = ComputeRampSpecular(parameters, nDotH);
+        const float specularRamp = ComputeRampSpecular(parameters, nDotH + _AdditionalLightRampOffset.y);
         specular += specularRamp * attenuationCutoff * specularRampCutoff * light.color;
         #endif // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX && _TOON_LIGHTING_SPECULAR && _TOON_LIGHTING_ADDITIONAL_LIGHTS_SPECULAR
     }

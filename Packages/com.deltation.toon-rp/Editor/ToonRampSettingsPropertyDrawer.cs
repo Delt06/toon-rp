@@ -43,6 +43,8 @@ namespace DELTation.ToonRP.Editor
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.SpecularSmoothness))));
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.RimThreshold))));
             root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.RimSmoothness))));
+            
+            root.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonRampSettings.AdditionalLights))));
 
             return root;
         }

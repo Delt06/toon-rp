@@ -18,6 +18,8 @@ CBUFFER_START(_ToonRPLight)
     float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color
     float4 _AdditionalLightPositionsVS[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position VS, w = range
     float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
+
+    float2 _AdditionalLightRampOffset; // x - diffuse, y - specular
 CBUFFER_END
 
 struct Light

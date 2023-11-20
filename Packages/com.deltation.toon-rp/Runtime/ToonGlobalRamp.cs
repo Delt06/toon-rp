@@ -15,6 +15,7 @@ namespace DELTation.ToonRP
         private static readonly int GlobalRampSpecularId = Shader.PropertyToID("_ToonRP_GlobalRampSpecular");
         private static readonly int GlobalRampRimId = Shader.PropertyToID("_ToonRP_GlobalRampRim");
         private static readonly int GlobalRampTextureId = Shader.PropertyToID("_ToonRP_GlobalRampTexture");
+        private static readonly int AdditionalLightRampOffsetId = Shader.PropertyToID("_AdditionalLightRampOffset");
 
         private readonly CommandBuffer _cmd = new() { name = BufferName };
         private readonly GlobalKeyword _globalRampCrispKeyword = GlobalKeyword.Create(GlobalRampCrispKeywordName);
@@ -53,6 +54,16 @@ namespace DELTation.ToonRP
                 float edge1 = rampSettings.RimThreshold;
                 float edge2 = edge1 + rampSettings.RimSmoothness;
                 _cmd.SetGlobalVector(GlobalRampRimId, BuildRampVectorFromEdges(edge1, edge2));
+            }
+
+            // additional lights
+            {
+                _cmd.SetGlobalVector(AdditionalLightRampOffsetId,
+                    new Vector4(
+                        rampSettings.AdditionalLights.DiffuseOffset,
+                        rampSettings.AdditionalLights.SpecularOffset
+                    )
+                );
             }
 
             switch (rampSettings.Mode)

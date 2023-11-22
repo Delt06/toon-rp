@@ -47,7 +47,8 @@ namespace DELTation.ToonRP
             if (RenderToTexture)
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                SetScreenParamsOverride(cmd, _camera.pixelWidth, _camera.pixelHeight);
+                SetScreenParamsOverride(cmd, _camera.pixelWidth, _camera.pixelHeight, _camera.rect);
+                cmd.SetViewport(_camera.pixelRect);
 
                 ToonBlitter.BlitDefault(cmd, CameraColorBufferId);
             }
@@ -259,25 +260,16 @@ namespace DELTation.ToonRP
             }
         }
 
-        public void SetScreenParams(CommandBuffer cmd)
+        private void SetScreenParams(CommandBuffer cmd)
         {
-            cmd.SetGlobalVector(ToonScreenParamsId, new Vector4(
-                    1.0f / Width,
-                    1.0f / Height,
-                    Width,
-                    Height
-                )
-            );
-            cmd.SetGlobalVector(ScreenParamsId, new Vector4(
-                    Width,
-                    Height,
-                    1.0f + 1.0f / Width,
-                    1.0f + 1.0f / Height
-                )
-            );
+            SetScreenParamsOverride(cmd, Width, Height, RenderToTexture ? new Rect(0, 0, 1, 1) : _camera.rect);
         }
 
-        public void SetScreenParamsOverride(CommandBuffer cmd, int width, int height)
+        public void SetScreenParamsOverride(CommandBuffer cmd, int width, int height) => SetScreenParamsOverride(
+            cmd, width, height, new Rect(0, 0, 1, 1)
+        );
+
+        public void SetScreenParamsOverride(CommandBuffer cmd, int width, int height, Rect cameraRect)
         {
             cmd.SetGlobalVector(ToonScreenParamsId, new Vector4(
                     1.0f / width,
@@ -291,6 +283,22 @@ namespace DELTation.ToonRP
                     height,
                     1.0f + 1.0f / width,
                     1.0f + 1.0f / height
+                )
+            );
+
+            var viewportRect = new Vector4(
+                1.0f / cameraRect.width, 1.0f / cameraRect.height,
+                -cameraRect.xMin / cameraRect.width, -cameraRect.yMin / cameraRect.height
+            );
+            cmd.SetGlobalVector("_ToonRP_ViewportRect", viewportRect);
+
+            float fullscreenWidth = Width / cameraRect.width;
+            float fullscreenHeight = Height / cameraRect.height;
+            cmd.SetGlobalVector("_ToonRP_FullScreenParams", new Vector4(
+                    1.0f / fullscreenWidth,
+                    1.0f / fullscreenHeight,
+                    fullscreenWidth,
+                    fullscreenHeight
                 )
             );
         }

@@ -21,6 +21,7 @@
 		    ZWrite Off
 		    ZTest Off
 		    Cull Off
+		    ColorMask RGB
 		    Blend [_BlendSrc] [_BlendDst]
 			
 			HLSLPROGRAM

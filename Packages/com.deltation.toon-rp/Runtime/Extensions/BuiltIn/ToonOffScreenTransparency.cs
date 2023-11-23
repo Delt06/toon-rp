@@ -103,7 +103,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         }
                     }
 
-                    _cameraRenderTarget.SetScreenParamsOverride(cmd, _width, _height);
+                    var screenParams = new ToonCameraRenderTarget.ScreenParams(_width, _height)
+                    {
+                        SetViewportRect = false,
+                    };
+                    _cameraRenderTarget.SetScreenParamsOverride(cmd, screenParams);
                     _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                     {

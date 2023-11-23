@@ -18,7 +18,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             base.Setup(cmd, in context);
 
-            _persistentData = context.AdditionalCameraData.TemporalAAPersistentData;
+            _persistentData = context.AdditionalCameraData.GetPersistentData<ToonTemporalAAPersistentData>();
             _camera = context.Camera;
             EnsureHistoryIsAllocated(context, _persistentData);
 

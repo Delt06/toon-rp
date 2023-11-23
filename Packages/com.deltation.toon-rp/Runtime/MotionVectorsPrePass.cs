@@ -11,13 +11,13 @@ namespace DELTation.ToonRP
         private static readonly int PrevViewProjMatrixId = Shader.PropertyToID("_PrevViewProjMatrix");
         private static readonly int NonJitteredViewProjMatrixId = Shader.PropertyToID("_NonJitteredViewProjMatrix");
         public readonly int MotionVectorsTextureId = Shader.PropertyToID("_ToonRP_MotionVectorsTexture");
-        private ToonAdditionalCameraData _additionalCameraData;
 
         private Camera _camera;
         private ScriptableRenderContext _context;
 
         private CullingResults _cullingResults;
         private ToonRenderingExtensionsCollection _extensionsCollection;
+        private ToonMotionVectorsPersistentData _motionVectorsPersistentData;
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
@@ -31,7 +31,7 @@ namespace DELTation.ToonRP
             _cullingResults = cullingResults;
             _camera = camera;
             _extensionsCollection = extensionsCollection;
-            _additionalCameraData = additionalCameraData;
+            _motionVectorsPersistentData = additionalCameraData.GetPersistentData<ToonMotionVectorsPersistentData>();
             _settings = settings;
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
@@ -46,12 +46,8 @@ namespace DELTation.ToonRP
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.MotionVectorsPrePass)))
             {
-                cmd.SetGlobalMatrix(PrevViewProjMatrixId,
-                    _additionalCameraData.MotionVectorsPersistentData.PreviousViewProjection
-                );
-                cmd.SetGlobalMatrix(NonJitteredViewProjMatrixId,
-                    _additionalCameraData.MotionVectorsPersistentData.ViewProjection
-                );
+                cmd.SetGlobalMatrix(PrevViewProjMatrixId, _motionVectorsPersistentData.PreviousViewProjection);
+                cmd.SetGlobalMatrix(NonJitteredViewProjMatrixId, _motionVectorsPersistentData.ViewProjection);
 
                 cmd.GetTemporaryRT(MotionVectorsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
                     GraphicsFormat.R16G16_SFloat

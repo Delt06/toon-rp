@@ -92,7 +92,7 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
         saturate(1.0f - Sq(distanceSqr * positionWs_attenuation.w))
     );
     light.distanceAttenuation = distanceAttenuation / distanceSqr;
-    light.distanceAttenuation *= _AdditionalLightRampOffset.z;
+    light.distanceAttenuation = saturate(light.distanceAttenuation * _AdditionalLightRampOffset.z);
 
     return light;
 }

@@ -19,7 +19,7 @@ CBUFFER_START(_ToonRPLight)
     float4 _AdditionalLightPositionsVS[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position VS, w = range
     float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
 
-    float2 _AdditionalLightRampOffset; // x - diffuse, y - specular
+    float3 _AdditionalLightRampOffset; // x - diffuse, y - specular, z - attenuation factor
 CBUFFER_END
 
 struct Light
@@ -92,6 +92,7 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
         saturate(1.0f - Sq(distanceSqr * positionWs_attenuation.w))
     );
     light.distanceAttenuation = distanceAttenuation / distanceSqr;
+    light.distanceAttenuation *= _AdditionalLightRampOffset.z;
 
     return light;
 }

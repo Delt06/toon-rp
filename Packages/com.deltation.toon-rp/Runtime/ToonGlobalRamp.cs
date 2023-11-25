@@ -61,7 +61,8 @@ namespace DELTation.ToonRP
                 _cmd.SetGlobalVector(AdditionalLightRampOffsetId,
                     new Vector4(
                         rampSettings.AdditionalLights.DiffuseOffset,
-                        rampSettings.AdditionalLights.SpecularOffset
+                        rampSettings.AdditionalLights.SpecularOffset,
+                        rampSettings.AdditionalLights.DistanceAttenuationFactor
                     )
                 );
             }

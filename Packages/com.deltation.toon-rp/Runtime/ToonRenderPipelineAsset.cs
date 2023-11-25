@@ -36,6 +36,12 @@ namespace DELTation.ToonRP
             Smoothness = 0.02f,
             SpecularSmoothness = 0.005f,
             RimSmoothness = 0.1f,
+            AdditionalLights = new ToonRampSettings.AdditionalLightsRamp
+            {
+                DiffuseOffset = 0.0f,
+                SpecularOffset = 0.0f,
+                DistanceAttenuationFactor = 1.0f,
+            },
         };
 
         public ToonCameraRendererSettings CameraRendererSettings = new()
@@ -117,9 +123,9 @@ namespace DELTation.ToonRP
 
         public override Shader defaultShader => ToonRenderPipeline.GetDefaultShader();
 
-        #if UNITY_2022_3_OR_NEWER
+#if UNITY_2022_3_OR_NEWER
         public override string renderPipelineShaderTag => ToonRenderPipeline.PipelineTag;
-        #endif // UNITY_2022_3_OR_NEWER
+#endif // UNITY_2022_3_OR_NEWER
 
         private void Reset()
         {

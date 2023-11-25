@@ -30,6 +30,8 @@ namespace DELTation.ToonRP
             public float DiffuseOffset;
             [Range(-2.0f, 2.0f)]
             public float SpecularOffset;
+            [Min(0.0f)]
+            public float DistanceAttenuationFactor;
         }
     }
 }

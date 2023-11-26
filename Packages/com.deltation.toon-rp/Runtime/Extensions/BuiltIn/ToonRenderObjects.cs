@@ -95,6 +95,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             if (clearFlags != RTClearFlags.None)
             {
                 cmd.ClearRenderTarget(clearFlags, Color.clear, 1.0f, 0);
+                _context.ExecuteCommandBufferAndClear(cmd);
             }
         }
 

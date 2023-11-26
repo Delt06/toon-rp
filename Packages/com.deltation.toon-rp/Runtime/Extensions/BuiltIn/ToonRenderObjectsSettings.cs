@@ -10,6 +10,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     {
         public ToonRenderingEvent Event;
         public string PassName;
+        public bool ClearDepth;
+        public bool ClearStencil;
         public FilterSettings Filters;
         public OverrideSettings Overrides;
 

@@ -60,6 +60,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         : SortingCriteria.CommonTransparent,
                 };
 
+                ClearRenderTargetIfEnabled(cmd);
+
                 RenderStateBlock? renderStateBlock = ConstructRenderStateBlock();
                 RenderQueueRange renderQueueRange = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
                 ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, _cullingResults, sortingSettings,
@@ -74,6 +76,26 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private void ClearRenderTargetIfEnabled(CommandBuffer cmd)
+        {
+            RTClearFlags clearFlags = RTClearFlags.None;
+
+            if (_settings.ClearDepth)
+            {
+                clearFlags |= RTClearFlags.Depth;
+            }
+
+            if (_settings.ClearStencil)
+            {
+                clearFlags |= RTClearFlags.Stencil;
+            }
+
+            if (clearFlags != RTClearFlags.None)
+            {
+                cmd.ClearRenderTarget(clearFlags, Color.clear, 1.0f, 0);
+            }
         }
 
         private RenderStateBlock? ConstructRenderStateBlock()

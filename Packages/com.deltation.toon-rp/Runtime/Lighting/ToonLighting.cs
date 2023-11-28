@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -43,7 +42,8 @@ namespace DELTation.ToonRP.Lighting
 
         public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
             in ToonCameraRendererSettings settings,
-            [CanBeNull] Light mainLight)
+            in VisibleLight? mainLight
+        )
         {
             _camera = camera;
 
@@ -74,12 +74,15 @@ namespace DELTation.ToonRP.Lighting
             context.ExecuteCommandBufferAndClear(_buffer);
         }
 
-        private void SetupDirectionalLight([CanBeNull] Light light)
+        private void SetupDirectionalLight(in VisibleLight? light)
         {
             if (light != null)
             {
-                _buffer.SetGlobalVector(DirectionalLightColorId, light.color.linear * light.intensity);
-                _buffer.SetGlobalVector(DirectionalLightDirectionId, -light.transform.forward);
+                VisibleLight visibleLight = light.Value;
+                _buffer.SetGlobalVector(DirectionalLightColorId, visibleLight.finalColor);
+
+                Vector4 direction = (visibleLight.localToWorldMatrix * Vector3.back).normalized;
+                _buffer.SetGlobalVector(DirectionalLightDirectionId, direction);
             }
             else
             {
@@ -103,7 +106,7 @@ namespace DELTation.ToonRP.Lighting
             _buffer.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
         }
 
-        private void SetupAdditionalLights(NativeArray<int> indexMap, NativeArray<VisibleLight> visibleLights)
+        private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights)
         {
             const int lightSkipIndex = -1;
             _additionalLightsCount = 0;

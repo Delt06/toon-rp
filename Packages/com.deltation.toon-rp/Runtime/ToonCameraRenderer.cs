@@ -449,16 +449,16 @@ namespace DELTation.ToonRP
 
             _globalRamp.Setup(_context, globalRampSettings);
 
-            VisibleLight mainLight = FindMainLightOrDefault();
-            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, mainLight.light);
+            VisibleLight? mainLight = FindMainLightOrDefault();
+            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, mainLight);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
-                _shadows.Render(mainLight.light);
+                _shadows.Render(mainLight?.light);
             }
         }
 
-        private VisibleLight FindMainLightOrDefault()
+        private VisibleLight? FindMainLightOrDefault()
         {
             foreach (VisibleLight visibleLight in _cullingResults.visibleLights)
             {

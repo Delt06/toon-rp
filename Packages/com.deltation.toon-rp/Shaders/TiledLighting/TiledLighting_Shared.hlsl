@@ -37,13 +37,22 @@ struct TiledLighting_Plane
     float distance;
 };
 
-TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2)
+TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 p2, const bool orthographicCamera)
 {
     TiledLighting_Plane plane;
 
     const float3 v0 = p1 - p0;
     const float3 v2 = p2 - p0;
-    plane.normal = normalize(cross(v0, v2));
+
+    plane.normal = cross(v0, v2);
+    if (orthographicCamera)
+    {
+        // Frustum planes for orthographic cameras should always have normal.z == 0.
+        // Due to floating point imprecision, it may end up non-zero.
+        // Thus, we set it to 0 explicitly.
+        plane.normal.z = 0.0f;
+    }
+    plane.normal = normalize(plane.normal);
 
     // Compute the distance to the origin using p0.
     plane.distance = dot(plane.normal, p0);

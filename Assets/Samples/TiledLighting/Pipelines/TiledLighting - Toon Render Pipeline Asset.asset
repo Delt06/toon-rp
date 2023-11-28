@@ -25,6 +25,10 @@ MonoBehaviour:
     SpecularSmoothness: 0.005
     RimSmoothness: 0.1
     RampTexture: {fileID: 0}
+    AdditionalLights:
+      DiffuseOffset: 0
+      SpecularOffset: 0
+      DistanceAttenuationFactor: 1
   CameraRendererSettings:
     AdditionalLights: 1
     TiledLighting: 1
@@ -39,6 +43,7 @@ MonoBehaviour:
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 1
     PrePass: 1
+    OpaqueTexture: 0
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
@@ -47,6 +52,8 @@ MonoBehaviour:
       m_Bits: 4294967295
     UseSrpBatching: 1
     UseDynamicBatching: 0
+    NativeRenderPasses: 0
+    ForceStoreCameraDepth: 0
   ShadowSettings:
     Mode: 1
     Threshold: 0.505
@@ -63,7 +70,13 @@ MonoBehaviour:
       BlurEarlyBailThreshold: 0.000001
       BlurScatter: 1.362
       VsmPrecision: 1
-      SoftShadows: 0
+      SoftShadows:
+        Enabled: 0
+        Quality: 0
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.8
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.001
       Directional:
         Enabled: 1
@@ -76,11 +89,14 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 3.72
     Blobs:
+      Model: {fileID: 0}
       AtlasSize: 128
       Mode: 0
       Saturation: 1
+      ShadowPositionOffset: {x: 0, y: 0}
   Extensions:
     Extensions: []
   PostProcessing:
-    Enabled: 0
-    Passes: []
+    Enabled: 1
+    Passes:
+    - {fileID: 11400000, guid: 52fb50638a04fbe48b8baef3d8f5e1a4, type: 2}

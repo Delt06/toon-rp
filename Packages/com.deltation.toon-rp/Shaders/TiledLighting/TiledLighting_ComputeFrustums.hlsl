@@ -4,9 +4,9 @@ RWStructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
 
 #define COMPUTE_FRUSTUMS_GROUP_SIZE 16
 
-float3 GetViewSpaceTiledCenter(const uint2 tileCoords)
+float3 GetViewSpaceTiledCenter(const uint2 tileCoords, const bool orthographicCamera)
 {
-    if (IsOrthographicCamera())
+    if (orthographicCamera)
     {
         const float4 screenSpacePos = float4(tileCoords * TILE_SIZE + 0.5f * uint2(TILE_SIZE, TILE_SIZE), 0.0f, 1.0f);
         return TiledLighting_ScreenToView(screenSpacePos).xyz;
@@ -40,16 +40,17 @@ void CS(uint3 dispatchThreadId : SV_DispatchThreadID)
         cornersViewSpace[i] = TiledLighting_ScreenToView(cornersScreenSpace[i]).xyz;
     }
 
-    const float3 centerViewSpace = GetViewSpaceTiledCenter(tileCoords);
+    const bool orthographicCamera = IsOrthographicCamera();
+    const float3 centerViewSpace = GetViewSpaceTiledCenter(tileCoords, orthographicCamera);
     TiledLighting_Frustum frustum;
     // Left plane
-    frustum.planes[0] = ComputePlane(centerViewSpace, cornersViewSpace[2], cornersViewSpace[0]);
+    frustum.planes[0] = ComputePlane(centerViewSpace, cornersViewSpace[2], cornersViewSpace[0], orthographicCamera);
     // Right plane
-    frustum.planes[1] = ComputePlane(centerViewSpace, cornersViewSpace[1], cornersViewSpace[3]);
+    frustum.planes[1] = ComputePlane(centerViewSpace, cornersViewSpace[1], cornersViewSpace[3], orthographicCamera);
     // Top plane
-    frustum.planes[2] = ComputePlane(centerViewSpace, cornersViewSpace[0], cornersViewSpace[1]);
+    frustum.planes[2] = ComputePlane(centerViewSpace, cornersViewSpace[0], cornersViewSpace[1], orthographicCamera);
     // Bottom plane
-    frustum.planes[3] = ComputePlane(centerViewSpace, cornersViewSpace[3], cornersViewSpace[2]);
+    frustum.planes[3] = ComputePlane(centerViewSpace, cornersViewSpace[3], cornersViewSpace[2], orthographicCamera);
 
     if (tileCoords.x < _TiledLighting_TilesX && tileCoords.y < _TiledLighting_TilesY)
     {

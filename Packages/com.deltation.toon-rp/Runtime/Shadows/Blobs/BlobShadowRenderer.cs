@@ -3,7 +3,7 @@ using DELTation.ToonRP.Attributes;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     [ExecuteAlways]
     public sealed class BlobShadowRenderer : MonoBehaviour

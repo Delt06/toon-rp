@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     public enum BlobShadowType : byte
     {

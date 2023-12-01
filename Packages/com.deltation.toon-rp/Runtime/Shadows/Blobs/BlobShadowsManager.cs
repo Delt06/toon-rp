@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     internal static class BlobShadowsManager
     {

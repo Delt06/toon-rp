@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     [Serializable]
     public struct ToonBlobShadowsSettings

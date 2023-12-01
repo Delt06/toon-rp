@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Shadows.Blobs;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;

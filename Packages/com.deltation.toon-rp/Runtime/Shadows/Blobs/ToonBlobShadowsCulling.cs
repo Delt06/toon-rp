@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
-#if UNITY_EDITOR
 using UnityEditor.SceneManagement;
-#endif // UNITY_EDITOR
+using UnityEngine;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     public sealed class ToonBlobShadowsCulling
     {

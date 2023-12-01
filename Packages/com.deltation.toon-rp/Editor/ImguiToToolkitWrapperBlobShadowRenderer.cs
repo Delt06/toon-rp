@@ -1,4 +1,4 @@
-﻿using DELTation.ToonRP.Shadows;
+﻿using DELTation.ToonRP.Shadows.Blobs;
 using UnityEditor;
 
 namespace DELTation.ToonRP.Editor

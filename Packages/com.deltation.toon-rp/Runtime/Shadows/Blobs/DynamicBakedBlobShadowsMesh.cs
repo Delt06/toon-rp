@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     public sealed class DynamicBakedBlobShadowsMesh : DynamicBlobShadowsMesh<DynamicBlobShadowsMesh.VertexParams>
     {

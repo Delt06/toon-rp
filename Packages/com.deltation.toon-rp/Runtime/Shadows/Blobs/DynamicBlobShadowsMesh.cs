@@ -5,7 +5,7 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     public abstract class DynamicBlobShadowsMesh
     {

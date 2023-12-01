@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace DELTation.ToonRP.Shadows
+namespace DELTation.ToonRP.Shadows.Blobs
 {
     public struct Bounds2D
     {

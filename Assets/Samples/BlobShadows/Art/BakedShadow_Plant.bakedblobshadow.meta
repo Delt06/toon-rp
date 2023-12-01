@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: f9280a5dbebffcd4788a9f31dcc082f0
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 1eb4a00df69e444fb6e6fb019ecf5755, type: 3}
+  Width: 128
+  Height: 128
+  Model: {fileID: 919132149155446097, guid: 20cbf757bdd31284ab42cea327c8ce71, type: 3}
+  IncludeSkinnedRenderers: 0
+  ModelPositionOffset: {x: 0, y: 0}
+  BoundsSize: 5
+  BlurIterations: 4
+  GenerateMipMaps: 1
+  Compressed: 0
+  Compression:
+    Format: 63
+    Quality: 100
+    PlatformOverrides: []

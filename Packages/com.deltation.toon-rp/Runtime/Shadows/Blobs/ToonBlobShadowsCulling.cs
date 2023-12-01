@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -6,6 +7,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
 {
     public sealed class ToonBlobShadowsCulling
     {
+        private static readonly ProfilerMarker Marker =
+            new("BlobShadows.Cull");
+
         private readonly Plane[] _frustumPlanes = new Plane[6];
         private Bounds2D _bounds;
 
@@ -15,6 +19,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public void Cull(HashSet<BlobShadowRenderer> renderers, Camera camera, float maxDistance)
         {
+            using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
+
             Renderers.Clear();
             _bounds = new Bounds2D();
 

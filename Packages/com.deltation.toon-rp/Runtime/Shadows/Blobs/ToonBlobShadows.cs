@@ -75,7 +75,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 cmd.ClearRenderTarget(false, true, Color.black);
 
                 float maxDistance = Mathf.Min(_settings.MaxDistance, _camera.farClipPlane);
-                _culling.Cull(BlobShadowsManager.Renderers, _camera, maxDistance);
+                _culling.Cull(_camera, maxDistance);
                 DrawShadows(cmd);
 
                 {

@@ -26,6 +26,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Rotation = 0.0f,
         };
 
+        private bool _dirty = true;
+
         public float HalfSize
         {
             get => _halfSize;
@@ -67,6 +69,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private bool IsSquare => _shadowType == BlobShadowType.Square;
         private bool IsBaked => _shadowType == BlobShadowType.Baked;
 
+        public int Index { get; internal set; } = -1;
+
         private void OnEnable()
         {
             BlobShadowsManager.OnRendererEnabled(this);
@@ -76,6 +80,21 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             BlobShadowsManager.OnRendererDisabled(this);
         }
+
+        private void OnValidate()
+        {
+            _dirty = true;
+        }
+
+        public void MarkDirty() => _dirty = true;
+
+        public void MarkClean()
+        {
+            transform.hasChanged = false;
+            _dirty = false;
+        }
+
+        public bool IsDirty() => _dirty || transform.hasChanged;
 
         private static float PackRotation(in Quaternion transformRotation, float paramsRotation) =>
             (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f % 1.0f;

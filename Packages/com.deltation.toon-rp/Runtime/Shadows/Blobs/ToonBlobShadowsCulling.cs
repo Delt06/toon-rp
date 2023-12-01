@@ -17,7 +17,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public List<RendererData> Renderers { get; } = new();
 
-        public void Cull(HashSet<BlobShadowRenderer> renderers, Camera camera, float maxDistance)
+        public void Cull(Camera camera, float maxDistance)
         {
             using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
 
@@ -28,8 +28,37 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 ComputeCustomProjectionMatrix(camera, maxDistance) * camera.worldToCameraMatrix;
             GeometryUtility.CalculateFrustumPlanes(worldToProjectionMatrix, _frustumPlanes);
 
+            if (camera.cameraType == CameraType.Game)
+            {
+                List<BlobShadowRenderer> renderers = BlobShadowsManager.GetRenderers(camera);
+
+                if (renderers != null)
+                {
+                    CullRenderers(renderers);
+                }
+            }
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+                foreach (BlobShadowsManager manager in BlobShadowsManager.AllManagers)
+                {
+                    CullRenderers(manager.Renderers);
+                }
+            }
+
+            // slight padding to ensure shadows do not touch the shadowmap bounds
+            // otherwise, there may be artifacts on low resolutions (< 128) 
+            _bounds.Size *= Vector2.one * 1.01f;
+        }
+
+        private void CullRenderers(List<BlobShadowRenderer> renderers)
+        {
             foreach (BlobShadowRenderer renderer in renderers)
             {
+                if (renderer == null)
+                {
+                    continue;
+                }
+
                 float halfSize = renderer.HalfSize;
                 Vector3 position = renderer.Position;
                 Bounds2D bounds = ComputeBounds(halfSize, position);
@@ -38,7 +67,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
                 if (currentPrefabStage != null && currentPrefabStage.IsPartOfPrefabContents(renderer.gameObject))
                 {
-                    return;
+                    continue;
                 }
 #endif // UNITY_EDITOR
 
@@ -68,10 +97,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     }
                 );
             }
-
-            // slight padding to ensure shadows do not touch the shadowmap bounds
-            // otherwise, there may be artifacts on low resolutions (< 128) 
-            _bounds.Size *= Vector2.one * 1.01f;
         }
 
         private static Matrix4x4 ComputeCustomProjectionMatrix(Camera camera, float farPlane)

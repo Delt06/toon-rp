@@ -9,7 +9,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed class BlobShadowsManager : MonoBehaviour
     {
-        private static readonly Dictionary<Scene, BlobShadowsManager> Managers = new();
+        private static readonly Dictionary<Scene, BlobShadowsManager> Managers = new(new SceneEqualityComparer());
         public readonly List<BlobShadowRenderer> Renderers = new();
 
         public static Dictionary<Scene, BlobShadowsManager>.ValueCollection AllManagers => Managers.Values;
@@ -81,6 +81,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
             manager.Renderers.RemoveAt(manager.Renderers.Count - 1);
             lastRenderer.Index = renderer.Index;
             renderer.Index = -1;
+        }
+
+        private class SceneEqualityComparer : IEqualityComparer<Scene>
+        {
+            public bool Equals(Scene x, Scene y) => x.handle == y.handle;
+
+            public int GetHashCode(Scene obj) => obj.handle;
         }
     }
 }

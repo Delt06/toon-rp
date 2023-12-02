@@ -175,6 +175,7 @@ MonoBehaviour:
   - {fileID: 6260300048165097113, guid: 8d9eca372e3c9b745b566a007a8bfb58, type: 3}
   Count: 2000
   Seed: 0
+  Static: 1
 --- !u!1 &897805541
 GameObject:
   m_ObjectHideFlags: 0

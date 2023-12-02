@@ -59,7 +59,7 @@ MonoBehaviour:
     Threshold: 0.239
     CrispAntiAliased: 0
     Smoothness: 0.194
-    MaxDistance: 100
+    MaxDistance: 50
     DistanceFade: 0.1
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
@@ -93,6 +93,8 @@ MonoBehaviour:
       Mode: 0
       Saturation: 1
       ShadowPositionOffset: {x: 0, y: 0}
+      ReceiverVolumeY: 0
+      ReceiverVolumeHeight: 0
   Extensions:
     Extensions: []
   PostProcessing:

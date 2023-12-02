@@ -1,33 +1,37 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
+using UnityEngine;
+using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     public struct Bounds2D
     {
-        public Vector2 Min, Max;
+        public float2 Min, Max;
 
-        public Bounds2D(Vector2 center, Vector2 size)
+        public Bounds2D(float2 center, float2 size)
         {
-            Vector2 extents = size * 0.5f;
+            float2 extents = size * 0.5f;
             Min = center - extents;
             Max = center + extents;
         }
 
-        public Vector2 Size
+        public float2 Size
         {
             get => Max - Min;
             set
             {
-                Vector2 center = (Min + Max) * 0.5f;
-                Vector2 extents = value * 0.5f;
+                float2 center = (Min + Max) * 0.5f;
+                float2 extents = value * 0.5f;
                 Min = center - extents;
                 Max = center + extents;
             }
         }
 
+        public bool IsEmpty => all(Size == 0.0f);
+
         public Bounds AsXZ(float yCenter, float yExtents)
         {
-            Vector3 min, max;
+            float3 min, max;
             min.x = Min.x;
             min.y = yCenter - yExtents;
             min.z = Min.y;
@@ -47,10 +51,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Encapsulate(bounds.Max);
         }
 
-        public void Encapsulate(Vector2 point)
+        public void Encapsulate(float2 point)
         {
-            Min = Vector2.Min(Min, point);
-            Max = Vector2.Max(Max, point);
+            Min = min(Min, point);
+            Max = max(Max, point);
         }
     }
 }

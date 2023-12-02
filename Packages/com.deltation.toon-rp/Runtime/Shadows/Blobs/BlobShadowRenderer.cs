@@ -1,5 +1,6 @@
 ﻿using System;
 using DELTation.ToonRP.Attributes;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -26,8 +27,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Rotation = 0.0f,
         };
 
-        private bool _dirty = true;
-
         public float HalfSize
         {
             get => _halfSize;
@@ -40,9 +39,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
             set => transform.position = value;
         }
 
-        public Vector4 Params => _shadowType switch
+        public float4 Params => _shadowType switch
         {
-            BlobShadowType.Circle => Vector4.zero,
+            BlobShadowType.Circle => new float4(0.0f),
             BlobShadowType.Square => _square.AsParams(transform.rotation),
             BlobShadowType.Baked => _baked.AsParams(transform.rotation),
             _ => throw new ArgumentOutOfRangeException(),
@@ -81,21 +80,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             BlobShadowsManager.OnRendererDisabled(this);
         }
 
-        private void OnValidate()
-        {
-            _dirty = true;
-        }
-
-        public void MarkDirty() => _dirty = true;
-
-        public void MarkClean()
-        {
-            transform.hasChanged = false;
-            _dirty = false;
-        }
-
-        public bool IsDirty() => _dirty || transform.hasChanged;
-
         private static float PackRotation(in Quaternion transformRotation, float paramsRotation) =>
             (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f % 1.0f;
 
@@ -111,7 +95,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             [Range(0.0f, 360.0f)]
             public float Rotation;
 
-            public Vector4 AsParams(in Quaternion rotation) => new(
+            public float4 AsParams(in Quaternion rotation) => new(
                 Width * 0.5f, Height * 0.5f, CornerRadius,
                 PackRotation(rotation, Rotation)
             );
@@ -124,7 +108,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             [Range(0.0f, 360.0f)]
             public float Rotation;
 
-            public Vector4 AsParams(in Quaternion rotation) => new(
+            public float4 AsParams(in Quaternion rotation) => new(
                 0.0f, 0.0f, 0.0f,
                 PackRotation(rotation, Rotation)
             );

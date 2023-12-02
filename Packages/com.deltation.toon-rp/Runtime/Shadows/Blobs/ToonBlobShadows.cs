@@ -17,22 +17,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
         private readonly ToonBlobShadowsCulling _culling = new();
-
-        private readonly DynamicBlobShadowsMesh[] _shadowMeshes;
+        readonly ToonBlobShadowsBatching _batching = new();
 
         private ToonBlobShadowsSettings _blobShadowsSettings;
         private Camera _camera;
         private ScriptableRenderContext _context;
         private Material _material;
         private ToonShadowSettings _settings;
-
-        public ToonBlobShadows()
-        {
-            _shadowMeshes = new DynamicBlobShadowsMesh[BlobShadowTypes.Count];
-            _shadowMeshes[(int) BlobShadowType.Circle] = new DynamicCircleBlobShadowsMesh();
-            _shadowMeshes[(int) BlobShadowType.Square] = new DynamicSquareBlobShadowsMesh();
-            _shadowMeshes[(int) BlobShadowType.Baked] = new DynamicBakedBlobShadowsMesh();
-        }
 
         private void EnsureAssetsAreCreated()
         {
@@ -76,8 +67,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 float maxDistance = Mathf.Min(_settings.MaxDistance, _camera.farClipPlane);
                 _culling.Cull(_camera, maxDistance);
-                DrawShadows(cmd);
-
+                
                 {
                     Vector2 min = _culling.Bounds.Min;
                     Vector2 size = _culling.Bounds.Size;
@@ -89,6 +79,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
 
                 cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
+                
+                DrawShadows(cmd);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -99,28 +91,28 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
+            
+            _batching.Batch(_culling.Renderers);
 
-            for (int shadowType = 0; shadowType < BlobShadowTypes.Count; shadowType++)
+            for (int i = 0; i < _batching.BatchCount; i++)
             {
-                DynamicBlobShadowsMesh dynamicShadowMesh = _shadowMeshes[shadowType];
-                Mesh mesh = dynamicShadowMesh.Construct(_culling.Renderers, _culling.Bounds);
-                if (mesh != null)
+                ref readonly ToonBlobShadowsBatching.BatchData batch = ref _batching.Batches[i];
+                
+                Texture2D bakedShadowTexture = batch.Key.BakedTexture;
+                
+                cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
+                cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
+
+                if (bakedShadowTexture)
                 {
-                    // Each batch corresponds to a submesh.
-                    // Renderers are batched based on their baked shadow textures.
-                    for (int batchIndex = 0; batchIndex < dynamicShadowMesh.Batches.Count; batchIndex++)
-                    {
-                        Texture2D bakedShadowTexture = dynamicShadowMesh.Batches[batchIndex].BakedShadowTexture;
-
-                        if (bakedShadowTexture)
-                        {
-                            cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
-                        }
-
-                        cmd.DrawMesh(mesh, Matrix4x4.identity, _material, batchIndex, shadowType);
-                    }
+                    cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
                 }
+
+                int shaderPass = (int) batch.Key.ShadowType;
+                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads, 4 * batch.Positions.Count);
             }
+            
+            _batching.Clear();
         }
 
         private void SetupBlending()

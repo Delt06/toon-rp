@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -47,7 +48,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             // slight padding to ensure shadows do not touch the shadowmap bounds
             // otherwise, there may be artifacts on low resolutions (< 128) 
-            _bounds.Size *= Vector2.one * 1.01f;
+            _bounds.Size *= 1.01f;
         }
 
         private void CullRenderers(List<BlobShadowRenderer> renderers)
@@ -76,7 +77,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     continue;
                 }
 
-                if (Bounds.Size == Vector2.zero)
+                if (Bounds.IsEmpty)
                 {
                     _bounds = bounds;
                 }
@@ -114,16 +115,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static Bounds2D ComputeBounds(float halfSize, Vector3 position)
         {
             float size = halfSize * 2;
-            var bounds = new Bounds2D(new Vector2(position.x, position.z), new Vector2(size, size));
+            var bounds = new Bounds2D(new float2(position.x, position.z), new float2(size, size));
             return bounds;
         }
 
         public struct RendererData
         {
-            public Vector2 Position;
+            public float2 Position;
             public float HalfSize;
             public BlobShadowType ShadowType;
-            public Vector4 Params;
+            public float4 Params;
             public Texture2D BakedShadowTexture;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -234,7 +235,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
 
                         // vertices
-                        var translation = new Vector2(renderer.Position.x, renderer.Position.y);
+                        var translation = new float2(renderer.Position.x, renderer.Position.y);
                         translation = WorldToHClip(translation);
 
                         int baseVertexIndex = batchData.VertexCount;

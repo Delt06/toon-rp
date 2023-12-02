@@ -10,7 +10,6 @@
 	SubShader
 	{
 	    ColorMask R
-		Cull Off
     
         Blend [_SrcBlend] [_DstBlend]
         BlendOp [_BlendOp]
@@ -20,14 +19,50 @@
         //#pragma enable_d3d11_debug_symbols
 		
         #include "../../ShaderLibrary/Common.hlsl"
+        #include "../../ShaderLibrary/BlobShadows.hlsl"
+
+        float4 _ToonRP_BlobShadows_Positions[128];
+        float4 _ToonRP_BlobShadows_Params[128];
 
 		CBUFFER_START(UnityPerMaterial)
 		float _Saturation;
 		CBUFFER_END
 
+        float4 ScreenUvToHClip(const float2 screenUv)
+		{
+		    float4 positionCs = float4(screenUv * 2.0f - 1.0f, 0.5f, 1.0f);
+
+		    #ifdef UNITY_UV_STARTS_AT_TOP
+		    positionCs.y *= -1;
+		    #endif // UNITY_UV_STARTS_AT_TOP
+
+		    return positionCs;
+		}
+
+        void GetVertexData(const uint vertexId, out float4 positionCs, out float2 centeredUv, out uint instanceId)
+		{
+		    const uint quadVertexId = vertexId % 4;
+		    instanceId = vertexId / 4;
+
+		    float2 positionOs;
+		    positionOs.x = quadVertexId % 3 == 0 ? -1 : 1;
+		    positionOs.y = quadVertexId < 2 ? 1 : -1;
+		    centeredUv = positionOs;
+		    
+		    const float4 positionHalfSize = _ToonRP_BlobShadows_Positions[instanceId];
+		    const float2 positionWs = positionOs * positionHalfSize.zw + positionHalfSize.xy;
+		    const float2 screenUv = ComputeBlobShadowCoords(float3(positionWs.x, 0, positionWs.y));
+		    positionCs = ScreenUvToHClip(screenUv);
+		}
+        
+        float4 GetParams(const uint instanceId)
+		{
+		    return _ToonRP_BlobShadows_Params[instanceId];
+		}
+
         float UnpackRotation(const float packedRotation)
 		{
-		    return packedRotation * 2.0f * PI;
+		    return -packedRotation * 2.0f * PI;
 		}
 
         float2 Rotate(const float2 value, const float angleRad)
@@ -59,12 +94,12 @@
                 float2 centeredUv : TEXCOORD0;
             };
 
-            v2f VS(const appdata IN)
+            v2f VS(const uint vertexId : SV_VertexID)
             {
                 v2f OUT;
-
-                OUT.positionCs = float4(IN.position, 0.5f, 1);
-                OUT.centeredUv = IN.uv;
+                
+                uint instanceId;
+                GetVertexData(vertexId, OUT.positionCs, OUT.centeredUv, instanceId);
                 
                 return OUT;
             }
@@ -86,29 +121,26 @@
             #pragma vertex VS
 		    #pragma fragment PS
 
-            struct appdata
-            {
-                float2 position : POSITION;
-                float4 vertexColor : COLOR; // x = halfSize, y = cornerRadius, w = rotation
-                float2 uv : TEXCOORD0;
-            };
-
             struct v2f
 		    {
                 float4 positionCs : SV_POSITION;
-                float3 params : PARAMS;
+                float3 params : PARAMS; // x = halfSize, y = cornerRadius, z = rotation
                 float2 centeredUv : TEXCOORD0;
             };
 
-            v2f VS(const appdata IN)
+            v2f VS(const uint vertexId : SV_VertexID)
             {
                 v2f OUT;
-
-                OUT.positionCs = float4(IN.position, 0.5f, 1);
-                OUT.params = IN.vertexColor.xyz;
                 
-                const float rotationRad = UnpackRotation(IN.vertexColor.w);
-                OUT.centeredUv = Rotate(IN.uv, rotationRad);
+                uint instanceId;
+                float2 centeredUv;
+                GetVertexData(vertexId, OUT.positionCs, centeredUv, instanceId);
+
+                const float4 params = _ToonRP_BlobShadows_Params[instanceId];
+                OUT.params = params.xyz;
+                
+                const float rotationRad = UnpackRotation(params.w);
+                OUT.centeredUv = Rotate(centeredUv, rotationRad);
 
                 return OUT;
             }
@@ -141,27 +173,23 @@
             TEXTURE2D(_BakedBlobShadowTexture);
             SAMPLER(sampler_BakedBlobShadowTexture);
 
-            struct appdata
-            {
-                float2 position : POSITION;
-                float4 vertexColor : COLOR; // w = rotation
-                float2 uv : TEXCOORD0;
-            };
-
             struct v2f
 		    {
                 float4 positionCs : SV_POSITION;
                 float2 uv : TEXCOORD0;
             };
 
-            v2f VS(const appdata IN)
+            v2f VS(const uint vertexId : SV_VertexID)
             {
                 v2f OUT;
-
-                OUT.positionCs = float4(IN.position, 0.5f, 1);
                 
-                const float rotationRad = UnpackRotation(IN.vertexColor.w);
-                const float2 centeredUv = Rotate(IN.uv, rotationRad);
+                uint instanceId;
+                float2 centeredUv;
+                GetVertexData(vertexId, OUT.positionCs, centeredUv, instanceId);
+
+                const float4 params = _ToonRP_BlobShadows_Params[instanceId];
+                const float rotationRad = UnpackRotation(params.w);
+                centeredUv = Rotate(centeredUv, rotationRad);
                 OUT.uv = centeredUv * 0.5f + 0.5f;
 
                 return OUT;

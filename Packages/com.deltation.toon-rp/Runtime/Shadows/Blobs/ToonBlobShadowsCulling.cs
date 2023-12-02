@@ -53,6 +53,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
     public sealed unsafe class ToonBlobShadowsCulling : IDisposable
     {
         private static readonly ProfilerMarker Marker = new("BlobShadows.Cull");
+        private static readonly ProfilerMarker UpdateRendererDataMarker = new("BlobShadows.UpdateRendererData");
+        private static readonly ProfilerMarker ComputeBoundsMarker = new("BlobShadows.ComputeBounds");
 
         private readonly Plane[] _frustumPlanes = new Plane[6];
         private Bounds2D _bounds;
@@ -114,14 +116,17 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             List<ToonBlobShadowRenderer> renderers = manager.Renderers;
 
-            foreach (ToonBlobShadowRenderer renderer in renderers)
+            using (UpdateRendererDataMarker.Auto())
             {
-                if (renderer == null)
+                foreach (ToonBlobShadowRenderer renderer in renderers)
                 {
-                    continue;
-                }
+                    if (renderer == null)
+                    {
+                        continue;
+                    }
 
-                renderer.GetRendererData();
+                    renderer.GetRendererData();
+                }
             }
 
             int maxRenderers = manager.Renderers.Count;
@@ -137,16 +142,19 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 .ScheduleAppend(indices, maxRenderers)
                 .Complete();
 
-            for (int i = 0; i < indices.Length; i++)
+            using (ComputeBoundsMarker.Auto())
             {
-                ref ToonBlobShadowsRendererData shadowsRendererData = ref manager.DataPtr[indices[i]];
-                if (i == 0)
+                for (int i = 0; i < indices.Length; i++)
                 {
-                    _bounds = shadowsRendererData.Bounds;
-                }
-                else
-                {
-                    _bounds.Encapsulate(shadowsRendererData.Bounds);
+                    ref ToonBlobShadowsRendererData shadowsRendererData = ref manager.DataPtr[indices[i]];
+                    if (i == 0)
+                    {
+                        _bounds = shadowsRendererData.Bounds;
+                    }
+                    else
+                    {
+                        _bounds.Encapsulate(shadowsRendererData.Bounds);
+                    }
                 }
             }
 

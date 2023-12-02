@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -82,8 +83,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _culling.Cull(_managers, _settings, _camera);
 
                 {
-                    Vector2 min = _culling.Bounds.Min;
-                    Vector2 size = _culling.Bounds.Size;
+                    float2 min = _culling.Bounds.Min;
+                    float2 size = _culling.Bounds.Size;
                     var minSize = new Vector4(
                         min.x, min.y,
                         size.x, size.y

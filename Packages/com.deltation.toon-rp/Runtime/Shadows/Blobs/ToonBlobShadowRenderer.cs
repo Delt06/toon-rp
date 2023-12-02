@@ -145,13 +145,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             bool transformDirty = _transform.hasChanged;
 
-            if (forceRecompute || transformDirty)
+            if (forceRecompute || _allDirty || transformDirty)
             {
                 Vector3 transformPosition = _transform.position;
                 rendererData.Position = new float2(transformPosition.x, transformPosition.z);
             }
 
-            if (forceRecompute || _paramsDirty)
+            if (forceRecompute || _allDirty || _paramsDirty)
             {
                 rendererData.HalfSize = _halfSize;
                 rendererData.ShadowType = ShadowType;
@@ -160,7 +160,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     : null;
             }
 
-            if (forceRecompute || _paramsDirty || transformDirty)
+            if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
             {
                 rendererData.Params = Params;
                 rendererData.Bounds = new Bounds2D(rendererData.Position, _halfSize);

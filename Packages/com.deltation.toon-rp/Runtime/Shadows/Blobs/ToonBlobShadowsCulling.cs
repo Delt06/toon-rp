@@ -9,8 +9,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 {
     public sealed class ToonBlobShadowsCulling
     {
-        private static readonly ProfilerMarker Marker =
-            new("BlobShadows.Cull");
+        private static readonly ProfilerMarker Marker = new("BlobShadows.Cull");
 
         private readonly Plane[] _frustumPlanes = new Plane[6];
         private readonly float4[] _frustumPlanesFloat4 = new float4[6];

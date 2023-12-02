@@ -9,6 +9,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed class ToonBlobShadowRenderer : MonoBehaviour
     {
+        [SerializeField] private bool _isStatic;
+
         [FormerlySerializedAs("_radius")] [SerializeField] [Min(0f)]
         private float _halfSize = 0.5f;
         [SerializeField] private ToonBlobShadowType _shadowType = ToonBlobShadowType.Circle;
@@ -26,6 +28,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             Rotation = 0.0f,
         };
+        private bool _allDirty = true;
 
         private ToonBlobShadowsManager _manager;
         private bool _paramsDirty = true;
@@ -113,6 +116,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void RecomputeRendererData(ref ToonBlobShadowsRendererData rendererData, bool forceRecompute = false)
         {
+            if (_isStatic && !forceRecompute && !_allDirty)
+            {
+                return;
+            }
+
             bool transformDirty = _transform.hasChanged;
 
             if (forceRecompute || transformDirty)
@@ -137,6 +145,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             _paramsDirty = false;
+            _allDirty = false;
 
             if (transformDirty)
             {
@@ -145,6 +154,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         }
 
         public void MarkParamsDirty() => _paramsDirty = true;
+        public void MarkAllDirty() => _allDirty = true;
 
         [Serializable]
         public struct SquareParams

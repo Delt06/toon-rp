@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityBlendMode = UnityEngine.Rendering.BlendMode;
@@ -17,6 +18,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
+
+        private static readonly ProfilerMarker DrawBatchesMarker =
+            new("BlobShadows.DrawBatches");
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly ToonBlobShadowsCulling _culling = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -126,24 +130,27 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _batching.Batch(manager, indices);
             }
 
-            for (int i = 0; i < _batching.BatchCount; i++)
+            using (DrawBatchesMarker.Auto())
             {
-                ref readonly ToonBlobShadowsBatching.BatchData batch = ref _batching.Batches[i];
-
-                Texture2D bakedShadowTexture = batch.Key.BakedTexture;
-
-                cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
-                cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
-
-                if (bakedShadowTexture)
+                for (int i = 0; i < _batching.BatchCount; i++)
                 {
-                    cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
-                }
+                    ref readonly ToonBlobShadowsBatching.BatchData batch = ref _batching.Batches[i];
 
-                int shaderPass = (int) batch.Key.ShadowType;
-                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
-                    4 * batch.Positions.Count
-                );
+                    Texture2D bakedShadowTexture = batch.Key.BakedTexture;
+
+                    cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
+                    cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
+
+                    if (bakedShadowTexture)
+                    {
+                        cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
+                    }
+
+                    int shaderPass = (int) batch.Key.ShadowType;
+                    cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
+                        4 * batch.Positions.Count
+                    );
+                }
             }
 
             _batching.Clear();

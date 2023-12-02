@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -63,14 +62,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 float halfSize = renderer.HalfSize;
                 Vector3 position = renderer.Position;
                 Bounds2D bounds = ComputeBounds(halfSize, position);
-
-#if UNITY_EDITOR
-                PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-                if (currentPrefabStage != null && currentPrefabStage.IsPartOfPrefabContents(renderer.gameObject))
-                {
-                    continue;
-                }
-#endif // UNITY_EDITOR
 
                 if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, bounds.AsXZ(0.0f, 0.01f)))
                 {

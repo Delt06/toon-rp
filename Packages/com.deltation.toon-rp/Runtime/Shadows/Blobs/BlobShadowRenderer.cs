@@ -26,6 +26,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             Rotation = 0.0f,
         };
+        private Transform _transform;
 
         public float HalfSize
         {
@@ -35,15 +36,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public Vector3 Position
         {
-            get => transform.position;
-            set => transform.position = value;
+            get => _transform.position;
+            set => _transform.position = value;
         }
 
         public float4 Params => _shadowType switch
         {
             BlobShadowType.Circle => new float4(0.0f),
-            BlobShadowType.Square => _square.AsParams(transform.rotation),
-            BlobShadowType.Baked => _baked.AsParams(transform.rotation),
+            BlobShadowType.Square => _square.AsParams(_transform.rotation),
+            BlobShadowType.Baked => _baked.AsParams(_transform.rotation),
             _ => throw new ArgumentOutOfRangeException(),
         };
 
@@ -69,6 +70,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private bool IsBaked => _shadowType == BlobShadowType.Baked;
 
         public int Index { get; internal set; } = -1;
+
+        private void Awake()
+        {
+            _transform = transform;
+        }
 
         private void OnEnable()
         {

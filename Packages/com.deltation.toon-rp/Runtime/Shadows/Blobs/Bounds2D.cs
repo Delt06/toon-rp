@@ -1,6 +1,5 @@
-﻿using Unity.Mathematics;
-using UnityEngine;
-using static Unity.Mathematics.math;
+﻿using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -27,34 +26,33 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
         }
 
-        public bool IsEmpty => all(Size == 0.0f);
-
-        public Bounds AsXZ(float yCenter, float yExtents)
-        {
-            float3 min, max;
-            min.x = Min.x;
-            min.y = yCenter - yExtents;
-            min.z = Min.y;
-
-            max.x = Max.x;
-            max.y = yCenter + yExtents;
-            max.z = Max.y;
-
-            var bounds = new Bounds();
-            bounds.SetMinMax(min, max);
-            return bounds;
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(Bounds2D bounds)
         {
             Encapsulate(bounds.Min);
             Encapsulate(bounds.Max);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(float2 point)
         {
-            Min = min(Min, point);
-            Max = max(Max, point);
+            if (point.x < Min.x)
+            {
+                Min.x = point.x;
+            }
+            else if (point.x > Max.x)
+            {
+                Max.x = point.x;
+            }
+
+            if (point.y < Min.y)
+            {
+                Min.y = point.y;
+            }
+            else if (point.y > Max.y)
+            {
+                Max.y = point.y;
+            }
         }
     }
 }

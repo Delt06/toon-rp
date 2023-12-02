@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -11,6 +12,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             new("BlobShadows.Cull");
 
         private readonly Plane[] _frustumPlanes = new Plane[6];
+        private readonly float4[] _frustumPlanesFloat4 = new float4[6];
         private Bounds2D _bounds;
 
         public Bounds2D Bounds => _bounds;
@@ -27,6 +29,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Matrix4x4 worldToProjectionMatrix =
                 ComputeCustomProjectionMatrix(camera, maxDistance) * camera.worldToCameraMatrix;
             GeometryUtility.CalculateFrustumPlanes(worldToProjectionMatrix, _frustumPlanes);
+
+            for (int i = 0; i < _frustumPlanes.Length; i++)
+            {
+                _frustumPlanesFloat4[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
+            }
 
             if (camera.cameraType == CameraType.Game)
             {
@@ -52,6 +59,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void CullRenderers(List<BlobShadowRenderer> renderers)
         {
+            int i = 0;
+
             foreach (BlobShadowRenderer renderer in renderers)
             {
                 if (renderer == null)
@@ -61,14 +70,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 float halfSize = renderer.HalfSize;
                 Vector3 position = renderer.Position;
-                Bounds2D bounds = ComputeBounds(halfSize, position);
+                var positionXZ = new float2(position.x, position.z);
+                Bounds2D bounds = ComputeBounds(halfSize, positionXZ);
 
-                if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, bounds.AsXZ(0.0f, 0.01f)))
+                if (!AabbInFrustum(bounds))
                 {
                     continue;
                 }
 
-                if (Bounds.IsEmpty)
+                if (i == 0)
                 {
                     _bounds = bounds;
                 }
@@ -79,7 +89,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 Renderers.Add(new RendererData
                     {
-                        Position = new Vector2(position.x, position.z),
+                        Position = positionXZ,
                         HalfSize = halfSize,
                         ShadowType = renderer.ShadowType,
                         Params = renderer.Params,
@@ -88,7 +98,39 @@ namespace DELTation.ToonRP.Shadows.Blobs
                             : null,
                     }
                 );
+
+                i++;
             }
+        }
+
+        private bool AabbInFrustum(in Bounds2D bounds)
+        {
+            const float minY = 0.0f;
+            const float maxY = 0.0f;
+
+            // check box outside/inside of frustum
+            for (int i = 0; i < 6; i++)
+            {
+                int sum = 0;
+                float4 plane = _frustumPlanesFloat4[i];
+
+                // dot(plane, float4(corner, 1.0))
+                sum += plane.x * bounds.Min.x + plane.y * minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+
+                if (sum == 8)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static Matrix4x4 ComputeCustomProjectionMatrix(Camera camera, float farPlane)
@@ -103,10 +145,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             return Matrix4x4.Ortho(-halfSizeH, halfSizeH, -halfSizeV, halfSizeV, camera.nearClipPlane, farPlane);
         }
 
-        private static Bounds2D ComputeBounds(float halfSize, Vector3 position)
+        private static Bounds2D ComputeBounds(float halfSize, float2 positionXZ)
         {
             float size = halfSize * 2;
-            var bounds = new Bounds2D(new float2(position.x, position.z), new float2(size, size));
+            var bounds = new Bounds2D(positionXZ, new float2(size, size));
             return bounds;
         }
 

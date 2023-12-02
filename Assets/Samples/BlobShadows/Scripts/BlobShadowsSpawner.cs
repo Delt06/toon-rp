@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DELTation.ToonRP.Shadows.Blobs;
+using UnityEngine;
 
 namespace Samples.BlobShadows.Scripts
 {
@@ -9,6 +10,7 @@ namespace Samples.BlobShadows.Scripts
         public GameObject[] Prefabs;
         public int Count;
         public int Seed;
+        public bool Static;
 
         private void Start()
         {
@@ -24,7 +26,8 @@ namespace Samples.BlobShadows.Scripts
                 );
                 Quaternion rotation = Quaternion.Euler(0.0f, Random.Range(0.0f, 360.0f), 0.0f) *
                                       prefab.transform.rotation;
-                Instantiate(prefab, position, rotation);
+                GameObject o = Instantiate(prefab, position, rotation);
+                o.GetComponent<ToonBlobShadowRenderer>().IsStatic = Static;
             }
 
             Random.state = oldState;

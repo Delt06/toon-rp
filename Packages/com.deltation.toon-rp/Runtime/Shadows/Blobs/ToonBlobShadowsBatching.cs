@@ -13,11 +13,17 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private const int MaxBatchSize = 128;
         private static readonly ProfilerMarker Marker = new("BlobShadows.Batch");
 
-        private BatchData[] _batches = new BatchData[16];
+        private readonly BatchSet[] _batches = new BatchSet[ToonBlobShadowTypes.Count];
 
-        public BatchData[] Batches => _batches;
+        public ToonBlobShadowsBatching()
+        {
+            for (int i = 0; i < ToonBlobShadowTypes.Count; i++)
+            {
+                _batches[i].ShadowType = (ToonBlobShadowType) i;
+            }
+        }
 
-        public int BatchCount { get; private set; }
+        public BatchSet GetBatches(ToonBlobShadowType type) => _batches[(int) type];
 
         public void Batch(ToonBlobShadowsManager manager, List<int> visibleIndices)
         {
@@ -26,8 +32,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             foreach (int index in visibleIndices)
             {
                 ref readonly ToonBlobShadowsRendererData rendererData = ref manager.Renderers[index].GetRendererData();
-                var key = new BatchKey(rendererData.ShadowType, rendererData.BakedShadowTexture);
-                ref BatchData batchData = ref FindOrAllocateBatch(key);
+                var key = new BatchKey(rendererData.BakedShadowTexture);
+                ref BatchData batchData = ref FindOrAllocateBatch(rendererData.ShadowType, key);
 
                 batchData.Positions.Add(new Vector4(rendererData.Position.x, rendererData.Position.y,
                         rendererData.HalfSize, rendererData.HalfSize
@@ -37,43 +43,62 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
         }
 
-        private ref BatchData FindOrAllocateBatch(in BatchKey key)
+        private ref BatchData FindOrAllocateBatch(ToonBlobShadowType shadowType, in BatchKey key)
         {
-            for (int i = 0; i < BatchCount; i++)
+            ref BatchSet batchSet = ref _batches[(int) shadowType];
+
+            batchSet.Batches ??= new BatchData[16];
+
+            for (int i = 0; i < batchSet.BatchCount; i++)
             {
-                ref BatchData batchData = ref Batches[i];
+                ref BatchData batchData = ref batchSet.Batches[i];
                 if (batchData.Key.Equals(key) && batchData.Positions.Count < MaxBatchSize)
                 {
                     return ref batchData;
                 }
             }
 
-            if (BatchCount >= _batches.Length)
+            int index = batchSet.BatchCount;
+            batchSet.BatchCount++;
+
+            if (index >= batchSet.Batches.Length)
             {
-                ResizeBatches();
+                ExpandArray(ref batchSet.Batches);
             }
 
-            ref BatchData newBatchData = ref Batches[BatchCount++];
+            ref BatchData newBatchData = ref batchSet.Batches[index];
             newBatchData = BatchData.Get(key);
             return ref newBatchData;
         }
 
-        private void ResizeBatches()
+        private static void ExpandArray<T>(ref T[] array)
         {
-            int newSize = _batches.Length * 2;
-            Array.Resize(ref _batches, newSize);
+            int newSize = array.Length * 2;
+            Array.Resize(ref array, newSize);
         }
 
         public void Clear()
         {
-            for (int i = 0; i < BatchCount; i++)
+            for (int i = 0; i < _batches.Length; i++)
             {
-                ref BatchData batchData = ref Batches[i];
-                batchData.Dispose();
-                batchData = default;
-            }
+                ref BatchSet batchSet = ref _batches[i];
 
-            BatchCount = 0;
+                for (int j = 0; j < batchSet.BatchCount; j++)
+                {
+                    ref BatchData batchData = ref batchSet.Batches[j];
+                    batchData.Dispose();
+                    batchData = default;
+                }
+
+                batchSet.BatchCount = 0;
+            }
+        }
+
+        public struct BatchSet
+        {
+            public ToonBlobShadowType ShadowType;
+            public int BatchCount;
+            public BatchData[] Batches;
         }
 
         public readonly struct BatchData : IDisposable
@@ -108,23 +133,17 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public readonly struct BatchKey : IEquatable<BatchKey>
         {
-            public readonly ToonBlobShadowType ShadowType;
             [CanBeNull]
             public readonly Texture2D BakedTexture;
 
-            public BatchKey(ToonBlobShadowType shadowType, [CanBeNull] Texture2D bakedTexture)
-            {
-                ShadowType = shadowType;
-                BakedTexture = bakedTexture;
-            }
+            public BatchKey([CanBeNull] Texture2D bakedTexture) => BakedTexture = bakedTexture;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool Equals(BatchKey other) =>
-                ShadowType == other.ShadowType && Equals(BakedTexture, other.BakedTexture);
+            public bool Equals(BatchKey other) => Equals(BakedTexture, other.BakedTexture);
 
             public override bool Equals(object obj) => obj is BatchKey other && Equals(other);
 
-            public override int GetHashCode() => HashCode.Combine((int) ShadowType, BakedTexture);
+            public override int GetHashCode() => BakedTexture ? BakedTexture.GetHashCode() : 0;
         }
     }
 }

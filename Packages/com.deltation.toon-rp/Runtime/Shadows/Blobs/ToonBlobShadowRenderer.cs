@@ -71,6 +71,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public int Index { get; internal set; } = -1;
 
+        public bool IsStatic
+        {
+            get => _isStatic;
+            set => _isStatic = value;
+        }
+
         private void Awake()
         {
             _transform = transform;

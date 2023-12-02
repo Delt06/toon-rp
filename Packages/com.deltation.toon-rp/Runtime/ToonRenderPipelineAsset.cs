@@ -91,7 +91,7 @@ namespace DELTation.ToonRP
             {
                 Saturation = 1.0f,
                 AtlasSize = TextureSize._128,
-                Mode = BlobShadowsMode.Default,
+                Mode = ToonBlobShadowsMode.Default,
             },
         };
 

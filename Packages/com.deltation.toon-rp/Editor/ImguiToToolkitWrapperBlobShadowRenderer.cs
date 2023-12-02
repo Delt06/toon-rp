@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace DELTation.ToonRP.Editor
 {
-    [CustomEditor(typeof(BlobShadowRenderer), true)]
+    [CustomEditor(typeof(ToonBlobShadowRenderer), true)]
     [CanEditMultipleObjects]
     internal class ImguiToToolkitWrapperBlobShadowRenderer : ImguiToToolkitWrapper { }
 }

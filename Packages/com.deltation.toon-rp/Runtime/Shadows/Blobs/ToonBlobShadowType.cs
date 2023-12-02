@@ -1,6 +1,6 @@
 ﻿namespace DELTation.ToonRP.Shadows.Blobs
 {
-    public enum BlobShadowType : byte
+    public enum ToonBlobShadowType : byte
     {
         Circle = 0,
         Square,

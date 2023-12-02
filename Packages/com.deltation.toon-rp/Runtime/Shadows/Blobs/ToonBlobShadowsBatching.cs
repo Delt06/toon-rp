@@ -5,7 +5,6 @@ using JetBrains.Annotations;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Pool;
-using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -20,16 +19,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public int BatchCount { get; private set; }
 
-        public void Batch(List<ToonBlobShadowsCulling.RendererData> renderers)
+        public void Batch(ToonBlobShadowsManager manager, List<int> visibleIndices)
         {
             using ProfilerMarker.AutoScope scope = Marker.Auto();
 
-            foreach (ToonBlobShadowsCulling.RendererData rendererData in renderers)
+            foreach (int index in visibleIndices)
             {
+                ref readonly ToonBlobShadowsRendererData rendererData = ref manager.Renderers[index].GetRendererData();
                 var key = new BatchKey(rendererData.ShadowType, rendererData.BakedShadowTexture);
                 ref BatchData batchData = ref FindOrAllocateBatch(key);
 
-                batchData.Positions.Add(float4(rendererData.Position, rendererData.HalfSize, rendererData.HalfSize));
+                batchData.Positions.Add(new Vector4(rendererData.Position.x, rendererData.Position.y,
+                        rendererData.HalfSize, rendererData.HalfSize
+                    )
+                );
                 batchData.Params.Add(rendererData.Params);
             }
         }
@@ -105,11 +108,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public readonly struct BatchKey : IEquatable<BatchKey>
         {
-            public readonly BlobShadowType ShadowType;
+            public readonly ToonBlobShadowType ShadowType;
             [CanBeNull]
             public readonly Texture2D BakedTexture;
 
-            public BatchKey(BlobShadowType shadowType, [CanBeNull] Texture2D bakedTexture)
+            public BatchKey(ToonBlobShadowType shadowType, [CanBeNull] Texture2D bakedTexture)
             {
                 ShadowType = shadowType;
                 BakedTexture = bakedTexture;

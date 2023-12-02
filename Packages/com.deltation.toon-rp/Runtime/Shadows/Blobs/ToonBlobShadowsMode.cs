@@ -1,6 +1,6 @@
 ﻿namespace DELTation.ToonRP.Shadows.Blobs
 {
-    public enum BlobShadowsMode
+    public enum ToonBlobShadowsMode
     {
         Default = 0,
         MetaBalls,

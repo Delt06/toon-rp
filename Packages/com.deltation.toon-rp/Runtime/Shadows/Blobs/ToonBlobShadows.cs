@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityBlendMode = UnityEngine.Rendering.BlendMode;
@@ -16,8 +17,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
         private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
+        private readonly ToonBlobShadowsBatching _batching = new();
         private readonly ToonBlobShadowsCulling _culling = new();
-        readonly ToonBlobShadowsBatching _batching = new();
+        private readonly List<ToonBlobShadowsManager> _managers = new();
 
         private ToonBlobShadowsSettings _blobShadowsSettings;
         private Camera _camera;
@@ -65,9 +67,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 );
                 cmd.ClearRenderTarget(false, true, Color.black);
 
+
+                CollectManagers();
                 float maxDistance = Mathf.Min(_settings.MaxDistance, _camera.farClipPlane);
-                _culling.Cull(_camera, maxDistance);
-                
+                _culling.Cull(_managers, _camera, maxDistance);
+
                 {
                     Vector2 min = _culling.Bounds.Min;
                     Vector2 size = _culling.Bounds.Size;
@@ -79,27 +83,55 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
 
                 cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
-                
+
                 DrawShadows(cmd);
+
+                _managers.Clear();
+                _culling.Clear();
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
+        private void CollectManagers()
+        {
+            _managers.Clear();
+
+            if (_camera.cameraType == CameraType.Game)
+            {
+                var manager = ToonBlobShadowsManager.GetManager(_camera);
+
+                if (manager != null)
+                {
+                    _managers.Add(manager);
+                }
+            }
+            else if (_camera.cameraType == CameraType.SceneView)
+            {
+                foreach (ToonBlobShadowsManager manager in ToonBlobShadowsManager.AllManagers)
+                {
+                    _managers.Add(manager);
+                }
+            }
+        }
+
         private void DrawShadows(CommandBuffer cmd)
         {
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
-            
-            _batching.Batch(_culling.Renderers);
+
+            foreach ((ToonBlobShadowsManager manager, List<int> indices) in _culling.VisibleRenderers)
+            {
+                _batching.Batch(manager, indices);
+            }
 
             for (int i = 0; i < _batching.BatchCount; i++)
             {
                 ref readonly ToonBlobShadowsBatching.BatchData batch = ref _batching.Batches[i];
-                
+
                 Texture2D bakedShadowTexture = batch.Key.BakedTexture;
-                
+
                 cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
                 cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
 
@@ -109,9 +141,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
 
                 int shaderPass = (int) batch.Key.ShadowType;
-                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads, 4 * batch.Positions.Count);
+                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
+                    4 * batch.Positions.Count
+                );
             }
-            
+
             _batching.Clear();
         }
 
@@ -119,8 +153,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             (UnityBlendMode srcBlend, UnityBlendMode dstBlend, BlendOp blendOp) = _blobShadowsSettings.Mode switch
             {
-                BlobShadowsMode.MetaBalls => (UnityBlendMode.SrcColor, UnityBlendMode.One, BlendOp.Add),
-                BlobShadowsMode.Default => (UnityBlendMode.One, UnityBlendMode.One, BlendOp.Max),
+                ToonBlobShadowsMode.MetaBalls => (UnityBlendMode.SrcColor, UnityBlendMode.One, BlendOp.Add),
+                ToonBlobShadowsMode.Default => (UnityBlendMode.One, UnityBlendMode.One, BlendOp.Max),
                 _ => throw new ArgumentOutOfRangeException(),
             };
             _material.SetFloat(SrcBlendId, (float) srcBlend);

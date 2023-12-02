@@ -42,13 +42,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
             new(-1, 1),
         };
 
-        public abstract BlobShadowType ShadowType { get; }
+        public abstract ToonBlobShadowType ShadowType { get; }
 
         public List<int> UsedRenderers { get; } = new();
         public List<BatchData> Batches { get; } = new();
 
         [CanBeNull]
-        public abstract Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds);
+        public abstract Mesh Construct(List<ToonBlobShadowsRendererData> renderers, Bounds2D bounds);
 
         public struct Vertex
         {
@@ -147,7 +147,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _mesh.MarkDynamic();
         }
 
-        public sealed override Mesh Construct(List<ToonBlobShadowsCulling.RendererData> renderers, Bounds2D bounds)
+        public sealed override Mesh Construct(List<ToonBlobShadowsRendererData> renderers, Bounds2D bounds)
         {
             _bounds = bounds;
 
@@ -179,17 +179,17 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _inverseWorldSize.y = 1.0f / _inverseWorldSize.y;
         }
 
-        private void FillBuffers(List<ToonBlobShadowsCulling.RendererData> renderers)
+        private void FillBuffers(List<ToonBlobShadowsRendererData> renderers)
         {
             using ProfilerMarker.AutoScope profilerScope = FillBuffersMarker.Auto();
 
-            BlobShadowType shadowType = ShadowType;
+            ToonBlobShadowType shadowType = ShadowType;
 
             using (FillBuffersBuildBatchesMarker.Auto())
             {
                 for (int index = 0; index < renderers.Count; index++)
                 {
-                    ToonBlobShadowsCulling.RendererData renderer = renderers[index];
+                    ToonBlobShadowsRendererData renderer = renderers[index];
                     if (renderer.ShadowType != shadowType)
                     {
                         continue;
@@ -232,7 +232,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                     foreach (int rendererIndex in batchData.Renderers)
                     {
-                        ToonBlobShadowsCulling.RendererData renderer = renderers[rendererIndex];
+                        ToonBlobShadowsRendererData renderer = renderers[rendererIndex];
 
                         // vertices
                         var translation = new float2(renderer.Position.x, renderer.Position.y);

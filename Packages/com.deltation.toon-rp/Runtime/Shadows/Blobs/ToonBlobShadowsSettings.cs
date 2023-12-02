@@ -7,7 +7,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
     public struct ToonBlobShadowsSettings
     {
         public TextureSize AtlasSize;
-        public BlobShadowsMode Mode;
+        public ToonBlobShadowsMode Mode;
         [Min(0f)]
         public float Saturation;
         public Vector2 ShadowPositionOffset;

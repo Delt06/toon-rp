@@ -2,6 +2,7 @@
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -17,13 +18,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public Bounds2D Bounds => _bounds;
 
-        public List<RendererData> Renderers { get; } = new();
+        public List<(ToonBlobShadowsManager manager, List<int> indices)> VisibleRenderers { get; } = new();
 
-        public void Cull(Camera camera, float maxDistance)
+        public void Cull(List<ToonBlobShadowsManager> managers, Camera camera, float maxDistance)
         {
             using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
 
-            Renderers.Clear();
+            VisibleRenderers.Clear();
             _bounds = new Bounds2D();
 
             Matrix4x4 worldToProjectionMatrix =
@@ -35,21 +36,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _frustumPlanesFloat4[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
             }
 
-            if (camera.cameraType == CameraType.Game)
+            foreach (ToonBlobShadowsManager manager in managers)
             {
-                List<BlobShadowRenderer> renderers = BlobShadowsManager.GetRenderers(camera);
-
-                if (renderers != null)
-                {
-                    CullRenderers(renderers);
-                }
-            }
-            else if (camera.cameraType == CameraType.SceneView)
-            {
-                foreach (BlobShadowsManager manager in BlobShadowsManager.AllManagers)
-                {
-                    CullRenderers(manager.Renderers);
-                }
+                CullRenderers(manager);
             }
 
             // slight padding to ensure shadows do not touch the shadowmap bounds
@@ -57,49 +46,58 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _bounds.Size *= 1.01f;
         }
 
-        private void CullRenderers(List<BlobShadowRenderer> renderers)
+        public void Clear()
+        {
+            foreach ((ToonBlobShadowsManager _, List<int> indices) in VisibleRenderers)
+            {
+                ListPool<int>.Release(indices);
+            }
+
+            VisibleRenderers.Clear();
+        }
+
+        private void CullRenderers(ToonBlobShadowsManager manager)
         {
             int i = 0;
 
-            foreach (BlobShadowRenderer renderer in renderers)
+            List<ToonBlobShadowRenderer> renderers = manager.Renderers;
+            List<int> indices = ListPool<int>.Get();
+
+            for (int index = 0; index < renderers.Count; index++)
             {
+                ToonBlobShadowRenderer renderer = renderers[index];
                 if (renderer == null)
                 {
                     continue;
                 }
 
-                float halfSize = renderer.HalfSize;
-                Vector3 position = renderer.Position;
-                var positionXZ = new float2(position.x, position.z);
-                Bounds2D bounds = ComputeBounds(halfSize, positionXZ);
+                ref readonly ToonBlobShadowsRendererData shadowsRendererData = ref renderer.GetRendererData();
 
-                if (!AabbInFrustum(bounds))
+                if (!AabbInFrustum(shadowsRendererData.Bounds))
                 {
                     continue;
                 }
 
                 if (i == 0)
                 {
-                    _bounds = bounds;
+                    _bounds = shadowsRendererData.Bounds;
                 }
                 else
                 {
-                    _bounds.Encapsulate(bounds);
+                    _bounds.Encapsulate(shadowsRendererData.Bounds);
                 }
 
-                Renderers.Add(new RendererData
-                    {
-                        Position = positionXZ,
-                        HalfSize = halfSize,
-                        ShadowType = renderer.ShadowType,
-                        Params = renderer.Params,
-                        BakedShadowTexture = renderer.ShadowType == BlobShadowType.Baked
-                            ? renderer.Baked.BakedShadowTexture
-                            : null,
-                    }
-                );
-
+                indices.Add(index);
                 i++;
+            }
+
+            if (indices.Count > 0)
+            {
+                VisibleRenderers.Add((manager, indices));
+            }
+            else
+            {
+                ListPool<int>.Release(indices);
             }
         }
 
@@ -143,22 +141,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             float halfSizeV = camera.orthographicSize;
             float halfSizeH = halfSizeV * camera.aspect;
             return Matrix4x4.Ortho(-halfSizeH, halfSizeH, -halfSizeV, halfSizeV, camera.nearClipPlane, farPlane);
-        }
-
-        private static Bounds2D ComputeBounds(float halfSize, float2 positionXZ)
-        {
-            float size = halfSize * 2;
-            var bounds = new Bounds2D(positionXZ, new float2(size, size));
-            return bounds;
-        }
-
-        public struct RendererData
-        {
-            public float2 Position;
-            public float HalfSize;
-            public BlobShadowType ShadowType;
-            public float4 Params;
-            public Texture2D BakedShadowTexture;
         }
     }
 }

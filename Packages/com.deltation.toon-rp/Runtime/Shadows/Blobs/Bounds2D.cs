@@ -7,9 +7,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
     {
         public float2 Min, Max;
 
-        public Bounds2D(float2 center, float2 size)
+        public Bounds2D(float2 center, float2 extents)
         {
-            float2 extents = size * 0.5f;
             Min = center - extents;
             Max = center + extents;
         }
@@ -27,7 +26,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Encapsulate(Bounds2D bounds)
+        public void Encapsulate(in Bounds2D bounds)
         {
             Encapsulate(bounds.Min);
             Encapsulate(bounds.Max);

@@ -20,14 +20,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public List<(ToonBlobShadowsManager manager, List<int> indices)> VisibleRenderers { get; } = new();
 
-        public void Cull(List<ToonBlobShadowsManager> managers, in ToonBlobShadowsSettings settings, Camera camera,
-            float maxDistance)
+        public void Cull(List<ToonBlobShadowsManager> managers, in ToonShadowSettings settings, Camera camera)
         {
             using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
 
             VisibleRenderers.Clear();
             _bounds = new Bounds2D();
 
+            float maxDistance = Mathf.Min(settings.MaxDistance, camera.farClipPlane);
             Matrix4x4 worldToProjectionMatrix =
                 ComputeCustomProjectionMatrix(camera, maxDistance) * camera.worldToCameraMatrix;
             GeometryUtility.CalculateFrustumPlanes(worldToProjectionMatrix, _frustumPlanes);
@@ -37,8 +37,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _frustumPlanesFloat4[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
             }
 
-            _minY = settings.ReceiverVolumeY - settings.ReceiverVolumeHeight * 0.5f;
-            _maxY = settings.ReceiverVolumeY + settings.ReceiverVolumeHeight * 0.5f;
+            ref readonly ToonBlobShadowsSettings blobSettings = ref settings.Blobs;
+            _minY = blobSettings.ReceiverVolumeY - blobSettings.ReceiverVolumeHeight * 0.5f;
+            _maxY = blobSettings.ReceiverVolumeY + blobSettings.ReceiverVolumeHeight * 0.5f;
 
             foreach (ToonBlobShadowsManager manager in managers)
             {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Pool;
+using BatchKey = UnityEngine.Rendering.RenderTargetIdentifier;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -12,6 +12,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
     {
         private const int MaxBatchSize = 128;
         private static readonly ProfilerMarker Marker = new("BlobShadows.Batch");
+        private static readonly ProfilerMarker FindBatchMarker = new("BlobShadows.FindBatch");
+        private static readonly ProfilerMarker AddItemToBatchMarker = new("BlobShadows.AddItemToBatch");
 
         private readonly BatchSet[] _batches = new BatchSet[ToonBlobShadowTypes.Count];
 
@@ -32,19 +34,24 @@ namespace DELTation.ToonRP.Shadows.Blobs
             foreach (int index in visibleIndices)
             {
                 ref readonly ToonBlobShadowsRendererData rendererData = ref manager.Renderers[index].GetRendererData();
-                var key = new BatchKey(rendererData.BakedShadowTexture);
-                ref BatchData batchData = ref FindOrAllocateBatch(rendererData.ShadowType, key);
+                ref BatchData batchData =
+                    ref FindOrAllocateBatch(rendererData.ShadowType, rendererData.BakedShadowTexture);
 
-                batchData.Positions.Add(new Vector4(rendererData.Position.x, rendererData.Position.y,
-                        rendererData.HalfSize, rendererData.HalfSize
-                    )
-                );
-                batchData.Params.Add(rendererData.Params);
+                using (AddItemToBatchMarker.Auto())
+                {
+                    batchData.Positions.Add(new Vector4(rendererData.Position.x, rendererData.Position.y,
+                            rendererData.HalfSize, rendererData.HalfSize
+                        )
+                    );
+                    batchData.Params.Add(rendererData.Params);
+                }
             }
         }
 
         private ref BatchData FindOrAllocateBatch(ToonBlobShadowType shadowType, in BatchKey key)
         {
+            using ProfilerMarker.AutoScope autoScope = FindBatchMarker.Auto();
+
             ref BatchSet batchSet = ref _batches[(int) shadowType];
 
             batchSet.Batches ??= new BatchData[16];
@@ -115,34 +122,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             public static BatchData Get(BatchKey key) =>
-                new(key, UnityEngine.Pool.ListPool<Vector4>.Get(), UnityEngine.Pool.ListPool<Vector4>.Get());
+                new(key, ListPool<Vector4>.Get(), ListPool<Vector4>.Get());
 
             public void Dispose()
             {
                 if (Positions != null)
                 {
-                    UnityEngine.Pool.ListPool<Vector4>.Release(Positions);
+                    ListPool<Vector4>.Release(Positions);
                 }
 
                 if (Params != null)
                 {
-                    UnityEngine.Pool.ListPool<Vector4>.Release(Params);
+                    ListPool<Vector4>.Release(Params);
                 }
             }
-        }
-
-        public readonly struct BatchKey : IEquatable<BatchKey>
-        {
-            public readonly RenderTargetIdentifier BakedTexture;
-
-            public BatchKey(RenderTargetIdentifier bakedTexture) => BakedTexture = bakedTexture;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool Equals(BatchKey other) => BakedTexture == other.BakedTexture;
-
-            public override bool Equals(object obj) => obj is BatchKey other && Equals(other);
-
-            public override int GetHashCode() => BakedTexture.GetHashCode();
         }
     }
 }

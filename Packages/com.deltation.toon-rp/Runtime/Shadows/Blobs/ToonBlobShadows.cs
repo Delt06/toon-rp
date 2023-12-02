@@ -150,7 +150,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
                         cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
 
-                        ref readonly RenderTargetIdentifier bakedShadowTexture = ref batch.Key.BakedTexture;
+                        ref readonly RenderTargetIdentifier bakedShadowTexture = ref batch.Key;
 
                         if (bakedShadowTexture != new RenderTargetIdentifier((Texture) null))
                         {

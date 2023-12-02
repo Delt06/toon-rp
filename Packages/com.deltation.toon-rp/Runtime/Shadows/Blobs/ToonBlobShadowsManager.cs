@@ -15,19 +15,26 @@ namespace DELTation.ToonRP.Shadows.Blobs
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
         private static readonly Dictionary<Scene, ToonBlobShadowsManager> Managers = new(new SceneEqualityComparer());
+        public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
         public readonly List<ToonBlobShadowRenderer> Renderers = new();
-        private NativeArray<ToonBlobShadowsRendererData> _data = new(16, Allocator.Persistent,
-            NativeArrayOptions.UninitializedMemory
-        );
+        private NativeArray<ToonBlobShadowsRendererData> _data;
 
         public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) _data.GetUnsafePtr();
         public NativeArray<ToonBlobShadowsRendererData> Data => _data;
 
         public static Dictionary<Scene, ToonBlobShadowsManager>.ValueCollection AllManagers => Managers.Values;
 
+        private void Awake()
+        {
+            _data = new NativeArray<ToonBlobShadowsRendererData>(16, Allocator.Persistent,
+                NativeArrayOptions.UninitializedMemory
+            );
+        }
+
         private void OnDestroy()
         {
             Renderers.Clear();
+            DynamicRenderers.Clear();
             _data.Dispose();
             Managers.Remove(gameObject.scene);
         }
@@ -87,6 +94,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             renderer.Init(manager, index);
+            if (!renderer.IsStatic)
+            {
+                manager.DynamicRenderers.Add(renderer);
+            }
         }
 
         private static void ExpandArray<T>(ref NativeArray<T> array) where T : struct
@@ -131,6 +142,29 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 // Copy the moved renderer's data to the new index
                 manager._data[lastRenderer.Index] = manager._data[lastIndex];
+            }
+
+            if (!renderer.IsStatic)
+            {
+                manager.DynamicRenderers.FastRemoveByValue(renderer);
+            }
+        }
+
+        public void ForceUpdateStaticStatus(ToonBlobShadowRenderer r)
+        {
+            DynamicRenderers.FastRemoveByValue(r);
+            UpdateStaticStatus(r);
+        }
+
+        public void UpdateStaticStatus(ToonBlobShadowRenderer r)
+        {
+            if (r.IsStatic)
+            {
+                DynamicRenderers.FastRemoveByValue(r);
+            }
+            else
+            {
+                DynamicRenderers.Add(r);
             }
         }
 

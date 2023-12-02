@@ -74,7 +74,19 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public bool IsStatic
         {
             get => _isStatic;
-            set => _isStatic = value;
+            set
+            {
+                if (_isStatic == value)
+                {
+                    return;
+                }
+
+                _isStatic = value;
+                if (_manager != null)
+                {
+                    _manager.UpdateStaticStatus(this);
+                }
+            }
         }
 
         private void Awake()
@@ -95,6 +107,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private void OnValidate()
         {
             MarkParamsDirty();
+            if (_manager != null)
+            {
+                _manager.ForceUpdateStaticStatus(this);
+            }
         }
 
         public void Init(ToonBlobShadowsManager manager, int index)

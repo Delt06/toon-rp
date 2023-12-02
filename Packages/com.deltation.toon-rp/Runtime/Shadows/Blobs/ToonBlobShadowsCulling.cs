@@ -114,18 +114,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void CullRenderers(ToonBlobShadowsManager manager)
         {
-            List<ToonBlobShadowRenderer> renderers = manager.Renderers;
-
             using (UpdateRendererDataMarker.Auto())
             {
-                foreach (ToonBlobShadowRenderer renderer in renderers)
+                foreach (ToonBlobShadowRenderer dynamicRenderer in manager.DynamicRenderers)
                 {
-                    if (renderer == null)
+                    if (dynamicRenderer == null)
                     {
                         continue;
                     }
 
-                    renderer.GetRendererData();
+                    dynamicRenderer.GetRendererData();
                 }
             }
 

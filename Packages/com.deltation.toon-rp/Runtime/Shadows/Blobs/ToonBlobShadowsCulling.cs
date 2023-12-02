@@ -15,12 +15,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private readonly Plane[] _frustumPlanes = new Plane[6];
         private readonly float4[] _frustumPlanesFloat4 = new float4[6];
         private Bounds2D _bounds;
+        private float _minY, _maxY;
 
         public Bounds2D Bounds => _bounds;
 
         public List<(ToonBlobShadowsManager manager, List<int> indices)> VisibleRenderers { get; } = new();
 
-        public void Cull(List<ToonBlobShadowsManager> managers, Camera camera, float maxDistance)
+        public void Cull(List<ToonBlobShadowsManager> managers, in ToonBlobShadowsSettings settings, Camera camera,
+            float maxDistance)
         {
             using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
 
@@ -35,6 +37,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 _frustumPlanesFloat4[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
             }
+
+            _minY = settings.ReceiverVolumeY - settings.ReceiverVolumeHeight * 0.5f;
+            _maxY = settings.ReceiverVolumeY + settings.ReceiverVolumeHeight * 0.5f;
 
             foreach (ToonBlobShadowsManager manager in managers)
             {
@@ -103,9 +108,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private bool AabbInFrustum(in Bounds2D bounds)
         {
-            const float minY = 0.0f;
-            const float maxY = 0.0f;
-
             // check box outside/inside of frustum
             for (int i = 0; i < 6; i++)
             {
@@ -113,14 +115,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 float4 plane = _frustumPlanesFloat4[i];
 
                 // dot(plane, float4(corner, 1.0))
-                sum += plane.x * bounds.Min.x + plane.y * minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * _minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * _minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * _maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * _maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * _minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * _minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * _maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * _maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
 
                 if (sum == 8)
                 {

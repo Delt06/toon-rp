@@ -70,7 +70,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 CollectManagers();
                 float maxDistance = Mathf.Min(_settings.MaxDistance, _camera.farClipPlane);
-                _culling.Cull(_managers, _camera, maxDistance);
+                _culling.Cull(_managers, _settings.Blobs, _camera, maxDistance);
 
                 {
                     Vector2 min = _culling.Bounds.Min;

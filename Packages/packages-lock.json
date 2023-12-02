@@ -16,7 +16,8 @@
                 "com.unity.shadergraph": "12.1.8",
                 "com.unity.modules.uielements": "1.0.0",
                 "com.unity.mathematics": "1.2.6",
-                "com.unity.burst": "1.8.9"
+                "com.unity.burst": "1.8.9",
+                "com.unity.collections": "2.1.4"
             }
         },
         "com.tayx.graphy": {
@@ -41,6 +42,17 @@
             "source": "registry",
             "dependencies": {
                 "com.unity.mathematics": "1.2.1"
+            },
+            "url": "https://packages.unity.com"
+        },
+        "com.unity.collections": {
+            "version": "2.1.4",
+            "depth": 1,
+            "source": "registry",
+            "dependencies": {
+                "com.unity.burst": "1.8.4",
+                "com.unity.modules.unityanalytics": "1.0.0",
+                "com.unity.nuget.mono-cecil": "1.11.4"
             },
             "url": "https://packages.unity.com"
         },
@@ -107,6 +119,13 @@
         "com.unity.mobile.android-logcat": {
             "version": "1.3.2",
             "depth": 0,
+            "source": "registry",
+            "dependencies": {},
+            "url": "https://packages.unity.com"
+        },
+        "com.unity.nuget.mono-cecil": {
+            "version": "1.11.4",
+            "depth": 2,
             "source": "registry",
             "dependencies": {},
             "url": "https://packages.unity.com"

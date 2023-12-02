@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Shadows
 {
-    public sealed class ToonShadows
+    public sealed class ToonShadows : IDisposable
     {
         public const string DirectionalShadowsKeywordName = "_TOON_RP_DIRECTIONAL_SHADOWS";
         public const string DirectionalCascadedShadowsKeywordName = "_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS";
@@ -56,6 +56,11 @@ namespace DELTation.ToonRP.Shadows
         public static GlobalKeyword BlobShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword ShadowsRampCrisp { get; private set; }
         public static GlobalKeyword ShadowsPattern { get; private set; }
+
+        public void Dispose()
+        {
+            _blobShadows?.Dispose();
+        }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults,
             in ToonShadowSettings settings, Camera camera)

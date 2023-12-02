@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
+using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Pool;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -25,7 +25,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public BatchSet GetBatches(ToonBlobShadowType type) => _batches[(int) type];
 
-        public void Batch(ToonBlobShadowsManager manager, List<int> visibleIndices)
+        public void Batch(ToonBlobShadowsManager manager, NativeList<int> visibleIndices)
         {
             using ProfilerMarker.AutoScope scope = Marker.Auto();
 
@@ -115,35 +115,34 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             public static BatchData Get(BatchKey key) =>
-                new(key, ListPool<Vector4>.Get(), ListPool<Vector4>.Get());
+                new(key, UnityEngine.Pool.ListPool<Vector4>.Get(), UnityEngine.Pool.ListPool<Vector4>.Get());
 
             public void Dispose()
             {
                 if (Positions != null)
                 {
-                    ListPool<Vector4>.Release(Positions);
+                    UnityEngine.Pool.ListPool<Vector4>.Release(Positions);
                 }
 
                 if (Params != null)
                 {
-                    ListPool<Vector4>.Release(Params);
+                    UnityEngine.Pool.ListPool<Vector4>.Release(Params);
                 }
             }
         }
 
         public readonly struct BatchKey : IEquatable<BatchKey>
         {
-            [CanBeNull]
-            public readonly Texture2D BakedTexture;
+            public readonly RenderTargetIdentifier BakedTexture;
 
-            public BatchKey([CanBeNull] Texture2D bakedTexture) => BakedTexture = bakedTexture;
+            public BatchKey(RenderTargetIdentifier bakedTexture) => BakedTexture = bakedTexture;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool Equals(BatchKey other) => Equals(BakedTexture, other.BakedTexture);
+            public bool Equals(BatchKey other) => BakedTexture == other.BakedTexture;
 
             public override bool Equals(object obj) => obj is BatchKey other && Equals(other);
 
-            public override int GetHashCode() => BakedTexture ? BakedTexture.GetHashCode() : 0;
+            public override int GetHashCode() => BakedTexture.GetHashCode();
         }
     }
 }

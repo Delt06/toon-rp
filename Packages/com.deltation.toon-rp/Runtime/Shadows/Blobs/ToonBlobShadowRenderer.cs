@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     [ExecuteAlways]
-    public sealed class ToonBlobShadowRenderer : MonoBehaviour
+    public sealed unsafe class ToonBlobShadowRenderer : MonoBehaviour
     {
         [SerializeField] private bool _isStatic;
 
@@ -101,12 +101,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             _manager = manager;
             Index = index;
-            RecomputeRendererData(ref _manager.Data[Index], true);
+            RecomputeRendererData(ref _manager.DataPtr[Index], true);
         }
 
         public ref readonly ToonBlobShadowsRendererData GetRendererData()
         {
-            ref ToonBlobShadowsRendererData rendererData = ref _manager.Data[Index];
+            ref ToonBlobShadowsRendererData rendererData = ref _manager.DataPtr[Index];
             RecomputeRendererData(ref rendererData);
             return ref rendererData;
         }

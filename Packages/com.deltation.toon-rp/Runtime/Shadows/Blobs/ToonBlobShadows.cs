@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,7 +8,7 @@ using UnityBlendMode = UnityEngine.Rendering.BlendMode;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    public class ToonBlobShadows
+    public class ToonBlobShadows : IDisposable
     {
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
@@ -30,6 +31,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private ScriptableRenderContext _context;
         private Material _material;
         private ToonShadowSettings _settings;
+
+        public void Dispose()
+        {
+            _culling.Dispose();
+        }
 
         private void EnsureAssetsAreCreated()
         {
@@ -124,7 +130,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
 
-            foreach ((ToonBlobShadowsManager manager, List<int> indices) in _culling.VisibleRenderers)
+            foreach ((ToonBlobShadowsManager manager, NativeList<int> indices) in _culling.VisibleRenderers)
             {
                 _batching.Batch(manager, indices);
             }
@@ -140,12 +146,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     {
                         ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
 
-                        Texture2D bakedShadowTexture = batch.Key.BakedTexture;
-
                         cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
                         cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
 
-                        if (bakedShadowTexture)
+                        ref readonly RenderTargetIdentifier bakedShadowTexture = ref batch.Key.BakedTexture;
+
+                        if (bakedShadowTexture != new RenderTargetIdentifier((Texture) null))
                         {
                             cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
                         }

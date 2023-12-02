@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
@@ -11,19 +12,23 @@ using UnityEditor.SceneManagement;
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     [ExecuteAlways]
-    public sealed class ToonBlobShadowsManager : MonoBehaviour
+    public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
         private static readonly Dictionary<Scene, ToonBlobShadowsManager> Managers = new(new SceneEqualityComparer());
         public readonly List<ToonBlobShadowRenderer> Renderers = new();
-        private ToonBlobShadowsRendererData[] _data = new ToonBlobShadowsRendererData[16];
+        private NativeArray<ToonBlobShadowsRendererData> _data = new(16, Allocator.Persistent,
+            NativeArrayOptions.UninitializedMemory
+        );
 
-        public ToonBlobShadowsRendererData[] Data => _data;
+        public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) _data.GetUnsafePtr();
+        public NativeArray<ToonBlobShadowsRendererData> Data => _data;
 
         public static Dictionary<Scene, ToonBlobShadowsManager>.ValueCollection AllManagers => Managers.Values;
 
         private void OnDestroy()
         {
             Renderers.Clear();
+            _data.Dispose();
             Managers.Remove(gameObject.scene);
         }
 
@@ -78,10 +83,21 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (index >= manager._data.Length)
             {
-                Array.Resize(ref manager._data, manager._data.Length * 2);
+                ExpandArray(ref manager._data);
             }
 
             renderer.Init(manager, index);
+        }
+
+        private static void ExpandArray<T>(ref NativeArray<T> array) where T : struct
+        {
+            var newArray = new NativeArray<T>(array.Length * 2, Allocator.Persistent,
+                NativeArrayOptions.UninitializedMemory
+            );
+            UnsafeUtility.MemCpy(newArray.GetUnsafePtr(), array.GetUnsafePtr(), UnsafeUtility.SizeOf<T>() * array.Length
+            );
+            array.Dispose();
+            array = newArray;
         }
 
         public static void OnRendererDisabled(ToonBlobShadowRenderer renderer)

@@ -1,24 +1,73 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Rendering;
 using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    public sealed class ToonBlobShadowsCulling
+    [BurstCompile]
+    public struct ToonBlobShadowsCullingJob : IJobFilter
+    {
+        [ReadOnly]
+        public NativeArray<ToonBlobShadowsRendererData> Data;
+        [ReadOnly]
+        public NativeArray<float4> FrustumPlanes;
+        public float MinY;
+        public float MaxY;
+
+        public bool Execute(int index) => AabbInFrustum(Data[index].Bounds);
+
+        private bool AabbInFrustum(in Bounds2D bounds)
+        {
+            // check box outside/inside of frustum
+            for (int i = 0; i < 6; i++)
+            {
+                int sum = 0;
+                float4 plane = FrustumPlanes[i];
+
+                // dot(plane, float4(corner, 1.0))
+                sum += plane.x * bounds.Min.x + plane.y * MinY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * MinY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * MaxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * MaxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * MinY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * MinY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Min.x + plane.y * MaxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+                sum += plane.x * bounds.Max.x + plane.y * MaxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
+
+                if (sum == 8)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public sealed unsafe class ToonBlobShadowsCulling : IDisposable
     {
         private static readonly ProfilerMarker Marker = new("BlobShadows.Cull");
 
         private readonly Plane[] _frustumPlanes = new Plane[6];
-        private readonly float4[] _frustumPlanesFloat4 = new float4[6];
         private Bounds2D _bounds;
+        private NativeArray<float4> _frustumPlanesNative =
+            new(6, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         private float _minY, _maxY;
 
         public Bounds2D Bounds => _bounds;
 
-        public List<(ToonBlobShadowsManager manager, List<int> indices)> VisibleRenderers { get; } = new();
+        public List<(ToonBlobShadowsManager manager, NativeList<int> indices)> VisibleRenderers { get; } = new();
+
+        public void Dispose()
+        {
+            _frustumPlanesNative.Dispose();
+        }
 
         public void Cull(List<ToonBlobShadowsManager> managers, in ToonShadowSettings settings, Camera camera)
         {
@@ -34,7 +83,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             for (int i = 0; i < _frustumPlanes.Length; i++)
             {
-                _frustumPlanesFloat4[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
+                _frustumPlanesNative[i] = float4(_frustumPlanes[i].normal, _frustumPlanes[i].distance);
             }
 
             ref readonly ToonBlobShadowsSettings blobSettings = ref settings.Blobs;
@@ -53,9 +102,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public void Clear()
         {
-            foreach ((ToonBlobShadowsManager _, List<int> indices) in VisibleRenderers)
+            foreach ((ToonBlobShadowsManager _, NativeList<int> indices) in VisibleRenderers)
             {
-                ListPool<int>.Release(indices);
+                indices.Dispose();
             }
 
             VisibleRenderers.Clear();
@@ -63,26 +112,34 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void CullRenderers(ToonBlobShadowsManager manager)
         {
-            int i = 0;
-
             List<ToonBlobShadowRenderer> renderers = manager.Renderers;
-            List<int> indices = ListPool<int>.Get();
 
-            for (int index = 0; index < renderers.Count; index++)
+            foreach (ToonBlobShadowRenderer renderer in renderers)
             {
-                ToonBlobShadowRenderer renderer = renderers[index];
                 if (renderer == null)
                 {
                     continue;
                 }
 
-                ref readonly ToonBlobShadowsRendererData shadowsRendererData = ref renderer.GetRendererData();
+                renderer.GetRendererData();
+            }
 
-                if (!AabbInFrustum(shadowsRendererData.Bounds))
+            int maxRenderers = manager.Renderers.Count;
+            var indices = new NativeList<int>(maxRenderers, Allocator.TempJob);
+
+            new ToonBlobShadowsCullingJob
                 {
-                    continue;
+                    Data = manager.Data,
+                    FrustumPlanes = _frustumPlanesNative,
+                    MinY = _minY,
+                    MaxY = _maxY,
                 }
+                .ScheduleAppend(indices, maxRenderers)
+                .Complete();
 
+            for (int i = 0; i < indices.Length; i++)
+            {
+                ref ToonBlobShadowsRendererData shadowsRendererData = ref manager.DataPtr[indices[i]];
                 if (i == 0)
                 {
                     _bounds = shadowsRendererData.Bounds;
@@ -91,46 +148,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 {
                     _bounds.Encapsulate(shadowsRendererData.Bounds);
                 }
-
-                indices.Add(index);
-                i++;
             }
 
-            if (indices.Count > 0)
+            if (indices.Length > 0)
             {
                 VisibleRenderers.Add((manager, indices));
             }
             else
             {
-                ListPool<int>.Release(indices);
+                indices.Dispose();
             }
-        }
-
-        private bool AabbInFrustum(in Bounds2D bounds)
-        {
-            // check box outside/inside of frustum
-            for (int i = 0; i < 6; i++)
-            {
-                int sum = 0;
-                float4 plane = _frustumPlanesFloat4[i];
-
-                // dot(plane, float4(corner, 1.0))
-                sum += plane.x * bounds.Min.x + plane.y * _minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * _minY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * _maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * _maxY + plane.z * bounds.Min.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * _minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * _minY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Min.x + plane.y * _maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-                sum += plane.x * bounds.Max.x + plane.y * _maxY + plane.z * bounds.Max.y + plane.w < 0.0 ? 1 : 0;
-
-                if (sum == 8)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         private static Matrix4x4 ComputeCustomProjectionMatrix(Camera camera, float farPlane)

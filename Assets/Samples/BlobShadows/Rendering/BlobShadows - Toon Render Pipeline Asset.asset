@@ -89,12 +89,11 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 0
     Blobs:
-      AtlasSize: 256
+      AtlasSize: 512
       Mode: 0
       Saturation: 1
       ShadowPositionOffset: {x: 0, y: 0}
-      ReceiverVolumeY: 0
-      ReceiverVolumeHeight: 0
+      ReceiverPlaneY: 0
   Extensions:
     Extensions: []
   PostProcessing:

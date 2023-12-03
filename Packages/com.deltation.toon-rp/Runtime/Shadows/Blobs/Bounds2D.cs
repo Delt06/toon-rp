@@ -1,5 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Mathematics;
+using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -7,11 +9,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
     {
         public float2 Min, Max;
 
-        public Bounds2D(float2 center, float2 extents)
+        private Bounds2D(float2 min, float2 max)
         {
-            Min = center - extents;
-            Max = center + extents;
+            Min = min;
+            Max = max;
         }
+
+        public static Bounds2D FromMinMax(float2 min, float2 max) => new(min, max);
+
+        public static Bounds2D FromCenterExtents(float2 center, float2 extents) =>
+            new(center - extents, center + extents);
 
         public float2 Size
         {
@@ -52,6 +59,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 Max.y = point.y;
             }
+        }
+
+        [BurstCompile]
+        public bool Intersects(Bounds2D otherBounds)
+        {
+            float2 intersectionMin = max(Min, otherBounds.Min);
+            float2 intersectionMax = min(Max, otherBounds.Max);
+            return all(intersectionMax - intersectionMin >= 0.001f);
         }
     }
 }

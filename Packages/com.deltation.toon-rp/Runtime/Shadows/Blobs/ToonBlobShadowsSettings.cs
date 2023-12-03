@@ -11,8 +11,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         [Min(0f)]
         public float Saturation;
         public Vector2 ShadowPositionOffset;
-        public float ReceiverVolumeY;
-        [Min(0.0f)]
-        public float ReceiverVolumeHeight;
+        public float ReceiverPlaneY;
     }
 }

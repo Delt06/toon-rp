@@ -163,7 +163,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
             {
                 rendererData.Params = Params;
-                rendererData.Bounds = new Bounds2D(rendererData.Position, _halfSize);
+                rendererData.Bounds = Bounds2D.FromCenterExtents(rendererData.Position, _halfSize);
             }
 
             _paramsDirty = false;

@@ -33,10 +33,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private Material _material;
         private ToonShadowSettings _settings;
 
-        public void Dispose()
-        {
-            _culling.Dispose();
-        }
+        public void Dispose() { }
 
         private void EnsureAssetsAreCreated()
         {
@@ -78,26 +75,39 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 );
                 cmd.ClearRenderTarget(false, true, Color.black);
 
+                Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
+                    _settings.MaxDistance,
+                    _settings.Blobs.ReceiverPlaneY
+                );
 
-                CollectManagers();
-                _culling.Cull(_managers, _settings, _camera);
-
+                if (intersection.HasValue)
                 {
-                    float2 min = _culling.Bounds.Min;
-                    float2 size = _culling.Bounds.Size;
-                    var minSize = new Vector4(
-                        min.x, min.y,
-                        size.x, size.y
-                    );
-                    cmd.SetGlobalVector(MinSizeId, minSize);
+                    Bounds2D receiverBounds = intersection.Value;
+
+                    // slight padding to ensure shadows do not touch the shadowmap bounds
+                    // otherwise, there may be artifacts on low resolutions (< 128) 
+                    receiverBounds.Size *= 1.01f;
+
+                    CollectManagers();
+                    _culling.Cull(_managers, receiverBounds);
+
+                    {
+                        float2 min = receiverBounds.Min;
+                        float2 size = receiverBounds.Size;
+                        var minSize = new Vector4(
+                            min.x, min.y,
+                            size.x, size.y
+                        );
+                        cmd.SetGlobalVector(MinSizeId, minSize);
+                    }
+
+                    cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
+
+                    DrawShadows(cmd);
+
+                    _managers.Clear();
+                    _culling.Clear();
                 }
-
-                cmd.SetGlobalVector(CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
-
-                DrawShadows(cmd);
-
-                _managers.Clear();
-                _culling.Clear();
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

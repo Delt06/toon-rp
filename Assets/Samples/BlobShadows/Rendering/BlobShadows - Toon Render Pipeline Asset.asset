@@ -89,7 +89,7 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 0
     Blobs:
-      AtlasSize: 512
+      AtlasSize: 256
       Mode: 0
       Saturation: 1
       ShadowPositionOffset: {x: 0, y: 0}

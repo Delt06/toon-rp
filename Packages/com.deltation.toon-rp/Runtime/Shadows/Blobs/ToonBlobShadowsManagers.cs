@@ -36,7 +36,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 {
                     var gameObject = new GameObject("[Blob Shadows Manager]")
                     {
-                        hideFlags = HideFlags.NotEditable | HideFlags.DontSave,
+                        hideFlags = HideFlags.NotEditable | HideFlags.DontSave | HideFlags.HideInHierarchy,
                     };
                     Managers[scene] = manager = gameObject.AddComponent<ToonBlobShadowsManager>();
 

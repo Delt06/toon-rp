@@ -173,7 +173,8 @@ MonoBehaviour:
   - {fileID: 7403736848951640445, guid: 7cd7999f943439f4db1139e5db506d28, type: 3}
   - {fileID: 5592314849559970926, guid: 66267bb20155785438c45c75cc66600f, type: 3}
   - {fileID: 6260300048165097113, guid: 8d9eca372e3c9b745b566a007a8bfb58, type: 3}
-  Count: 2000
+  - {fileID: 3040194983375915429, guid: 0be5d541baf7737479b4b4b0fa73376f, type: 3}
+  Count: 500
   Seed: 0
   Static: 1
 --- !u!1 &897805541

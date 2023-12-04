@@ -2,7 +2,6 @@
 using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
@@ -49,11 +48,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public static void OnRendererEnabled(ToonBlobShadowRenderer renderer)
         {
-            if (IsPartOfPrefab(renderer))
-            {
-                return;
-            }
-
             Scene scene = renderer.gameObject.scene;
             if (!TryGetBlobShadowManager(scene, true, out ToonBlobShadowsManager manager))
             {
@@ -77,11 +71,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public static void OnRendererDisabled(ToonBlobShadowRenderer renderer)
         {
-            if (IsPartOfPrefab(renderer))
-            {
-                return;
-            }
-
             Scene scene = renderer.gameObject.scene;
             if (!TryGetBlobShadowManager(scene, false, out ToonBlobShadowsManager manager))
             {
@@ -128,16 +117,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             );
             array.Dispose();
             array = newArray;
-        }
-
-        private static bool IsPartOfPrefab(ToonBlobShadowRenderer renderer)
-        {
-#if UNITY_EDITOR
-            PrefabStage currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-            return currentPrefabStage != null && currentPrefabStage.IsPartOfPrefabContents(renderer.gameObject);
-#else // !UNITY_EDITOR
-            return false;
-#endif // UNITY_EDITOR
         }
 
         private class SceneEqualityComparer : IEqualityComparer<Scene>

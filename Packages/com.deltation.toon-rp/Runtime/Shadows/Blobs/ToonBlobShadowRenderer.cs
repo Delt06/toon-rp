@@ -96,12 +96,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void OnEnable()
         {
-            ToonBlobShadowsManager.OnRendererEnabled(this);
+            ToonBlobShadowsManagers.OnRendererEnabled(this);
         }
 
         private void OnDisable()
         {
-            ToonBlobShadowsManager.OnRendererDisabled(this);
+            ToonBlobShadowsManagers.OnRendererDisabled(this);
         }
 
         private void OnValidate()

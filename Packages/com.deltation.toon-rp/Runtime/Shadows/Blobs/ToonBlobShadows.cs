@@ -120,7 +120,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (_camera.cameraType == CameraType.Game)
             {
-                var manager = ToonBlobShadowsManager.GetManager(_camera);
+                ToonBlobShadowsManager manager = ToonBlobShadowsManagers.Get(_camera);
 
                 if (manager != null)
                 {
@@ -129,7 +129,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
             else if (_camera.cameraType == CameraType.SceneView)
             {
-                foreach (ToonBlobShadowsManager manager in ToonBlobShadowsManager.AllManagers)
+                foreach (ToonBlobShadowsManager manager in ToonBlobShadowsManagers.All)
                 {
                     _managers.Add(manager);
                 }

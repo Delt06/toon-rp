@@ -13,9 +13,9 @@ ScriptedImporter:
   Model: {fileID: 919132149155446097, guid: f33fbdf1bd7f08543bee4615cdfb249c, type: 3}
   IncludeSkinnedRenderers: 0
   ModelPositionOffset: {x: 0, y: 0}
-  BoundsSize: 8
+  BoundsSize: 8.2
   BlurIterations: 12
   GenerateMipMaps: 0
-  ReadWriteEnabled: 0
+  ReadWriteEnabled: 1
   Compressed: 0
   HighQualityCompression: 0

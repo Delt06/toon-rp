@@ -11,7 +11,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
 {
     public class ToonBlobShadows : IDisposable
     {
+        public const int MaxBakedTextures = 64;
+
         public const string ShaderName = "Hidden/Toon RP/Blob Shadow Pass";
+
+        private static readonly Vector4[] TilingOffsets = new Vector4[MaxBakedTextures];
         private static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
         private static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
         private static readonly int CoordsOffsetId = Shader.PropertyToID("_ToonRP_BlobShadowCoordsOffset");
@@ -19,10 +23,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
-        private static readonly int BakedBlobShadowTextureId = Shader.PropertyToID("_BakedBlobShadowTexture");
 
         private static readonly ProfilerMarker DrawBatchesMarker =
             new("BlobShadows.DrawBatches");
+        private static readonly int BakedTexturesAtlasId =
+            Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas");
+        private static readonly int BakedTexturesAtlasTilingOffsetsId =
+            Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets");
+        private static readonly int PositionsId = Shader.PropertyToID("_ToonRP_BlobShadows_Positions");
+        private static readonly int ParamsId = Shader.PropertyToID("_ToonRP_BlobShadows_Params");
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly ToonBlobShadowsCulling _culling = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -146,8 +155,24 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _batching.Batch(manager, indices);
             }
 
+            _batching.FillGapsInBatches();
+
             using (DrawBatchesMarker.Auto())
             {
+                ToonBlobShadowsAtlas atlas = _settings.Blobs.BakedShadowsAtlas;
+                if (atlas != null && atlas.Texture != null && atlas.TilingOffsets != null)
+                {
+                    cmd.SetGlobalTexture(BakedTexturesAtlasId, atlas.Texture);
+                    Array.Copy(atlas.TilingOffsets, TilingOffsets, atlas.TilingOffsets.Length);
+                }
+                else
+                {
+                    cmd.SetGlobalTexture(BakedTexturesAtlasId, Texture2D.whiteTexture);
+                    TilingOffsets[0] = new Vector4(1, 1, 0, 0);
+                }
+
+                cmd.SetGlobalVectorArray(BakedTexturesAtlasTilingOffsetsId, TilingOffsets);
+
                 for (int shadowTypeIndex = 0; shadowTypeIndex < ToonBlobShadowTypes.Count; shadowTypeIndex++)
                 {
                     ToonBlobShadowsBatching.BatchSet batchSet =
@@ -157,19 +182,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     {
                         ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
 
-                        cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Positions", batch.Positions);
-                        cmd.SetGlobalVectorArray("_ToonRP_BlobShadows_Params", batch.Params);
-
-                        ref readonly RenderTargetIdentifier bakedShadowTexture = ref batch.Key;
-
-                        if (bakedShadowTexture != new RenderTargetIdentifier((Texture) null))
-                        {
-                            cmd.SetGlobalTexture(BakedBlobShadowTextureId, bakedShadowTexture);
-                        }
+                        cmd.SetGlobalVectorArray(PositionsId, batch.Positions);
+                        cmd.SetGlobalVectorArray(ParamsId, batch.Params);
 
                         int shaderPass = (int) batchSet.ShadowType;
                         cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
-                            4 * batch.Positions.Count
+                            4 * batch.Count
                         );
                     }
                 }

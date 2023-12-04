@@ -98,5 +98,5 @@ MonoBehaviour:
     CornerRadius: 0.25
     Rotation: 0
   _baked:
-    BakedShadowTexture: {fileID: 7506314328700112305, guid: bb6e3920e5558264dbb638cdf0f72a16, type: 3}
+    TextureIndex: 1
     Rotation: 0

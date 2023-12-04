@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using DELTation.ToonRP.Attributes;
 using DELTation.ToonRP.Shadows.Blobs;
 using UnityEditor;
@@ -42,12 +43,20 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
             bool anyErrors = false;
 
+            if (SourceTextures.Length > ToonBlobShadows.MaxBakedTextures)
+            {
+                ctx.LogImportError(
+                    $"The number of textures ({SourceTextures.Length}) exceeds the limit ({ToonBlobShadows.MaxBakedTextures})."
+                );
+                anyErrors = true;
+            }
+
             for (int index = 0; index < SourceTextures.Length; index++)
             {
                 Texture2D sourceTexture = SourceTextures[index];
                 if (sourceTexture == null)
                 {
-                    ctx.LogImportError($"Texture at {index} is null");
+                    ctx.LogImportError($"Texture at {index} is null.");
                     anyErrors = true;
                     continue;
                 }
@@ -103,7 +112,17 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
             ToonBlobShadowsAtlas atlas = ScriptableObject.CreateInstance<ToonBlobShadowsAtlas>();
             atlas.Texture = texture;
-            atlas.Rects = rects;
+            atlas.TilingOffsets = rects.Select(r =>
+                {
+                    var textureSize = new Vector2(texture.width, texture.height);
+                    Vector2 min = r.min;
+                    Vector2 sizeNormalized = r.size;
+                    return new Vector4(
+                        sizeNormalized.x, sizeNormalized.y,
+                        min.x, min.y
+                    );
+                }
+            ).ToArray();
             ctx.AddObjectToAsset("atlas", atlas, texture);
             ctx.SetMainObject(atlas);
         }

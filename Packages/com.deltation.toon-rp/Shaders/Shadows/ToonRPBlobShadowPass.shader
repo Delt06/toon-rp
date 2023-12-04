@@ -170,8 +170,10 @@
             #pragma vertex VS
 		    #pragma fragment PS
 
-            TEXTURE2D(_BakedBlobShadowTexture);
-            SAMPLER(sampler_BakedBlobShadowTexture);
+            TEXTURE2D(_ToonRP_BlobShadows_BakedTexturesAtlas);
+            SAMPLER(sampler_ToonRP_BlobShadows_BakedTexturesAtlas);
+
+            float4 _ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets[64];
 
             struct v2f
 		    {
@@ -190,14 +192,16 @@
                 const float4 params = _ToonRP_BlobShadows_Params[instanceId];
                 const float rotationRad = UnpackRotation(params.w);
                 centeredUv = Rotate(centeredUv, rotationRad);
-                OUT.uv = centeredUv * 0.5f + 0.5f;
+
+                float4 tilingOffset = _ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets[(uint) params.x];
+                OUT.uv = (centeredUv * 0.5f + 0.5f) * tilingOffset.xy + tilingOffset.zw;
 
                 return OUT;
             }
 
 			float4 PS(const v2f IN) : SV_TARGET
             {
-                return SAMPLE_TEXTURE2D(_BakedBlobShadowTexture, sampler_BakedBlobShadowTexture, IN.uv) * _Saturation;
+                return SAMPLE_TEXTURE2D(_ToonRP_BlobShadows_BakedTexturesAtlas, sampler_ToonRP_BlobShadows_BakedTexturesAtlas, IN.uv) * _Saturation;
             }
 
 			ENDHLSL

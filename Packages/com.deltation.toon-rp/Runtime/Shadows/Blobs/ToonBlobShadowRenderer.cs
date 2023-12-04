@@ -155,9 +155,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 rendererData.HalfSize = _halfSize;
                 rendererData.ShadowType = ShadowType;
-                rendererData.BakedShadowTexture = ShadowType == ToonBlobShadowType.Baked
-                    ? _baked.BakedShadowTexture
-                    : null;
             }
 
             if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
@@ -199,12 +196,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
         [Serializable]
         public struct BakedParams
         {
-            public Texture2D BakedShadowTexture;
+            [Range(0, ToonBlobShadows.MaxBakedTextures - 1)]
+            public int TextureIndex;
             [Range(0.0f, 360.0f)]
             public float Rotation;
 
             public Vector4 AsParams(in Quaternion rotation) => new(
-                0.0f, 0.0f, 0.0f,
+                TextureIndex, 0.0f, 0.0f,
                 PackRotation(rotation, Rotation)
             );
         }

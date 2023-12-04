@@ -4,7 +4,6 @@ using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Pool;
-using BatchKey = UnityEngine.Rendering.RenderTargetIdentifier;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -21,7 +20,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             for (int i = 0; i < ToonBlobShadowTypes.Count; i++)
             {
-                _batches[i].ShadowType = (ToonBlobShadowType) i;
+                ref BatchSet batchSet = ref _batches[i];
+                batchSet.ShadowType = (ToonBlobShadowType) i;
+                batchSet.Batches ??= new BatchData[16];
             }
         }
 
@@ -34,8 +35,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             foreach (int index in visibleIndices)
             {
                 ref readonly ToonBlobShadowsRendererData rendererData = ref manager.Renderers[index].GetRendererData();
-                ref BatchData batchData =
-                    ref FindOrAllocateBatch(rendererData.ShadowType, rendererData.BakedShadowTexture);
+                ref BatchData batchData = ref FindOrAllocateBatch(rendererData.ShadowType);
 
                 using (AddItemToBatchMarker.Auto())
                 {
@@ -44,22 +44,38 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         )
                     );
                     batchData.Params.Add(rendererData.Params);
+                    batchData.Count++;
                 }
             }
         }
 
-        private ref BatchData FindOrAllocateBatch(ToonBlobShadowType shadowType, in BatchKey key)
+        public void FillGapsInBatches()
+        {
+            foreach (BatchSet batchSet in _batches)
+            {
+                for (int index = 0; index < batchSet.BatchCount; index++)
+                {
+                    ref readonly BatchData batchData = ref batchSet.Batches[index];
+
+                    while (batchData.Positions.Count < MaxBatchSize)
+                    {
+                        batchData.Positions.Add(Vector4.zero);
+                        batchData.Params.Add(Vector4.zero);
+                    }
+                }
+            }
+        }
+
+        private ref BatchData FindOrAllocateBatch(ToonBlobShadowType shadowType)
         {
             using ProfilerMarker.AutoScope autoScope = FindBatchMarker.Auto();
 
             ref BatchSet batchSet = ref _batches[(int) shadowType];
 
-            batchSet.Batches ??= new BatchData[16];
-
             for (int i = 0; i < batchSet.BatchCount; i++)
             {
                 ref BatchData batchData = ref batchSet.Batches[i];
-                if (batchData.Key.Equals(key) && batchData.Positions.Count < MaxBatchSize)
+                if (batchData.Count < MaxBatchSize)
                 {
                     return ref batchData;
                 }
@@ -74,7 +90,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             ref BatchData newBatchData = ref batchSet.Batches[index];
-            newBatchData = BatchData.Get(key);
+            newBatchData = BatchData.Create();
             return ref newBatchData;
         }
 
@@ -108,21 +124,21 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public BatchData[] Batches;
         }
 
-        public readonly struct BatchData : IDisposable
+        public struct BatchData : IDisposable
         {
-            public readonly BatchKey Key;
             public readonly List<Vector4> Positions;
             public readonly List<Vector4> Params;
+            public int Count;
 
-            private BatchData(BatchKey key, List<Vector4> positions, List<Vector4> @params)
+            private BatchData(List<Vector4> positions, List<Vector4> @params)
             {
                 Positions = positions;
                 Params = @params;
-                Key = key;
+                Count = 0;
             }
 
-            public static BatchData Get(BatchKey key) =>
-                new(key, ListPool<Vector4>.Get(), ListPool<Vector4>.Get());
+            public static BatchData Create() =>
+                new(ListPool<Vector4>.Get(), ListPool<Vector4>.Get());
 
             public void Dispose()
             {

@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
+using static DELTation.ToonRP.Shadows.Blobs.ToonBlobShadowsManager;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    internal static unsafe class ToonBlobShadowsManagers
+    internal static class ToonBlobShadowsManagers
     {
         private static readonly Dictionary<Scene, ToonBlobShadowsManager> Managers = new(new SceneEqualityComparer());
         public static Dictionary<Scene, ToonBlobShadowsManager>.ValueCollection All => Managers.Values;
@@ -54,18 +53,21 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 return;
             }
 
-            manager.Renderers.Add(renderer);
-            int index = manager.Renderers.Count - 1;
+            Assert.IsTrue(renderer.Index == -1);
 
-            if (index >= manager.Data.Length)
+            Group group = manager.GetGroup(renderer.ShadowType);
+            group.Renderers.Add(renderer);
+            int index = group.Renderers.Count - 1;
+
+            if (index >= group.Data.Length)
             {
-                ExpandArray(ref manager.Data);
+                group.ExpandData();
             }
 
-            renderer.Init(manager, index);
+            renderer.AssignToManager(manager, index);
             if (!renderer.IsStatic)
             {
-                manager.DynamicRenderers.Add(renderer);
+                group.DynamicRenderers.Add(renderer);
             }
         }
 
@@ -77,46 +79,35 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 return;
             }
 
-            Assert.IsTrue(0 <= renderer.Index && renderer.Index < manager.Renderers.Count);
+            Group group = manager.GetGroup(renderer.AssignedGroupShadowType);
 
-            int lastIndex = manager.Renderers.Count - 1;
+            Assert.IsTrue(0 <= renderer.Index && renderer.Index < group.Renderers.Count);
+
+            int lastIndex = group.Renderers.Count - 1;
             if (renderer.Index == lastIndex)
             {
-                manager.Renderers.RemoveAt(renderer.Index);
+                group.Renderers.RemoveAt(renderer.Index);
             }
             else
             {
                 // Swap with the last renderer and remove
-                ToonBlobShadowRenderer lastRenderer = manager.Renderers[^1];
-                manager.Renderers[renderer.Index] = lastRenderer;
-                manager.Renderers.RemoveAt(lastIndex);
+                ToonBlobShadowRenderer lastRenderer = group.Renderers[^1];
+                group.Renderers[renderer.Index] = lastRenderer;
+                group.Renderers.RemoveAt(lastIndex);
                 lastRenderer.Index = renderer.Index;
                 renderer.Shutdown();
 
                 // Copy the moved renderer's data to the new index
-                manager.Data[lastRenderer.Index] = manager.Data[lastIndex];
+                group.Data[lastRenderer.Index] = group.Data[lastIndex];
             }
 
-            if (!renderer.IsStatic)
-            {
-                manager.DynamicRenderers.FastRemoveByValue(renderer);
-            }
+            group.DynamicRenderers.FastRemoveByValue(renderer);
+            renderer.UnassignFromManager();
         }
 
         public static void OnDestroyed(ToonBlobShadowsManager manager)
         {
             Managers.Remove(manager.gameObject.scene);
-        }
-
-        private static void ExpandArray<T>(ref NativeArray<T> array) where T : struct
-        {
-            var newArray = new NativeArray<T>(array.Length * 2, Allocator.Persistent,
-                NativeArrayOptions.UninitializedMemory
-            );
-            UnsafeUtility.MemCpy(newArray.GetUnsafePtr(), array.GetUnsafePtr(), UnsafeUtility.SizeOf<T>() * array.Length
-            );
-            array.Dispose();
-            array = newArray;
         }
 
         private class SceneEqualityComparer : IEqualityComparer<Scene>

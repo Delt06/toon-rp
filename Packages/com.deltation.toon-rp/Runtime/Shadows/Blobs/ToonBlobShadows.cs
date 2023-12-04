@@ -150,9 +150,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _material.SetFloat(SaturationId, _blobShadowsSettings.Saturation);
             SetupBlending();
 
-            foreach ((ToonBlobShadowsManager manager, NativeList<int> indices) in _culling.VisibleRenderers)
+            foreach ((ToonBlobShadowsManager manager, ToonBlobShadowType type, NativeList<int> indices) in _culling
+                         .VisibleGroups)
             {
-                _batching.Batch(manager, indices);
+                _batching.Batch(manager, type, indices);
             }
 
             _batching.FillGapsInBatches();

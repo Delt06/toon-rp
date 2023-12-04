@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -8,43 +10,66 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
-        public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
-        public readonly List<ToonBlobShadowRenderer> Renderers = new();
-
-        public NativeArray<ToonBlobShadowsRendererData> Data;
-
-        public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) Data.GetUnsafePtr();
+        private Group[] _groups;
 
         private void Awake()
         {
-            Data = new NativeArray<ToonBlobShadowsRendererData>(16, Allocator.Persistent,
-                NativeArrayOptions.UninitializedMemory
-            );
+            _groups = new Group[ToonBlobShadowTypes.Count];
+
+            for (int i = 0; i < _groups.Length; i++)
+            {
+                _groups[i] = new Group();
+            }
         }
 
         private void OnDestroy()
         {
-            Renderers.Clear();
-            DynamicRenderers.Clear();
-            Data.Dispose();
+            foreach (Group group in _groups)
+            {
+                group?.Dispose();
+            }
+
+            _groups = null;
+
             ToonBlobShadowsManagers.OnDestroyed(this);
         }
 
-        public void ForceUpdateStaticStatus(ToonBlobShadowRenderer r)
-        {
-            DynamicRenderers.FastRemoveByValue(r);
-            UpdateStaticStatus(r);
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Group GetGroup(ToonBlobShadowType type) => _groups[(int) type];
 
-        public void UpdateStaticStatus(ToonBlobShadowRenderer r)
+        public class Group : IDisposable
         {
-            if (r.IsStatic)
+            public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
+            public readonly List<ToonBlobShadowRenderer> Renderers = new();
+
+            public NativeArray<ToonBlobShadowsRendererData> Data = new(16, Allocator.Persistent,
+                NativeArrayOptions.UninitializedMemory
+            );
+
+            public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) Data.GetUnsafePtr();
+
+            public void Dispose()
             {
-                DynamicRenderers.FastRemoveByValue(r);
+                Renderers.Clear();
+                DynamicRenderers.Clear();
+                Data.Dispose();
             }
-            else
+
+            public void ExpandData()
             {
-                DynamicRenderers.Add(r);
+                ExpandArray(ref Data);
+            }
+
+            private static void ExpandArray<T>(ref NativeArray<T> array) where T : struct
+            {
+                var newArray = new NativeArray<T>(array.Length * 2, Allocator.Persistent,
+                    NativeArrayOptions.UninitializedMemory
+                );
+                UnsafeUtility.MemCpy(newArray.GetUnsafePtr(), array.GetUnsafePtr(),
+                    UnsafeUtility.SizeOf<T>() * array.Length
+                );
+                array.Dispose();
+                array = newArray;
             }
         }
     }

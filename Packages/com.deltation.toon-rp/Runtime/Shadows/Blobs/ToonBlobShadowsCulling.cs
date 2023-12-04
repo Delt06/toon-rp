@@ -25,35 +25,46 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly ProfilerMarker Marker = new("BlobShadows.Cull");
         private static readonly ProfilerMarker UpdateRendererDataMarker = new("BlobShadows.UpdateRendererData");
 
-        public List<(ToonBlobShadowsManager manager, NativeList<int> indices)> VisibleRenderers { get; } = new();
+        public List<(ToonBlobShadowsManager manager, ToonBlobShadowType shadowType, NativeList<int> indices)>
+            VisibleGroups { get; } = new();
 
         public void Cull(List<ToonBlobShadowsManager> managers, in Bounds2D receiverBounds)
         {
             using ProfilerMarker.AutoScope profilerScope = Marker.Auto();
 
-            VisibleRenderers.Clear();
+            VisibleGroups.Clear();
 
             foreach (ToonBlobShadowsManager manager in managers)
             {
-                CullRenderers(manager, receiverBounds);
+                for (int typeIndex = 0; typeIndex < ToonBlobShadowTypes.Count; typeIndex++)
+                {
+                    CullRenderers(manager, (ToonBlobShadowType) typeIndex, receiverBounds);
+                }
             }
         }
 
         public void Clear()
         {
-            foreach ((ToonBlobShadowsManager _, NativeList<int> indices) in VisibleRenderers)
+            foreach ((ToonBlobShadowsManager _, ToonBlobShadowType _, NativeList<int> indices) in VisibleGroups)
             {
                 indices.Dispose();
             }
 
-            VisibleRenderers.Clear();
+            VisibleGroups.Clear();
         }
 
-        private void CullRenderers(ToonBlobShadowsManager manager, in Bounds2D receiverBounds)
+        private void CullRenderers(ToonBlobShadowsManager manager, ToonBlobShadowType shadowType,
+            in Bounds2D receiverBounds)
         {
+            ToonBlobShadowsManager.Group group = manager.GetGroup(shadowType);
+            if (group.Renderers.Count == 0)
+            {
+                return;
+            }
+
             using (UpdateRendererDataMarker.Auto())
             {
-                foreach (ToonBlobShadowRenderer dynamicRenderer in manager.DynamicRenderers)
+                foreach (ToonBlobShadowRenderer dynamicRenderer in group.DynamicRenderers)
                 {
                     if (dynamicRenderer == null)
                     {
@@ -64,12 +75,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
             }
 
-            int maxRenderers = manager.Renderers.Count;
+            int maxRenderers = group.Renderers.Count;
             var indices = new NativeList<int>(maxRenderers, Allocator.TempJob);
 
             new ToonBlobShadowsCullingJob
                 {
-                    Data = manager.Data,
+                    Data = group.Data,
                     ReceiverBounds = receiverBounds,
                 }
                 .ScheduleAppend(indices, maxRenderers)
@@ -77,7 +88,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (indices.Length > 0)
             {
-                VisibleRenderers.Add((manager, indices));
+                VisibleGroups.Add((manager, shadowType, indices));
             }
             else
             {

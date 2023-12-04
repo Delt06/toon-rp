@@ -28,14 +28,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public BatchSet GetBatches(ToonBlobShadowType type) => _batches[(int) type];
 
-        public void Batch(ToonBlobShadowsManager manager, NativeList<int> visibleIndices)
+        public void Batch(ToonBlobShadowsManager manager, ToonBlobShadowType shadowType, NativeList<int> visibleIndices)
         {
             using ProfilerMarker.AutoScope scope = Marker.Auto();
 
+            ToonBlobShadowsManager.Group group = manager.GetGroup(shadowType);
+
             foreach (int index in visibleIndices)
             {
-                ref readonly ToonBlobShadowsRendererData rendererData = ref manager.Renderers[index].GetRendererData();
-                ref BatchData batchData = ref FindOrAllocateBatch(rendererData.ShadowType);
+                ref readonly ToonBlobShadowsRendererData rendererData = ref group.Renderers[index].GetRendererData();
+                ref BatchData batchData = ref FindOrAllocateBatch(shadowType);
 
                 using (AddItemToBatchMarker.Auto())
                 {

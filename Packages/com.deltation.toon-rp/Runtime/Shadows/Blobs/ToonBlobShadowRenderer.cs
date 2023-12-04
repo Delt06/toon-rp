@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using DELTation.ToonRP.Attributes;
 using Unity.Mathematics;
 using UnityEngine;
@@ -33,6 +34,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private ToonBlobShadowsManager _manager;
         private bool _paramsDirty = true;
         private Transform _transform;
+
+        internal ToonBlobShadowType AssignedGroupShadowType { get; private set; } =
+            (ToonBlobShadowType) ToonBlobShadowTypes.Count;
 
         public float HalfSize
         {
@@ -82,10 +86,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
 
                 _isStatic = value;
-                if (_manager != null)
-                {
-                    _manager.UpdateStaticStatus(this);
-                }
+                ReRegister();
             }
         }
 
@@ -107,25 +108,43 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private void OnValidate()
         {
             MarkParamsDirty();
-            if (_manager != null)
+            ReRegister();
+        }
+
+        private void ReRegister()
+        {
+            if (_manager != null && isActiveAndEnabled)
             {
-                _manager.ForceUpdateStaticStatus(this);
+                ToonBlobShadowsManagers.OnRendererDisabled(this);
+                ToonBlobShadowsManagers.OnRendererEnabled(this);
             }
         }
 
-        public void Init(ToonBlobShadowsManager manager, int index)
+        public void AssignToManager(ToonBlobShadowsManager manager, int index)
         {
             _manager = manager;
+            AssignedGroupShadowType = _shadowType;
             Index = index;
-            RecomputeRendererData(ref _manager.DataPtr[Index], true);
+            RecomputeRendererData(ref GetRendererDataImpl(), true);
+        }
+
+        public void UnassignFromManager()
+        {
+            _manager = null;
+            AssignedGroupShadowType = (ToonBlobShadowType) ToonBlobShadowTypes.Count;
+            Index = -1;
         }
 
         public ref readonly ToonBlobShadowsRendererData GetRendererData()
         {
-            ref ToonBlobShadowsRendererData rendererData = ref _manager.DataPtr[Index];
+            ref ToonBlobShadowsRendererData rendererData = ref GetRendererDataImpl();
             RecomputeRendererData(ref rendererData);
             return ref rendererData;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ref ToonBlobShadowsRendererData GetRendererDataImpl() =>
+            ref _manager.GetGroup(_shadowType).DataPtr[Index];
 
         public void Shutdown()
         {

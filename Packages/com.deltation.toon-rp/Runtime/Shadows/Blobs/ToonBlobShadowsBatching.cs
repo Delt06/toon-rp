@@ -7,7 +7,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 {
     public unsafe class ToonBlobShadowsBatching
     {
-        private const int MaxBatchSize = 512;
+        private const int MaxBatchSize = 256;
         private static readonly ProfilerMarker Marker = new("BlobShadows.Batch");
         private static readonly ProfilerMarker FindBatchMarker = new("BlobShadows.FindBatch");
 

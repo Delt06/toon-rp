@@ -31,6 +31,9 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
         public Texture2D[] SourceTextures;
 
         public bool GenerateMipMaps = true;
+        public FilterMode FilterMode = FilterMode.Bilinear;
+        [Range(0, 16)]
+        public int AnisoLevel;
 
         [ToonRpHeader("Compression")]
         public bool Compressed = true;
@@ -98,6 +101,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             {
                 wrapMode = TextureWrapMode.Clamp,
                 name = Path.GetFileNameWithoutExtension(assetPath),
+                anisoLevel = AnisoLevel,
+                filterMode = FilterMode,
             };
             texture.SetPixels(baseTexture.GetPixels());
             bool makeNoLongerReadable = !Compressed;

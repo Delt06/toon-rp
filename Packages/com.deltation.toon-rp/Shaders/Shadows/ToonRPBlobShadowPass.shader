@@ -27,9 +27,14 @@
             float4 params;
         };
 
+        #define BATCH_SIZE 256
+        #define MAX_PACKED_DATA_SIZE (16 * 1024 / (16 * 2)) // 16k / sizeof(RendererPackedData)
+
         CBUFFER_START(_ToonRP_BlobShadows_PackedData)
-        RendererPackedData _PackedData[128];
+        RendererPackedData _PackedData[MAX_PACKED_DATA_SIZE];
         CBUFFER_END
+
+        float _ToonRP_BlobShadows_Indices[BATCH_SIZE];
 
 		CBUFFER_START(UnityPerMaterial)
 		float _Saturation;
@@ -49,7 +54,7 @@
         void GetVertexData(const uint vertexId, out float4 positionCs, out float2 centeredUv, out RendererPackedData packedData)
 		{
 		    const uint quadVertexId = vertexId % 4;
-		    const uint instanceId = vertexId / 4;
+		    const uint instanceId = asuint(_ToonRP_BlobShadows_Indices[vertexId / 4]);
 
 		    float2 positionOs;
 		    positionOs.x = quadVertexId % 3 == 0 ? -1 : 1;

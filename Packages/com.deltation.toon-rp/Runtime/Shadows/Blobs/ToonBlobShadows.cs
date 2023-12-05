@@ -32,6 +32,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static readonly int BakedTexturesAtlasTilingOffsetsId =
             Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets");
         private static readonly int PackedDataId = Shader.PropertyToID("_ToonRP_BlobShadows_PackedData");
+        private static readonly int IndicesId = Shader.PropertyToID("_ToonRP_BlobShadows_Indices");
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly ToonBlobShadowsCulling _culling = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -181,10 +182,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     {
                         ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
 
-                        int stride = UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
-                        cmd.SetGlobalConstantBuffer(batch.Group.ConstantBuffer, PackedDataId,
-                            batch.BaseIndex * stride, batch.Count * stride
+                        int packedDataStride = UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                        cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer, PackedDataId, 0,
+                            batch.Group.Renderers.Count * packedDataStride
                         );
+                        cmd.SetGlobalFloatArray(IndicesId, batch.Indices);
 
                         int shaderPass = (int) batchSet.ShadowType;
                         cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,

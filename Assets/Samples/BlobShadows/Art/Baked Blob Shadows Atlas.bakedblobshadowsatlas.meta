@@ -13,6 +13,8 @@ ScriptedImporter:
   SourceTextures:
   - {fileID: 7506314328700112305, guid: f9280a5dbebffcd4788a9f31dcc082f0, type: 3}
   - {fileID: 7506314328700112305, guid: bb6e3920e5558264dbb638cdf0f72a16, type: 3}
-  GenerateMipMaps: 0
+  GenerateMipMaps: 1
+  FilterMode: 2
+  AnisoLevel: 0
   Compressed: 0
   HighQualityCompression: 1

@@ -167,14 +167,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5837e0eceb904c2f9355b4976db75e60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BoundsX: {x: -20, y: 20}
-  BoundsZ: {x: -20, y: 20}
+  BoundsX: {x: -50, y: 50}
+  BoundsZ: {x: -50, y: 50}
   Prefabs:
   - {fileID: 7403736848951640445, guid: 7cd7999f943439f4db1139e5db506d28, type: 3}
   - {fileID: 5592314849559970926, guid: 66267bb20155785438c45c75cc66600f, type: 3}
   - {fileID: 6260300048165097113, guid: 8d9eca372e3c9b745b566a007a8bfb58, type: 3}
   - {fileID: 3040194983375915429, guid: 0be5d541baf7737479b4b4b0fa73376f, type: 3}
-  Count: 500
+  Count: 5000
   Seed: 0
   Static: 1
 --- !u!1 &897805541
@@ -372,7 +372,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4.5, y: 1, z: 4.5}
+  m_LocalScale: {x: 10, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -440,7 +440,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 14
+  orthographic size: 30
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

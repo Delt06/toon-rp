@@ -63,14 +63,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) Data.GetUnsafePtr();
             public RendererPackedData* PackedDataPtr => (RendererPackedData*) _packedData.GetUnsafePtr();
 
-            public GraphicsBuffer ConstantBuffer { get; private set; } = CreateConstantBuffer(StartSize);
+            public GraphicsBuffer PackedDataConstantBuffer { get; private set; } = CreateConstantBuffer(StartSize);
 
             public void Dispose()
             {
                 Renderers.Clear();
                 DynamicRenderers.Clear();
                 _packedData.Dispose();
-                ConstantBuffer.Release();
+                PackedDataConstantBuffer.Release();
                 Data.Dispose();
             }
 
@@ -94,8 +94,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 ExpandArray(ref _packedData);
 
                 GraphicsBuffer newGpuData = CreateConstantBuffer(Data.Length * 2);
-                ConstantBuffer.Release();
-                ConstantBuffer = newGpuData;
+                PackedDataConstantBuffer.Release();
+                PackedDataConstantBuffer = newGpuData;
 
                 MarkDataDirty();
             }
@@ -130,7 +130,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 if (_isDataDirty)
                 {
-                    ConstantBuffer.SetData(_packedData, 0, 0, Renderers.Count);
+                    PackedDataConstantBuffer.SetData(_packedData, 0, 0, Renderers.Count);
                     _isDataDirty = true;
                 }
             }

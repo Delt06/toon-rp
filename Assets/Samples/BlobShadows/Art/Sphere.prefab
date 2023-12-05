@@ -118,7 +118,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad3f3009b3244d0a8b1cb07701aca0b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _halfSize: 0.5
+  _isStatic: 0
+  _halfSize: 0.55
   _shadowType: 0
   _square:
     Width: 1
@@ -126,5 +127,5 @@ MonoBehaviour:
     CornerRadius: 0.25
     Rotation: 0
   _baked:
-    BakedShadowTexture: {fileID: 0}
+    TextureIndex: 0
     Rotation: 0

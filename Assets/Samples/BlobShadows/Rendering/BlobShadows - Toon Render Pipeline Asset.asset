@@ -56,10 +56,10 @@ MonoBehaviour:
     ForceStoreCameraDepth: 0
   ShadowSettings:
     Mode: 2
-    Threshold: 0.239
+    Threshold: 0.194
     CrispAntiAliased: 0
     Smoothness: 0.194
-    MaxDistance: 50
+    MaxDistance: 85
     DistanceFade: 0.1
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
@@ -89,7 +89,7 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 0
     Blobs:
-      AtlasSize: 256
+      AtlasSize: 512
       Mode: 0
       BakedShadowsAtlas: {fileID: 4231941026929228130, guid: ced13a40cc6876a45afead21eaa4bcf1, type: 3}
       Saturation: 1

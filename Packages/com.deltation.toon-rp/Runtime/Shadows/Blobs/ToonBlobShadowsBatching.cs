@@ -1,12 +1,13 @@
 ﻿using System;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    public class ToonBlobShadowsBatching
+    public unsafe class ToonBlobShadowsBatching
     {
-        private const int MaxBatchSize = 128;
+        private const int MaxBatchSize = 256;
         private static readonly ProfilerMarker Marker = new("BlobShadows.Batch");
         private static readonly ProfilerMarker FindBatchMarker = new("BlobShadows.FindBatch");
 
@@ -18,7 +19,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 ref BatchSet batchSet = ref _batches[i];
                 batchSet.ShadowType = (ToonBlobShadowType) i;
-                batchSet.Batches ??= new BatchData[16];
+                batchSet.Batches = new[]
+                {
+                    BatchData.Create(),
+                };
             }
         }
 
@@ -31,7 +35,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             ToonBlobShadowsManager.Group group = manager.GetGroup(shadowType);
 
             int left = 0;
-            int right = group.Renderers.Count;
+            int right = visibleIndices.Length;
 
             while (left < right)
             {
@@ -41,12 +45,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     count = MaxBatchSize;
                 }
 
-                CreateBatch(group, shadowType, left, count);
+                ref readonly BatchData batchData = ref CreateBatch(group, shadowType, left, count);
+
+                // Copy a piece of visible indices array to the batch 
+                fixed (float* batchIndicesPtr = batchData.Indices)
+                {
+                    UnsafeUtility.MemCpy(batchIndicesPtr, visibleIndices.GetUnsafePtr() + left, count * sizeof(int));
+                }
+
                 left += count;
             }
         }
 
-        private void CreateBatch(ToonBlobShadowsManager.Group group, ToonBlobShadowType type, int baseIndex, int count)
+        private ref readonly BatchData CreateBatch(ToonBlobShadowsManager.Group group, ToonBlobShadowType type,
+            int baseIndex, int count)
         {
             using ProfilerMarker.AutoScope autoScope = FindBatchMarker.Auto();
 
@@ -58,10 +70,18 @@ namespace DELTation.ToonRP.Shadows.Blobs
             if (index >= batchSet.Batches.Length)
             {
                 ExpandArray(ref batchSet.Batches);
+
+                for (int i = index; i < batchSet.Batches.Length; i++)
+                {
+                    batchSet.Batches[i] = BatchData.Create();
+                }
             }
 
             ref BatchData newBatchData = ref batchSet.Batches[index];
-            newBatchData = new BatchData(group, baseIndex, count);
+            newBatchData.Group = group;
+            newBatchData.BaseIndex = baseIndex;
+            newBatchData.Count = count;
+            return ref newBatchData;
         }
 
         private static void ExpandArray<T>(ref T[] array)
@@ -75,13 +95,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             for (int i = 0; i < _batches.Length; i++)
             {
                 ref BatchSet batchSet = ref _batches[i];
-
-                for (int j = 0; j < batchSet.BatchCount; j++)
-                {
-                    ref BatchData batchData = ref batchSet.Batches[j];
-                    batchData = default;
-                }
-
                 batchSet.BatchCount = 0;
             }
         }
@@ -93,18 +106,24 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public BatchData[] Batches;
         }
 
-        public readonly struct BatchData
+        public struct BatchData
         {
-            public readonly ToonBlobShadowsManager.Group Group;
-            public readonly int BaseIndex;
-            public readonly int Count;
+            // Using floats instead of ints since Unity does not have cmd.SetGlobalIntArray
+            public readonly float[] Indices;
 
-            public BatchData(ToonBlobShadowsManager.Group group, int baseIndex, int count)
+            public ToonBlobShadowsManager.Group Group;
+            public int BaseIndex;
+            public int Count;
+
+            private BatchData(float[] indices)
             {
-                Group = group;
-                BaseIndex = baseIndex;
-                Count = count;
+                Indices = indices;
+                Group = default;
+                BaseIndex = default;
+                Count = default;
             }
+
+            public static BatchData Create() => new(new float[MaxBatchSize]);
         }
     }
 }

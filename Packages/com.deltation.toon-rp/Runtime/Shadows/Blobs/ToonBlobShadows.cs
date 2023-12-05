@@ -178,20 +178,29 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     ToonBlobShadowsBatching.BatchSet batchSet =
                         _batching.GetBatches((ToonBlobShadowType) shadowTypeIndex);
 
-                    for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
+                    if (batchSet.BatchCount > 0)
                     {
-                        ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
+                        using (new ProfilingScope(cmd,
+                                   NamedProfilingSampler.Get(ToonBlobShadowTypes.Names[shadowTypeIndex])
+                               ))
+                        {
+                            for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
+                            {
+                                ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
 
-                        int packedDataStride = UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
-                        cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer, PackedDataId, 0,
-                            batch.Group.Renderers.Count * packedDataStride
-                        );
-                        cmd.SetGlobalFloatArray(IndicesId, batch.Indices);
+                                int packedDataStride =
+                                    UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                                cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer, PackedDataId, 0,
+                                    batch.Group.Renderers.Count * packedDataStride
+                                );
+                                cmd.SetGlobalFloatArray(IndicesId, batch.Indices);
 
-                        int shaderPass = (int) batchSet.ShadowType;
-                        cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
-                            4 * batch.Count
-                        );
+                                int shaderPass = (int) batchSet.ShadowType;
+                                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
+                                    4 * batch.Count
+                                );
+                            }
+                        }
                     }
                 }
             }

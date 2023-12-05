@@ -70,13 +70,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
             int maxRenderers = group.Renderers.Count;
             var indices = new NativeList<int>(maxRenderers, Allocator.TempJob);
 
-            new ToonBlobShadowsCullingJob
-                {
-                    Data = group.Data,
-                    ReceiverBounds = receiverBounds,
-                }
-                .ScheduleAppend(indices, maxRenderers)
-                .Complete();
+            var cullingJob = new ToonBlobShadowsCullingJob
+            {
+                Data = group.Data,
+                ReceiverBounds = receiverBounds,
+            };
+            cullingJob.RunAppendByRef(indices, maxRenderers);
 
             if (indices.Length > 0)
             {

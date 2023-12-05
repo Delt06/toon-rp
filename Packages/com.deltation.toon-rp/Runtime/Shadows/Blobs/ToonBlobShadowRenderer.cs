@@ -167,12 +167,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private ref ToonBlobShadowsRendererData GetRendererDataImpl() =>
             ref _manager.GetGroup(_shadowType).DataPtr[Index];
 
-        public void Shutdown()
-        {
-            _manager = null;
-            Index = -1;
-        }
-
         private static float PackRotation(in Quaternion transformRotation, float paramsRotation) =>
             (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f % 1.0f;
 

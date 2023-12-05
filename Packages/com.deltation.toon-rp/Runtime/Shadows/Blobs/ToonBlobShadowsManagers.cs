@@ -93,12 +93,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
             else
             {
                 // Swap with the last renderer and remove
-                ToonBlobShadowRenderer lastRenderer = group.Renderers[^1];
+                ToonBlobShadowRenderer lastRenderer = group.Renderers[lastIndex];
                 group.Renderers[renderer.Index] = lastRenderer;
                 group.Renderers.RemoveAt(lastIndex);
                 lastRenderer.Index = renderer.Index;
-                renderer.Shutdown();
 
+                lastRenderer.MarkAllDirty();
+                lastRenderer.UpdateRendererData(out bool _);
                 group.MarkDataDirty();
             }
 

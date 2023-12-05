@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
@@ -30,8 +31,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas");
         private static readonly int BakedTexturesAtlasTilingOffsetsId =
             Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets");
-        private static readonly int PositionsId = Shader.PropertyToID("_ToonRP_BlobShadows_Positions");
-        private static readonly int ParamsId = Shader.PropertyToID("_ToonRP_BlobShadows_Params");
+        private static readonly int PackedDataId = Shader.PropertyToID("_ToonRP_BlobShadows_PackedData");
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly ToonBlobShadowsCulling _culling = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -156,8 +156,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 _batching.Batch(manager, type, indices);
             }
 
-            _batching.FillGapsInBatches();
-
             using (DrawBatchesMarker.Auto())
             {
                 ToonBlobShadowsAtlas atlas = _settings.Blobs.BakedShadowsAtlas;
@@ -183,8 +181,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     {
                         ref readonly ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
 
-                        cmd.SetGlobalVectorArray(PositionsId, batch.Positions);
-                        cmd.SetGlobalVectorArray(ParamsId, batch.Params);
+                        int stride = UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                        cmd.SetGlobalConstantBuffer(batch.Group.ConstantBuffer, PackedDataId,
+                            batch.BaseIndex * stride, batch.Count * stride
+                        );
 
                         int shaderPass = (int) batchSet.ShadowType;
                         cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,

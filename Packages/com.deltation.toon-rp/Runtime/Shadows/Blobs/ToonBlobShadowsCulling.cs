@@ -64,15 +64,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             using (UpdateRendererDataMarker.Auto())
             {
-                foreach (ToonBlobShadowRenderer dynamicRenderer in group.DynamicRenderers)
-                {
-                    if (dynamicRenderer == null)
-                    {
-                        continue;
-                    }
-
-                    dynamicRenderer.GetRendererData();
-                }
+                group.UpdateRendererData();
             }
 
             int maxRenderers = group.Renderers.Count;

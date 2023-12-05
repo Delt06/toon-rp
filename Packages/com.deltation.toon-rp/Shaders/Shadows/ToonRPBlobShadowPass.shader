@@ -21,8 +21,15 @@
         #include "../../ShaderLibrary/Common.hlsl"
         #include "../../ShaderLibrary/BlobShadows.hlsl"
 
-        float4 _ToonRP_BlobShadows_Positions[128];
-        float4 _ToonRP_BlobShadows_Params[128];
+        struct RendererPackedData
+        {
+            float4 positionSize;
+            float4 params;
+        };
+
+        CBUFFER_START(_ToonRP_BlobShadows_PackedData)
+        RendererPackedData _PackedData[128];
+        CBUFFER_END
 
 		CBUFFER_START(UnityPerMaterial)
 		float _Saturation;
@@ -39,25 +46,21 @@
 		    return positionCs;
 		}
 
-        void GetVertexData(const uint vertexId, out float4 positionCs, out float2 centeredUv, out uint instanceId)
+        void GetVertexData(const uint vertexId, out float4 positionCs, out float2 centeredUv, out RendererPackedData packedData)
 		{
 		    const uint quadVertexId = vertexId % 4;
-		    instanceId = vertexId / 4;
+		    const uint instanceId = vertexId / 4;
 
 		    float2 positionOs;
 		    positionOs.x = quadVertexId % 3 == 0 ? -1 : 1;
 		    positionOs.y = quadVertexId < 2 ? 1 : -1;
 		    centeredUv = positionOs;
-		    
-		    const float4 positionHalfSize = _ToonRP_BlobShadows_Positions[instanceId];
+
+		    packedData = _PackedData[instanceId];
+		    const float4 positionHalfSize = packedData.positionSize;
 		    const float2 positionWs = positionOs * positionHalfSize.zw + positionHalfSize.xy;
 		    const float2 screenUv = ComputeBlobShadowCoords(float3(positionWs.x, 0, positionWs.y));
 		    positionCs = ScreenUvToHClip(screenUv);
-		}
-        
-        float4 GetParams(const uint instanceId)
-		{
-		    return _ToonRP_BlobShadows_Params[instanceId];
 		}
 
         float UnpackRotation(const float packedRotation)
@@ -98,8 +101,8 @@
             {
                 v2f OUT;
                 
-                uint instanceId;
-                GetVertexData(vertexId, OUT.positionCs, OUT.centeredUv, instanceId);
+                RendererPackedData packedData;
+                GetVertexData(vertexId, OUT.positionCs, OUT.centeredUv, packedData);
                 
                 return OUT;
             }
@@ -132,14 +135,13 @@
             {
                 v2f OUT;
                 
-                uint instanceId;
+                RendererPackedData packedData;
                 float2 centeredUv;
-                GetVertexData(vertexId, OUT.positionCs, centeredUv, instanceId);
+                GetVertexData(vertexId, OUT.positionCs, centeredUv, packedData);
 
-                const float4 params = _ToonRP_BlobShadows_Params[instanceId];
-                OUT.params = params.xyz;
+                OUT.params = packedData.params.xyz;
                 
-                const float rotationRad = UnpackRotation(params.w);
+                const float rotationRad = UnpackRotation(packedData.params.w);
                 OUT.centeredUv = Rotate(centeredUv, rotationRad);
 
                 return OUT;
@@ -185,15 +187,14 @@
             {
                 v2f OUT;
                 
-                uint instanceId;
                 float2 centeredUv;
-                GetVertexData(vertexId, OUT.positionCs, centeredUv, instanceId);
+                RendererPackedData packedData;
+                GetVertexData(vertexId, OUT.positionCs, centeredUv, packedData);
 
-                const float4 params = _ToonRP_BlobShadows_Params[instanceId];
-                const float rotationRad = UnpackRotation(params.w);
+                const float rotationRad = UnpackRotation(packedData.params.w);
                 centeredUv = Rotate(centeredUv, rotationRad);
 
-                float4 tilingOffset = _ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets[(uint) params.x];
+                float4 tilingOffset = _ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets[(uint) packedData.params.x];
                 OUT.uv = (centeredUv * 0.5f + 0.5f) * tilingOffset.xy + tilingOffset.zw;
 
                 return OUT;

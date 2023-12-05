@@ -125,7 +125,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             _manager = manager;
             AssignedGroupShadowType = _shadowType;
             Index = index;
-            RecomputeRendererData(ref GetRendererDataImpl(), true);
+
+            ref ToonBlobShadowsRendererData rendererData = ref GetRendererDataImpl();
+            RecomputeRendererData(ref rendererData, out bool _, true);
+            UpdatePackedData(rendererData);
         }
 
         public void UnassignFromManager()
@@ -135,12 +138,30 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Index = -1;
         }
 
-        public ref readonly ToonBlobShadowsRendererData GetRendererData()
+        public void UpdateRendererData(out bool changed)
         {
             ref ToonBlobShadowsRendererData rendererData = ref GetRendererDataImpl();
-            RecomputeRendererData(ref rendererData);
-            return ref rendererData;
+            RecomputeRendererData(ref rendererData, out changed);
+
+            if (changed)
+            {
+                UpdatePackedData(rendererData);
+            }
         }
+
+        private void UpdatePackedData(in ToonBlobShadowsRendererData rendererData)
+        {
+            ref ToonBlobShadowsManager.RendererPackedData packedData =
+                ref _manager.GetGroup(_shadowType).PackedDataPtr[Index];
+            packedData.PositionSize = new float4(
+                rendererData.Position.x, rendererData.Position.y,
+                rendererData.HalfSize, rendererData.HalfSize
+            );
+            packedData.Params = rendererData.Params;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref readonly ToonBlobShadowsRendererData GetRendererData() => ref GetRendererDataImpl();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref ToonBlobShadowsRendererData GetRendererDataImpl() =>
@@ -155,8 +176,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private static float PackRotation(in Quaternion transformRotation, float paramsRotation) =>
             (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f % 1.0f;
 
-        private void RecomputeRendererData(ref ToonBlobShadowsRendererData rendererData, bool forceRecompute = false)
+        private void RecomputeRendererData(ref ToonBlobShadowsRendererData rendererData, out bool changed,
+            bool forceRecompute = false)
         {
+            changed = false;
+
             if (_isStatic && !forceRecompute && !_allDirty)
             {
                 return;
@@ -168,18 +192,21 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 Vector3 transformPosition = _transform.position;
                 rendererData.Position = new float2(transformPosition.x, transformPosition.z);
+                changed = true;
             }
 
             if (forceRecompute || _allDirty || _paramsDirty)
             {
                 rendererData.HalfSize = _halfSize;
                 rendererData.ShadowType = ShadowType;
+                changed = true;
             }
 
             if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
             {
                 rendererData.Params = Params;
                 rendererData.Bounds = Bounds2D.FromCenterExtents(rendererData.Position, _halfSize);
+                changed = true;
             }
 
             _paramsDirty = false;

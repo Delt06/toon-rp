@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -37,27 +38,66 @@ namespace DELTation.ToonRP.Shadows.Blobs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Group GetGroup(ToonBlobShadowType type) => _groups[(int) type];
 
+        public struct RendererPackedData
+        {
+            public float4 PositionSize;
+            public float4 Params;
+        }
+
         public class Group : IDisposable
         {
+            private const int StartSize = 128;
+
             public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
             public readonly List<ToonBlobShadowRenderer> Renderers = new();
 
-            public NativeArray<ToonBlobShadowsRendererData> Data = new(16, Allocator.Persistent,
+            private bool _isDataDirty = true;
+            private NativeArray<RendererPackedData> _packedData = new(StartSize,
+                Allocator.Persistent, NativeArrayOptions.UninitializedMemory
+            );
+
+            public NativeArray<ToonBlobShadowsRendererData> Data = new(StartSize, Allocator.Persistent,
                 NativeArrayOptions.UninitializedMemory
             );
 
             public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) Data.GetUnsafePtr();
+            public RendererPackedData* PackedDataPtr => (RendererPackedData*) _packedData.GetUnsafePtr();
+
+            public GraphicsBuffer ConstantBuffer { get; private set; } = CreateConstantBuffer(StartSize);
 
             public void Dispose()
             {
                 Renderers.Clear();
                 DynamicRenderers.Clear();
+                _packedData.Dispose();
+                ConstantBuffer.Release();
                 Data.Dispose();
+            }
+
+            private static GraphicsBuffer CreateConstantBuffer(int size)
+            {
+                int stride = UnsafeUtility.SizeOf<float4>();
+                return new GraphicsBuffer(GraphicsBuffer.Target.Constant,
+                    size * UnsafeUtility.SizeOf<RendererPackedData>() / stride
+                    , stride
+                );
+            }
+
+            public void MarkDataDirty()
+            {
+                _isDataDirty = true;
             }
 
             public void ExpandData()
             {
                 ExpandArray(ref Data);
+                ExpandArray(ref _packedData);
+
+                GraphicsBuffer newGpuData = CreateConstantBuffer(Data.Length * 2);
+                ConstantBuffer.Release();
+                ConstantBuffer = newGpuData;
+
+                MarkDataDirty();
             }
 
             private static void ExpandArray<T>(ref NativeArray<T> array) where T : struct
@@ -70,6 +110,29 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 );
                 array.Dispose();
                 array = newArray;
+            }
+
+            public void UpdateRendererData()
+            {
+                foreach (ToonBlobShadowRenderer dynamicRenderer in DynamicRenderers)
+                {
+                    if (dynamicRenderer == null)
+                    {
+                        continue;
+                    }
+
+                    dynamicRenderer.UpdateRendererData(out bool changed);
+                    if (changed)
+                    {
+                        _isDataDirty = true;
+                    }
+                }
+
+                if (_isDataDirty)
+                {
+                    ConstantBuffer.SetData(_packedData, 0, 0, Renderers.Count);
+                    _isDataDirty = true;
+                }
             }
         }
     }

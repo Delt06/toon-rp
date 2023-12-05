@@ -1,5 +1,4 @@
 ﻿using Unity.Mathematics;
-using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -9,6 +8,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public float HalfSize;
         public Bounds2D Bounds;
         public ToonBlobShadowType ShadowType;
-        public Vector4 Params;
+        public float4 Params;
     }
 }

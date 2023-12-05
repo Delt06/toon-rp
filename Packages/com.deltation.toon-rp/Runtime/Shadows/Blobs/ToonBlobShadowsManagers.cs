@@ -69,6 +69,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 group.DynamicRenderers.Add(renderer);
             }
+
+            group.MarkDataDirty();
         }
 
         public static void OnRendererDisabled(ToonBlobShadowRenderer renderer)
@@ -97,8 +99,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 lastRenderer.Index = renderer.Index;
                 renderer.Shutdown();
 
-                // Copy the moved renderer's data to the new index
-                group.Data[lastRenderer.Index] = group.Data[lastIndex];
+                group.MarkDataDirty();
             }
 
             group.DynamicRenderers.FastRemoveByValue(renderer);

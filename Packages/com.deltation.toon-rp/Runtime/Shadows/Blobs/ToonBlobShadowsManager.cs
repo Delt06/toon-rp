@@ -28,7 +28,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public void EnsureInitialized()
         {
-            if (AllGroups.Length == 0)
+            if (!IsDestroyed && AllGroups.Length == 0)
             {
                 AllGroups = new Group[ToonBlobShadowTypes.Count];
 
@@ -50,7 +50,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             foreach (Group group in AllGroups)
             {
-                group?.Dispose();
+                if (group == null)
+                {
+                    continue;
+                }
+
+                foreach (ToonBlobShadowRenderer r in group.Renderers)
+                {
+                    if (r != null)
+                    {
+                        r.UnassignFromManager();
+                    }
+                }
+
+                group.Dispose();
             }
 
             AllGroups = Array.Empty<Group>();
@@ -60,6 +73,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Group GetGroup(ToonBlobShadowType type) => AllGroups[(int) type];
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetGroup(ToonBlobShadowType type, out Group group)
+        {
+            int typeIndex = (int) type;
+            if (typeIndex < AllGroups.Length)
+            {
+                group = AllGroups[typeIndex];
+                return true;
+            }
+
+            group = default;
+            return false;
+        }
 
         [SuppressMessage("ReSharper", "NotAccessedField.Global")]
         public struct RendererPackedData

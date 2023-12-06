@@ -40,9 +40,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     hideFlags = HideFlags.NotEditable | HideFlags.DontSave | HideFlags.HideInHierarchy,
                 };
                 Managers[scene] = manager = gameObject.AddComponent<ToonBlobShadowsManager>();
-                manager.EnsureInitialized();
 
                 SceneManager.MoveGameObjectToScene(gameObject, scene);
+            }
+
+            if (manager != null)
+            {
+                manager.EnsureInitialized();
             }
 
             return manager != null && !manager.IsDestroyed;
@@ -84,29 +88,31 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 return;
             }
 
-            Group group = manager.GetGroup(renderer.AssignedGroupShadowType);
-
-            Assert.IsTrue(0 <= renderer.Index && renderer.Index < group.Renderers.Count);
-
-            int lastIndex = group.Renderers.Count - 1;
-            if (renderer.Index == lastIndex)
+            if (manager.TryGetGroup(renderer.AssignedGroupShadowType, out Group group))
             {
-                group.Renderers.RemoveAt(renderer.Index);
-            }
-            else
-            {
-                // Swap with the last renderer and remove
-                ToonBlobShadowRenderer lastRenderer = group.Renderers[lastIndex];
-                group.Renderers[renderer.Index] = lastRenderer;
-                group.Renderers.RemoveAt(lastIndex);
-                lastRenderer.Index = renderer.Index;
+                Assert.IsTrue(0 <= renderer.Index && renderer.Index < group.Renderers.Count);
 
-                lastRenderer.MarkAllDirty();
-                lastRenderer.UpdateRendererData(out bool _);
-                group.MarkDataDirty();
+                int lastIndex = group.Renderers.Count - 1;
+                if (renderer.Index == lastIndex)
+                {
+                    group.Renderers.RemoveAt(renderer.Index);
+                }
+                else
+                {
+                    // Swap with the last renderer and remove
+                    ToonBlobShadowRenderer lastRenderer = group.Renderers[lastIndex];
+                    group.Renderers[renderer.Index] = lastRenderer;
+                    group.Renderers.RemoveAt(lastIndex);
+                    lastRenderer.Index = renderer.Index;
+
+                    lastRenderer.MarkAllDirty();
+                    lastRenderer.UpdateRendererData(out bool _);
+                    group.MarkDataDirty();
+                }
+
+                group.DynamicRenderers.FastRemoveByValue(renderer);
             }
 
-            group.DynamicRenderers.FastRemoveByValue(renderer);
             renderer.UnassignFromManager();
         }
 
@@ -125,18 +131,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
 #if UNITY_EDITOR
         static ToonBlobShadowsManagers()
         {
-            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
-            EditorApplication.playModeStateChanged += PlayModeStateChanged;
+            AssemblyReloadEvents.beforeAssemblyReload -= BeforeAssemblyReload;
+            AssemblyReloadEvents.beforeAssemblyReload += BeforeAssemblyReload;
         }
 
-        private static void PlayModeStateChanged(PlayModeStateChange change)
+        private static void BeforeAssemblyReload()
         {
-            if (change == PlayModeStateChange.ExitingPlayMode)
+            foreach (ToonBlobShadowsManager shadowsManager in All.ToArray())
             {
-                foreach (ToonBlobShadowsManager shadowsManager in All.ToArray())
-                {
-                    shadowsManager.Destroy();
-                }
+                shadowsManager.Destroy();
             }
         }
 #endif // UNITY_EDITOR

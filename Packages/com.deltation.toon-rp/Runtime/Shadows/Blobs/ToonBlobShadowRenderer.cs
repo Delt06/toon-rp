@@ -151,8 +151,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void UpdatePackedData(in ToonBlobShadowsRendererData rendererData)
         {
+            if (!_manager.TryGetGroup(_shadowType, out ToonBlobShadowsManager.Group group))
+            {
+                return;
+            }
+
             ref ToonBlobShadowsManager.RendererPackedData packedData =
-                ref _manager.GetGroup(_shadowType).PackedDataPtr[Index];
+                ref group.PackedDataPtr[Index];
             packedData.PositionSize = new float4(
                 rendererData.Position.x, rendererData.Position.y,
                 rendererData.HalfSize, rendererData.HalfSize

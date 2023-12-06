@@ -2,11 +2,11 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using static DELTation.ToonRP.Shadows.ToonVsmShadowSettings;
+using static DELTation.ToonRP.Shadows.ToonShadowMapsSettings;
 
 namespace DELTation.ToonRP.Shadows
 {
-    public class ToonVsmShadows
+    public class ToonShadowMaps
     {
         private const string RenderShadowsSample = "Render Shadows";
         private const string BlurSample = "Blur";
@@ -89,9 +89,9 @@ namespace DELTation.ToonRP.Shadows
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
 
-        private ToonVsmShadowSettings _vsmSettings;
+        private ToonShadowMapsSettings _shadowMapsSettings;
 
-        static ToonVsmShadows()
+        static ToonShadowMaps()
         {
             CascadeProfilingNames = new string[MaxCascades];
 
@@ -101,7 +101,7 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
-        public ToonVsmShadows()
+        public ToonShadowMaps()
         {
             _blurShader = Shader.Find(BlurShaderName);
             _blurMaterial = ToonRpUtils.CreateEngineMaterial(_blurShader, "Toon RP VSM Blur");
@@ -113,7 +113,7 @@ namespace DELTation.ToonRP.Shadows
         {
             get
             {
-                string passName = _vsmSettings.Blur == BlurMode.None
+                string passName = _shadowMapsSettings.Blur == BlurMode.None
                     ? ToonRpPassId.Shadows
                     : ToonRpPassId.VsmShadows;
                 return passName;
@@ -127,7 +127,7 @@ namespace DELTation.ToonRP.Shadows
             _context = context;
             _cullingResults = cullingResults;
             _settings = settings;
-            _vsmSettings = settings.Vsm;
+            _shadowMapsSettings = settings.ShadowMaps;
             _shadowedDirectionalLightCount = 0;
         }
 
@@ -151,36 +151,36 @@ namespace DELTation.ToonRP.Shadows
             CommandBuffer cmd = CommandBufferPool.Get();
 
             (GraphicsFormat _, int depthBits) =
-                ToonShadowMapFormatUtils.GetSupportedShadowMapFormat(_vsmSettings.GetShadowMapDepthBits());
+                ToonShadowMapFormatUtils.GetSupportedShadowMapFormat(_shadowMapsSettings.GetShadowMapDepthBits());
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(PassName)))
             {
-                if (_vsmSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
+                if (_shadowMapsSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
                 {
-                    bool useCascades = _vsmSettings.Directional.CascadeCount > 1;
+                    bool useCascades = _shadowMapsSettings.Directional.CascadeCount > 1;
                     cmd.SetKeyword(ToonShadows.DirectionalShadowsGlobalKeyword, !useCascades);
                     cmd.SetKeyword(ToonShadows.DirectionalCascadedShadowsGlobalKeyword, useCascades);
                     cmd.SetKeyword(ToonShadows.VsmGlobalKeyword,
-                        _vsmSettings.Blur != BlurMode.None
+                        _shadowMapsSettings.Blur != BlurMode.None
                     );
                     cmd.SetKeyword(ToonShadows.PcfGlobalKeyword,
-                        _vsmSettings is { Blur: BlurMode.None, SoftShadows: { Enabled: true } }
+                        _shadowMapsSettings is { Blur: BlurMode.None, SoftShadows: { Enabled: true } }
                     );
                     cmd.SetKeyword(ToonShadows.PoissonStratifiedGlobalKeyword,
-                        _vsmSettings is
+                        _shadowMapsSettings is
                         {
                             Blur: BlurMode.None,
                             SoftShadows: { Enabled: true, Mode: SoftShadowsMode.PoissonStratified },
                         }
                     );
                     cmd.SetKeyword(ToonShadows.PoissonRotatedGlobalKeyword,
-                        _vsmSettings is
+                        _shadowMapsSettings is
                         {
                             Blur: BlurMode.None, SoftShadows: { Enabled: true, Mode: SoftShadowsMode.PoissonRotated },
                         }
                     );
                     cmd.SetKeyword(ToonShadows.PoissonEarlyBailGlobalKeyword,
-                        _vsmSettings is
+                        _shadowMapsSettings is
                         {
                             Blur: BlurMode.None,
                             SoftShadows: { Enabled: true, Quality: SoftShadowsQuality.High, EarlyBail: true },
@@ -224,14 +224,14 @@ namespace DELTation.ToonRP.Shadows
 
         private void RenderDirectionalShadows(CommandBuffer cmd, int depthBits)
         {
-            int atlasSize = (int) _vsmSettings.Directional.AtlasSize;
+            int atlasSize = (int) _shadowMapsSettings.Directional.AtlasSize;
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Prepare Shadowmaps")))
             {
-                if (_vsmSettings.Blur != BlurMode.None)
+                if (_shadowMapsSettings.Blur != BlurMode.None)
                 {
                     GraphicsFormat shadowmapColorFormat =
-                        ToonShadowMapFormatUtils.GetSupportedVsmTextureFormat(_vsmSettings.VsmPrecision);
+                        ToonShadowMapFormatUtils.GetSupportedVsmTextureFormat(_shadowMapsSettings.VsmPrecision);
                     cmd.GetTemporaryRT(DirectionalShadowsAtlasId, atlasSize, atlasSize,
                         0,
                         ShadowmapFiltering,
@@ -247,7 +247,7 @@ namespace DELTation.ToonRP.Shadows
                         ShadowmapFiltering,
                         shadowmapColorFormat
                     );
-                    int firstRenderTarget = _vsmSettings.Blur == BlurMode.Box
+                    int firstRenderTarget = _shadowMapsSettings.Blur == BlurMode.Box
                         ? DirectionalShadowsAtlasTempId
                         : DirectionalShadowsAtlasId;
                     cmd.SetRenderTarget(firstRenderTarget,
@@ -277,7 +277,7 @@ namespace DELTation.ToonRP.Shadows
 
             _context.ExecuteCommandBufferAndClear(cmd);
 
-            int tiles = _shadowedDirectionalLightCount * _vsmSettings.Directional.CascadeCount;
+            int tiles = _shadowedDirectionalLightCount * _shadowMapsSettings.Directional.CascadeCount;
             int split = tiles <= 1 ? 1 : tiles <= 4 ? 2 : 4;
             int tileSize = atlasSize / split;
 
@@ -286,16 +286,16 @@ namespace DELTation.ToonRP.Shadows
                 RenderDirectionalShadows(cmd, i, split, tileSize);
             }
 
-            cmd.SetGlobalInteger(CascadeCountId, _vsmSettings.Directional.CascadeCount);
+            cmd.SetGlobalInteger(CascadeCountId, _shadowMapsSettings.Directional.CascadeCount);
             cmd.SetGlobalVectorArray(CascadeCullingSpheresId, _cascadeCullingSpheres);
 
-            if (_vsmSettings.Blur != BlurMode.None)
+            if (_shadowMapsSettings.Blur != BlurMode.None)
             {
                 BakeViewSpaceZIntoMatrix();
             }
-            else if (_vsmSettings.SoftShadows.Enabled)
+            else if (_shadowMapsSettings.SoftShadows.Enabled)
             {
-                int poissonDiskSize = _vsmSettings.SoftShadows.Quality switch
+                int poissonDiskSize = _shadowMapsSettings.SoftShadows.Quality switch
                 {
                     SoftShadowsQuality.Low => 4,
                     SoftShadowsQuality.High => 16,
@@ -306,10 +306,10 @@ namespace DELTation.ToonRP.Shadows
                 cmd.SetGlobalFloat(InvPoissonDiskSizeId, 1.0f / poissonDiskSize);
 
                 const int spreadReferenceResolution = 1024;
-                float spread = 1.0f / Mathf.Max(1 - _vsmSettings.SoftShadows.Spread, 0.0001f) /
+                float spread = 1.0f / Mathf.Max(1 - _shadowMapsSettings.SoftShadows.Spread, 0.0001f) /
                                spreadReferenceResolution;
                 cmd.SetGlobalTexture(RotatedPoissonSamplingTextureId,
-                    _vsmSettings.SoftShadows.RotatedPoissonSamplingTexture
+                    _shadowMapsSettings.SoftShadows.RotatedPoissonSamplingTexture
                 );
                 FillPoissonDiskValues(poissonDiskSize, spread);
                 cmd.SetGlobalVectorArray(DirectionalShadowPoissonDiskId, _poissonDiskAdjusted);
@@ -317,9 +317,9 @@ namespace DELTation.ToonRP.Shadows
 
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
-            if (_vsmSettings.Blur != BlurMode.None)
+            if (_shadowMapsSettings.Blur != BlurMode.None)
             {
-                cmd.SetGlobalFloat(LightBleedingReductionId, _vsmSettings.LightBleedingReduction);
+                cmd.SetGlobalFloat(LightBleedingReductionId, _shadowMapsSettings.LightBleedingReduction);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -381,14 +381,14 @@ namespace DELTation.ToonRP.Shadows
                     , BatchCullingProjectionType.Orthographic // directional shadows are rendered with orthographic projection
 #endif // UNITY_2022_2_OR_NEWER
                 );
-            int cascadeCount = _vsmSettings.Directional.CascadeCount;
+            int cascadeCount = _shadowMapsSettings.Directional.CascadeCount;
             int tileOffset = index * cascadeCount;
-            Vector3 ratios = _vsmSettings.Directional.GetRatios();
+            Vector3 ratios = _shadowMapsSettings.Directional.GetRatios();
 
             cmd.BeginSample(RenderShadowsSample);
-            cmd.SetGlobalDepthBias(0.0f, _vsmSettings.Directional.SlopeBias);
+            cmd.SetGlobalDepthBias(0.0f, _shadowMapsSettings.Directional.SlopeBias);
             cmd.SetGlobalVector(ShadowBiasId,
-                new Vector4(-_vsmSettings.Directional.DepthBias, _vsmSettings.Directional.NormalBias)
+                new Vector4(-_shadowMapsSettings.Directional.DepthBias, _shadowMapsSettings.Directional.NormalBias)
             );
 
             for (int i = 0; i < cascadeCount; i++)
@@ -430,18 +430,18 @@ namespace DELTation.ToonRP.Shadows
         private void ExecuteBlur(CommandBuffer cmd)
         {
             // TODO: try using _blurCmd.SetKeyword
-            if (_vsmSettings.Blur != BlurMode.None)
+            if (_shadowMapsSettings.Blur != BlurMode.None)
             {
                 cmd.BeginSample(BlurSample);
 
-                float blurScatter = Mathf.Max(1.0f, _settings.Vsm.BlurScatter);
+                float blurScatter = Mathf.Max(1.0f, _settings.ShadowMaps.BlurScatter);
                 cmd.SetGlobalFloat(BlurScatterId, blurScatter);
 
                 const int gaussianHorizontalPass = 0;
                 const int gaussianVerticalPass = 1;
                 const int boxBlurPass = 2;
 
-                if (_vsmSettings.Blur == BlurMode.Box)
+                if (_shadowMapsSettings.Blur == BlurMode.Box)
                 {
                     {
                         cmd.SetRenderTarget(DirectionalShadowsAtlasId,
@@ -458,17 +458,19 @@ namespace DELTation.ToonRP.Shadows
                 }
                 else
                 {
-                    bool highQualityBlur = _vsmSettings.Blur == BlurMode.GaussianHighQuality;
+                    bool highQualityBlur = _shadowMapsSettings.Blur == BlurMode.GaussianHighQuality;
                     _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
                         highQualityBlur
                     );
 
                     _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
-                        _vsmSettings.IsBlurEarlyBailEnabled
+                        _shadowMapsSettings.IsBlurEarlyBailEnabled
                     );
-                    if (_vsmSettings.IsBlurEarlyBailEnabled)
+                    if (_shadowMapsSettings.IsBlurEarlyBailEnabled)
                     {
-                        _blurMaterial.SetFloat(EarlyBailThresholdId, _vsmSettings.BlurEarlyBailThreshold * DepthScale);
+                        _blurMaterial.SetFloat(EarlyBailThresholdId,
+                            _shadowMapsSettings.BlurEarlyBailThreshold * DepthScale
+                        );
                     }
 
                     // Horizontal
@@ -525,7 +527,7 @@ namespace DELTation.ToonRP.Shadows
             remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
             remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
 
-            if (_vsmSettings.Blur == BlurMode.None)
+            if (_shadowMapsSettings.Blur == BlurMode.None)
             {
                 remap.m22 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
 

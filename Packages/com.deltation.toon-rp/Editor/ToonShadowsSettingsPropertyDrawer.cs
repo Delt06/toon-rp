@@ -22,14 +22,14 @@ namespace DELTation.ToonRP.Editor
             var modeField = new PropertyField(modeProperty);
 
             var enabledContainer = new VisualElement();
-            var vsmContainer = new VisualElement();
+            var shadowMapsContainer = new VisualElement();
             var blobsContainer = new VisualElement();
 
             void RefreshFields()
             {
                 var mode = (ToonShadowSettings.ShadowMode) modeProperty.intValue;
                 enabledContainer.SetVisible(mode != ToonShadowSettings.ShadowMode.Off);
-                vsmContainer.SetVisible(mode == ToonShadowSettings.ShadowMode.Vsm);
+                shadowMapsContainer.SetVisible(mode == ToonShadowSettings.ShadowMode.ShadowMapping);
                 blobsContainer.SetVisible(mode == ToonShadowSettings.ShadowMode.Blobs);
                 smoothnessField.SetEnabled(!crispAntiAliasedProperty.boolValue);
             }
@@ -64,10 +64,10 @@ namespace DELTation.ToonRP.Editor
             }
 
             {
-                vsmContainer.Add(new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.Vsm)))
-                    { label = "VSM" }
+                shadowMapsContainer.Add(
+                    new PropertyField(property.FindPropertyRelative(nameof(ToonShadowSettings.ShadowMaps)))
                 );
-                enabledContainer.Add(vsmContainer);
+                enabledContainer.Add(shadowMapsContainer);
             }
 
             {

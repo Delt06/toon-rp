@@ -1,6 +1,7 @@
 ﻿using System;
 using DELTation.ToonRP.Shadows.Blobs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace DELTation.ToonRP.Shadows
 {
@@ -10,7 +11,7 @@ namespace DELTation.ToonRP.Shadows
         public enum ShadowMode
         {
             Off = 0,
-            Vsm,
+            ShadowMapping,
             Blobs,
         }
 
@@ -29,7 +30,7 @@ namespace DELTation.ToonRP.Shadows
         public Texture2D Pattern;
         public Vector3 PatternScale;
 
-        public ToonVsmShadowSettings Vsm;
+        [FormerlySerializedAs("Vsm")] public ToonShadowMapsSettings ShadowMaps;
         public ToonBlobShadowsSettings Blobs;
     }
 }

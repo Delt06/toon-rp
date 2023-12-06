@@ -15,7 +15,7 @@ using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static DELTation.ToonRP.Shadows.ToonVsmShadowSettings;
+using static DELTation.ToonRP.Shadows.ToonShadowMapsSettings;
 
 namespace DELTation.ToonRP.Editor.Stripping
 {
@@ -90,14 +90,17 @@ namespace DELTation.ToonRP.Editor.Stripping
             }
 
             // VSM
-            if (_allToonRenderPipelineAssets.All(a => a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.Vsm))
+            if (_allToonRenderPipelineAssets.All(a =>
+                    a.ShadowSettings.Mode != ToonShadowSettings.ShadowMode.ShadowMapping
+                ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Blur != BlurMode.None
+            if (!_allToonRenderPipelineAssets.Any(a =>
+                    a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                    a.ShadowSettings.ShadowMaps.Blur != BlurMode.None
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.VsmKeywordName));
@@ -108,7 +111,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                 bool AnyPipelineAssetHasSoftShadows([CanBeNull] Predicate<SoftShadowsSettings> extraCondition = null) =>
                     _allToonRenderPipelineAssets.Any(a => a.ShadowSettings is
                         {
-                            Mode: ToonShadowSettings.ShadowMode.Vsm, Vsm:
+                            Mode: ToonShadowSettings.ShadowMode.ShadowMapping, ShadowMaps:
                             {
                                 Blur: BlurMode.None,
                                 SoftShadows:
@@ -116,7 +119,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                                     Enabled: true,
                                 },
                             },
-                        } && (extraCondition?.Invoke(a.ShadowSettings.Vsm.SoftShadows) ?? true)
+                        } && (extraCondition?.Invoke(a.ShadowSettings.ShadowMaps.SoftShadows) ?? true)
                     );
 
                 if (!AnyPipelineAssetHasSoftShadows())
@@ -143,43 +146,48 @@ namespace DELTation.ToonRP.Editor.Stripping
 
             // ToonRPVsmBlur
             {
-                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                           a.ShadowSettings.Vsm.Blur !=
-                                                           BlurMode.None
+                if (!_allToonRenderPipelineAssets.Any(a =>
+                        a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                        a.ShadowSettings.ShadowMaps.Blur !=
+                        BlurMode.None
                     ))
                 {
-                    _shadersToStrip.Add(ToonVsmShadows.BlurShaderName);
+                    _shadersToStrip.Add(ToonShadowMaps.BlurShaderName);
                 }
 
-                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                           a.ShadowSettings.Vsm.Blur ==
-                                                           BlurMode.GaussianHighQuality
+                if (!_allToonRenderPipelineAssets.Any(a =>
+                        a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                        a.ShadowSettings.ShadowMaps.Blur ==
+                        BlurMode.GaussianHighQuality
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurHighQualityKeywordName);
+                    AddLocalKeywordToStrip(ToonShadowMaps.BlurShaderName, ToonShadowMaps.BlurHighQualityKeywordName);
                 }
 
-                if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                           a.ShadowSettings.Vsm.IsBlurEarlyBailEnabled
+                if (!_allToonRenderPipelineAssets.Any(a =>
+                        a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                        a.ShadowSettings.ShadowMaps.IsBlurEarlyBailEnabled
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonVsmShadows.BlurShaderName, ToonVsmShadows.BlurEarlyBailKeywordName);
+                    AddLocalKeywordToStrip(ToonShadowMaps.BlurShaderName, ToonShadowMaps.BlurEarlyBailKeywordName);
                 }
             }
 
             // VSM without cascades
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Directional.Enabled &&
-                                                       a.ShadowSettings.Vsm.Directional.CascadeCount == 1
+            if (!_allToonRenderPipelineAssets.Any(a =>
+                    a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                    a.ShadowSettings.ShadowMaps.Directional.Enabled &&
+                    a.ShadowSettings.ShadowMaps.Directional.CascadeCount == 1
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalShadowsKeywordName));
             }
 
             // VSM with cascades
-            if (!_allToonRenderPipelineAssets.Any(a => a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm &&
-                                                       a.ShadowSettings.Vsm.Directional.Enabled &&
-                                                       a.ShadowSettings.Vsm.Directional.CascadeCount > 1
+            if (!_allToonRenderPipelineAssets.Any(a =>
+                    a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                    a.ShadowSettings.ShadowMaps.Directional.Enabled &&
+                    a.ShadowSettings.ShadowMaps.Directional.CascadeCount > 1
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));

@@ -30,7 +30,7 @@ namespace DELTation.ToonRP.Shadows
         private ToonBlobShadows _blobShadows;
         private ScriptableRenderContext _context;
         private ToonShadowSettings _settings;
-        private ToonVsmShadows _vsmShadows;
+        private ToonShadowMaps _shadowMaps;
 
         public ToonShadows()
         {
@@ -70,7 +70,7 @@ namespace DELTation.ToonRP.Shadows
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            if (settings.Mode != ToonShadowSettings.ShadowMode.Vsm)
+            if (settings.Mode != ToonShadowSettings.ShadowMode.ShadowMapping)
             {
                 cmd.DisableKeyword(DirectionalShadowsGlobalKeyword);
                 cmd.DisableKeyword(DirectionalCascadedShadowsGlobalKeyword);
@@ -124,9 +124,9 @@ namespace DELTation.ToonRP.Shadows
             {
                 case ToonShadowSettings.ShadowMode.Off:
                     break;
-                case ToonShadowSettings.ShadowMode.Vsm:
-                    _vsmShadows ??= new ToonVsmShadows();
-                    _vsmShadows.Setup(context, cullingResults, settings);
+                case ToonShadowSettings.ShadowMode.ShadowMapping:
+                    _shadowMaps ??= new ToonShadowMaps();
+                    _shadowMaps.Setup(context, cullingResults, settings);
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows ??= new ToonBlobShadows();
@@ -143,13 +143,13 @@ namespace DELTation.ToonRP.Shadows
             {
                 case ToonShadowSettings.ShadowMode.Off:
                     break;
-                case ToonShadowSettings.ShadowMode.Vsm:
+                case ToonShadowSettings.ShadowMode.ShadowMapping:
                     if (mainLight != null)
                     {
-                        _vsmShadows.ReserveDirectionalShadows(mainLight, 0);
+                        _shadowMaps.ReserveDirectionalShadows(mainLight, 0);
                     }
 
-                    _vsmShadows.Render();
+                    _shadowMaps.Render();
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows.Render();
@@ -165,8 +165,8 @@ namespace DELTation.ToonRP.Shadows
             {
                 case ToonShadowSettings.ShadowMode.Off:
                     break;
-                case ToonShadowSettings.ShadowMode.Vsm:
-                    _vsmShadows.Cleanup();
+                case ToonShadowSettings.ShadowMode.ShadowMapping:
+                    _shadowMaps.Cleanup();
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows.Cleanup();

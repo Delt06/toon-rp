@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine.Device;
 using UnityEngine.Experimental.Rendering;
-using static DELTation.ToonRP.Shadows.ToonVsmShadowSettings;
+using static DELTation.ToonRP.Shadows.ToonShadowMapsSettings;
 
 namespace DELTation.ToonRP.Shadows
 {

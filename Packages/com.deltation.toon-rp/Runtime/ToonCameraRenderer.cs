@@ -247,7 +247,7 @@ namespace DELTation.ToonRP
                 return false;
             }
 
-            if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.Vsm)
+            if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping)
             {
                 parameters.shadowDistance = Mathf.Min(toonShadowSettings.MaxDistance, _camera.farClipPlane);
             }

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace DELTation.ToonRP.Editor
 {
-    [CustomPropertyDrawer(typeof(ToonVsmShadowSettings.DirectionalShadows))]
+    [CustomPropertyDrawer(typeof(ToonShadowMapsSettings.DirectionalShadows))]
     public class ToonDirectionalShadowsSettingsPropertyDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
@@ -18,10 +18,10 @@ namespace DELTation.ToonRP.Editor
             };
 
             SerializedProperty enabledProperty =
-                property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.Enabled));
+                property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.Enabled));
             var enabledField = new PropertyField(enabledProperty);
             SerializedProperty cascadeCountProperty =
-                property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.CascadeCount));
+                property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.CascadeCount));
             var cascadeCountField = new PropertyField(cascadeCountProperty);
 
             var enabledContainer = new VisualElement();
@@ -47,20 +47,23 @@ namespace DELTation.ToonRP.Editor
             foldout.Add(enabledField);
 
             cascadeRatio1.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.CascadeRatio1))
+                new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.CascadeRatio1))
                 )
             );
             cascadeRatio2.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.CascadeRatio2))
+                new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.CascadeRatio2))
                 )
             );
             cascadeRatio3.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.CascadeRatio3))
+                new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.CascadeRatio3))
                 )
             );
 
             enabledContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.AtlasSize)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.AtlasSize)))
             );
 
             enabledContainer.Add(cascadeCountField);
@@ -69,13 +72,13 @@ namespace DELTation.ToonRP.Editor
             enabledContainer.Add(cascadeRatio3);
 
             enabledContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.DepthBias)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.DepthBias)))
             );
             enabledContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.NormalBias)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.NormalBias)))
             );
             enabledContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(ToonVsmShadowSettings.Directional.SlopeBias)))
+                new PropertyField(property.FindPropertyRelative(nameof(ToonShadowMapsSettings.Directional.SlopeBias)))
             );
 
             foldout.Add(enabledContainer);

@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace DELTation.ToonRP.Shadows
 {
     [Serializable]
-    public struct ToonVsmShadowSettings
+    public struct ToonShadowMapsSettings
     {
         public enum BlurMode
         {
@@ -106,7 +106,7 @@ namespace DELTation.ToonRP.Shadows
         {
             public bool Enabled;
             public TextureSize AtlasSize;
-            [Range(1, ToonVsmShadows.MaxCascades)]
+            [Range(1, ToonShadowMaps.MaxCascades)]
             public int CascadeCount;
             [Range(0f, 1f)]
             public float CascadeRatio1, CascadeRatio2, CascadeRatio3;

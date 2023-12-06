@@ -21,7 +21,7 @@ namespace DELTation.ToonRP
         private static readonly string[] ForceIncludedShaderNames =
         {
             ToonBlitter.DefaultBlitShaderPath,
-            ToonVsmShadows.BlurShaderName,
+            ToonShadowMaps.BlurShaderName,
             ToonBlobShadows.ShaderName,
         };
 
@@ -62,15 +62,15 @@ namespace DELTation.ToonRP
 
         public ToonShadowSettings ShadowSettings = new()
         {
-            Mode = ToonShadowSettings.ShadowMode.Vsm,
+            Mode = ToonShadowSettings.ShadowMode.ShadowMapping,
             Threshold = 0.5f, Smoothness = 0.075f,
             MaxDistance = 100.0f,
             DistanceFade = 0.1f,
             PatternScale = new Vector3(1, 0, 1),
-            Vsm = new ToonVsmShadowSettings
+            ShadowMaps = new ToonShadowMapsSettings
             {
-                DepthBits = ToonVsmShadowSettings.ShadowMapBits._16,
-                Blur = ToonVsmShadowSettings.BlurMode.Box,
+                DepthBits = ToonShadowMapsSettings.ShadowMapBits._16,
+                Blur = ToonShadowMapsSettings.BlurMode.None,
                 BlurEarlyBail = true,
                 BlurEarlyBailThreshold = 0.01f,
                 LightBleedingReduction = 0.4f,
@@ -81,10 +81,14 @@ namespace DELTation.ToonRP
                     CascadeRatio1 = 0.1f,
                     CascadeRatio2 = 0.25f,
                     CascadeRatio3 = 0.5f,
+                    DepthBias = 0.035f,
                 },
                 SoftShadows =
                 {
-                    Spread = 0.8f,
+                    Spread = 0.2f,
+                    Enabled = true,
+                    Mode = ToonShadowMapsSettings.SoftShadowsMode.Poisson,
+                    Quality = ToonShadowMapsSettings.SoftShadowsQuality.High,
                 },
             },
             Blobs = new ToonBlobShadowsSettings
@@ -144,19 +148,19 @@ namespace DELTation.ToonRP
 
             EnsureRequiredValuesArePresent();
 
-            if (ShadowSettings.Vsm.LightBleedingReduction == 0.0f)
+            if (ShadowSettings.ShadowMaps.LightBleedingReduction == 0.0f)
             {
-                ShadowSettings.Vsm.LightBleedingReduction = 0.4f;
+                ShadowSettings.ShadowMaps.LightBleedingReduction = 0.4f;
             }
 
-            if (ShadowSettings.Vsm.DepthBits == 0)
+            if (ShadowSettings.ShadowMaps.DepthBits == 0)
             {
-                ShadowSettings.Vsm.DepthBits = ToonVsmShadowSettings.ShadowMapBits._16;
+                ShadowSettings.ShadowMaps.DepthBits = ToonShadowMapsSettings.ShadowMapBits._16;
             }
 
-            if (ShadowSettings.Vsm.BlurScatter < 1.0f)
+            if (ShadowSettings.ShadowMaps.BlurScatter < 1.0f)
             {
-                ShadowSettings.Vsm.BlurScatter = 1.0f;
+                ShadowSettings.ShadowMaps.BlurScatter = 1.0f;
             }
 
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -171,10 +175,10 @@ namespace DELTation.ToonRP
         private void EnsureRequiredValuesArePresent()
         {
 #if UNITY_EDITOR
-            ref Texture3D texture = ref ShadowSettings.Vsm.SoftShadows.RotatedPoissonSamplingTexture;
+            ref Texture3D texture = ref ShadowSettings.ShadowMaps.SoftShadows.RotatedPoissonSamplingTexture;
             if (texture == null)
             {
-                ShadowSettings.Vsm.SoftShadows.RotatedPoissonSamplingTexture =
+                ShadowSettings.ShadowMaps.SoftShadows.RotatedPoissonSamplingTexture =
                     AssetDatabase.LoadAssetAtPath<Texture3D>(
                         "Packages/com.deltation.toon-rp/Assets/DefaultRotatedPoissonSamplingTexture.asset"
                     );

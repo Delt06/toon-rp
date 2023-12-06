@@ -80,8 +80,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 {
                     Bounds2D receiverBounds = intersection.Value;
 
-                    // slight padding to ensure shadows do not touch the shadowmap bounds
-                    // otherwise, there may be artifacts on low resolutions (< 128) 
+                    {
+                        // Apply the position offset to the bounds.
+                        // The offset is applied during shadow rendering, thus it is inverted here.
+                        float2 shadowPositionOffset = -_settings.Blobs.ShadowPositionOffset;
+                        receiverBounds.Min = math.min(receiverBounds.Min + shadowPositionOffset, receiverBounds.Min);
+                        receiverBounds.Max = math.max(receiverBounds.Max + shadowPositionOffset, receiverBounds.Max);
+                    }
+
+                    // Slight padding to ensure shadows do not touch the shadowmap bounds.
+                    // Otherwise, there may be artifacts on low resolutions (< 128). 
                     receiverBounds.Size *= 1.01f;
 
                     CollectManagers();
@@ -90,13 +98,18 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         float2 min = receiverBounds.Min;
                         float2 size = receiverBounds.Size;
                         var minSize = new Vector4(
-                            min.x, min.y,
-                            size.x, size.y
+                            -min.x, -min.y,
+                            1.0f / size.x, 1.0f / size.y
                         );
                         cmd.SetGlobalVector(ShaderIds.MinSizeId, minSize);
-                    }
 
-                    cmd.SetGlobalVector(ShaderIds.CoordsOffsetId, _settings.Blobs.ShadowPositionOffset);
+                        Vector2 positionOffset = _settings.Blobs.ShadowPositionOffset;
+                        var minOffsetSize = new Vector4(
+                            positionOffset.x - min.x, positionOffset.y - min.y,
+                            1.0f / size.x, 1.0f / size.y
+                        );
+                        cmd.SetGlobalVector(ShaderIds.MinOffsetSizeId, minOffsetSize);
+                    }
 
                     DrawShadows(cmd, receiverBounds);
 
@@ -237,7 +250,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             public static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
             public static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
-            public static readonly int CoordsOffsetId = Shader.PropertyToID("_ToonRP_BlobShadowCoordsOffset");
+            public static readonly int MinOffsetSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_MinOffset_Size");
             public static readonly int SaturationId = Shader.PropertyToID("_Saturation");
             public static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
             public static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");

@@ -63,7 +63,7 @@
 		    packedData = _PackedData[instanceId];
 		    const float4 positionHalfSize = packedData.positionSize;
 		    const float2 positionWs = positionOs * positionHalfSize.zw + positionHalfSize.xy;
-		    const float2 screenUv = ComputeBlobShadowCoords(float3(positionWs.x, 0, positionWs.y));
+		    const float2 screenUv = ComputeBlobShadowCoordsRaw(positionWs, _ToonRP_BlobShadows_MinOffset_Size.xy, _ToonRP_BlobShadows_Min_Size.zw);
 		    positionCs = ScreenUvToHClip(screenUv);
 		}
 

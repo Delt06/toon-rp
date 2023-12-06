@@ -93,7 +93,7 @@ MonoBehaviour:
       Mode: 0
       BakedShadowsAtlas: {fileID: 4231941026929228130, guid: ced13a40cc6876a45afead21eaa4bcf1, type: 3}
       Saturation: 1
-      ShadowPositionOffset: {x: 0, y: 0}
+      ShadowPositionOffset: {x: -0.1, y: 0.1}
       ReceiverPlaneY: 0
   Extensions:
     Extensions: []

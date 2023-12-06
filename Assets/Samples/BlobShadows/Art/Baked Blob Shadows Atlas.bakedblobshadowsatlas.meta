@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: ced13a40cc6876a45afead21eaa4bcf1
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: d72b19888dc24945a4ac2e8e1be9733f, type: 3}
+  Size: 512
+  Padding: 16
+  SourceTextures:
+  - {fileID: 7506314328700112305, guid: f9280a5dbebffcd4788a9f31dcc082f0, type: 3}
+  - {fileID: 7506314328700112305, guid: bb6e3920e5558264dbb638cdf0f72a16, type: 3}
+  GenerateMipMaps: 1
+  FilterMode: 2
+  AnisoLevel: 0
+  Compressed: 0
+  HighQualityCompression: 1

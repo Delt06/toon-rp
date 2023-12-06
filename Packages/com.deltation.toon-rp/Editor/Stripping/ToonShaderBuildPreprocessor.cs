@@ -8,6 +8,7 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
+using DELTation.ToonRP.Shadows.Blobs;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Build;

@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Shadows.Blobs;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Shadows

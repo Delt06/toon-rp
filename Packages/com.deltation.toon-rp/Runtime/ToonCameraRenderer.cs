@@ -57,6 +57,7 @@ namespace DELTation.ToonRP
 
         public void Dispose()
         {
+            _shadows.Dispose();
             _tiledLighting?.Dispose();
         }
 

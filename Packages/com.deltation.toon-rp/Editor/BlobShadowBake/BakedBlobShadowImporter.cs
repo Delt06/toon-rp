@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using DELTation.ToonRP.Attributes;
 using UnityEditor;
 using UnityEditor.AssetImporters;
@@ -34,11 +33,12 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
         public int BlurIterations = 4;
 
         public bool GenerateMipMaps = true;
+        public bool ReadWriteEnabled;
 
         [ToonRpHeader("Compression")]
-        public bool Compressed = true;
+        public bool Compressed;
         [ToonRpShowIf(nameof(Compressed))]
-        public CompressionSettings Compression;
+        public bool HighQualityCompression;
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
@@ -124,9 +124,12 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
 
             DestroyImmediate(blurMaterial);
 
-            Compress(texture);
+            if (Compressed)
+            {
+                texture.Compress(HighQualityCompression);
+            }
 
-            ctx.AddObjectToAsset("texture", texture);
+            ctx.AddObjectToAsset("texture", texture, texture);
             ctx.SetMainObject(texture);
         }
 
@@ -135,7 +138,7 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             RenderTexture previousActive = RenderTexture.active;
             RenderTexture.active = sourceRt;
             destination.ReadPixels(new Rect(0, 0, Height, Height), 0, 0, false);
-            destination.Apply(GenerateMipMaps, true);
+            destination.Apply(GenerateMipMaps, !Compressed && !ReadWriteEnabled);
             RenderTexture.active = previousActive;
         }
 
@@ -193,46 +196,6 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             cmd.SetGlobalInt(ApplyStepToSourceSamplesId, 0);
             cmd.SetGlobalVector(DirectionId, new Vector2(0, 1));
             ToonBlitter.Blit(cmd, blurMaterial);
-        }
-
-        private void Compress(Texture2D texture)
-        {
-            if (Compressed)
-            {
-                (TextureFormat format, TextureCompressionQuality quality) = GetCompressionTextureFormatAndQuality();
-                EditorUtility.CompressTexture(texture, format, quality);
-            }
-        }
-
-        private (TextureFormat format, TextureCompressionQuality quality) GetCompressionTextureFormatAndQuality()
-        {
-            BuildTarget activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
-
-            foreach (CompressionPlatformOverride platformOverride in Compression.PlatformOverrides)
-            {
-                if (platformOverride.Platform == activeBuildTarget)
-                {
-                    return (platformOverride.Format, platformOverride.Quality);
-                }
-            }
-
-            return (Compression.Format, Compression.Quality);
-        }
-
-        [Serializable]
-        public class CompressionSettings
-        {
-            public TextureFormat Format = TextureFormat.R8;
-            public TextureCompressionQuality Quality = TextureCompressionQuality.Best;
-            public List<CompressionPlatformOverride> PlatformOverrides = new();
-        }
-
-        [Serializable]
-        public class CompressionPlatformOverride
-        {
-            public BuildTarget Platform;
-            public TextureFormat Format = TextureFormat.R8;
-            public TextureCompressionQuality Quality = TextureCompressionQuality.Best;
         }
     }
 }

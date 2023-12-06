@@ -4,6 +4,7 @@ using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
+using DELTation.ToonRP.Shadows.Blobs;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -90,7 +91,7 @@ namespace DELTation.ToonRP
             {
                 Saturation = 1.0f,
                 AtlasSize = TextureSize._128,
-                Mode = BlobShadowsMode.Default,
+                Mode = ToonBlobShadowsMode.Default,
             },
         };
 

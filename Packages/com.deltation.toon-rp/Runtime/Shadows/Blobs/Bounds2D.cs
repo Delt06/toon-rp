@@ -40,6 +40,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [BurstCompile]
         public void Encapsulate(float2 point)
         {
             if (point.x < Min.x)
@@ -60,12 +61,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 Max.y = point.y;
             }
         }
+    }
 
+    public static class Bounds2DExtensions
+    {
         [BurstCompile]
-        public bool Intersects(Bounds2D otherBounds)
+        public static bool Intersects(this in Bounds2D bounds, in Bounds2D otherBounds)
         {
-            float2 intersectionMin = max(Min, otherBounds.Min);
-            float2 intersectionMax = min(Max, otherBounds.Max);
+            float2 intersectionMin = max(bounds.Min, otherBounds.Min);
+            float2 intersectionMax = min(bounds.Max, otherBounds.Max);
             return all(intersectionMax - intersectionMin >= 0.001f);
         }
     }

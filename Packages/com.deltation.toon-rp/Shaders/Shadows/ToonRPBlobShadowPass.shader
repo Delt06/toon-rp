@@ -28,10 +28,9 @@
         };
 
         #define BATCH_SIZE 256
-        #define MAX_PACKED_DATA_SIZE (16 * 1024 / (16 * 2)) // 16k / sizeof(RendererPackedData)
 
         CBUFFER_START(_ToonRP_BlobShadows_PackedData)
-        RendererPackedData _PackedData[MAX_PACKED_DATA_SIZE];
+        RendererPackedData _PackedData[BATCH_SIZE];
         CBUFFER_END
 
         float _ToonRP_BlobShadows_Indices[BATCH_SIZE];

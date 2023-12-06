@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -11,33 +12,34 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
-        private Group[] _groups;
+        public Group[] AllGroups { get; private set; }
 
         private void Awake()
         {
-            _groups = new Group[ToonBlobShadowTypes.Count];
+            AllGroups = new Group[ToonBlobShadowTypes.Count];
 
-            for (int i = 0; i < _groups.Length; i++)
+            for (int shadowType = 0; shadowType < ToonBlobShadowTypes.Count; shadowType++)
             {
-                _groups[i] = new Group();
+                AllGroups[shadowType] = new Group((ToonBlobShadowType) shadowType);
             }
         }
 
         private void OnDestroy()
         {
-            foreach (Group group in _groups)
+            foreach (Group group in AllGroups)
             {
                 group?.Dispose();
             }
 
-            _groups = null;
+            AllGroups = null;
 
             ToonBlobShadowsManagers.OnDestroyed(this);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Group GetGroup(ToonBlobShadowType type) => _groups[(int) type];
+        public Group GetGroup(ToonBlobShadowType type) => AllGroups[(int) type];
 
+        [SuppressMessage("ReSharper", "NotAccessedField.Global")]
         public struct RendererPackedData
         {
             public float4 PositionSize;
@@ -50,6 +52,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
             public readonly List<ToonBlobShadowRenderer> Renderers = new();
+            public readonly ToonBlobShadowType ShadowType;
 
             private bool _isDataDirty = true;
             private NativeArray<RendererPackedData> _packedData = new(StartSize,
@@ -59,6 +62,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public NativeArray<ToonBlobShadowsRendererData> Data = new(StartSize, Allocator.Persistent,
                 NativeArrayOptions.UninitializedMemory
             );
+
+            public Group(ToonBlobShadowType shadowType) => ShadowType = shadowType;
 
             public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) Data.GetUnsafePtr();
             public RendererPackedData* PackedDataPtr => (RendererPackedData*) _packedData.GetUnsafePtr();

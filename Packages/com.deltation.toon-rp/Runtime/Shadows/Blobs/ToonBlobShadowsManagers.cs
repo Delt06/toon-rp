@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif // UNITY_EDITOR
+
+using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -30,19 +35,17 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (!Managers.TryGetValue(scene, out manager) && createIfNotFound)
             {
-                if (scene.isLoaded)
+                var gameObject = new GameObject("[Blob Shadows Manager]")
                 {
-                    var gameObject = new GameObject("[Blob Shadows Manager]")
-                    {
-                        hideFlags = HideFlags.NotEditable | HideFlags.DontSave | HideFlags.HideInHierarchy,
-                    };
-                    Managers[scene] = manager = gameObject.AddComponent<ToonBlobShadowsManager>();
+                    hideFlags = HideFlags.NotEditable | HideFlags.DontSave | HideFlags.HideInHierarchy,
+                };
+                Managers[scene] = manager = gameObject.AddComponent<ToonBlobShadowsManager>();
+                manager.EnsureInitialized();
 
-                    SceneManager.MoveGameObjectToScene(gameObject, scene);
-                }
+                SceneManager.MoveGameObjectToScene(gameObject, scene);
             }
 
-            return manager != null;
+            return manager != null && !manager.IsDestroyed;
         }
 
         public static void OnRendererEnabled(ToonBlobShadowRenderer renderer)
@@ -118,5 +121,24 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             public int GetHashCode(Scene obj) => obj.handle;
         }
+
+#if UNITY_EDITOR
+        static ToonBlobShadowsManagers()
+        {
+            EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+            EditorApplication.playModeStateChanged += PlayModeStateChanged;
+        }
+
+        private static void PlayModeStateChanged(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.ExitingPlayMode)
+            {
+                foreach (ToonBlobShadowsManager shadowsManager in All.ToArray())
+                {
+                    shadowsManager.Destroy();
+                }
+            }
+        }
+#endif // UNITY_EDITOR
     }
 }

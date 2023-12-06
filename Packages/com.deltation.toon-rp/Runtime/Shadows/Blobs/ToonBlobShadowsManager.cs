@@ -12,26 +12,48 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
-        public Group[] AllGroups { get; private set; }
+        public Group[] AllGroups { get; private set; } = Array.Empty<Group>();
+
+        public bool IsDestroyed { get; private set; }
 
         private void Awake()
         {
-            AllGroups = new Group[ToonBlobShadowTypes.Count];
-
-            for (int shadowType = 0; shadowType < ToonBlobShadowTypes.Count; shadowType++)
-            {
-                AllGroups[shadowType] = new Group((ToonBlobShadowType) shadowType);
-            }
+            EnsureInitialized();
         }
 
         private void OnDestroy()
         {
+            Destroy();
+        }
+
+        public void EnsureInitialized()
+        {
+            if (AllGroups.Length == 0)
+            {
+                AllGroups = new Group[ToonBlobShadowTypes.Count];
+
+                for (int shadowType = 0; shadowType < ToonBlobShadowTypes.Count; shadowType++)
+                {
+                    AllGroups[shadowType] = new Group((ToonBlobShadowType) shadowType);
+                }
+            }
+        }
+
+        internal void Destroy()
+        {
+            if (IsDestroyed)
+            {
+                return;
+            }
+
+            IsDestroyed = true;
+
             foreach (Group group in AllGroups)
             {
                 group?.Dispose();
             }
 
-            AllGroups = null;
+            AllGroups = Array.Empty<Group>();
 
             ToonBlobShadowsManagers.OnDestroyed(this);
         }
@@ -75,6 +97,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 Renderers.Clear();
                 DynamicRenderers.Clear();
                 _packedData.Dispose();
+                _packedData = default;
                 PackedDataConstantBuffer.Release();
                 Data.Dispose();
             }

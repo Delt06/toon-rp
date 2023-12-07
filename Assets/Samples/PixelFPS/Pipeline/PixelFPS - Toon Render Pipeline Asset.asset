@@ -25,8 +25,16 @@ MonoBehaviour:
     SpecularSmoothness: 0.03
     RimSmoothness: 0.1
     RampTexture: {fileID: 2800000, guid: 313d786eddd03ca498f382cc924d669b, type: 3}
+    AdditionalLights:
+      DiffuseOffset: 0
+      SpecularOffset: 0
+      DistanceAttenuationFactor: 1
   CameraRendererSettings:
     AdditionalLights: 0
+    TiledLighting: 0
+    MaxLightsPerTile: 32
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 4
     AllowHdr: 0
     Stencil: 0
     Msaa: 1
@@ -34,7 +42,8 @@ MonoBehaviour:
     MaxRenderTextureWidth: 360
     MaxRenderTextureHeight: 0
     RenderTextureFilterMode: 0
-    DepthPrePass: 0
+    PrePass: 0
+    OpaqueTexture: 0
     OpaqueLayerMask:
       serializedVersion: 2
       m_Bits: 1015
@@ -43,6 +52,8 @@ MonoBehaviour:
       m_Bits: 1015
     UseSrpBatching: 1
     UseDynamicBatching: 0
+    NativeRenderPasses: 0
+    ForceStoreCameraDepth: 0
   ShadowSettings:
     Mode: 1
     Threshold: 0.5
@@ -52,11 +63,20 @@ MonoBehaviour:
     DistanceFade: 0.001
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
-    Vsm:
+    ShadowMaps:
+      DepthBits: 16
       Blur: 1
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.01
-      SoftShadows: 0
+      BlurScatter: 1
+      VsmPrecision: 0
+      SoftShadows:
+        Enabled: 1
+        Quality: 1
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.2
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.4
       Directional:
         Enabled: 1
@@ -65,13 +85,16 @@ MonoBehaviour:
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
-        DepthBias: 0
+        DepthBias: 0.01
         NormalBias: 0
         SlopeBias: 0
     Blobs:
       AtlasSize: 128
       Mode: 0
+      BakedShadowsAtlas: {fileID: 0}
       Saturation: 1
+      ShadowPositionOffset: {x: 0, y: 0}
+      ReceiverPlaneY: 0
   Extensions:
     Extensions:
     - {fileID: 11400000, guid: f9216de13340aae45a7647d53e66b626, type: 2}

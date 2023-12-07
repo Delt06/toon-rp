@@ -65,13 +65,13 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 - Insert the URL:
 
 ```
-https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp
+https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp#unity-2021-3
 ```
 
 #### Option 2
 Add the following line to `Packages/manifest.json`:
 ```
-"com.deltation.toon-rp": "https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp",
+"com.deltation.toon-rp": "https://github.com/Delt06/toon-rp.git?path=Packages/com.deltation.toon-rp#unity-2021-3",
 ```
 
 ### 2. Create a pipeline asset

@@ -57,7 +57,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ## Installation
 
-> 📝 Note: to install the package for an older Unity version, refer to the [Installation](https://github.com/Delt06/toon-rp/wiki/Home) page. 
+> 📝 Note: to install the package for an older Unity version, refer to the [Installation](https://github.com/Delt06/toon-rp/wiki#older-unity-versions) page. 
 
 ### 1. Add the package
 

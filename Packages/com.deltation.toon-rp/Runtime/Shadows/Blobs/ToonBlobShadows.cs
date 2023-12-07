@@ -17,7 +17,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private static readonly ProfilerMarker DrawBatchesMarker =
             new("BlobShadows.DrawBatches");
-        private static readonly int IndicesId = Shader.PropertyToID("_ToonRP_BlobShadows_Indices");
 
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -51,7 +50,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             int atlasSize = (int) _blobShadowsSettings.AtlasSize;
             CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.GetTemporaryRT(ShaderIds.ShadowMapId, atlasSize, atlasSize, 0, FilterMode.Bilinear,
+            cmd.GetTemporaryRT(ShaderIds.ShadowMap, atlasSize, atlasSize, 0, FilterMode.Bilinear,
                 RenderTextureFormat.R8,
                 RenderTextureReadWrite.Linear
             );
@@ -66,7 +65,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.BlobShadows)))
             {
-                cmd.SetRenderTarget(ShaderIds.ShadowMapId,
+                cmd.SetRenderTarget(ShaderIds.ShadowMap,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                 );
                 cmd.ClearRenderTarget(false, true, Color.black);
@@ -101,14 +100,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
                             -min.x, -min.y,
                             1.0f / size.x, 1.0f / size.y
                         );
-                        cmd.SetGlobalVector(ShaderIds.MinSizeId, minSize);
+                        cmd.SetGlobalVector(ShaderIds.MinSize, minSize);
 
-                        Vector2 positionOffset = _settings.Blobs.ShadowPositionOffset;
-                        var minOffsetSize = new Vector4(
-                            positionOffset.x - min.x, positionOffset.y - min.y,
-                            1.0f / size.x, 1.0f / size.y
-                        );
-                        cmd.SetGlobalVector(ShaderIds.MinOffsetSizeId, minOffsetSize);
+                        cmd.SetGlobalVector(ShaderIds.Offset, _settings.Blobs.ShadowPositionOffset);
                     }
 
                     DrawShadows(cmd, receiverBounds);
@@ -145,7 +139,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private void DrawShadows(CommandBuffer cmd, in Bounds2D receiverBounds)
         {
-            _material.SetFloat(ShaderIds.SaturationId, _blobShadowsSettings.Saturation);
+            _material.SetFloat(ShaderIds.Saturation, _blobShadowsSettings.Saturation);
             SetupBlending();
 
             foreach (ToonBlobShadowsManager manager in _managers)
@@ -161,16 +155,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 ToonBlobShadowsAtlas atlas = _settings.Blobs.BakedShadowsAtlas;
                 if (atlas != null && atlas.Texture != null && atlas.TilingOffsets != null)
                 {
-                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlasId, atlas.Texture);
+                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, atlas.Texture);
                     Array.Copy(atlas.TilingOffsets, SharedBuffers.TilingOffsets, atlas.TilingOffsets.Length);
                 }
                 else
                 {
-                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlasId, Texture2D.whiteTexture);
+                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, Texture2D.whiteTexture);
                     SharedBuffers.TilingOffsets[0] = new Vector4(1, 1, 0, 0);
                 }
 
-                cmd.SetGlobalVectorArray(ShaderIds.BakedTexturesAtlasTilingOffsetsId, SharedBuffers.TilingOffsets);
+                cmd.SetGlobalVectorArray(ShaderIds.BakedTexturesAtlasTilingOffsets, SharedBuffers.TilingOffsets);
 
                 for (int shadowTypeIndex = 0; shadowTypeIndex < ToonBlobShadowTypes.Count; shadowTypeIndex++)
                 {
@@ -196,7 +190,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                                 int packedDataStride =
                                     UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
                                 cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer,
-                                    ShaderIds.PackedDataId,
+                                    ShaderIds.PackedData,
                                     batch.BaseIndex * packedDataStride,
                                     batch.Count * packedDataStride
                                 );
@@ -204,7 +198,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                                 ToonUnsafeUtility.MemcpyToManagedArray(
                                     SharedBuffers.IndicesBuffer, batch.VisibleIndices
                                 );
-                                cmd.SetGlobalFloatArray(IndicesId, SharedBuffers.IndicesBuffer);
+                                cmd.SetGlobalFloatArray(ShaderIds.Indices, SharedBuffers.IndicesBuffer);
 
                                 int shaderPass = (int) batchSet.ShadowType;
                                 cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
@@ -227,15 +221,15 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 ToonBlobShadowsMode.Default => (UnityBlendMode.One, UnityBlendMode.One, BlendOp.Max),
                 _ => throw new ArgumentOutOfRangeException(),
             };
-            _material.SetFloat(ShaderIds.SrcBlendId, (float) srcBlend);
-            _material.SetFloat(ShaderIds.DstBlendId, (float) dstBlend);
-            _material.SetFloat(ShaderIds.BlendOpId, (float) blendOp);
+            _material.SetFloat(ShaderIds.SrcBlend, (float) srcBlend);
+            _material.SetFloat(ShaderIds.DstBlend, (float) dstBlend);
+            _material.SetFloat(ShaderIds.BlendOp, (float) blendOp);
         }
 
         public void Cleanup()
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            cmd.ReleaseTemporaryRT(ShaderIds.ShadowMapId);
+            cmd.ReleaseTemporaryRT(ShaderIds.ShadowMap);
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -248,19 +242,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private static class ShaderIds
         {
-            public static readonly int ShadowMapId = Shader.PropertyToID("_ToonRP_BlobShadowMap");
-            public static readonly int MinSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
-            public static readonly int MinOffsetSizeId = Shader.PropertyToID("_ToonRP_BlobShadows_MinOffset_Size");
-            public static readonly int SaturationId = Shader.PropertyToID("_Saturation");
-            public static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
-            public static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
-            public static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
+            public static readonly int ShadowMap = Shader.PropertyToID("_ToonRP_BlobShadowMap");
+            public static readonly int MinSize = Shader.PropertyToID("_ToonRP_BlobShadows_Min_Size");
+            public static readonly int Offset = Shader.PropertyToID("_ToonRP_BlobShadows_Offset");
+            public static readonly int Saturation = Shader.PropertyToID("_Saturation");
+            public static readonly int SrcBlend = Shader.PropertyToID("_SrcBlend");
+            public static readonly int DstBlend = Shader.PropertyToID("_DstBlend");
+            public static readonly int BlendOp = Shader.PropertyToID("_BlendOp");
 
-            public static readonly int BakedTexturesAtlasId =
+            public static readonly int BakedTexturesAtlas =
                 Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas");
-            public static readonly int BakedTexturesAtlasTilingOffsetsId =
+            public static readonly int BakedTexturesAtlasTilingOffsets =
                 Shader.PropertyToID("_ToonRP_BlobShadows_BakedTexturesAtlas_TilingOffsets");
-            public static readonly int PackedDataId = Shader.PropertyToID("_ToonRP_BlobShadows_PackedData");
+            public static readonly int PackedData = Shader.PropertyToID("_ToonRP_BlobShadows_PackedData");
+            public static readonly int Indices = Shader.PropertyToID("_Indices");
         }
     }
 }

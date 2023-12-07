@@ -91,8 +91,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
         [SuppressMessage("ReSharper", "NotAccessedField.Global")]
         public struct RendererPackedData
         {
-            public float4 PositionSize;
-            public float4 Params;
+            public half4 PositionSize;
+            public ToonBlobShadowsPackedParams Params;
         }
 
         public class Group : IDisposable
@@ -186,7 +186,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 if (_isDataDirty)
                 {
                     PackedDataConstantBuffer.SetData(_packedData, 0, 0, Renderers.Count);
-                    _isDataDirty = true;
+                    _isDataDirty = false;
                 }
             }
         }

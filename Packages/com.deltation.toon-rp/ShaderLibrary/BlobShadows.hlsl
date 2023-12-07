@@ -8,7 +8,7 @@ SAMPLER(sampler_ToonRP_BlobShadowMap);
 
 CBUFFER_START(_ToonRPBlobShadows)
     float4 _ToonRP_BlobShadows_Min_Size;
-    float4 _ToonRP_BlobShadows_MinOffset_Size;
+    float2 _ToonRP_BlobShadows_Offset;
 CBUFFER_END
 
 float2 ComputeBlobShadowCoordsRaw(const float2 positionWsXz, const float2 boundsOffset, const float2 boundsInvSize)

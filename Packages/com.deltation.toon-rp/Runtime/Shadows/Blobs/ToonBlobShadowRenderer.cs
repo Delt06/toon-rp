@@ -4,6 +4,7 @@ using DELTation.ToonRP.Attributes;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using static DELTation.ToonRP.Shadows.Blobs.ToonPackingUtility;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
@@ -14,6 +15,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         [FormerlySerializedAs("_radius")] [SerializeField] [Min(0f)]
         private float _halfSize = 0.5f;
+        [SerializeField] [Range(-1.0f, 1.0f)] private float _offsetMultiplier = 1.0f;
+        [SerializeField] [Range(0.0f, 1.0f)] private float _saturation = 1.0f;
         [SerializeField] private ToonBlobShadowType _shadowType = ToonBlobShadowType.Circle;
 
         [SerializeField] [ToonRpShowIf(nameof(IsSquare))]
@@ -44,13 +47,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
             set => _halfSize = value;
         }
 
-        public Vector4 Params => _shadowType switch
+        public float OffsetMultiplier
         {
-            ToonBlobShadowType.Circle => Vector4.zero,
-            ToonBlobShadowType.Square => _square.AsParams(_transform.rotation),
-            ToonBlobShadowType.Baked => _baked.AsParams(_transform.rotation),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+            get => _offsetMultiplier;
+            set => _offsetMultiplier = value;
+        }
+
+        private Quaternion RotationWs => _transform.rotation;
 
         public SquareParams Square
         {
@@ -111,6 +114,19 @@ namespace DELTation.ToonRP.Shadows.Blobs
             ReRegister();
         }
 
+        private ToonBlobShadowsPackedParams ConstructParams()
+        {
+            ushort sharedParams = PackToShort(PackAsSNorm(_offsetMultiplier), PackAsUNorm(_saturation));
+
+            return _shadowType switch
+            {
+                ToonBlobShadowType.Circle => Circle.AsParams(sharedParams),
+                ToonBlobShadowType.Square => _square.AsParams(sharedParams, RotationWs),
+                ToonBlobShadowType.Baked => _baked.AsParams(sharedParams, RotationWs),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+        }
+
         private void ReRegister()
         {
             if (_manager != null && isActiveAndEnabled)
@@ -158,9 +174,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             ref ToonBlobShadowsManager.RendererPackedData packedData =
                 ref group.PackedDataPtr[Index];
-            packedData.PositionSize = new float4(
-                rendererData.Position.x, rendererData.Position.y,
-                rendererData.HalfSize, rendererData.HalfSize
+            packedData.PositionSize = new half4(
+                (half) rendererData.Position.x, (half) rendererData.Position.y,
+                (half) rendererData.HalfSize, (half) rendererData.HalfSize
             );
             packedData.Params = rendererData.Params;
         }
@@ -172,8 +188,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private ref ToonBlobShadowsRendererData GetRendererDataImpl() =>
             ref _manager.GetGroup(_shadowType).DataPtr[Index];
 
-        private static float PackRotation(in Quaternion transformRotation, float paramsRotation) =>
-            (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f % 1.0f;
+        private static byte PackRotation(in Quaternion transformRotation, float paramsRotation)
+        {
+            float rotation01 = (-transformRotation.eulerAngles.y + paramsRotation) / 360.0f;
+            if (rotation01 < 0.0f)
+            {
+                rotation01 += 1.0f;
+            }
+
+            return PackAsUNorm(rotation01 % 1.0f);
+        }
 
         private void RecomputeRendererData(ref ToonBlobShadowsRendererData rendererData, out bool changed,
             bool forceRecompute = false)
@@ -203,7 +227,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
             {
-                rendererData.Params = Params;
+                rendererData.Params = ConstructParams();
                 rendererData.Bounds = Bounds2D.FromCenterExtents(rendererData.Position, _halfSize);
                 changed = true;
             }
@@ -220,6 +244,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public void MarkParamsDirty() => _paramsDirty = true;
         public void MarkAllDirty() => _allDirty = true;
 
+        public static class Circle
+        {
+            public static ToonBlobShadowsPackedParams AsParams(ushort sharedParams) => new(
+                0,
+                sharedParams,
+                0,
+                0
+            );
+        }
+
         [Serializable]
         public struct SquareParams
         {
@@ -232,9 +266,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
             [Range(0.0f, 360.0f)]
             public float Rotation;
 
-            public Vector4 AsParams(in Quaternion rotation) => new(
-                Width * 0.5f, Height * 0.5f, CornerRadius,
-                PackRotation(rotation, Rotation)
+            public ToonBlobShadowsPackedParams AsParams(ushort sharedParams, in Quaternion rotation) => new(
+                PackToShort(PackRotation(rotation, Rotation), 0),
+                sharedParams,
+                PackToShort(PackAsUNorm(Width * 0.5f), PackAsUNorm(Height * 0.5f)),
+                PackToShort(PackAsUNorm(CornerRadius), 0)
             );
         }
 
@@ -246,9 +282,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
             [Range(0.0f, 360.0f)]
             public float Rotation;
 
-            public Vector4 AsParams(in Quaternion rotation) => new(
-                TextureIndex, 0.0f, 0.0f,
-                PackRotation(rotation, Rotation)
+            public ToonBlobShadowsPackedParams AsParams(ushort sharedParams, in Quaternion rotation) => new(
+                PackToShort(PackRotation(rotation, Rotation), 0),
+                sharedParams,
+                PackToShort((byte) TextureIndex, 0),
+                PackToShort(0, 0)
             );
         }
     }

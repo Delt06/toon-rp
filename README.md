@@ -13,7 +13,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 ### Unity Version
 
-> 🔨 Developed and verified with Unity 2021.3.15f1 LTS and Core RP Library v12.1.8.
+> 🔨 Developed and verified with Unity 2022.3.12f1 LTS and Core RP Library v14.0.9.
 
 ### Table of Contents
 
@@ -56,6 +56,8 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 ![SSAO](https://user-images.githubusercontent.com/32465621/278386089-dc03df40-093a-4e9f-9b77-abbb79692ca5.png)
 
 ## Installation
+
+> 📝 Note: to install the package for an older Unity version, refer to the [Installation](https://github.com/Delt06/toon-rp/wiki/Home) page. 
 
 ### 1. Add the package
 

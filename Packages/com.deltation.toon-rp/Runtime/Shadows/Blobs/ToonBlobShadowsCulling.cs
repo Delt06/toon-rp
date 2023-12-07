@@ -7,7 +7,7 @@ using Unity.Profiling;
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     [BurstCompile]
-    public unsafe struct ToonBlobShadowsCullingJob : IJobFilter
+    public unsafe struct ToonBlobShadowsCullingJob : IJobParallelForFilter
     {
         [NativeDisableUnsafePtrRestriction] [ReadOnly]
         public ToonBlobShadowsRendererData* Data;
@@ -38,7 +38,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         BaseIndex = batch.BaseIndex,
                         ReceiverBounds = receiverBounds,
                     }
-                    .ScheduleAppend(visibleIndices, batch.Count);
+                    .ScheduleAppend(visibleIndices, batch.Count, batch.Count);
                 batch.CullingJobHandle = jobHandle;
                 batch.VisibleIndices = visibleIndices;
             }

@@ -4,6 +4,7 @@ using DELTation.ToonRP.Editor.ShaderGUI;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;

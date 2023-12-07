@@ -49,11 +49,14 @@ namespace DELTation.ToonRP
                 return;
             }
 
+            var sharedContext = new ToonRenderPipelineSharedContext();
+
             foreach (Camera camera in cameras)
             {
                 ToonAdditionalCameraData additionalCameraData = GetOrAddAdditionalCameraData(camera);
 
-                _cameraRenderer.Render(context, camera, additionalCameraData,
+                _cameraRenderer.Render(context, ref sharedContext,
+                    camera, additionalCameraData,
                     _cameraRendererSettings,
                     _globalRampSettings,
                     _shadowSettings,

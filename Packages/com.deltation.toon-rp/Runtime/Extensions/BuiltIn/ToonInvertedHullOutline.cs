@@ -167,7 +167,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             ref FilteringSettings filteringSettings, ref RenderStateBlock renderStateBlock,
             PrePassMode? prePassMode = null)
         {
-            var cameraOverride = new ToonCameraOverride(_camera, _additionalCameraData, _cameraRenderTarget);
+            var cameraOverride =
+                new ToonCameraOverride(_camera, _additionalCameraData, _cameraRenderTarget, prePassMode);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {

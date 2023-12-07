@@ -133,7 +133,8 @@ namespace DELTation.ToonRP
         }
 
         public void Render(
-            ScriptableRenderContext context, Camera camera, ToonAdditionalCameraData additionalCameraData,
+            ScriptableRenderContext context, ref ToonRenderPipelineSharedContext sharedContext,
+            Camera camera, ToonAdditionalCameraData additionalCameraData,
             in ToonCameraRendererSettings settings,
             in ToonRampSettings globalRampSettings,
             in ToonShadowSettings shadowSettings,
@@ -161,7 +162,7 @@ namespace DELTation.ToonRP
 
             _postProcessing.PreSetup(camera, postProcessingSettings);
             _extensionsCollection.PreSetup(extensionSettings);
-            Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, postProcessingSettings, msaaSamples);
+            Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, msaaSamples);
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _opaqueTexture.Setup(ref _context, settings);
@@ -180,10 +181,11 @@ namespace DELTation.ToonRP
             _renderTarget.GetTemporaryRTs(cmd);
             _context.ExecuteCommandBufferAndClear(cmd);
 
+            ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData, _camera.projectionMatrix);
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
+
             if (_prePassMode != PrePassMode.Off)
             {
-                _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
-
                 _context.ExecuteCommandBufferAndClear(cmd);
 
                 if (_prePassMode.Includes(PrePassMode.Depth))
@@ -204,13 +206,17 @@ namespace DELTation.ToonRP
                     );
                     _motionVectorsPrePass.Render();
                 }
-
-                _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
             }
+
+            SetupProjectionMatricesForMainView(cmd, postProcessingSettings);
+            _context.ExecuteCommandBufferAndClear(cmd);
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
+
+            _context.ExecuteCommandBufferAndClear(cmd);
 
             _tiledLighting.CullLights();
 
-            GeometryRenderPass(cmd);
+            GeometryRenderPass(cmd, sharedContext);
 
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
@@ -227,6 +233,11 @@ namespace DELTation.ToonRP
             Submit(cmd);
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
+
+            if (_camera.targetTexture == null)
+            {
+                sharedContext.NumberOfCamerasUsingBackbuffer++;
+            }
         }
 
         private void PrepareMsaa(Camera camera, out int msaaSamples)
@@ -258,7 +269,6 @@ namespace DELTation.ToonRP
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
             in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings,
-            in ToonPostProcessingSettings postProcessingSettings,
             int msaaSamples)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
@@ -364,9 +374,27 @@ namespace DELTation.ToonRP
 
             UpdateRtHandles(rtWidth, rtHeight);
 
+            _cameraData = new ToonCameraData(_camera);
+
+            if (_prePassMode.Includes(PrePassMode.MotionVectors))
+            {
+                SupportedRenderingFeatures.active.motionVectors = true;
+                _additionalCameraData.GetPersistentData<ToonMotionVectorsPersistentData>().Update(_cameraData);
+            }
+
+            _extensionContext =
+                new ToonRenderingExtensionContext(_extensionsCollection, _context, _camera, _settings, _cullingResults,
+                    _renderTarget, _additionalCameraData
+                );
+
+            _tiledLighting.Setup(_context, _extensionContext);
+        }
+
+        private void SetupProjectionMatricesForMainView(CommandBuffer cmd,
+            ToonPostProcessingSettings postProcessingSettings)
+        {
             Matrix4x4 jitterMatrix =
                 ToonTemporalAAUtils.CalculateJitterMatrix(postProcessingSettings, _camera, _renderTarget);
-            _cameraData = new ToonCameraData(_camera);
 
             ToonMotionVectorsPersistentData motionVectorsPersistentData =
                 _additionalCameraData.GetPersistentData<ToonMotionVectorsPersistentData>();
@@ -388,19 +416,6 @@ namespace DELTation.ToonRP
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
                 inverseProjectionMatrix
             );
-
-            if (_prePassMode.Includes(PrePassMode.MotionVectors))
-            {
-                SupportedRenderingFeatures.active.motionVectors = true;
-                motionVectorsPersistentData.Update(_cameraData);
-            }
-
-            _extensionContext =
-                new ToonRenderingExtensionContext(_extensionsCollection, _context, _camera, _settings, _cullingResults,
-                    _renderTarget, _additionalCameraData
-                );
-
-            _tiledLighting.Setup(_context, _extensionContext);
         }
 
         private void UpdateRtHandles(int rtWidth, int rtHeight)
@@ -472,11 +487,14 @@ namespace DELTation.ToonRP
             return default;
         }
 
-        private void GeometryRenderPass(CommandBuffer cmd)
+        private void GeometryRenderPass(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext)
         {
             _context.ExecuteCommandBufferAndClear(cmd);
             ToonClearValue clearValue = GetRenderTargetsClearValue();
-            _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.DontCare, clearValue);
+            RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbuffer == 0
+                ? RenderBufferLoadAction.DontCare
+                : RenderBufferLoadAction.Load;
+            _renderTarget.BeginRenderPass(ref _context, loadAction, clearValue);
 
             DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();

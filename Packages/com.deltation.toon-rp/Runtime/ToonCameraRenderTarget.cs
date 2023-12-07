@@ -1,5 +1,6 @@
 ﻿using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -14,6 +15,8 @@ namespace DELTation.ToonRP
 
         private Camera _camera;
         private FilterMode _filterMode;
+        private bool _inRenderPass;
+        private RenderBufferLoadAction _lastRenderPassLoadAction;
 
         public bool ForceStoreAttachments { get; set; } = true;
 
@@ -34,11 +37,15 @@ namespace DELTation.ToonRP
 
         public RenderTargetIdentifier ColorBufferId => RenderToTexture
             ? CameraColorBufferId
-            : BuiltinRenderTextureType.CameraTarget;
+            : _camera.targetTexture != null
+                ? _camera.targetTexture.colorBuffer
+                : BuiltinRenderTextureType.CameraTarget;
 
         public RenderTargetIdentifier DepthBufferId => RenderToTexture
             ? CameraDepthBufferId
-            : BuiltinRenderTextureType.CameraTarget;
+            : _camera.targetTexture != null
+                ? _camera.targetTexture.depthBuffer
+                : BuiltinRenderTextureType.CameraTarget;
 
         public bool UsingMsaa => MsaaSamples > 1;
 
@@ -117,9 +124,12 @@ namespace DELTation.ToonRP
         public void BeginRenderPass(ref ScriptableRenderContext context, RenderBufferLoadAction loadAction,
             in ToonClearValue clearValue = default)
         {
+            Assert.IsFalse(_inRenderPass);
+
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            if (UseNativeRenderPass)
+            _lastRenderPassLoadAction = loadAction;
+            if (UseNativeRenderPass && IsLoadActionSupportedByNativeRenderPass(loadAction))
             {
                 BeginNativeRenderPass(ref context, cmd, loadAction, clearValue);
             }
@@ -131,6 +141,7 @@ namespace DELTation.ToonRP
             SetScreenParams(cmd);
             context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
+            _inRenderPass = true;
         }
 
         private void BeginNativeRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
@@ -149,7 +160,7 @@ namespace DELTation.ToonRP
             const int colorIndex = 0;
             const int depthIndex = 1;
 
-            if (loadAction == RenderBufferLoadAction.Load)
+            if (!IsLoadActionSupportedByNativeRenderPass(loadAction))
             {
                 Debug.LogError("Load action is not supported for native render passes.");
             }
@@ -200,7 +211,10 @@ namespace DELTation.ToonRP
                 attachments[colorIndex] = colorAttachment;
                 attachments[depthIndex] = depthAttachment;
 
-                context.BeginRenderPass(Width, Height, MsaaSamples, attachments, depthIndex);
+                Rect cameraRect = _camera.rect;
+                int fullScreenWidth = (int) (Width / cameraRect.width);
+                int fullScreenHeight = (int) (Height / cameraRect.height);
+                context.BeginRenderPass(fullScreenWidth, fullScreenHeight, MsaaSamples, attachments, depthIndex);
                 attachments.Dispose();
             }
 
@@ -247,12 +261,20 @@ namespace DELTation.ToonRP
 
         public void EndRenderPass(ref ScriptableRenderContext context)
         {
-            if (UseNativeRenderPass)
+            Assert.IsTrue(_inRenderPass);
+
+            if (UseNativeRenderPass && IsLoadActionSupportedByNativeRenderPass(_lastRenderPassLoadAction))
             {
                 context.EndSubPass();
                 context.EndRenderPass();
             }
+
+            _lastRenderPassLoadAction = RenderBufferLoadAction.DontCare;
+            _inRenderPass = false;
         }
+
+        private bool IsLoadActionSupportedByNativeRenderPass(RenderBufferLoadAction loadAction) =>
+            loadAction != RenderBufferLoadAction.Load;
 
         public void ReleaseTemporaryRTs(CommandBuffer cmd)
         {

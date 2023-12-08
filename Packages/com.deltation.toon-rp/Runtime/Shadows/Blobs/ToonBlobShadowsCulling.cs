@@ -13,6 +13,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public NativeArray<CullingGroup> CullingGroups;
         [WriteOnly] [NativeDisableParallelForRestriction]
         public NativeArray<int> SharedIndices;
+        [WriteOnly]
+        public NativeArray<int> SharedCounters;
 
         public Bounds2D ReceiverBounds;
 
@@ -22,7 +24,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public ToonBlobShadowsRendererData* Data;
             public int BaseIndex;
             public int Count;
-            public UnsafeAtomicCounter32 Counter;
         }
 
         public void Execute(int index)
@@ -36,7 +37,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     ref cullingGroup.Data[cullingGroup.BaseIndex + localRendererIndex].Bounds;
                 if (ReceiverBounds.Intersects(bounds))
                 {
-                    int previousCounterValue = cullingGroup.Counter.Add(1);
+                    int previousCounterValue = SharedCounters[index]++;
                     SharedIndices[indicesBase + previousCounterValue] = localRendererIndex;
                 }
             }
@@ -100,7 +101,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     Allocator.TempJob
                 );
                 var sharedCounters = new NativeArray<int>(totalCullingGroups, Allocator.TempJob);
-                int* sharedCountersPtr = (int*) sharedCounters.GetUnsafePtr();
                 int cullingGroupIndex = 0;
 
                 for (int shadowTypeIndex = 0; shadowTypeIndex < ToonBlobShadowTypes.Count; shadowTypeIndex++)
@@ -118,7 +118,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
                             Data = batch.Group.DataPtr,
                             BaseIndex = batch.BaseIndex,
                             Count = batch.Count,
-                            Counter = new UnsafeAtomicCounter32(sharedCountersPtr + cullingGroupIndex),
                         };
 
                         cullingGroupIndex++;
@@ -129,6 +128,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 {
                     CullingGroups = cullingGroups,
                     SharedIndices = sharedIndices,
+                    SharedCounters = sharedCounters,
                     ReceiverBounds = receiverBounds,
                 }.Schedule(cullingGroups.Length, 1);
                 return new ToonBlobShadowsCullingHandle(jobHandle, cullingGroups, sharedIndices, sharedCounters);

@@ -60,6 +60,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             SharedCounters = sharedCounters;
         }
 
+        public bool IsEmpty => CullingGroups.Length == 0;
+
         public void Complete() => JobHandle.Complete();
 
         public void Dispose()

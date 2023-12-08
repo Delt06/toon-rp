@@ -160,65 +160,69 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 cullingHandle.Complete();
             }
 
-            int* sharedVisibleIndicesPtr = (int*) cullingHandle.SharedIndices.GetUnsafePtr();
-            int* sharedVisibleCountersPtr = (int*) cullingHandle.SharedCounters.GetUnsafePtr();
-
-            using (DrawBatchesMarker.Auto())
+            if (!cullingHandle.IsEmpty)
             {
-                ToonBlobShadowsAtlas atlas = _settings.Blobs.BakedShadowsAtlas;
-                if (atlas != null && atlas.Texture != null && atlas.TilingOffsets != null)
-                {
-                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, atlas.Texture);
-                    Array.Copy(atlas.TilingOffsets, SharedBuffers.TilingOffsets, atlas.TilingOffsets.Length);
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, Texture2D.whiteTexture);
-                    SharedBuffers.TilingOffsets[0] = new Vector4(1, 1, 0, 0);
-                }
+                int* sharedVisibleIndicesPtr = (int*) cullingHandle.SharedIndices.GetUnsafePtr();
+                int* sharedVisibleCountersPtr = (int*) cullingHandle.SharedCounters.GetUnsafePtr();
 
-                cmd.SetGlobalVectorArray(ShaderIds.BakedTexturesAtlasTilingOffsets, SharedBuffers.TilingOffsets);
-
-                for (int shadowTypeIndex = 0; shadowTypeIndex < ToonBlobShadowTypes.Count; shadowTypeIndex++)
+                using (DrawBatchesMarker.Auto())
                 {
-                    ToonBlobShadowsBatching.BatchSet batchSet =
-                        _batching.GetBatches((ToonBlobShadowType) shadowTypeIndex);
-
-                    if (batchSet.BatchCount > 0)
+                    ToonBlobShadowsAtlas atlas = _settings.Blobs.BakedShadowsAtlas;
+                    if (atlas != null && atlas.Texture != null && atlas.TilingOffsets != null)
                     {
-                        using (new ProfilingScope(cmd,
-                                   NamedProfilingSampler.Get(ToonBlobShadowTypes.Names[shadowTypeIndex])
-                               ))
+                        cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, atlas.Texture);
+                        Array.Copy(atlas.TilingOffsets, SharedBuffers.TilingOffsets, atlas.TilingOffsets.Length);
+                    }
+                    else
+                    {
+                        cmd.SetGlobalTexture(ShaderIds.BakedTexturesAtlas, Texture2D.whiteTexture);
+                        SharedBuffers.TilingOffsets[0] = new Vector4(1, 1, 0, 0);
+                    }
+
+                    cmd.SetGlobalVectorArray(ShaderIds.BakedTexturesAtlasTilingOffsets, SharedBuffers.TilingOffsets);
+
+                    for (int shadowTypeIndex = 0; shadowTypeIndex < ToonBlobShadowTypes.Count; shadowTypeIndex++)
+                    {
+                        ToonBlobShadowsBatching.BatchSet batchSet =
+                            _batching.GetBatches((ToonBlobShadowType) shadowTypeIndex);
+
+                        if (batchSet.BatchCount > 0)
                         {
-                            for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
+                            using (new ProfilingScope(cmd,
+                                       NamedProfilingSampler.Get(ToonBlobShadowTypes.Names[shadowTypeIndex])
+                                   ))
                             {
-                                ref ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
-                                int visibleRenderersCount = sharedVisibleCountersPtr[batch.CullingGroupIndex];
-                                if (visibleRenderersCount == 0)
+                                for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
                                 {
-                                    continue;
+                                    ref ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
+                                    int visibleRenderersCount = sharedVisibleCountersPtr[batch.CullingGroupIndex];
+                                    if (visibleRenderersCount == 0)
+                                    {
+                                        continue;
+                                    }
+
+                                    int packedDataStride =
+                                        UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                                    cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer,
+                                        ShaderIds.PackedData,
+                                        batch.BaseIndex * packedDataStride,
+                                        batch.Count * packedDataStride
+                                    );
+
+                                    int* indicesBeginPtr = sharedVisibleIndicesPtr +
+                                                           batch.CullingGroupIndex *
+                                                           ToonBlobShadowsBatching.MaxBatchSize;
+
+                                    ToonUnsafeUtility.MemcpyToManagedArray(
+                                        SharedBuffers.IndicesBuffer, indicesBeginPtr, visibleRenderersCount
+                                    );
+                                    cmd.SetGlobalFloatArray(ShaderIds.Indices, SharedBuffers.IndicesBuffer);
+
+                                    int shaderPass = (int) batchSet.ShadowType;
+                                    cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
+                                        4 * visibleRenderersCount
+                                    );
                                 }
-
-                                int packedDataStride =
-                                    UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
-                                cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer,
-                                    ShaderIds.PackedData,
-                                    batch.BaseIndex * packedDataStride,
-                                    batch.Count * packedDataStride
-                                );
-
-                                int* indicesBeginPtr = sharedVisibleIndicesPtr +
-                                                       batch.CullingGroupIndex * ToonBlobShadowsBatching.MaxBatchSize;
-
-                                ToonUnsafeUtility.MemcpyToManagedArray(
-                                    SharedBuffers.IndicesBuffer, indicesBeginPtr, visibleRenderersCount
-                                );
-                                cmd.SetGlobalFloatArray(ShaderIds.Indices, SharedBuffers.IndicesBuffer);
-
-                                int shaderPass = (int) batchSet.ShadowType;
-                                cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Quads,
-                                    4 * visibleRenderersCount
-                                );
                             }
                         }
                     }

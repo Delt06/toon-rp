@@ -65,12 +65,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
     public static class Bounds2DExtensions
     {
+        private const float IntersectionSizeTolerance = 0.001f;
+
         [BurstCompile]
         public static bool Intersects(this in Bounds2D bounds, in Bounds2D otherBounds)
         {
             float2 intersectionMin = max(bounds.Min, otherBounds.Min);
             float2 intersectionMax = min(bounds.Max, otherBounds.Max);
-            return all(intersectionMax - intersectionMin >= 0.001f);
+            return all(intersectionMax - intersectionMin >= IntersectionSizeTolerance);
         }
     }
 }

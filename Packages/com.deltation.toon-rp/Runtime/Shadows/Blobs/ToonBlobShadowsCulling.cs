@@ -13,7 +13,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public NativeArray<CullingGroup> CullingGroups;
         [WriteOnly] [NativeDisableParallelForRestriction]
         public NativeArray<int> SharedIndices;
-        [WriteOnly]
         public NativeArray<int> SharedCounters;
 
         public Bounds2D ReceiverBounds;

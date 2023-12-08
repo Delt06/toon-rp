@@ -35,8 +35,6 @@ namespace DELTation.ToonRP.Shadows
             Shader.PropertyToID("_ToonRP_DirectionalShadowAtlas_Temp");
         private static readonly int DirectionalShadowsMatricesVpId =
             Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_VP");
-        private static readonly int DirectionalShadowsMatricesVId =
-            Shader.PropertyToID("_ToonRP_DirectionalShadowMatrices_V");
         private static readonly int CascadeCountId =
             Shader.PropertyToID("_ToonRP_CascadeCount");
         private static readonly int CascadeCullingSpheresId =
@@ -316,7 +314,6 @@ namespace DELTation.ToonRP.Shadows
             }
 
             cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVpId, _directionalShadowMatricesVp);
-            cmd.SetGlobalMatrixArray(DirectionalShadowsMatricesVId, _directionalShadowMatricesV);
             if (_shadowMapsSettings.Blur != BlurMode.None)
             {
                 cmd.SetGlobalFloat(LightBleedingReductionId, _shadowMapsSettings.LightBleedingReduction);

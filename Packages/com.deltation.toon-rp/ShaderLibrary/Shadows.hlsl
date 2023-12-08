@@ -30,7 +30,6 @@ SAMPLER(sampler_ToonRP_ShadowPattern);
 
 CBUFFER_START(_ToonRpShadows)
     float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
-    float4x4 _ToonRP_DirectionalShadowMatrices_V[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
     int _ToonRP_CascadeCount;
     float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
     float2 _ToonRP_ShadowRamp;

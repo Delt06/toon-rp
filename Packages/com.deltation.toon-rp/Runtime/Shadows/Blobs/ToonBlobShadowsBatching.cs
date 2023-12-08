@@ -1,6 +1,4 @@
 ﻿using System;
-using Unity.Collections;
-using Unity.Jobs;
 using Unity.Profiling;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -30,7 +28,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public BatchSet GetBatches(ToonBlobShadowType type) => _batches[(int) type];
 
-        public void Batch(ToonBlobShadowsManager.Group group, in Bounds2D receiverBounds)
+        public void Batch(ToonBlobShadowsManager.Group group)
         {
             if (group.Renderers.Count == 0)
             {
@@ -55,14 +53,13 @@ namespace DELTation.ToonRP.Shadows.Blobs
                         count = MaxBatchSize;
                     }
 
-                    ref BatchData batchData = ref CreateBatch(group, left, count);
-                    ToonBlobShadowsCulling.ScheduleCulling(ref batchData, receiverBounds);
+                    CreateBatch(group, left, count);
                     left += count;
                 }
             }
         }
 
-        private ref BatchData CreateBatch(ToonBlobShadowsManager.Group group, int baseIndex, int count)
+        private void CreateBatch(ToonBlobShadowsManager.Group group, int baseIndex, int count)
         {
             using ProfilerMarker.AutoScope autoScope = FindBatchMarker.Auto();
 
@@ -85,7 +82,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             newBatchData.Group = group;
             newBatchData.BaseIndex = baseIndex;
             newBatchData.Count = count;
-            return ref newBatchData;
         }
 
         private static void ExpandArray<T>(ref T[] array)
@@ -99,14 +95,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             for (int setIndex = 0; setIndex < _batches.Length; setIndex++)
             {
                 ref BatchSet batchSet = ref _batches[setIndex];
-
-                for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
-                {
-                    ref BatchData batchData = ref batchSet.Batches[batchIndex];
-                    batchData.CullingJobHandle = default;
-                    batchData.VisibleIndices.Dispose();
-                }
-
                 batchSet.BatchCount = 0;
             }
         }
@@ -124,8 +112,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             public int BaseIndex;
             public int Count;
 
-            public JobHandle CullingJobHandle;
-            public NativeList<int> VisibleIndices;
+            public int CullingGroupIndex;
 
             public static BatchData Create() => new();
         }

@@ -1,5 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -7,19 +6,19 @@ namespace DELTation.ToonRP.Shadows.Blobs
     internal static unsafe class ToonUnsafeUtility
     {
         public static void MemcpyToManagedArray<TManaged, TNative>(
-            TManaged[] managedDestination, NativeList<TNative> nativeSource
+            TManaged[] managedDestination, TNative* nativeSource, int nativeSourceLength
         )
             where TNative : unmanaged where TManaged : unmanaged
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            Assert.IsTrue(nativeSource.Length * sizeof(TNative) <= managedDestination.Length * sizeof(TManaged));
+            Assert.IsTrue(nativeSourceLength * sizeof(TNative) <= managedDestination.Length * sizeof(TManaged));
 #endif // ENABLE_UNITY_COLLECTIONS_CHECKS
-            
+
             fixed (TManaged* managedPtr = managedDestination)
             {
                 UnsafeUtility.MemCpy(managedPtr,
-                    nativeSource.GetUnsafePtr(),
-                    nativeSource.Length * sizeof(TNative)
+                    nativeSource,
+                    nativeSourceLength * sizeof(TNative)
                 );
             }
         }

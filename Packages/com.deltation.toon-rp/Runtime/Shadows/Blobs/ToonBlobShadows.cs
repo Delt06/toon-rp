@@ -17,6 +17,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private static readonly ProfilerMarker DrawBatchesMarker =
             new("BlobShadows.DrawBatches");
+        private static readonly ProfilerMarker AwaitCullingMarker =
+            new("BlobShadows.AwaitCulling");
 
         private readonly ToonBlobShadowsBatching _batching = new();
         private readonly List<ToonBlobShadowsManager> _managers = new();
@@ -137,7 +139,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
         }
 
-        private void DrawShadows(CommandBuffer cmd, in Bounds2D receiverBounds)
+        private unsafe void DrawShadows(CommandBuffer cmd, in Bounds2D receiverBounds)
         {
             _material.SetFloat(ShaderIds.Saturation, _blobShadowsSettings.Saturation);
             SetupBlending();
@@ -146,9 +148,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 foreach (ToonBlobShadowsManager.Group group in manager.AllGroups)
                 {
-                    _batching.Batch(group, receiverBounds);
+                    _batching.Batch(group);
                 }
             }
+
+            ToonBlobShadowsCullingHandle cullingHandle;
+
+            using (AwaitCullingMarker.Auto())
+            {
+                cullingHandle = ToonBlobShadowsCulling.ScheduleCulling(_batching, receiverBounds);
+                cullingHandle.Complete();
+            }
+
+            int* sharedVisibleIndicesPtr = (int*) cullingHandle.SharedIndices.GetUnsafePtr();
+            int* sharedVisibleCountersPtr = (int*) cullingHandle.SharedCounters.GetUnsafePtr();
 
             using (DrawBatchesMarker.Auto())
             {
@@ -180,8 +193,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                             for (int batchIndex = 0; batchIndex < batchSet.BatchCount; batchIndex++)
                             {
                                 ref ToonBlobShadowsBatching.BatchData batch = ref batchSet.Batches[batchIndex];
-                                batch.CullingJobHandle.Complete();
-                                int visibleRenderersCount = batch.VisibleIndices.Length;
+                                int visibleRenderersCount = sharedVisibleCountersPtr[batch.CullingGroupIndex];
                                 if (visibleRenderersCount == 0)
                                 {
                                     continue;
@@ -195,8 +207,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                                     batch.Count * packedDataStride
                                 );
 
+                                int* indicesBeginPtr = sharedVisibleIndicesPtr +
+                                                       batch.CullingGroupIndex * ToonBlobShadowsBatching.MaxBatchSize;
+
                                 ToonUnsafeUtility.MemcpyToManagedArray(
-                                    SharedBuffers.IndicesBuffer, batch.VisibleIndices
+                                    SharedBuffers.IndicesBuffer, indicesBeginPtr, visibleRenderersCount
                                 );
                                 cmd.SetGlobalFloatArray(ShaderIds.Indices, SharedBuffers.IndicesBuffer);
 
@@ -210,6 +225,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 }
             }
 
+            cullingHandle.Dispose();
             _batching.Clear();
         }
 

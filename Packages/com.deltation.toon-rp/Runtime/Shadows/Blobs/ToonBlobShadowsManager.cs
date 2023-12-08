@@ -6,12 +6,14 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
+        private Scene _scene;
         public Group[] AllGroups { get; private set; } = Array.Empty<Group>();
 
         public bool IsDestroyed { get; private set; }
@@ -24,6 +26,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private void OnDestroy()
         {
             Destroy();
+        }
+
+        public void Init(Scene scene)
+        {
+            _scene = scene;
         }
 
         public void EnsureInitialized()

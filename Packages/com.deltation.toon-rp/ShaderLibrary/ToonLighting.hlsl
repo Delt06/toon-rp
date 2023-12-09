@@ -57,7 +57,7 @@ float ComputeRampSpecular(const LightComputationParameters parameters, const flo
     
     #else // !_OVERRIDE_RAMP
 
-    return ComputeGlobalRampSpecular(nDotH, parameters.globalRampUv);
+    return ComputeGlobalRampSpecular(nDotH + parameters.specularSizeOffset, parameters.globalRampUv);
 
     #endif // _OVERRIDE_RAMP
 }

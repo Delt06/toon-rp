@@ -16,6 +16,7 @@
 		
         #include "../../ShaderLibrary/Common.hlsl"
         #include "../../ShaderLibrary/FakeAdditionalLights.hlsl"
+        #include "../../ShaderLibrary/Lighting.hlsl"
 
         struct PackedLightData
         {
@@ -62,8 +63,10 @@
 
         struct InverpolatedParams
         {
+            half2 positionWsXz;
             half3 color;
             half invSqrRange;
+            half3 center;
         };
 
         void GetVertexData(const uint vertexId, out float4 positionCs, out InverpolatedParams inverpolatedParams)
@@ -80,15 +83,17 @@
             packedLightData.params1 = UnpackHalf4(asuint(rawPackedData.xy));
             packedLightData.params2 = UnpackHalf4(asuint(rawPackedData.zw));
 
-            const half2 centerWs = packedLightData.params1.xy;
-            const half range = packedLightData.params1.z;
-            const half invSqrRange = packedLightData.params1.w;
+            const half3 center = packedLightData.params1.xyz;
+            const half range = packedLightData.params1.w;
             const half3 color = packedLightData.params2.xyz;
-		    
-		    const half2 positionWs = positionOs * range + centerWs;
+            const half invSqrRange = packedLightData.params2.w;
+
+            const half2 positionWs = positionOs * range + center.xz;
 		    const half2 screenUv = FakeAdditionalLights_PositionToUV(positionWs);
 		    positionCs = ScreenUvToHClip(screenUv);
 
+            inverpolatedParams.positionWsXz = positionWs;
+            inverpolatedParams.center = center;
             inverpolatedParams.color = color;
             inverpolatedParams.invSqrRange = invSqrRange;
         }
@@ -113,7 +118,11 @@
             struct v2f
 		    {
                 half4 positionCs : SV_POSITION;
-                half4 interpolatedParams : INTERPOLATED_PARAMS;
+            
+                half2 positionWsXz : POSITION_WS;
+                half3 color : COLOR;
+                half invSqrRange : INV_SQR_RANGE;
+                half3 center : CENTER_XZ;
             };
 
             v2f VS(const uint vertexId : SV_VertexID)
@@ -123,15 +132,30 @@
                 InverpolatedParams inverpolatedParams;
                 GetVertexData(vertexId, OUT.positionCs, inverpolatedParams);
 
-                OUT.interpolatedParams.rgb = inverpolatedParams.color;
-                OUT.interpolatedParams.a = inverpolatedParams.invSqrRange;
+                OUT.positionWsXz = inverpolatedParams.positionWsXz;
+                OUT.color = inverpolatedParams.color;
+                OUT.invSqrRange = inverpolatedParams.invSqrRange;
+                OUT.center = inverpolatedParams.center;
                 
                 return OUT;
             }
 
-			float4 PS(const v2f IN) : SV_TARGET
+			half4 PS(const v2f IN) : SV_TARGET
             {
-                return float4(IN.interpolatedParams.rgb, 1.0f);
+                half3 receiverPosition;
+                receiverPosition.xz = IN.positionWsXz;
+                receiverPosition.y = _ReceiverPlaneY;
+                
+                const half3 offset = IN.center - receiverPosition;
+                const half distanceSqr = max(dot(offset, offset), 0.00001);
+                half distanceAttenuation = Sq(
+                    saturate(1.0f - Sq(distanceSqr * IN.invSqrRange))
+                );
+                distanceAttenuation = distanceAttenuation / distanceSqr;
+                distanceAttenuation = distanceAttenuation * _AdditionalLightRampOffset.z;
+
+                const half3 color = IN.color * distanceAttenuation;
+                return half4(color, 1.0f);
             }
 
 			ENDHLSL

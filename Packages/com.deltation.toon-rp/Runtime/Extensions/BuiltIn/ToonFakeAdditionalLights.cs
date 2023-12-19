@@ -13,7 +13,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     {
         private const int BatchSize = 256;
         public const string ShaderName = "Hidden/Toon RP/Fake Additional Lights";
-        
+
         private static readonly int TextureId = Shader.PropertyToID("_FakeAdditionalLightsTexture");
 
         private readonly Vector4[] _batchLightsData = new Vector4[BatchSize];
@@ -69,9 +69,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     float2 multiplier = float2(1.0f / size.x, 1.0f / size.y);
                     float2 offset = float2(-min.x, -min.y) * multiplier;
 
-                    cmd.SetGlobalVector("_ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset",
+                    cmd.SetGlobalVector("_Bounds_MultiplierOffset",
                         float4(multiplier, offset)
                     );
+                    cmd.SetGlobalFloat("_ReceiverPlaneY", _settings.ReceiverPlaneY);
                 }
 
                 for (int startIndex = 0; startIndex < allLightsData.Length; startIndex += BatchSize)
@@ -141,15 +142,16 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             {
                 // 1
                 Word0 = Mathf.FloatToHalf(position.x),
-                Word1 = Mathf.FloatToHalf(position.z),
+                Word1 = Mathf.FloatToHalf(position.y),
                 // 2
-                Word2 = Mathf.FloatToHalf(visibleLight.range),
-                Word3 = Mathf.FloatToHalf(1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f)),
+                Word2 = Mathf.FloatToHalf(position.z),
+                Word3 = Mathf.FloatToHalf(visibleLight.range),
                 // 3
                 Word4 = Mathf.FloatToHalf(finalColor.r),
                 Word5 = Mathf.FloatToHalf(finalColor.g),
                 // 4
                 Word6 = Mathf.FloatToHalf(finalColor.b),
+                Word7 = Mathf.FloatToHalf(1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f)),
             };
             return packedData.Vector;
         }

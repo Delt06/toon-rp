@@ -632,6 +632,7 @@ namespace DELTation.ToonRP
 
             {
                 _tiledLighting.PrepareForTransparentGeometry(cmd);
+                _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
 

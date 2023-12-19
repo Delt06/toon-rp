@@ -18,12 +18,6 @@
         #include "../../ShaderLibrary/FakeAdditionalLights.hlsl"
         #include "../../ShaderLibrary/Lighting.hlsl"
 
-        struct PackedLightData
-        {
-            half4 params1;
-            half4 params2;
-        };
-
         #define BATCH_SIZE 256
 
         CBUFFER_START(_ToonRP_FakeAdditionalLights_PackedData)
@@ -41,16 +35,6 @@
 		    return positionCs;
 		}
 
-        uint4 UnpackBytes(const uint packedValue)
-		{
-		    return uint4(
-		        packedValue & 0xFF,
-		        packedValue >> 8 & 0xFF,
-		        packedValue >> 16 & 0xFF,
-		        packedValue >> 24 & 0xFF
-		    );
-		}
-
         half2 UnpackHalf2(const uint packedValue)
 		{
 		    return half2(f16tof32(packedValue), f16tof32(packedValue >> 16));
@@ -60,6 +44,27 @@
 		{
 		    return half4(UnpackHalf2(packedValue.x), UnpackHalf2(packedValue.y));
 		}
+
+        struct FakeLightData
+        {
+            half3 center;
+            half range;
+            half3 color;
+            half invSqrRange;
+        };
+
+        FakeLightData UnpackFakeLightData(const float4 packedValue)
+        {
+            half4 params1 = UnpackHalf4(asuint(packedValue.xy));
+            half4 params2 = UnpackHalf4(asuint(packedValue.zw));
+
+            FakeLightData fakeLightData;
+            fakeLightData.center = params1.xyz;
+            fakeLightData.range = params1.w;
+            fakeLightData.color = params2.xyz;
+            fakeLightData.invSqrRange = params2.w;
+            return fakeLightData;
+        }
 
         struct InverpolatedParams
         {
@@ -79,30 +84,17 @@
 		    positionOs.y = quadVertexId < 2 ? 1 : -1;
 
 		    const float4 rawPackedData = _FakeAdditionalLights[instanceId];
-            PackedLightData packedLightData;
-            packedLightData.params1 = UnpackHalf4(asuint(rawPackedData.xy));
-            packedLightData.params2 = UnpackHalf4(asuint(rawPackedData.zw));
+            FakeLightData fakeLightData = UnpackFakeLightData(rawPackedData);
 
-            const half3 center = packedLightData.params1.xyz;
-            const half range = packedLightData.params1.w;
-            const half3 color = packedLightData.params2.xyz;
-            const half invSqrRange = packedLightData.params2.w;
-
-            const half2 positionWs = positionOs * range + center.xz;
+            const half2 positionWs = positionOs * fakeLightData.range + fakeLightData.center.xz;
 		    const half2 screenUv = FakeAdditionalLights_PositionToUV(positionWs);
 		    positionCs = ScreenUvToHClip(screenUv);
 
             inverpolatedParams.positionWsXz = positionWs;
-            inverpolatedParams.center = center;
-            inverpolatedParams.color = color;
-            inverpolatedParams.invSqrRange = invSqrRange;
+            inverpolatedParams.center = fakeLightData.center;
+            inverpolatedParams.color = fakeLightData.color;
+            inverpolatedParams.invSqrRange = fakeLightData.invSqrRange;
         }
-
-        float2 Rotate(const float2 value, const float angleRad)
-		{
-            const float2x2 rotationMatrix = float2x2(cos(angleRad), -sin(angleRad), sin(angleRad), cos(angleRad));
-		    return mul(rotationMatrix, value);
-		}
         
         ENDHLSL
             

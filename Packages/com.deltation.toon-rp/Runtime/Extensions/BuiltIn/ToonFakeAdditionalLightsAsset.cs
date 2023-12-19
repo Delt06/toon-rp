@@ -2,7 +2,7 @@
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(menuName = Path + "Fake Additional Lights")]
     public class ToonFakeAdditionalLightsAsset : ToonRenderingExtensionAsset<ToonFakeAdditionalLightsSettings>
     {
         public override ToonRenderingEvent Event => ToonRenderingEvent.BeforeGeometryPasses;

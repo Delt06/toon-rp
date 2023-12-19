@@ -44,6 +44,8 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int EarlyBailThresholdId = Shader.PropertyToID("_EarlyBailThreshold");
         private static readonly int LightBleedingReductionId =
             Shader.PropertyToID("_ToonRP_ShadowLightBleedingReduction");
+        private static readonly int PrecisionCompensationId =
+            Shader.PropertyToID("_ToonRP_ShadowPrecisionCompensation");
         private static readonly int BlurScatterId = Shader.PropertyToID("_ToonRP_VSM_BlurScatter");
         private static readonly int PoissonDiskSizeId = Shader.PropertyToID("_ToonRP_PoissonDiskSize");
         private static readonly int FPoissonDiskSizeId = Shader.PropertyToID("_ToonRP_fPoissonDiskSize");
@@ -316,6 +318,7 @@ namespace DELTation.ToonRP.Shadows
             if (_shadowMapsSettings.Blur != BlurMode.None)
             {
                 cmd.SetGlobalFloat(LightBleedingReductionId, _shadowMapsSettings.LightBleedingReduction);
+                cmd.SetGlobalFloat(PrecisionCompensationId, _shadowMapsSettings.PrecisionCompensation);
             }
 
             _context.ExecuteCommandBufferAndClear(cmd);

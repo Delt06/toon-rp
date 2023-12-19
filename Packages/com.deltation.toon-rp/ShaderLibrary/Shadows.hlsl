@@ -34,6 +34,7 @@ CBUFFER_START(_ToonRpShadows)
     float4 _ToonRP_CascadeCullingSpheres[MAX_CASCADE_COUNT];
     float2 _ToonRP_ShadowRamp;
     float _ToonRP_ShadowLightBleedingReduction;
+    float _ToonRP_ShadowPrecisionCompensation;
     float2 _ToonRP_ShadowDistanceFade;
     float2 _ToonRP_ShadowBias; // x - depth, y - normal
     float3 _ToonRP_ShadowPatternScale;
@@ -128,7 +129,7 @@ float SampleShadowAttenuation(const float3 shadowCoords, const float3 positionWs
     const float2 varianceSample = SAMPLE_TEXTURE2D(_ToonRP_DirectionalShadowAtlas,
                                                    sampler_ToonRP_DirectionalShadowAtlas,
                                                    shadowCoords.xy).rg;
-    const float variance = varianceSample.y - varianceSample.x * varianceSample.x;
+    const float variance = varianceSample.y - varianceSample.x * varianceSample.x + _ToonRP_ShadowPrecisionCompensation;
 
     #ifdef UNITY_REVERSED_Z
     const float difference = shadowCoords.z - varianceSample.x;

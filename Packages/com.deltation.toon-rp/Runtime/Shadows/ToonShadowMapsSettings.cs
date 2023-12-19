@@ -91,7 +91,7 @@ namespace DELTation.ToonRP.Shadows
 
             [FormerlySerializedAs("PoissonSpread")]
             [ToonRpShowIf(nameof(Enabled))]
-            [Range(0.0f, 0.99f)]
+            [Range(0.0f, 2.0f)]
             public float Spread;
 
             [ToonRpShowIf(nameof(UsingRotatedPoisson))]

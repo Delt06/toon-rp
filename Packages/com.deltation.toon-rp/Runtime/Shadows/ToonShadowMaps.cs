@@ -304,8 +304,7 @@ namespace DELTation.ToonRP.Shadows
                 cmd.SetGlobalFloat(InvPoissonDiskSizeId, 1.0f / poissonDiskSize);
 
                 const int spreadReferenceResolution = 1024;
-                float spread = 1.0f / Mathf.Max(1 - _shadowMapsSettings.SoftShadows.Spread, 0.0001f) /
-                               spreadReferenceResolution;
+                float spread = _shadowMapsSettings.SoftShadows.Spread / spreadReferenceResolution;
                 cmd.SetGlobalTexture(RotatedPoissonSamplingTextureId,
                     _shadowMapsSettings.SoftShadows.RotatedPoissonSamplingTexture
                 );
@@ -344,13 +343,6 @@ namespace DELTation.ToonRP.Shadows
 
         private void FillPoissonDiskValues(int diskSize, float spread)
         {
-            // for (int i = 0; i < diskSize; i += 2)
-            // {
-            //     Vector2 diskValue0 = PoissonDiskRaw[i] * spread;
-            //     Vector2 diskValue1 = PoissonDiskRaw[i + 1] * spread;
-            //     _poissonDiskAdjusted[i / 2] = new Vector4(diskValue0.x, diskValue0.y, diskValue1.x, diskValue1.y);
-            // }
-
             for (int i = 0; i < diskSize; ++i)
             {
                 _poissonDiskAdjusted[i] = PoissonDiskRaw[i] * spread;

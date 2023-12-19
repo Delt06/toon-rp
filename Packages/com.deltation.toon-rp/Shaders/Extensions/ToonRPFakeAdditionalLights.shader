@@ -135,7 +135,7 @@
             {
                 half3 receiverPosition;
                 receiverPosition.xz = IN.positionWsXz;
-                receiverPosition.y = _ReceiverPlaneY;
+                receiverPosition.y = _ToonRP_FakeAdditionalLights_ReceiverPlaneY;
                 
                 const half3 offset = IN.center - receiverPosition;
                 const half distanceSqr = max(dot(offset, offset), 0.00001);
@@ -147,7 +147,8 @@
                 distanceAttenuation += _AdditionalLightRampOffset.x;
                 distanceAttenuation = saturate(distanceAttenuation);
 
-                const half3 color = IN.color * distanceAttenuation;
+                const float ramp = ComputeRamp(distanceAttenuation, _ToonRP_FakeAdditionalLights_Ramp);
+                const half3 color = IN.color * ramp;
                 return half4(color, distanceAttenuation);
             }
 

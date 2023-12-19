@@ -69,10 +69,15 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     float2 multiplier = float2(1.0f / size.x, 1.0f / size.y);
                     float2 offset = float2(-min.x, -min.y) * multiplier;
 
-                    cmd.SetGlobalVector("_Bounds_MultiplierOffset",
+                    cmd.SetGlobalVector("_ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset",
                         float4(multiplier, offset)
                     );
-                    cmd.SetGlobalFloat("_ReceiverPlaneY", _settings.ReceiverPlaneY);
+                    cmd.SetGlobalFloat("_ToonRP_FakeAdditionalLights_ReceiverPlaneY", _settings.ReceiverPlaneY);
+                    cmd.SetGlobalVector("_ToonRP_FakeAdditionalLights_Ramp", ToonRpUtils.BuildRampVectorFromSmoothness(
+                            _settings.Threshold,
+                            _settings.Smoothness
+                        )
+                    );
                 }
 
                 for (int startIndex = 0; startIndex < allLightsData.Length; startIndex += BatchSize)

@@ -18,3 +18,5 @@ MonoBehaviour:
     Size: 512
     MaxDistance: 85
     ReceiverPlaneY: 0
+    Threshold: 0
+    Smoothness: 1

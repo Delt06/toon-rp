@@ -202,9 +202,11 @@ namespace DELTation.ToonRP
                     }
 
                     if (depthAttachment.loadAction == RenderBufferLoadAction.Load ||
-                        depthAttachment.storeAction == RenderBufferStoreAction.Store)
+                        depthAttachment.storeAction == RenderBufferStoreAction.Store ||
+                        DepthBufferId == BuiltinRenderTextureType.CameraTarget
+                        )
                     {
-                        colorAttachment.loadStoreTarget = DepthBufferId;
+                        depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;
                     }
                 }
 

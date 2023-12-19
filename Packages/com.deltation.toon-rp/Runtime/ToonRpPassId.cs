@@ -5,6 +5,7 @@
         public const string VsmShadows = "VSM Shadows";
         public const string Shadows = "Shadows";
         public const string BlobShadows = "Blob Shadows";
+        public const string FakeAdditionalLights = "Fake Additional Lights";
         public const string DepthPrePass = "Depth Pre-Pass";
         public const string OpaqueTexture = "Copy Opaque Texture";
         public const string MotionVectorsPrePass = "Motion Vectors Pre-Pass";

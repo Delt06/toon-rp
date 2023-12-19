@@ -490,6 +490,9 @@ namespace DELTation.ToonRP
         private void GeometryRenderPass(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext)
         {
             _context.ExecuteCommandBufferAndClear(cmd);
+
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeGeometryPasses);
+
             ToonClearValue clearValue = GetRenderTargetsClearValue();
             RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbuffer == 0
                 ? RenderBufferLoadAction.DontCare

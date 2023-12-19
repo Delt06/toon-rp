@@ -14,8 +14,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private const int BatchSize = 256;
         public const string ShaderName = "Hidden/Toon RP/Fake Additional Lights";
 
-        private static readonly int TextureId = Shader.PropertyToID("_FakeAdditionalLightsTexture");
-
         private readonly Vector4[] _batchLightsData = new Vector4[BatchSize];
         private Camera _camera;
         private ScriptableRenderContext _context;
@@ -43,12 +41,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                 int textureSize = (int) _settings.Size;
 
-                cmd.GetTemporaryRT(TextureId,
+                cmd.GetTemporaryRT(ShaderIds.TextureId,
                     new RenderTextureDescriptor(textureSize, textureSize, RenderTextureFormat.ARGB32, 0, 1,
                         RenderTextureReadWrite.Linear
                     ), FilterMode.Bilinear
                 );
-                cmd.SetRenderTarget(TextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetRenderTarget(ShaderIds.TextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                );
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
                 Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
@@ -69,11 +68,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     float2 multiplier = float2(1.0f / size.x, 1.0f / size.y);
                     float2 offset = float2(-min.x, -min.y) * multiplier;
 
-                    cmd.SetGlobalVector("_ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset",
+                    cmd.SetGlobalVector(ShaderIds.BoundsMultiplierOffsetId,
                         float4(multiplier, offset)
                     );
-                    cmd.SetGlobalFloat("_ToonRP_FakeAdditionalLights_ReceiverPlaneY", _settings.ReceiverPlaneY);
-                    cmd.SetGlobalVector("_ToonRP_FakeAdditionalLights_Ramp", ToonRpUtils.BuildRampVectorFromSmoothness(
+                    cmd.SetGlobalFloat(ShaderIds.ReceiverPlaneYId, _settings.ReceiverPlaneY);
+                    cmd.SetGlobalVector(ShaderIds.RampId, ToonRpUtils.BuildRampVectorFromSmoothness(
                             _settings.Threshold,
                             _settings.Smoothness
                         )
@@ -159,6 +158,17 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 Word7 = Mathf.FloatToHalf(1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f)),
             };
             return packedData.Vector;
+        }
+
+
+        private static class ShaderIds
+        {
+            public static readonly int TextureId = Shader.PropertyToID("_FakeAdditionalLightsTexture");
+            public static readonly int BoundsMultiplierOffsetId =
+                Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset");
+            public static readonly int ReceiverPlaneYId =
+                Shader.PropertyToID("_ToonRP_FakeAdditionalLights_ReceiverPlaneY");
+            public static readonly int RampId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Ramp");
         }
 
         [StructLayout(LayoutKind.Explicit)]

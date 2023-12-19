@@ -49,7 +49,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     ), FilterMode.Bilinear
                 );
                 cmd.SetRenderTarget(TextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                cmd.ClearRenderTarget(false, true, Color.black);
+                cmd.ClearRenderTarget(false, true, Color.clear);
 
                 Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
                     _settings.MaxDistance,

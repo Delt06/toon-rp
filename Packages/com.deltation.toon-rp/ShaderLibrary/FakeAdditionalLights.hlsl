@@ -4,6 +4,7 @@
 CBUFFER_START(_ToonRP_FakeAdditionalLights)
     half4 _Bounds_MultiplierOffset;
     half _ReceiverPlaneY;
+    float2 _OverrideRamp;
 CBUFFER_END
 
 TEXTURE2D(_FakeAdditionalLightsTexture);
@@ -16,10 +17,11 @@ half2 FakeAdditionalLights_PositionToUV(const half2 positionWsXz)
     return positionWsXz * multiplier + offset;
 }
 
-float3 FakeAdditionalLights_Sample(const float3 positionWs)
+float4 FakeAdditionalLights_SampleRaw(const float3 positionWs)
 {
     const half2 uv = FakeAdditionalLights_PositionToUV(positionWs.xz);
-    return SAMPLE_TEXTURE2D(_FakeAdditionalLightsTexture, sampler_FakeAdditionalLightsTexture, uv).rgb;
+    const float4 sample = SAMPLE_TEXTURE2D(_FakeAdditionalLightsTexture, sampler_FakeAdditionalLightsTexture, uv);
+    return sample;
 }
 
 #endif // TOON_RP_FAKE_ADDITIONAL_LIGHTS

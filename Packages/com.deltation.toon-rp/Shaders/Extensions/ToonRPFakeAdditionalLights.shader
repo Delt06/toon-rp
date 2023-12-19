@@ -5,7 +5,6 @@
     }
 	SubShader
 	{
-	    ColorMask RGB
 	    Cull Off
     
         Blend One One 
@@ -145,9 +144,11 @@
                 );
                 distanceAttenuation = distanceAttenuation / distanceSqr;
                 distanceAttenuation = distanceAttenuation * _AdditionalLightRampOffset.z;
+                distanceAttenuation += _AdditionalLightRampOffset.x;
+                distanceAttenuation = saturate(distanceAttenuation);
 
                 const half3 color = IN.color * distanceAttenuation;
-                return half4(color, 1.0f);
+                return half4(color, distanceAttenuation);
             }
 
 			ENDHLSL

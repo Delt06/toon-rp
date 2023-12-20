@@ -184,7 +184,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             Matrix4x4 localToWorldMatrix = visibleLight.localToWorldMatrix;
             Vector4 position = localToWorldMatrix.GetColumn(3);
-            Color finalColor = visibleLight.finalColor;
+            Color finalColor = visibleLight.finalColor.linear;
 
             LightType lightType = visibleLight.lightType;
 
@@ -192,13 +192,15 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             var packedData = new PackedLightData
             {
-                Bytes_00_01 = ToonPackingUtility.FloatToHalf(position.x),
-                Bytes_02_03 = ToonPackingUtility.FloatToHalf(position.y),
-                Bytes_04_05 = ToonPackingUtility.FloatToHalf(position.z),
-                Bytes_06_07 = ToonPackingUtility.FloatToHalf(visibleLight.range),
-                Byte_08 = ToonPackingUtility.PackAsUNorm(finalColor.r),
-                Byte_09 = ToonPackingUtility.PackAsUNorm(finalColor.g),
-                Byte_10 = ToonPackingUtility.PackAsUNorm(finalColor.b),
+                Bytes_00_01 = ToonPackingUtility.FloatToHalfFast(position.x),
+                Bytes_02_03 = ToonPackingUtility.FloatToHalfFast(position.y),
+                Bytes_04_05 = ToonPackingUtility.FloatToHalfFast(position.z),
+                Bytes_06_07 = ToonPackingUtility.FloatToHalfFast(visibleLight.range),
+
+                // limiting the upper bound is enough
+                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.r, 1.0f)),
+                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.g, 1.0f)),
+                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.b, 1.0f)),
             };
 
             if (lightType == LightType.Spot)

@@ -16,7 +16,10 @@ MonoBehaviour:
   - {fileID: 4800000, guid: 435905338b624c998a5edeb8f7b36d57, type: 3}
   Settings:
     Size: 512
-    MaxDistance: 85
-    ReceiverPlaneY: 0
     Threshold: 0
     Smoothness: 1
+    MaxDistance: 85
+    DistanceFade: 0.5
+    ReceiverPlaneY: 0
+    MaxHeight: 1
+    HeightFade: 0.5

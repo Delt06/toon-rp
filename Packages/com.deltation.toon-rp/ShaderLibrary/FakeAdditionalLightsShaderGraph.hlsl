@@ -23,7 +23,10 @@ void SampleFakeAdditionalLights_float(
         const float distanceAttenuation = sample.a;
         lights *= ComputeGlobalRampDiffuse(distanceAttenuation * 2 - 1, globalRampUv);
     }
-    
+
+    lights *= FakeAdditionalLights_DistanceFade(positionWs);
+    lights *= FakeAdditionalLights_HeightFade(positionWs.y);
+
     #endif // SHADERGRAPH_PREVIEW
 }
 

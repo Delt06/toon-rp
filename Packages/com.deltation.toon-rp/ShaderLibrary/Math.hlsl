@@ -30,9 +30,14 @@ float StepAntiAliased(const float edge, const float value)
     return InverseLerpClamped(edge - halfChange, edge + halfChange, value);
 }
 
+float DistanceFadeBase(const float distance, const float scale, const float fade)
+{
+    return saturate((1.0 - distance * scale) * fade);
+}
+
 float DistanceFade(const float distance, const float scale, const float fade)
 {
-    return 1.0f - saturate((1.0 - distance * scale) * fade);
+    return 1.0f - DistanceFadeBase(distance, scale, fade);
 }
 
 float DistanceSquared(const float3 point1, const float3 point2)

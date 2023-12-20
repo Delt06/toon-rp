@@ -39,10 +39,41 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             {
                 NativeList<Vector4> allLightsData = CollectLights();
 
-                int textureSize = (int) _settings.Size;
+                int2 textureSize = (int) _settings.Size;
+
+                Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
+                    _settings.MaxDistance,
+                    _settings.ReceiverPlaneY
+                );
+
+                Bounds2D receiverBounds;
+
+                if (intersection != null)
+                {
+                    receiverBounds = intersection.Value;
+                    // Padding
+                    receiverBounds.Size *= 1.0f + float2(1.0f) / textureSize;
+
+                    // Adaptively reduce the lesser dimension
+                    if (receiverBounds.Size.x < receiverBounds.Size.y)
+                    {
+                        textureSize.x = (int) ceil(textureSize.x * receiverBounds.Size.x / receiverBounds.Size.y);
+                    }
+                    else
+                    {
+                        textureSize.y = (int) ceil(textureSize.y * receiverBounds.Size.y / receiverBounds.Size.x);
+                    }
+
+                    textureSize = max(textureSize, 1);
+                }
+                else
+                {
+                    receiverBounds = default;
+                    textureSize = 1;
+                }
 
                 cmd.GetTemporaryRT(ShaderIds.TextureId,
-                    new RenderTextureDescriptor(textureSize, textureSize, RenderTextureFormat.ARGB32, 0, 1,
+                    new RenderTextureDescriptor(textureSize.x, textureSize.y, RenderTextureFormat.ARGB32, 0, 1,
                         RenderTextureReadWrite.Linear
                     ), FilterMode.Bilinear
                 );
@@ -50,16 +81,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 );
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
-                Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
-                    _settings.MaxDistance,
-                    _settings.ReceiverPlaneY
-                );
                 if (intersection == null)
                 {
                     return;
                 }
-
-                Bounds2D receiverBounds = intersection.Value;
 
                 {
                     float2 min = receiverBounds.Min;
@@ -104,11 +129,21 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         4 * count
                     );
                 }
+
+                cmd.SetGlobalVector(ShaderIds.FadesId,
+                    float4(
+                        PackFade(_settings.MaxDistance * _settings.MaxDistance, _settings.DistanceFade),
+                        PackFade(_settings.MaxHeight, _settings.HeightFade)
+                    )
+                );
             }
 
             _context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+        private static float2 PackFade(float maxDistance, float distanceFade) =>
+            1.0f / float2(maxDistance, distanceFade);
 
         private void EnsureMaterialIsCreated()
         {
@@ -169,6 +204,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public static readonly int ReceiverPlaneYId =
                 Shader.PropertyToID("_ToonRP_FakeAdditionalLights_ReceiverPlaneY");
             public static readonly int RampId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Ramp");
+            public static readonly int FadesId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Fades");
         }
 
         [StructLayout(LayoutKind.Explicit)]

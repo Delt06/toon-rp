@@ -7,12 +7,21 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     public struct ToonFakeAdditionalLightsSettings
     {
         public TextureSize Size;
-        [Min(0.01f)]
-        public float MaxDistance;
-        public float ReceiverPlaneY;
+
         [Range(0.0f, 1.0f)]
         public float Threshold;
         [Range(0.0f, 1.0f)]
         public float Smoothness;
+
+        [Min(0.01f)]
+        public float MaxDistance;
+        [Range(0.001f, 1.0f)]
+        public float DistanceFade;
+
+        public float ReceiverPlaneY;
+        [Min(0.01f)]
+        public float MaxHeight;
+        [Range(0.001f, 2.0f)]
+        public float HeightFade;
     }
 }

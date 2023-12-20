@@ -1,15 +1,44 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     public static class ToonPackingUtility
     {
+        [StructLayout(LayoutKind.Explicit)]
+        private struct UIntFloatUnion
+        {
+            [FieldOffset(0)]
+            public uint uintValue;
+            [FieldOffset(0)]
+            public float floatValue;
+        }
+        
+        /// <summary>Returns the bit pattern of a float as a uint.</summary>
+        /// <param name="x">The float bits to copy.</param>
+        /// <returns>The uint with the same bit pattern as the input.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ushort FloatToHalf(float value) => (ushort) f32tof16(value);
+        private static uint FastAsUint(float x) {
+            UIntFloatUnion u;
+            u.uintValue = 0;
+            u.floatValue = x;
+            return u.uintValue;
+        }
+        
+        /// <summary>Returns the bit pattern of a uint as a float.</summary>
+        /// <param name="x">The uint bits to copy.</param>
+        /// <returns>The float with the same bit pattern as the input.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float FastAsFloat(uint x)
+        {
+            UIntFloatUnion u;
+            u.floatValue = 0;
+            u.uintValue = x;
 
+            return u.floatValue;
+        }
 
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
         /// <summary>
         ///     A version of FloatToHalf with some assumptions (modified math.f32tof16()):
         ///     1. No NaNs
@@ -18,16 +47,19 @@ namespace DELTation.ToonRP.Shadows.Blobs
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort FloatToHalfFast(float x)
         {
             const uint msk = 0x7FFFF000u;
 
-            uint ux = asuint(x);
+            uint ux = FastAsUint(x);
             uint uux = ux & msk;
-            uint h = (asuint(min(asfloat(uux) * 1.92592994e-34f, 260042752.0f)) + 0x1000) >>
-                     13; // Clamp to signed infinity if overflowed
+            uint h = (FastAsUint(FastAsFloat(uux) * 1.92592994e-34f) + 0x1000) >> 13;
             return (ushort) (h | ((ux & ~msk) >> 16));
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float FastMin(float x, float y) => x < y ? x : y; 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte PackAsUNorm(float value) => PackAsUNormUnclamped(saturate(value));

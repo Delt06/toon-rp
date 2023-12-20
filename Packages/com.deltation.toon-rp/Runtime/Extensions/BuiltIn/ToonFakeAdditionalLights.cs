@@ -198,9 +198,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 Bytes_06_07 = ToonPackingUtility.FloatToHalfFast(visibleLight.range),
 
                 // limiting the upper bound is enough
-                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.r, 1.0f)),
-                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.g, 1.0f)),
-                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(min(finalColor.b, 1.0f)),
+                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.r, 1.0f)),
+                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.g, 1.0f)),
+                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.b, 1.0f)),
             };
 
             if (lightType == LightType.Spot)

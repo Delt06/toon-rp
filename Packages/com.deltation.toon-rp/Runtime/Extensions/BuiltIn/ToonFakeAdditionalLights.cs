@@ -122,7 +122,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         }
                     }
 
-                    cmd.SetGlobalVectorArray("_FakeAdditionalLights", _batchLightsData);
+                    cmd.SetGlobalVectorArray(ShaderIds.LightsBufferId, _batchLightsData);
 
                     EnsureMaterialIsCreated();
                     cmd.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Quads,
@@ -136,6 +136,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         PackFade(_settings.MaxHeight, _settings.HeightFade)
                     )
                 );
+                cmd.SetGlobalFloat(ShaderIds.IntensityId, _settings.Intensity);
             }
 
             _context.ExecuteCommandBuffer(cmd);
@@ -178,7 +179,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Color finalColor = visibleLight.finalColor;
             Vector3 direction = visibleLight.localToWorldMatrix * new Vector4(0, 0, 1, 0);
             direction.Normalize();
-            
+
             byte type = (byte) visibleLight.lightType;
 
             var packedData = new PackedLightData
@@ -201,13 +202,15 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 Byte_14 = ToonPackingUtility.PackAsSNorm(Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle)),
                 Byte_15 = type,
             };
-            
+
             return packedData.Vector;
         }
 
 
         private static class ShaderIds
         {
+            public static readonly int LightsBufferId = Shader.PropertyToID("_FakeAdditionalLight");
+
             public static readonly int TextureId = Shader.PropertyToID("_FakeAdditionalLightsTexture");
             public static readonly int BoundsMultiplierOffsetId =
                 Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset");
@@ -215,6 +218,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 Shader.PropertyToID("_ToonRP_FakeAdditionalLights_ReceiverPlaneY");
             public static readonly int RampId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Ramp");
             public static readonly int FadesId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Fades");
+            public static readonly int IntensityId = Shader.PropertyToID("_ToonRP_FakeAdditionalLights_Intensity");
         }
 
         [StructLayout(LayoutKind.Explicit)]

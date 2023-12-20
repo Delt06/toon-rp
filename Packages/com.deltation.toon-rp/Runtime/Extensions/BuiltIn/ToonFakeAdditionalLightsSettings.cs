@@ -8,6 +8,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     {
         public TextureSize Size;
 
+        [Range(0.0f, 10.0f)]
+        public float Intensity;
+
         [Range(0.0f, 1.0f)]
         public float Threshold;
         [Range(0.0f, 1.0f)]

@@ -5,6 +5,7 @@
 
 #include "Math.hlsl"
 #include "Textures.hlsl"
+#include "UnityInput.hlsl"
 
 
 CBUFFER_START(_ToonRP_FakeAdditionalLights)
@@ -12,6 +13,7 @@ CBUFFER_START(_ToonRP_FakeAdditionalLights)
     half _ToonRP_FakeAdditionalLights_ReceiverPlaneY;
     float2 _ToonRP_FakeAdditionalLights_Ramp;
     float4 _ToonRP_FakeAdditionalLights_Fades;
+    float _ToonRP_FakeAdditionalLights_Intensity;
 CBUFFER_END
 
 TEXTURE2D(_FakeAdditionalLightsTexture);

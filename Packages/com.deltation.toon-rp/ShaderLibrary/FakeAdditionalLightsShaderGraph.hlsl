@@ -30,7 +30,7 @@ void SampleFakeAdditionalLights_float(
         sample = FakeAdditionalLights_SampleRaw(uv);
     }
 
-    lights = sample.rgb;
+    lights = sample.rgb * _ToonRP_FakeAdditionalLights_Intensity;
     const float distanceAttenuation = sample.a;
 
     if (applyGlobalRamp)

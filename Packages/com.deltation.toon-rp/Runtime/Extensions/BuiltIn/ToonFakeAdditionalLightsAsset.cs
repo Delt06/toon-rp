@@ -11,6 +11,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             Settings.Size = TextureSize._512;
 
+            Settings.Intensity = 1.0f;
+
             Settings.Threshold = 0.0f;
             Settings.Smoothness = 1.0f;
 

@@ -258,6 +258,12 @@ namespace DELTation.ToonRP
                 return false;
             }
 
+            if (_settings.AdditionalLights == AdditionalLightsMode.Off ||
+                _settings.IsTiledLightingEnabledAndSupported())
+            {
+                parameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            }
+
             if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping)
             {
                 parameters.shadowDistance = Mathf.Min(toonShadowSettings.MaxDistance, _camera.farClipPlane);

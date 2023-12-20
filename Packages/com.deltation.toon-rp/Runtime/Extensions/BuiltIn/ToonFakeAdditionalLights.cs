@@ -163,6 +163,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             var visibleLightsPtr = (VisibleLight*) _cullingResults.visibleLights.GetUnsafePtr();
 
+            Transform cameraTransform = _camera.transform;
+            Vector3 cameraPosition = cameraTransform.position + cameraTransform.forward * _camera.nearClipPlane;
+            float maxDistanceSqr = _settings.MaxDistance * _settings.MaxDistance;
+
             for (int index = 0; index < count; index++)
             {
                 ref VisibleLight visibleLight = ref visibleLightsPtr[index];
@@ -181,10 +185,25 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     continue;
                 }
 
+                float cameraDistanceSqr = DistanceSqr(cameraPosition, position);
+                if (cameraDistanceSqr > maxDistanceSqr)
+                {
+                    continue;
+                }
+
                 allLightsData.Add(PackLight(ref visibleLight, ref position, ref localToWorldMatrix));
             }
 
             return allLightsData;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float DistanceSqr(Vector3 position1, Vector4 position2)
+        {
+            float dx = position1.x - position2.x;
+            float dy = position1.y - position2.y;
+            float dz = position1.z - position2.z;
+            return dx * dx + dy * dy + dz * dz;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -426,6 +426,20 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "06627a15d62647c88444fc5894782abe",
+    "m_Id": 843863854,
+    "m_DisplayName": "Bicubic Filtering",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "_Bicubic_Filtering",
+    "m_StageCapability": 3,
+    "m_Value": false,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "0a694ddf3c2d4e1ebccea3ba6f737299",
     "m_Id": 1,
@@ -987,6 +1001,9 @@
             "m_Id": "be070f187a1a4ace8b2b679dd183c9c2"
         },
         {
+            "m_Id": "06627a15d62647c88444fc5894782abe"
+        },
+        {
             "m_Id": "eb218cf970c7421ea90825acb89aa57e"
         },
         {
@@ -1007,11 +1024,15 @@
     "m_SerializedSubGraph": "{\n    \"subGraph\": {\n        \"fileID\": -5475051401550479605,\n        \"guid\": \"b0fadf581e92ed54e9d869643d3a9ba1\",\n        \"type\": 3\n    }\n}",
     "m_PropertyGuids": [
         "464532cb-9f0d-4625-bf33-b345a8d1d98d",
-        "4037c63c-1a41-43b7-8995-e13be2bcd216"
+        "4037c63c-1a41-43b7-8995-e13be2bcd216",
+        "57effc75-ef22-46df-a97d-04b1602a8210",
+        "b212bb95-9db5-400e-8536-2cbb8b477c7b"
     ],
     "m_PropertyIds": [
         -938848303,
-        783545622
+        783545622,
+        -1330232162,
+        843863854
     ],
     "m_Dropdowns": [],
     "m_DropdownSelectedEntries": []

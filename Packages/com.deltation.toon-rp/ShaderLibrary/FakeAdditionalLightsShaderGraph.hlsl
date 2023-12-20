@@ -6,6 +6,7 @@
 
 void SampleFakeAdditionalLights_float(
     const float3 positionWs,
+    const bool bicubicFiltering,
     const bool applyGlobalRamp,
     const float2 globalRampUv,
     out float3 lights,
@@ -16,8 +17,19 @@ void SampleFakeAdditionalLights_float(
     lights = 0;
     attenuation = 0;
     #else // !SHADERGRAPH_PREVIEW
-    
-    const float4 sample = FakeAdditionalLights_SampleRaw(positionWs);
+
+    const half2 uv = FakeAdditionalLights_PositionToUV(positionWs.xz);
+
+    float4 sample;
+    if (bicubicFiltering)
+    {
+        sample = FakeAdditionalLights_SampleRawBicubic(uv);
+    }
+    else
+    {
+        sample = FakeAdditionalLights_SampleRaw(uv);
+    }
+
     lights = sample.rgb;
     const float distanceAttenuation = sample.a;
 
@@ -26,7 +38,7 @@ void SampleFakeAdditionalLights_float(
         lights *= ComputeGlobalRampDiffuse(distanceAttenuation * 2 - 1, globalRampUv);
     }
 
-    const float fade = FakeAdditionalLights_DistanceFade(positionWs) * FakeAdditionalLights_HeightFade(positionWs.y); 
+    const float fade = FakeAdditionalLights_DistanceFade(positionWs) * FakeAdditionalLights_HeightFade(positionWs.y);
     lights *= fade;
 
     attenuation = distanceAttenuation * fade;

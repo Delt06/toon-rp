@@ -574,13 +574,28 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "7c91a51b35634611a748e54c6fed9144",
+    "m_Id": 2,
+    "m_DisplayName": "Attenuation",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Attenuation",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "7ca81945b22d421a9c5bfaefd6a2bd3f",
     "m_Id": 1,
-    "m_DisplayName": "Out_Lights",
+    "m_DisplayName": "Lights",
     "m_SlotType": 1,
     "m_Hidden": false,
-    "m_ShaderOutputName": "Out_Lights",
+    "m_ShaderOutputName": "Lights",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -1134,6 +1149,9 @@
         },
         {
             "m_Id": "7ca81945b22d421a9c5bfaefd6a2bd3f"
+        },
+        {
+            "m_Id": "7c91a51b35634611a748e54c6fed9144"
         }
     ],
     "synonyms": [],

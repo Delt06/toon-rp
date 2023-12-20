@@ -15,7 +15,7 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 435905338b624c998a5edeb8f7b36d57, type: 3}
   Settings:
-    Size: 512
+    Size: 256
     Threshold: 0
     Smoothness: 1
     MaxDistance: 85

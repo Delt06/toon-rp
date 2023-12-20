@@ -68,6 +68,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "34260d1754c24f25b4870adc443a4fee"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "f90613b870ab464d99baa56291601e4f"
+                },
+                "m_SlotId": 2
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "8ce5acd2bc894bfda405902f533e5a26"
                 },
                 "m_SlotId": 0
@@ -190,6 +204,9 @@
         },
         {
             "m_Id": "47180502471c4eac9219efb7d4ea71f9"
+        },
+        {
+            "m_Id": "f7348efa3408409986a451c56744bf0e"
         }
     ],
     "synonyms": [
@@ -229,6 +246,21 @@
         "y": 0.0,
         "z": 0.0
     },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "57d74c1d7dca4b3f87a14466b01bec9c",
+    "m_Id": 2,
+    "m_DisplayName": "Attenuation",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Attenuation",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
     "m_Labels": []
 }
 
@@ -274,6 +306,29 @@
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
     "m_Value": true
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "70282b4d37bd4ed3ae2854bbae60c11c",
+    "m_Id": 1,
+    "m_DisplayName": "Lights",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Lights",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -489,6 +544,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "f7348efa3408409986a451c56744bf0e",
+    "m_Id": 4,
+    "m_DisplayName": "attenuation",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "attenuation",
+    "m_StageCapability": 3,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.SubGraphOutputNode",
     "m_ObjectId": "f90613b870ab464d99baa56291601e4f",
     "m_Group": {
@@ -507,7 +577,10 @@
     },
     "m_Slots": [
         {
-            "m_Id": "fcbd487e33dc4472b1bb499eded9101d"
+            "m_Id": "70282b4d37bd4ed3ae2854bbae60c11c"
+        },
+        {
+            "m_Id": "57d74c1d7dca4b3f87a14466b01bec9c"
         }
     ],
     "synonyms": [],
@@ -519,28 +592,5 @@
         "m_SerializableColors": []
     },
     "IsFirstSlotValid": true
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "fcbd487e33dc4472b1bb499eded9101d",
-    "m_Id": 1,
-    "m_DisplayName": "Out_Lights",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out_Lights",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
 }
 

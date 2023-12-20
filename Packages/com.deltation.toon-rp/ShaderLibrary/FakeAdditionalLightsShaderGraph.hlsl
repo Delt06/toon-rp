@@ -8,24 +8,28 @@ void SampleFakeAdditionalLights_float(
     const float3 positionWs,
     const bool applyGlobalRamp,
     const float2 globalRampUv,
-    out float3 lights
+    out float3 lights,
+    out float attenuation
 )
 {
     #ifdef SHADERGRAPH_PREVIEW
     lights = 0;
+    attenuation = 0;
     #else // !SHADERGRAPH_PREVIEW
     
     const float4 sample = FakeAdditionalLights_SampleRaw(positionWs);
     lights = sample.rgb;
+    const float distanceAttenuation = sample.a;
 
     if (applyGlobalRamp)
     {
-        const float distanceAttenuation = sample.a;
         lights *= ComputeGlobalRampDiffuse(distanceAttenuation * 2 - 1, globalRampUv);
     }
 
-    lights *= FakeAdditionalLights_DistanceFade(positionWs);
-    lights *= FakeAdditionalLights_HeightFade(positionWs.y);
+    const float fade = FakeAdditionalLights_DistanceFade(positionWs) * FakeAdditionalLights_HeightFade(positionWs.y); 
+    lights *= fade;
+
+    attenuation = distanceAttenuation * fade;
 
     #endif // SHADERGRAPH_PREVIEW
 }

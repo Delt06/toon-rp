@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using DELTation.ToonRP.Shadows.Blobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -154,12 +155,17 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             }
         }
 
-        private NativeList<Vector4> CollectLights()
+        private unsafe NativeList<Vector4> CollectLights()
         {
             var allLightsData = new NativeList<Vector4>(_cullingResults.visibleLights.Length, Allocator.Temp);
 
-            foreach (VisibleLight visibleLight in _cullingResults.visibleLights)
+            int count = _cullingResults.visibleLights.Length;
+
+            var visibleLightsPtr = (VisibleLight*) _cullingResults.visibleLights.GetUnsafePtr();
+
+            for (int index = 0; index < count; index++)
             {
+                ref VisibleLight visibleLight = ref visibleLightsPtr[index];
                 if (visibleLight is
                     { lightType: LightType.Directional } or
                     { light: { lightmapBakeType: LightmapBakeType.Baked } })
@@ -167,41 +173,45 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     continue;
                 }
 
-                allLightsData.Add(PackLight(visibleLight));
+                allLightsData.Add(PackLight(ref visibleLight));
             }
 
             return allLightsData;
         }
 
-        private static Vector4 PackLight(in VisibleLight visibleLight)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector4 PackLight(ref VisibleLight visibleLight)
         {
-            Vector3 position = visibleLight.localToWorldMatrix.GetColumn(3);
+            Matrix4x4 localToWorldMatrix = visibleLight.localToWorldMatrix;
+            Vector4 position = localToWorldMatrix.GetColumn(3);
             Color finalColor = visibleLight.finalColor;
-            Vector3 direction = visibleLight.localToWorldMatrix * new Vector4(0, 0, 1, 0);
-            direction.Normalize();
 
-            byte type = (byte) visibleLight.lightType;
+            LightType lightType = visibleLight.lightType;
+
+            byte type = (byte) lightType;
 
             var packedData = new PackedLightData
             {
-                // 4 bytes
-                Bytes_00_01 = Mathf.FloatToHalf(position.x),
-                Bytes_02_03 = Mathf.FloatToHalf(position.y),
-                // 4 bytes
-                Bytes_04_05 = Mathf.FloatToHalf(position.z),
-                Bytes_06_07 = Mathf.FloatToHalf(visibleLight.range),
-                // 3 bytes
+                Bytes_00_01 = ToonPackingUtility.FloatToHalf(position.x),
+                Bytes_02_03 = ToonPackingUtility.FloatToHalf(position.y),
+                Bytes_04_05 = ToonPackingUtility.FloatToHalf(position.z),
+                Bytes_06_07 = ToonPackingUtility.FloatToHalf(visibleLight.range),
                 Byte_08 = ToonPackingUtility.PackAsUNorm(finalColor.r),
                 Byte_09 = ToonPackingUtility.PackAsUNorm(finalColor.g),
                 Byte_10 = ToonPackingUtility.PackAsUNorm(finalColor.b),
-                // 3 bytes
-                Byte_11 = ToonPackingUtility.PackAsSNorm(direction.x),
-                Byte_12 = ToonPackingUtility.PackAsSNorm(direction.y),
-                Byte_13 = ToonPackingUtility.PackAsSNorm(direction.z),
-                // 2 bytes
-                Byte_14 = ToonPackingUtility.PackAsSNorm(Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle)),
-                Byte_15 = type,
             };
+
+            if (lightType == LightType.Spot)
+            {
+                Vector4 direction = localToWorldMatrix.GetColumn(2);
+
+                packedData.Byte_11 = ToonPackingUtility.PackAsSNorm(direction.x);
+                packedData.Byte_12 = ToonPackingUtility.PackAsSNorm(direction.y);
+                packedData.Byte_13 = ToonPackingUtility.PackAsSNorm(direction.z);
+                packedData.Byte_14 = ToonPackingUtility.PackAsSNorm(Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle));
+            }
+
+            packedData.Byte_15 = type;
 
             return packedData.Vector;
         }

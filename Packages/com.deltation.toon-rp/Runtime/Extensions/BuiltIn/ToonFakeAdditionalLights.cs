@@ -209,7 +209,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private static class ShaderIds
         {
-            public static readonly int LightsBufferId = Shader.PropertyToID("_FakeAdditionalLight");
+            public static readonly int LightsBufferId = Shader.PropertyToID("_FakeAdditionalLights");
 
             public static readonly int TextureId = Shader.PropertyToID("_FakeAdditionalLightsTexture");
             public static readonly int BoundsMultiplierOffsetId =

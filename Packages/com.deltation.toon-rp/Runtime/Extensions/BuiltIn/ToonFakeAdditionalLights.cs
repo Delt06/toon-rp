@@ -173,17 +173,30 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     continue;
                 }
 
-                allLightsData.Add(PackLight(ref visibleLight));
+                Matrix4x4 localToWorldMatrix = visibleLight.localToWorldMatrix;
+                Vector4 position = localToWorldMatrix.GetColumn(3);
+
+                if (FastAbs(position.y - _settings.ReceiverPlaneY) > visibleLight.range)
+                {
+                    continue;
+                }
+
+                allLightsData.Add(PackLight(ref visibleLight, ref position, ref localToWorldMatrix));
             }
 
             return allLightsData;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector4 PackLight(ref VisibleLight visibleLight)
+        private static float FastAbs(float value) => value < 0.0f ? -value : value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float FastMin(float x, float y) => x < y ? x : y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector4 PackLight(ref VisibleLight visibleLight, ref Vector4 position,
+            ref Matrix4x4 localToWorldMatrix)
         {
-            Matrix4x4 localToWorldMatrix = visibleLight.localToWorldMatrix;
-            Vector4 position = localToWorldMatrix.GetColumn(3);
             Color finalColor = visibleLight.finalColor.linear;
 
             LightType lightType = visibleLight.lightType;
@@ -198,9 +211,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 Bytes_06_07 = ToonPackingUtility.FloatToHalfFast(visibleLight.range),
 
                 // limiting the upper bound is enough
-                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.r, 1.0f)),
-                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.g, 1.0f)),
-                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(ToonPackingUtility.FastMin(finalColor.b, 1.0f)),
+                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.r, 1.0f)),
+                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.g, 1.0f)),
+                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.b, 1.0f)),
             };
 
             if (lightType == LightType.Spot)

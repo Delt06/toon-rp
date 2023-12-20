@@ -6,26 +6,18 @@ namespace DELTation.ToonRP.Shadows.Blobs
 {
     public static class ToonPackingUtility
     {
-        [StructLayout(LayoutKind.Explicit)]
-        private struct UIntFloatUnion
-        {
-            [FieldOffset(0)]
-            public uint uintValue;
-            [FieldOffset(0)]
-            public float floatValue;
-        }
-        
         /// <summary>Returns the bit pattern of a float as a uint.</summary>
         /// <param name="x">The float bits to copy.</param>
         /// <returns>The uint with the same bit pattern as the input.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint FastAsUint(float x) {
+        private static uint FastAsUint(float x)
+        {
             UIntFloatUnion u;
             u.uintValue = 0;
             u.floatValue = x;
             return u.uintValue;
         }
-        
+
         /// <summary>Returns the bit pattern of a uint as a float.</summary>
         /// <param name="x">The uint bits to copy.</param>
         /// <returns>The float with the same bit pattern as the input.</returns>
@@ -57,9 +49,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             uint h = (FastAsUint(FastAsFloat(uux) * 1.92592994e-34f) + 0x1000) >> 13;
             return (ushort) (h | ((ux & ~msk) >> 16));
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float FastMin(float x, float y) => x < y ? x : y; 
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte PackAsUNorm(float value) => PackAsUNormUnclamped(saturate(value));
@@ -76,5 +66,14 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort PackToShort(byte value1, byte value2) => (ushort) ((value2 << 8) | value1);
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct UIntFloatUnion
+        {
+            [FieldOffset(0)]
+            public uint uintValue;
+            [FieldOffset(0)]
+            public float floatValue;
+        }
     }
 }

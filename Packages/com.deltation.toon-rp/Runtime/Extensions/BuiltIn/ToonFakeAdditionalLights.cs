@@ -176,22 +176,32 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             Vector3 position = visibleLight.localToWorldMatrix.GetColumn(3);
             Color finalColor = visibleLight.finalColor;
+            Vector3 direction = visibleLight.localToWorldMatrix * new Vector4(0, 0, 1, 0);
+            direction.Normalize();
+            
+            byte type = (byte) visibleLight.lightType;
 
             var packedData = new PackedLightData
             {
-                // 1
-                Word0 = Mathf.FloatToHalf(position.x),
-                Word1 = Mathf.FloatToHalf(position.y),
-                // 2
-                Word2 = Mathf.FloatToHalf(position.z),
-                Word3 = Mathf.FloatToHalf(visibleLight.range),
-                // 3
-                Word4 = Mathf.FloatToHalf(finalColor.r),
-                Word5 = Mathf.FloatToHalf(finalColor.g),
-                // 4
-                Word6 = Mathf.FloatToHalf(finalColor.b),
-                Word7 = Mathf.FloatToHalf(1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f)),
+                // 4 bytes
+                Bytes_00_01 = Mathf.FloatToHalf(position.x),
+                Bytes_02_03 = Mathf.FloatToHalf(position.y),
+                // 4 bytes
+                Bytes_04_05 = Mathf.FloatToHalf(position.z),
+                Bytes_06_07 = Mathf.FloatToHalf(visibleLight.range),
+                // 3 bytes
+                Byte_08 = ToonPackingUtility.PackAsUNorm(finalColor.r),
+                Byte_09 = ToonPackingUtility.PackAsUNorm(finalColor.g),
+                Byte_10 = ToonPackingUtility.PackAsUNorm(finalColor.b),
+                // 3 bytes
+                Byte_11 = ToonPackingUtility.PackAsSNorm(direction.x),
+                Byte_12 = ToonPackingUtility.PackAsSNorm(direction.y),
+                Byte_13 = ToonPackingUtility.PackAsSNorm(direction.z),
+                // 2 bytes
+                Byte_14 = ToonPackingUtility.PackAsSNorm(Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle)),
+                Byte_15 = type,
             };
+            
             return packedData.Vector;
         }
 
@@ -212,22 +222,31 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             [FieldOffset(0)] public Vector4 Vector;
 
-            [FieldOffset(0)]
-            public ushort Word0;
-            [FieldOffset(2)]
-            public ushort Word1;
-            [FieldOffset(4)]
-            public ushort Word2;
-            [FieldOffset(6)]
-            public ushort Word3;
-            [FieldOffset(8)]
-            public ushort Word4;
-            [FieldOffset(10)]
-            public ushort Word5;
-            [FieldOffset(12)]
-            public ushort Word6;
-            [FieldOffset(14)]
-            public ushort Word7;
+            [FieldOffset(00)] public ushort Bytes_00_01;
+            [FieldOffset(02)] public ushort Bytes_02_03;
+            [FieldOffset(04)] public ushort Bytes_04_05;
+            [FieldOffset(06)] public ushort Bytes_06_07;
+            [FieldOffset(08)] public ushort Bytes_08_09;
+            [FieldOffset(10)] public ushort Bytes_10_11;
+            [FieldOffset(12)] public ushort Bytes_12_13;
+            [FieldOffset(14)] public ushort Bytes_14_15;
+
+            [FieldOffset(00)] public byte Byte_00;
+            [FieldOffset(01)] public byte Byte_01;
+            [FieldOffset(02)] public byte Byte_02;
+            [FieldOffset(03)] public byte Byte_03;
+            [FieldOffset(04)] public byte Byte_04;
+            [FieldOffset(05)] public byte Byte_05;
+            [FieldOffset(06)] public byte Byte_06;
+            [FieldOffset(07)] public byte Byte_07;
+            [FieldOffset(08)] public byte Byte_08;
+            [FieldOffset(09)] public byte Byte_09;
+            [FieldOffset(10)] public byte Byte_10;
+            [FieldOffset(11)] public byte Byte_11;
+            [FieldOffset(12)] public byte Byte_12;
+            [FieldOffset(13)] public byte Byte_13;
+            [FieldOffset(14)] public byte Byte_14;
+            [FieldOffset(15)] public byte Byte_15;
         }
     }
 }

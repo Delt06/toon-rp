@@ -19,6 +19,8 @@
 
         #define BATCH_SIZE 256
 
+        #define LIGHT_TYPE_SPOT 0
+
         CBUFFER_START(_ToonRP_FakeAdditionalLights_PackedData)
         float4 _FakeAdditionalLights[BATCH_SIZE];
         CBUFFER_END
@@ -32,6 +34,41 @@
 		    #endif // UNITY_UV_STARTS_AT_TOP
 
 		    return positionCs;
+		}
+
+        uint4 UnpackBytes(const uint packedValue)
+		{
+		    return uint4(
+		        packedValue & 0xFF,
+		        packedValue >> 8 & 0xFF,
+		        packedValue >> 16 & 0xFF,
+		        packedValue >> 24 & 0xFF
+		    );
+		}
+
+        float AsUNorm(const uint packedByte)
+		{
+		    return saturate(packedByte / 255.0f); 
+		}
+
+        half AsUNormHalf(const uint packedByte)
+		{
+		    return saturate(packedByte / 255.0f); 
+		}
+
+        float AsSNorm(const uint packedByte)
+		{
+		    return AsUNorm(packedByte) * 2.0f - 1.0f; 
+		}
+
+        half AsSNormHalf(const uint packedByte)
+		{
+		    return AsUNormHalf(packedByte) * 2.0f - 1.0f; 
+		}
+
+        float2 AsUNorm(const uint2 packedByte)
+		{
+		    return float2(AsUNorm(packedByte.x), AsUNorm(packedByte.y)); 
 		}
 
         half2 UnpackHalf2(const uint packedValue)
@@ -49,34 +86,39 @@
             half3 center;
             half range;
             half3 color;
+            half3 direction;
+            half spotAngleCos;
             half invSqrRange;
+            half type;
         };
 
         FakeLightData UnpackFakeLightData(const float4 packedValue)
         {
-            half4 params1 = UnpackHalf4(asuint(packedValue.xy));
-            half4 params2 = UnpackHalf4(asuint(packedValue.zw));
+            half4 bytes_00_07 = UnpackHalf4(asuint(packedValue.xy));
+            uint4 bytes_08_11 = UnpackBytes(asuint(packedValue.z));
+            uint4 bytes_12_15 = UnpackBytes(asuint(packedValue.w));
 
             FakeLightData fakeLightData;
-            fakeLightData.center = params1.xyz;
-            fakeLightData.range = params1.w;
-            fakeLightData.color = params2.xyz;
-            fakeLightData.invSqrRange = params2.w;
+            fakeLightData.center = bytes_00_07.xyz;
+            fakeLightData.range = bytes_00_07.w;
+
+            fakeLightData.color =
+                half3(AsUNormHalf(bytes_08_11.x), AsUNormHalf(bytes_08_11.y), AsUNormHalf(bytes_08_11.z));
+            fakeLightData.direction = normalize(
+                half3(AsSNormHalf(bytes_08_11.w), AsSNormHalf(bytes_12_15.x), AsSNormHalf(bytes_12_15.y))
+                );
+
+            fakeLightData.spotAngleCos = AsSNormHalf(bytes_12_15.z);
+            fakeLightData.type = bytes_12_15.w;
+            
+            fakeLightData.invSqrRange = 1.0f / max(fakeLightData.range * fakeLightData.range, 0.00001f);
             return fakeLightData;
         }
 
-        struct InverpolatedParams
-        {
-            half2 positionWsXz;
-            half3 color;
-            half invSqrRange;
-            half3 center;
-        };
-
-        void GetVertexData(const uint vertexId, out float4 positionCs, out InverpolatedParams inverpolatedParams)
+        void GetVertexData(const uint vertexId, out float4 positionCs, out half2 positionWs, out uint instanceId)
 		{
 		    const uint quadVertexId = vertexId % 4;
-            const uint instanceId = vertexId / 4;
+            instanceId = vertexId / 4;
 
 		    half2 positionOs;
 		    positionOs.x = quadVertexId % 3 == 0 ? -1 : 1;
@@ -85,14 +127,9 @@
 		    const float4 rawPackedData = _FakeAdditionalLights[instanceId];
             FakeLightData fakeLightData = UnpackFakeLightData(rawPackedData);
 
-            const half2 positionWs = positionOs * fakeLightData.range + fakeLightData.center.xz;
+            positionWs = positionOs * fakeLightData.range + fakeLightData.center.xz;
 		    const half2 screenUv = FakeAdditionalLights_PositionToUV(positionWs);
 		    positionCs = ScreenUvToHClip(screenUv);
-
-            inverpolatedParams.positionWsXz = positionWs;
-            inverpolatedParams.center = fakeLightData.center;
-            inverpolatedParams.color = fakeLightData.color;
-            inverpolatedParams.invSqrRange = fakeLightData.invSqrRange;
         }
         
         ENDHLSL
@@ -109,47 +146,69 @@
             struct v2f
 		    {
                 half4 positionCs : SV_POSITION;
-            
-                half2 positionWsXz : POSITION_WS;
-                half3 color : COLOR;
-                half invSqrRange : INV_SQR_RANGE;
-                half3 center : CENTER_XZ;
+                half2 positionWs : POSITION_WS;
+                nointerpolation uint instanceId : INSTANCE_ID;
             };
 
             v2f VS(const uint vertexId : SV_VertexID)
             {
                 v2f OUT;
                 
-                InverpolatedParams inverpolatedParams;
-                GetVertexData(vertexId, OUT.positionCs, inverpolatedParams);
-
-                OUT.positionWsXz = inverpolatedParams.positionWsXz;
-                OUT.color = inverpolatedParams.color;
-                OUT.invSqrRange = inverpolatedParams.invSqrRange;
-                OUT.center = inverpolatedParams.center;
+                GetVertexData(vertexId, OUT.positionCs, OUT.positionWs, OUT.instanceId);
                 
                 return OUT;
+            }
+
+            half ComputeDistanceAttenuation(
+                const half3 offsetTowardsLight,
+                const half invSqrRange
+                )
+            {
+                const half distanceSqr = max(dot(offsetTowardsLight, offsetTowardsLight), 0.00001);
+                half distanceAttenuation = Sq(
+                    saturate(1.0f - Sq(distanceSqr * invSqrRange))
+                );
+                distanceAttenuation = distanceAttenuation / distanceSqr;
+                return distanceAttenuation;
+            }
+
+            half ComputeSpotLightConeAttenuation(
+                const half3 directionTowardsLight,
+                const half3 lightDirection,
+                const half angleCos
+                )
+            {
+                const float maxCos = (angleCos + 1.0f) / 2.0f;
+                const float cosAngle = dot(lightDirection, -directionTowardsLight);
+                return smoothstep(angleCos, maxCos, cosAngle);
             }
 
 			half4 PS(const v2f IN) : SV_TARGET
             {
                 half3 receiverPosition;
-                receiverPosition.xz = IN.positionWsXz;
+                receiverPosition.xz = IN.positionWs;
                 receiverPosition.y = _ToonRP_FakeAdditionalLights_ReceiverPlaneY;
-                
-                const half3 offset = IN.center - receiverPosition;
-                const half distanceSqr = max(dot(offset, offset), 0.00001);
-                half distanceAttenuation = Sq(
-                    saturate(1.0f - Sq(distanceSqr * IN.invSqrRange))
-                );
-                distanceAttenuation = distanceAttenuation / distanceSqr;
-                distanceAttenuation = distanceAttenuation * _AdditionalLightRampOffset.z;
-                distanceAttenuation += _AdditionalLightRampOffset.x;
-                distanceAttenuation = saturate(distanceAttenuation);
 
-                const float ramp = ComputeRamp(distanceAttenuation, _ToonRP_FakeAdditionalLights_Ramp);
-                const half3 color = IN.color * ramp;
-                return half4(color, distanceAttenuation);
+                const float4 rawPackedData = _FakeAdditionalLights[IN.instanceId];
+                const FakeLightData fakeLightData = UnpackFakeLightData(rawPackedData);
+                
+                const half3 offset = fakeLightData.center - receiverPosition;
+
+                
+                half attenuation = ComputeDistanceAttenuation(offset, fakeLightData.invSqrRange);
+
+                if (fakeLightData.type == LIGHT_TYPE_SPOT)
+                {
+                    attenuation *= ComputeSpotLightConeAttenuation(normalize(offset), fakeLightData.direction, fakeLightData.spotAngleCos);
+                }
+                
+                attenuation = attenuation * _AdditionalLightRampOffset.z;
+                attenuation += _AdditionalLightRampOffset.x;
+                attenuation = saturate(attenuation);
+
+                const float ramp = ComputeRamp(attenuation, _ToonRP_FakeAdditionalLights_Ramp);
+                const half3 color = fakeLightData.color * ramp;
+                return half4(color, attenuation);
             }
 
 			ENDHLSL

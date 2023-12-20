@@ -268,6 +268,10 @@ namespace DELTation.ToonRP
             {
                 parameters.shadowDistance = Mathf.Min(toonShadowSettings.MaxDistance, _camera.farClipPlane);
             }
+            else
+            {
+                parameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+            }
 
             _cullingResults = _context.Cull(ref parameters);
             return true;

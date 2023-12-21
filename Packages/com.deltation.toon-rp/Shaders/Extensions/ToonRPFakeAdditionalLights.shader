@@ -127,7 +127,9 @@
 		    const float4 rawPackedData = _FakeAdditionalLights[instanceId];
             FakeLightData fakeLightData = UnpackFakeLightData(rawPackedData);
 
-            positionWs = positionOs * fakeLightData.range + fakeLightData.center.xz;
+            const half distanceFromGround = abs(fakeLightData.center.y - _ToonRP_FakeAdditionalLights_ReceiverPlaneY);
+            const half sectionRadius = sqrt(fakeLightData.range * fakeLightData.range - distanceFromGround * distanceFromGround);
+            positionWs = positionOs * sectionRadius + fakeLightData.center.xz;
 		    const half2 screenUv = FakeAdditionalLights_PositionToUV(positionWs);
 		    positionCs = ScreenUvToHClip(screenUv);
         }

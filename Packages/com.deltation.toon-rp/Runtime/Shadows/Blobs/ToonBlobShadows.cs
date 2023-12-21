@@ -217,10 +217,18 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                                 int packedDataStride =
                                     UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
-                                cmd.SetGlobalConstantBuffer(batch.Group.PackedDataConstantBuffer,
+                                GraphicsBuffer constantBuffer = batch.Group.PackedDataConstantBuffer;
+
+                                int startAddress = batch.BaseIndex * packedDataStride;
+                                // On WebGL, non-full batches may cause errors if we don't bind the full batch's worth of data.
+                                // "GL_INVALID_OPERATION: It is undefined behaviour to use a uniform buffer that is too small."
+                                int endAddress = startAddress + ToonBlobShadowsBatching.MaxBatchSize * packedDataStride;
+                                endAddress = Mathf.Min(endAddress, constantBuffer.count * constantBuffer.stride);
+
+                                cmd.SetGlobalConstantBuffer(constantBuffer,
                                     ShaderIds.PackedData,
-                                    batch.BaseIndex * packedDataStride,
-                                    batch.Count * packedDataStride
+                                    startAddress,
+                                    endAddress - startAddress
                                 );
 
                                 int* indicesBeginPtr = sharedVisibleIndicesPtr +

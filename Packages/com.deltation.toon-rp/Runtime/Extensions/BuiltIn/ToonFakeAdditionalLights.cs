@@ -171,8 +171,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             {
                 ref VisibleLight visibleLight = ref visibleLightsPtr[index];
                 if (visibleLight is
-                    { lightType: LightType.Directional } or
-                    { light: { lightmapBakeType: LightmapBakeType.Baked } })
+                    { lightType: LightType.Directional }
+#if UNITY_EDITOR
+                    or { light: { lightmapBakeType: LightmapBakeType.Baked } }
+#endif // UNITY_EDITOR
+                   )
                 {
                     continue;
                 }

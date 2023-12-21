@@ -6,14 +6,13 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using static DELTation.ToonRP.Shadows.Blobs.ToonBlobShadowsBatching;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
-        private Scene _scene;
         public Group[] AllGroups { get; private set; } = Array.Empty<Group>();
 
         public bool IsDestroyed { get; private set; }
@@ -28,10 +27,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Destroy();
         }
 
-        public void Init(Scene scene)
-        {
-            _scene = scene;
-        }
+        public void Init() { }
 
         public void EnsureInitialized()
         {
@@ -104,7 +100,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public class Group : IDisposable
         {
-            private const int StartSize = 128;
+            private const int StartSize = MaxBatchSize;
 
             public readonly List<ToonBlobShadowRenderer> DynamicRenderers = new();
             public readonly List<ToonBlobShadowRenderer> Renderers = new();
@@ -138,6 +134,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             private static GraphicsBuffer CreateConstantBuffer(int size)
             {
+                // Align to the max batch size
+                size = (size + MaxBatchSize - 1) / MaxBatchSize * MaxBatchSize;
                 int stride = UnsafeUtility.SizeOf<float4>();
                 return new GraphicsBuffer(GraphicsBuffer.Target.Constant,
                     size * UnsafeUtility.SizeOf<RendererPackedData>() / stride

@@ -40,7 +40,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                     hideFlags = HideFlags.NotEditable | HideFlags.DontSave | HideFlags.HideInHierarchy,
                 };
                 Managers[scene] = manager = gameObject.AddComponent<ToonBlobShadowsManager>();
-                manager.Init(scene);
+                manager.Init();
 
                 SceneManager.MoveGameObjectToScene(gameObject, scene);
             }

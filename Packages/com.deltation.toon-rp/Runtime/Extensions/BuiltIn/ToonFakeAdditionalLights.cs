@@ -6,6 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.Shadows.Blobs.ToonPackingUtility;
 using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
@@ -227,25 +228,25 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             var packedData = new PackedLightData
             {
-                Bytes_00_01 = ToonPackingUtility.FloatToHalfFast(position.x),
-                Bytes_02_03 = ToonPackingUtility.FloatToHalfFast(position.y),
-                Bytes_04_05 = ToonPackingUtility.FloatToHalfFast(position.z),
-                Bytes_06_07 = ToonPackingUtility.FloatToHalfFast(visibleLight.range),
+                Bytes_00_01 = FloatToHalfFast(position.x),
+                Bytes_02_03 = FloatToHalfFast(position.y),
+                Bytes_04_05 = FloatToHalfFast(position.z),
+                Bytes_06_07 = FloatToHalfFast(visibleLight.range),
 
                 // limiting the upper bound is enough
-                Byte_08 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.r, 1.0f)),
-                Byte_09 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.g, 1.0f)),
-                Byte_10 = ToonPackingUtility.PackAsUNormUnclamped(FastMin(finalColor.b, 1.0f)),
+                Byte_08 = PackAsUNormUnclamped(FastMin(finalColor.r, 1.0f)),
+                Byte_09 = PackAsUNormUnclamped(FastMin(finalColor.g, 1.0f)),
+                Byte_10 = PackAsUNormUnclamped(FastMin(finalColor.b, 1.0f)),
             };
 
             if (lightType == LightType.Spot)
             {
                 Vector4 direction = localToWorldMatrix.GetColumn(2);
 
-                packedData.Byte_11 = ToonPackingUtility.PackAsSNorm(direction.x);
-                packedData.Byte_12 = ToonPackingUtility.PackAsSNorm(direction.y);
-                packedData.Byte_13 = ToonPackingUtility.PackAsSNorm(direction.z);
-                packedData.Byte_14 = ToonPackingUtility.PackAsSNorm(Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle));
+                packedData.Byte_11 = PackAsSNorm(direction.x);
+                packedData.Byte_12 = PackAsSNorm(direction.y);
+                packedData.Byte_13 = PackAsSNorm(direction.z);
+                packedData.Byte_14 = PackAsSNorm(cos(radians(visibleLight.spotAngle * 0.5f)));
             }
 
             packedData.Byte_15 = type;

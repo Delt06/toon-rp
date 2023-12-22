@@ -723,5 +723,10 @@ namespace DELTation.ToonRP
         partial void DrawGizmosPostImageEffects();
 
         partial void DrawUnsupportedShaders();
+
+        public void InvalidateExtensions()
+        {
+            _extensionsCollection.Invalidate();
+        }
     }
 }

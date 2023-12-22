@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DELTation.ToonRP.Extensions
 {
     [Serializable]
     public struct ToonRenderingExtensionSettings
     {
-        public ToonRenderingExtensionAsset[] Extensions;
+        public List<ToonRenderingExtensionAsset> Extensions;
     }
 }

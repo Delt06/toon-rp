@@ -108,7 +108,7 @@
                 half3(AsSNormHalf(bytes_08_11.w), AsSNormHalf(bytes_12_15.x), AsSNormHalf(bytes_12_15.y))
                 );
 
-            fakeLightData.spotAngleCos = AsSNormHalf(bytes_12_15.z);
+            fakeLightData.spotAngleCos = AsUNormHalf(bytes_12_15.z);
             fakeLightData.type = bytes_12_15.w;
             
             fakeLightData.invSqrRange = 1.0f / max(fakeLightData.range * fakeLightData.range, 0.00001f);

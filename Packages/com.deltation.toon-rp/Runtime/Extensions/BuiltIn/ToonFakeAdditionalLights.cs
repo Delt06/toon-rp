@@ -246,7 +246,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 packedData.Byte_11 = PackAsSNorm(direction.x);
                 packedData.Byte_12 = PackAsSNorm(direction.y);
                 packedData.Byte_13 = PackAsSNorm(direction.z);
-                packedData.Byte_14 = PackAsSNorm(cos(radians(visibleLight.spotAngle * 0.5f)));
+                packedData.Byte_14 = PackAsUNorm(cos(radians(visibleLight.spotAngle * 0.5f)));
             }
 
             packedData.Byte_15 = type;

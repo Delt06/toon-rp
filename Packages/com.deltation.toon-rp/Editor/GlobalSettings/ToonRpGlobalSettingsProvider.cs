@@ -15,7 +15,6 @@ namespace DELTation.ToonRP.Editor.GlobalSettings
 
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
-            // This function is called when the user clicks on the MyCustom element in the Settings window.
             _customSettings = ToonRpGlobalSettings.GetSerializedSettings();
         }
 
@@ -25,6 +24,8 @@ namespace DELTation.ToonRP.Editor.GlobalSettings
                 _customSettings.FindProperty(nameof(ToonRpGlobalSettings.ShaderVariantStrippingMode)),
                 Styles.ShaderVariantStrippingMode
             );
+
+            _customSettings.ApplyModifiedProperties();
         }
 
         // Register the SettingsProvider

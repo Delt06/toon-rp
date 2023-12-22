@@ -70,7 +70,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private void UpdateMaterial(in ToonScreenSpaceOutlineSettings settings)
         {
-            _material.SetVector(OutlineColorId, settings.Color);
+            _material.SetVector(OutlineColorId, settings.Color.gamma);
 
             UpdateMaterialFilter(settings.ColorFilter, ColorRampId, ColorKeywordName);
             UpdateMaterialFilter(settings.NormalsFilter, NormalsRampId, NormalsKeywordName);

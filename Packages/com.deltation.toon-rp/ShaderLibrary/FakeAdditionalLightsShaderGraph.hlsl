@@ -14,17 +14,14 @@ void SampleFakeAdditionalLights_float(
     out float attenuation
 )
 {
-    #ifdef SHADERGRAPH_PREVIEW
+    #if defined(TOON_RP_ADDITIONAL_LIGHTS_ANY) || defined(SHADERGRAPH_PREVIEW) 
     lights = 0;
     attenuation = 0;
-    #else // !SHADERGRAPH_PREVIEW
+    #else // !TOON_RP_ADDITIONAL_LIGHTS_ANY && !SHADERGRAPH_PREVIEW
 
     const half2 uv = FakeAdditionalLights_PositionToUV(positionWs.xz);
 
     float4 sample;
-    #ifdef TOON_RP_ADDITIONAL_LIGHTS_ANY
-    sample = 0;
-    #else // !TOON_RP_ADDITIONAL_LIGHTS_ANY
     if (bicubicFiltering)
     {
         sample = FakeAdditionalLights_SampleRawBicubic(uv);
@@ -33,7 +30,6 @@ void SampleFakeAdditionalLights_float(
     {
         sample = FakeAdditionalLights_SampleRaw(uv);
     }
-    #endif // TOON_RP_ADDITIONAL_LIGHTS_ANY
 
     lights = sample.rgb * _ToonRP_FakeAdditionalLights_Intensity;
     const float distanceAttenuation = sample.a;

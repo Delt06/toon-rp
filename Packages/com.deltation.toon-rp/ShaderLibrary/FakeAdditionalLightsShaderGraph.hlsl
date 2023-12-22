@@ -7,7 +7,6 @@
 
 void SampleFakeAdditionalLights_float(
     const float3 positionWs,
-    const bool bicubicFiltering,
     const bool applyGlobalRamp,
     const float2 globalRampUv,
     out float3 lights,
@@ -21,16 +20,7 @@ void SampleFakeAdditionalLights_float(
 
     const half2 uv = FakeAdditionalLights_PositionToUV(positionWs.xz);
 
-    float4 sample;
-    if (bicubicFiltering)
-    {
-        sample = FakeAdditionalLights_SampleRawBicubic(uv);
-    }
-    else
-    {
-        sample = FakeAdditionalLights_SampleRaw(uv);
-    }
-
+    const float4 sample = FakeAdditionalLights_SampleRaw(uv);;
     lights = sample.rgb * _ToonRP_FakeAdditionalLights_Intensity;
     const float distanceAttenuation = sample.a;
 

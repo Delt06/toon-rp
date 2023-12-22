@@ -1,8 +1,6 @@
 ﻿#ifndef TOON_RP_FAKE_ADDITIONAL_LIGHTS
 #define TOON_RP_FAKE_ADDITIONAL_LIGHTS
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
-
 #include "Math.hlsl"
 #include "Textures.hlsl"
 #include "UnityInput.hlsl"
@@ -29,13 +27,6 @@ half2 FakeAdditionalLights_PositionToUV(const half2 positionWsXz)
 float4 FakeAdditionalLights_SampleRaw(const float2 uv)
 {
     return SAMPLE_TEXTURE2D(_FakeAdditionalLightsTexture, sampler_FakeAdditionalLightsTexture, uv);
-}
-
-float4 FakeAdditionalLights_SampleRawBicubic(const float2 uv)
-{
-    return SampleTexture2DBicubic(
-        TEXTURE2D_ARGS(_FakeAdditionalLightsTexture, sampler_FakeAdditionalLightsTexture), uv,
-        _FakeAdditionalLightsTexture_TexelSize.zwxy, 1.0, 0.0);
 }
 
 float FakeAdditionalLights_DistanceFade(const float3 positionWs)

@@ -8,9 +8,6 @@
         },
         {
             "m_Id": "8fc2c0962f5c41efa50e9e131f470337"
-        },
-        {
-            "m_Id": "3fd39a746b034a198fa223a4d4e47a0d"
         }
     ],
     "m_Keywords": [],
@@ -35,9 +32,6 @@
         },
         {
             "m_Id": "1710d9ba4ebe419496ee045653d88212"
-        },
-        {
-            "m_Id": "e95bf37e3ebe432c99a06a9f47340e27"
         }
     ],
     "m_GroupDatas": [],
@@ -111,20 +105,6 @@
                     "m_Id": "34260d1754c24f25b4870adc443a4fee"
                 },
                 "m_SlotId": 0
-            }
-        },
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "e95bf37e3ebe432c99a06a9f47340e27"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "34260d1754c24f25b4870adc443a4fee"
-                },
-                "m_SlotId": 5
             }
         }
     ],
@@ -223,9 +203,6 @@
             "m_Id": "ef7cdeecc7ca4218bb71fa88a2ecd68c"
         },
         {
-            "m_Id": "b9178aa12cc64d1f821019e2ccff7fa0"
-        },
-        {
             "m_Id": "e9685d1e3a9c4475bfe995d4ef215f0d"
         },
         {
@@ -247,43 +224,6 @@
     "m_FunctionName": "SampleFakeAdditionalLights",
     "m_FunctionSource": "592c3bc3e093467a8acaf3ca31cba062",
     "m_FunctionBody": "Enter function body here..."
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
-    "m_ObjectId": "385d4f85ae5b4a43a47cef2848579764",
-    "m_Id": 0,
-    "m_DisplayName": "Bicubic Filtering",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_Value": false,
-    "m_DefaultValue": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.BooleanShaderProperty",
-    "m_ObjectId": "3fd39a746b034a198fa223a4d4e47a0d",
-    "m_Guid": {
-        "m_GuidSerialized": "b212bb95-9db5-400e-8536-2cbb8b477c7b"
-    },
-    "m_Name": "Bicubic Filtering",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Bicubic Filtering",
-    "m_DefaultReferenceName": "_Bicubic_Filtering",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": false
 }
 
 {
@@ -415,9 +355,6 @@
             "m_Id": "6613773dc9ff416b96d9abf44597b713"
         },
         {
-            "m_Id": "3fd39a746b034a198fa223a4d4e47a0d"
-        },
-        {
             "m_Id": "8fc2c0962f5c41efa50e9e131f470337"
         }
     ]
@@ -488,20 +425,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
-    "m_ObjectId": "b9178aa12cc64d1f821019e2ccff7fa0",
-    "m_Id": 5,
-    "m_DisplayName": "bicubicFiltering",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "bicubicFiltering",
-    "m_StageCapability": 3,
-    "m_Value": false,
-    "m_DefaultValue": false
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.PositionNode",
     "m_ObjectId": "d87fc1dd39354ba3b92fe89e657c7244",
@@ -536,42 +459,6 @@
     },
     "m_Space": 2,
     "m_PositionSource": 0
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
-    "m_ObjectId": "e95bf37e3ebe432c99a06a9f47340e27",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Property",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": -821.2967529296875,
-            "y": -123.2687759399414,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "385d4f85ae5b4a43a47cef2848579764"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_Property": {
-        "m_Id": "3fd39a746b034a198fa223a4d4e47a0d"
-    }
 }
 
 {

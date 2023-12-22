@@ -63,7 +63,7 @@ MonoBehaviour:
     DistanceFade: 0.1
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
-    Vsm:
+    ShadowMaps:
       DepthBits: 16
       Blur: 1
       BlurEarlyBail: 1
@@ -78,6 +78,7 @@ MonoBehaviour:
         Spread: 0.8
         RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.4
+      PrecisionCompensation: 0
       Directional:
         Enabled: 1
         AtlasSize: 1024

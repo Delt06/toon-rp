@@ -83,14 +83,14 @@ namespace DELTation.ToonRP
 
         public static Vector4 BuildRampVectorCrispAntiAliased(float edge1) => new(edge1, 0);
 
-        public static Vector4 BuildRampVectorFromSmoothness(float a, float smoothness)
+        public static Vector4 BuildRampVectorFromSmoothness(float threshold, float smoothness)
         {
             // saturate((v - a) * invBMinusA)
             float invBMinusA = 1.0f / Mathf.Max(smoothness, 0.0001f);
             // Transforming to the mad-compatible form (a * x + b): 
             // saturate(v * invBMinusA - a * invBMinusA) =>
             // saturate(v * invBMinusA + (-a * invBMinusA)) 
-            return new Vector4(invBMinusA, -a * invBMinusA);
+            return new Vector4(invBMinusA, -threshold * invBMinusA);
         }
 
         public static class ShaderPropertyId

@@ -237,5 +237,10 @@ namespace DELTation.ToonRP.Extensions
         [NotNull]
         private List<IToonRenderingExtension> GetOrCreateExtensionList(ToonRenderingEvent @event) =>
             _extensions[(int) @event] ??= new List<IToonRenderingExtension>();
+
+        public void Invalidate()
+        {
+            _initialized = false;
+        }
     }
 }

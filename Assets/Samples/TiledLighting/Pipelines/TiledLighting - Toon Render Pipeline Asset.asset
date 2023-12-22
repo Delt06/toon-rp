@@ -59,12 +59,12 @@ MonoBehaviour:
     Threshold: 0.505
     CrispAntiAliased: 0
     Smoothness: 0.519
-    MaxDistance: 100
+    MaxDistance: 20
     DistanceFade: 0.1
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
-    Vsm:
-      DepthBits: 32
+    ShadowMaps:
+      DepthBits: 16
       Blur: 1
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.000001
@@ -78,6 +78,7 @@ MonoBehaviour:
         Spread: 0.8
         RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.001
+      PrecisionCompensation: 0
       Directional:
         Enabled: 1
         AtlasSize: 256
@@ -89,13 +90,15 @@ MonoBehaviour:
         NormalBias: 0
         SlopeBias: 3.72
     Blobs:
-      Model: {fileID: 0}
       AtlasSize: 128
       Mode: 0
+      BakedShadowsAtlas: {fileID: 0}
       Saturation: 1
       ShadowPositionOffset: {x: 0, y: 0}
+      ReceiverPlaneY: 0
   Extensions:
-    Extensions: []
+    Extensions:
+    - {fileID: 11400000, guid: a9b798b399d4657428fef606553f2893, type: 2}
   PostProcessing:
     Enabled: 1
     Passes:

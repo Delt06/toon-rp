@@ -258,9 +258,19 @@ namespace DELTation.ToonRP
                 return false;
             }
 
+            if (_settings.AdditionalLights == AdditionalLightsMode.Off ||
+                _settings.IsTiledLightingEnabledAndSupported())
+            {
+                parameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            }
+
             if (toonShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping)
             {
                 parameters.shadowDistance = Mathf.Min(toonShadowSettings.MaxDistance, _camera.farClipPlane);
+            }
+            else
+            {
+                parameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
 
             _cullingResults = _context.Cull(ref parameters);
@@ -490,6 +500,9 @@ namespace DELTation.ToonRP
         private void GeometryRenderPass(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext)
         {
             _context.ExecuteCommandBufferAndClear(cmd);
+
+            _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeGeometryPasses);
+
             ToonClearValue clearValue = GetRenderTargetsClearValue();
             RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbuffer == 0
                 ? RenderBufferLoadAction.DontCare
@@ -710,5 +723,10 @@ namespace DELTation.ToonRP
         partial void DrawGizmosPostImageEffects();
 
         partial void DrawUnsupportedShaders();
+
+        public void InvalidateExtensions()
+        {
+            _extensionsCollection.Invalidate();
+        }
     }
 }

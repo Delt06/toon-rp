@@ -11,11 +11,11 @@ namespace DELTation.ToonRP
         public const string PipelineTag = "ToonRP";
 
         private readonly ToonCameraRenderer _cameraRenderer = new();
-        private readonly ToonCameraRendererSettings _cameraRendererSettings;
-        private readonly ToonRenderingExtensionSettings _extensions;
         private readonly ToonRampSettings _globalRampSettings;
-        private readonly ToonPostProcessingSettings _postProcessingSettings;
         private readonly ToonShadowSettings _shadowSettings;
+        private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonRenderingExtensionSettings _extensions;
+        private ToonPostProcessingSettings _postProcessingSettings;
 
         public ToonRenderPipeline(in ToonCameraRendererSettings cameraRendererSettings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings,
@@ -30,6 +30,13 @@ namespace DELTation.ToonRP
             _extensions = extensions;
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
         }
+
+        public ref ToonCameraRendererSettings CameraRendererSettings => ref _cameraRendererSettings;
+        public ref ToonPostProcessingSettings PostProcessingSettings => ref _postProcessingSettings;
+        public ref ToonRenderingExtensionSettings Extensions => ref _extensions;
+
+        public void InvalidateExtensions() =>
+            _cameraRenderer.InvalidateExtensions();
 
         public static Shader GetDefaultShader() => Shader.Find("Toon RP/Default");
 

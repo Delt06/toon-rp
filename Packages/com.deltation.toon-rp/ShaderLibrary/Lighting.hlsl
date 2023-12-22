@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
+#include "LightingDefines.hlsl"
 #include "Shadows.hlsl"
 #include "UnityInput.hlsl"
 

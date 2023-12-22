@@ -7,7 +7,6 @@
 #include "Textures.hlsl"
 #include "UnityInput.hlsl"
 
-
 CBUFFER_START(_ToonRP_FakeAdditionalLights)
     half4 _ToonRP_FakeAdditionalLights_Bounds_MultiplierOffset;
     half _ToonRP_FakeAdditionalLights_ReceiverPlaneY;

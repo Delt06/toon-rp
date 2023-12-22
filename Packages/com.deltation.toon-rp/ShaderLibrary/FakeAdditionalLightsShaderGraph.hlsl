@@ -2,6 +2,7 @@
 #define TOON_RP_FAKE_ADDITIONAL_LIGHTS_SHADER_GRAPH
 
 #include "FakeAdditionalLights.hlsl"
+#include "LightingDefines.hlsl"
 #include "Ramp.hlsl"
 
 void SampleFakeAdditionalLights_float(
@@ -21,6 +22,9 @@ void SampleFakeAdditionalLights_float(
     const half2 uv = FakeAdditionalLights_PositionToUV(positionWs.xz);
 
     float4 sample;
+    #ifdef TOON_RP_ADDITIONAL_LIGHTS_ANY
+    sample = 0;
+    #else // !TOON_RP_ADDITIONAL_LIGHTS_ANY
     if (bicubicFiltering)
     {
         sample = FakeAdditionalLights_SampleRawBicubic(uv);
@@ -29,6 +33,7 @@ void SampleFakeAdditionalLights_float(
     {
         sample = FakeAdditionalLights_SampleRaw(uv);
     }
+    #endif // TOON_RP_ADDITIONAL_LIGHTS_ANY
 
     lights = sample.rgb * _ToonRP_FakeAdditionalLights_Intensity;
     const float distanceAttenuation = sample.a;

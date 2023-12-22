@@ -18,6 +18,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private readonly Vector4[] _batchLightsData = new Vector4[BatchSize];
         private Camera _camera;
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private Material _material;
@@ -31,6 +32,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _cullingResults = context.CullingResults;
             _settings = settingsStorage.GetSettings<ToonFakeAdditionalLightsSettings>(this);
             _camera = context.Camera;
+            _cameraRendererSettings = context.CameraRendererSettings;
         }
 
         public override void Render()
@@ -42,17 +44,21 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 NativeList<Vector4> allLightsData = CollectLights();
 
                 int2 textureSize = (int) _settings.Size;
-
-                Bounds2D? intersection = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
-                    _settings.MaxDistance,
-                    _settings.ReceiverPlaneY
-                );
-
                 Bounds2D receiverBounds;
+                Bounds2D? receiverIntersectionBounds = null;
 
-                if (intersection != null)
+                // Render fake lights only if the traditional lights are disabled
+                if (_cameraRendererSettings.AdditionalLights == ToonCameraRendererSettings.AdditionalLightsMode.Off)
                 {
-                    receiverBounds = intersection.Value;
+                    receiverIntersectionBounds = FrustumPlaneProjectionUtils.ComputeFrustumPlaneIntersection(_camera,
+                        _settings.MaxDistance,
+                        _settings.ReceiverPlaneY
+                    );
+                }
+
+                if (receiverIntersectionBounds != null)
+                {
+                    receiverBounds = receiverIntersectionBounds.Value;
                     // Padding
                     receiverBounds.Size *= 1.0f + float2(1.0f) / textureSize;
 
@@ -83,7 +89,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 );
                 cmd.ClearRenderTarget(false, true, Color.clear);
 
-                if (intersection == null)
+                if (receiverIntersectionBounds == null)
                 {
                     return;
                 }

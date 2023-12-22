@@ -9,6 +9,10 @@ StructuredBuffer<uint2> _TiledLighting_LightGrid;
 
 uint2 TiledLighting_ScreenPositionToTileIndex(float2 screenPosition)
 {
+    #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    screenPosition = ApplyPretransformRotationPixelCoords2(screenPosition);
+    #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+    
     #ifdef UNITY_UV_STARTS_AT_TOP
     if (_ProjectionParams.x < 0.0)
     {

@@ -90,7 +90,7 @@ float GetLinearDepth(const float3 positionWs)
 #endif // UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION && UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_0
 
 #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
-float4 ApplyPretransformRotationPixelCoords(float4 v)
+float2 ApplyPretransformRotationPixelCoords2(float2 v)
 {
     switch (UNITY_DISPLAY_ORIENTATION_PRETRANSFORM)
     {
@@ -101,6 +101,11 @@ float4 ApplyPretransformRotationPixelCoords(float4 v)
     case UNITY_DISPLAY_ORIENTATION_PRETRANSFORM_270 : v.xy = float2(_ToonRP_ScreenParams.z - v.y, v.x); break;
     }
     return v;
+}
+
+float4 ApplyPretransformRotationPixelCoords(float4 v)
+{
+    return float4(ApplyPretransformRotationPixelCoords2(v.xy), v.zw);
 }
 #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
 

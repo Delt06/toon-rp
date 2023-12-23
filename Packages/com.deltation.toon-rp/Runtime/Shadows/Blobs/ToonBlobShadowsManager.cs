@@ -113,7 +113,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             private NativeArray<ToonBlobShadowsRendererData> _data = new(StartSize, DataAllocator, DefaultArrayOptions);
             private bool _isDataDirty = true;
 
-            public Group(ToonBlobShadowType shadowType) => InnerGroup = new ToonBlobShadowsGroup(shadowType);
+            public Group(ToonBlobShadowType shadowType) => InnerGroup =
+                new ToonBlobShadowsGroup(shadowType, Bounds2D.FromCenterExtents(0.0f, 100_000_000.0f));
 
             public int Size
             {

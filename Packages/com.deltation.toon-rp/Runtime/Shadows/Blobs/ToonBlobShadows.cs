@@ -145,12 +145,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 foreach (ToonBlobShadowsManager.Group group in manager.AllGroups)
                 {
+                    // Don't even check the bounds: they are irrelevant for default groups
                     _batching.Batch(group);
                 }
 
                 foreach (ToonBlobShadowsGroup customGroup in manager.CustomGroups)
                 {
-                    _batching.Batch(customGroup);
+                    if (receiverBounds.Intersects(customGroup.Bounds))
+                    {
+                        _batching.Batch(customGroup);
+                    }
                 }
             }
 

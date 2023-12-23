@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
+    [Serializable]
     public struct Bounds2D
     {
         public float2 Min, Max;
@@ -14,11 +16,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Min = min;
             Max = max;
         }
-
-        public static Bounds2D FromMinMax(float2 min, float2 max) => new(min, max);
-
-        public static Bounds2D FromCenterExtents(float2 center, float2 extents) =>
-            new(center - extents, center + extents);
 
         public float2 Size
         {
@@ -31,6 +28,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 Max = center + extents;
             }
         }
+
+        public static Bounds2D FromMinMax(float2 min, float2 max) => new(min, max);
+
+        public static Bounds2D FromCenterExtents(float2 center, float2 extents) =>
+            new(center - extents, center + extents);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(in Bounds2D bounds)

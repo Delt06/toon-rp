@@ -13,15 +13,18 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         private const Allocator PackedDataAllocator = Allocator.Persistent;
         private const NativeArrayOptions DefaultArrayOptions = NativeArrayOptions.UninitializedMemory;
+        public readonly Bounds2D Bounds;
 
         public readonly ToonBlobShadowType ShadowType;
 
         private NativeArray<ToonBlobShadowPackedData> _packedData;
         private int _size;
 
-        public ToonBlobShadowsGroup(ToonBlobShadowType shadowType, int startSize = MinSize)
+        public ToonBlobShadowsGroup(ToonBlobShadowType shadowType, Bounds2D bounds, int startSize = MinSize)
         {
             ShadowType = shadowType;
+            Bounds = bounds;
+
             startSize = Mathf.Max(MinSize, startSize);
             _packedData =
                 new NativeArray<ToonBlobShadowPackedData>(startSize, PackedDataAllocator, DefaultArrayOptions);

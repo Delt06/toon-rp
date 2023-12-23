@@ -12,6 +12,7 @@ namespace Samples.BlobShadows.Scripts
         [SerializeField] private float _maxDistance = 10.0f;
         [SerializeField] private float _minSize = 0.5f;
         [SerializeField] private float _maxSize = 2.0f;
+        [SerializeField] private Bounds2D _bounds;
 
         private ToonBlobShadowsGroup _group;
 
@@ -46,7 +47,7 @@ namespace Samples.BlobShadows.Scripts
         {
             if (_group == null)
             {
-                _group = new ToonBlobShadowsGroup(ToonBlobShadowType.Square);
+                _group = new ToonBlobShadowsGroup(ToonBlobShadowType.Square, _bounds);
 
                 var packedDataPtr = (ToonBlobShadowPackedData*) _group.PackedData.GetUnsafePtr();
 

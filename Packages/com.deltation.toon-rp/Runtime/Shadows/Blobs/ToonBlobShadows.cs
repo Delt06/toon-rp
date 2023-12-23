@@ -145,7 +145,16 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 foreach (ToonBlobShadowsManager.Group group in manager.AllGroups)
                 {
+                    // Don't even check the bounds: they are irrelevant for default groups
                     _batching.Batch(group);
+                }
+
+                foreach (ToonBlobShadowsGroup customGroup in manager.CustomGroups)
+                {
+                    if (receiverBounds.Intersects(customGroup.Bounds))
+                    {
+                        _batching.Batch(customGroup);
+                    }
                 }
             }
 
@@ -216,7 +225,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                                 }
 
                                 int packedDataStride =
-                                    UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                                    UnsafeUtility.SizeOf<ToonBlobShadowPackedData>();
                                 GraphicsBuffer constantBuffer = batch.Group.PackedDataConstantBuffer;
 
                                 int startAddress = batch.BaseIndex * packedDataStride;

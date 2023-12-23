@@ -30,7 +30,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public void Batch(ToonBlobShadowsManager.Group group)
         {
-            if (group.Renderers.Count == 0)
+            if (group.Size == 0)
             {
                 return;
             }
@@ -40,10 +40,20 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 group.UpdateRendererData();
             }
 
+            Batch(group.InnerGroup);
+        }
+
+        public void Batch(ToonBlobShadowsGroup group)
+        {
+            if (group.Size == 0)
+            {
+                return;
+            }
+
             using (BatchMarker.Auto())
             {
                 int left = 0;
-                int right = group.Renderers.Count;
+                int right = group.Size;
 
                 while (left < right)
                 {
@@ -59,7 +69,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
         }
 
-        private void CreateBatch(ToonBlobShadowsManager.Group group, int baseIndex, int count)
+        private void CreateBatch(ToonBlobShadowsGroup group, int baseIndex, int count)
         {
             using ProfilerMarker.AutoScope autoScope = FindBatchMarker.Auto();
 
@@ -108,7 +118,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public struct BatchData
         {
-            public ToonBlobShadowsManager.Group Group;
+            public ToonBlobShadowsGroup Group;
             public int BaseIndex;
             public int Count;
 

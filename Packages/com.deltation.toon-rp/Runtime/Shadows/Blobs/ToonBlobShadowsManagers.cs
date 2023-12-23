@@ -2,6 +2,7 @@
 using UnityEditor;
 #endif // UNITY_EDITOR
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -12,7 +13,7 @@ using static DELTation.ToonRP.Shadows.Blobs.ToonBlobShadowsManager;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    internal static class ToonBlobShadowsManagers
+    public static class ToonBlobShadowsManagers
     {
         private static readonly Dictionary<Scene, ToonBlobShadowsManager> Managers = new(new SceneEqualityComparer());
         public static Dictionary<Scene, ToonBlobShadowsManager>.ValueCollection All => Managers.Values;
@@ -53,6 +54,34 @@ namespace DELTation.ToonRP.Shadows.Blobs
             return manager != null && !manager.IsDestroyed;
         }
 
+
+        public static void RegisterCustomGroup(Scene scene, ToonBlobShadowsGroup group)
+        {
+            if (!TryGetBlobShadowManager(scene, true, out ToonBlobShadowsManager manager))
+            {
+                throw new InvalidOperationException("Cannot register extra group: scene is invalid");
+            }
+
+            if (manager.CustomGroups.Contains(group))
+            {
+                Debug.LogWarning("Extra group is already registered.");
+            }
+            else
+            {
+                manager.CustomGroups.Add(group);
+            }
+        }
+
+        public static void UnregisterCustomGroup(Scene scene, ToonBlobShadowsGroup group)
+        {
+            if (!TryGetBlobShadowManager(scene, false, out ToonBlobShadowsManager manager))
+            {
+                return;
+            }
+
+            manager.CustomGroups.Remove(group);
+        }
+
         public static void OnRendererEnabled(ToonBlobShadowRenderer renderer)
         {
             Scene scene = renderer.gameObject.scene;
@@ -64,21 +93,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Assert.IsTrue(renderer.Index == -1);
 
             Group group = manager.GetGroup(renderer.ShadowType);
-            group.Renderers.Add(renderer);
-            int index = group.Renderers.Count - 1;
-
-            if (index >= group.Data.Length)
-            {
-                group.ExpandData();
-            }
+            group.AddRenderer(renderer);
+            int index = group.Size - 1;
 
             renderer.AssignToManager(manager, index);
-            if (!renderer.IsStatic)
-            {
-                group.DynamicRenderers.Add(renderer);
-            }
-
-            group.MarkDataDirty();
         }
 
         public static void OnRendererDisabled(ToonBlobShadowRenderer renderer)
@@ -91,27 +109,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (manager.TryGetGroup(renderer.AssignedGroupShadowType, out Group group))
             {
-                Assert.IsTrue(0 <= renderer.Index && renderer.Index < group.Renderers.Count);
-
-                int lastIndex = group.Renderers.Count - 1;
-                if (renderer.Index == lastIndex)
-                {
-                    group.Renderers.RemoveAt(renderer.Index);
-                }
-                else
-                {
-                    // Swap with the last renderer and remove
-                    ToonBlobShadowRenderer lastRenderer = group.Renderers[lastIndex];
-                    group.Renderers[renderer.Index] = lastRenderer;
-                    group.Renderers.RemoveAt(lastIndex);
-                    lastRenderer.Index = renderer.Index;
-
-                    lastRenderer.MarkAllDirty();
-                    lastRenderer.UpdateRendererData(out bool _);
-                    group.MarkDataDirty();
-                }
-
-                group.DynamicRenderers.FastRemoveByValue(renderer);
+                group.RemoveRenderer(renderer);
             }
 
             renderer.UnassignFromManager();

@@ -12,7 +12,9 @@ namespace DELTation.ToonRP.Shadows.Blobs
     [ExecuteAlways]
     public sealed unsafe class ToonBlobShadowsManager : MonoBehaviour
     {
-        public Group[] AllGroups { get; private set; } = Array.Empty<Group>();
+        internal Group[] AllGroups { get; private set; } = Array.Empty<Group>();
+
+        internal List<ToonBlobShadowsGroup> CustomGroups { get; } = new();
 
         public bool IsDestroyed { get; private set; }
 
@@ -70,6 +72,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             AllGroups = Array.Empty<Group>();
 
+            foreach (ToonBlobShadowsGroup extraGroup in CustomGroups)
+            {
+                extraGroup.Dispose();
+            }
+
+            CustomGroups.Clear();
             ToonBlobShadowsManagers.OnDestroyed(this);
         }
 
@@ -97,32 +105,30 @@ namespace DELTation.ToonRP.Shadows.Blobs
             private const NativeArrayOptions DefaultArrayOptions = NativeArrayOptions.UninitializedMemory;
 
             private readonly List<ToonBlobShadowRenderer> _dynamicRenderers = new();
-
-            private readonly ToonBlobShadowsGroup _group = new();
             private readonly List<ToonBlobShadowRenderer> _renderers = new();
-            public readonly ToonBlobShadowType ShadowType;
+
+            internal readonly ToonBlobShadowsGroup InnerGroup;
 
 
             private NativeArray<ToonBlobShadowsRendererData> _data = new(StartSize, DataAllocator, DefaultArrayOptions);
             private bool _isDataDirty = true;
 
-            public Group(ToonBlobShadowType shadowType) => ShadowType = shadowType;
+            public Group(ToonBlobShadowType shadowType) => InnerGroup = new ToonBlobShadowsGroup(shadowType);
 
             public int Size
             {
-                get => _group.Size;
-                private set => _group.Size = value;
+                get => InnerGroup.Size;
+                private set => InnerGroup.Size = value;
             }
 
             public ToonBlobShadowsRendererData* DataPtr => (ToonBlobShadowsRendererData*) _data.GetUnsafePtr();
-            public ToonBlobShadowPackedData* PackedDataPtr => _group.PackedDataPtr;
-            public GraphicsBuffer PackedDataConstantBuffer => _group.PackedDataConstantBuffer;
+            public ToonBlobShadowPackedData* PackedDataPtr => InnerGroup.PackedDataPtr;
 
             public void Dispose()
             {
                 _renderers.Clear();
                 _dynamicRenderers.Clear();
-                _group.Dispose();
+                InnerGroup.Dispose();
                 _data.Dispose();
             }
 
@@ -147,7 +153,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                 if (_isDataDirty)
                 {
-                    _group.PushDataToGPU();
+                    InnerGroup.PushDataToGPU();
                     _isDataDirty = false;
                 }
             }
@@ -207,7 +213,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             private void ExpandData()
             {
                 ToonBlobShadowsArrayUtils.ExpandArray(ref _data, DataAllocator, DefaultArrayOptions);
-                _group.ExpandData();
+                InnerGroup.ExpandData();
 
                 MarkDataDirty();
             }

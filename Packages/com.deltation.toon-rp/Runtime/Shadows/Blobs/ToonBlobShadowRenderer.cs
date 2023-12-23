@@ -185,9 +185,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly ToonBlobShadowsRendererData GetRendererData() => ref GetRendererDataImpl();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref ToonBlobShadowsRendererData GetRendererDataImpl() =>
             ref _manager.GetGroup(_shadowType).DataPtr[Index];
 
@@ -213,14 +210,12 @@ namespace DELTation.ToonRP.Shadows.Blobs
             if (forceRecompute || _allDirty || _paramsDirty)
             {
                 rendererData.HalfSize = _halfSize;
-                rendererData.ShadowType = ShadowType;
                 changed = true;
             }
 
             if (forceRecompute || _allDirty || _paramsDirty || transformDirty)
             {
                 rendererData.Params = ConstructParams();
-                rendererData.Bounds = Bounds2D.FromCenterExtents(rendererData.Position, _halfSize);
                 changed = true;
             }
 

@@ -2,6 +2,7 @@
 using UnityEditor;
 #endif // UNITY_EDITOR
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -12,7 +13,7 @@ using static DELTation.ToonRP.Shadows.Blobs.ToonBlobShadowsManager;
 
 namespace DELTation.ToonRP.Shadows.Blobs
 {
-    internal static class ToonBlobShadowsManagers
+    public static class ToonBlobShadowsManagers
     {
         private static readonly Dictionary<Scene, ToonBlobShadowsManager> Managers = new(new SceneEqualityComparer());
         public static Dictionary<Scene, ToonBlobShadowsManager>.ValueCollection All => Managers.Values;
@@ -51,6 +52,34 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
 
             return manager != null && !manager.IsDestroyed;
+        }
+
+
+        public static void RegisterCustomGroup(Scene scene, ToonBlobShadowsGroup group)
+        {
+            if (!TryGetBlobShadowManager(scene, true, out ToonBlobShadowsManager manager))
+            {
+                throw new InvalidOperationException("Cannot register extra group: scene is invalid");
+            }
+
+            if (manager.CustomGroups.Contains(group))
+            {
+                Debug.LogWarning("Extra group is already registered.");
+            }
+            else
+            {
+                manager.CustomGroups.Add(group);
+            }
+        }
+
+        public static void UnregisterCustomGroup(Scene scene, ToonBlobShadowsGroup group)
+        {
+            if (!TryGetBlobShadowManager(scene, false, out ToonBlobShadowsManager manager))
+            {
+                return;
+            }
+
+            manager.CustomGroups.Remove(group);
         }
 
         public static void OnRendererEnabled(ToonBlobShadowRenderer renderer)

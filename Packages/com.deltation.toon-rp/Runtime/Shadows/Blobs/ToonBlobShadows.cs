@@ -147,6 +147,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 {
                     _batching.Batch(group);
                 }
+
+                foreach (ToonBlobShadowsGroup customGroup in manager.CustomGroups)
+                {
+                    _batching.Batch(customGroup);
+                }
             }
 
             ToonBlobShadowsCullingHandle cullingHandle = Cull(receiverBounds);

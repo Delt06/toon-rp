@@ -14,26 +14,33 @@ namespace DELTation.ToonRP.Shadows.Blobs
         private const Allocator PackedDataAllocator = Allocator.Persistent;
         private const NativeArrayOptions DefaultArrayOptions = NativeArrayOptions.UninitializedMemory;
 
+        public readonly ToonBlobShadowType ShadowType;
+
         private NativeArray<ToonBlobShadowPackedData> _packedData;
         private int _size;
 
-        public ToonBlobShadowsGroup(int startSize = MinSize)
+        public ToonBlobShadowsGroup(ToonBlobShadowType shadowType, int startSize = MinSize)
         {
+            ShadowType = shadowType;
             startSize = Mathf.Max(MinSize, startSize);
             _packedData =
                 new NativeArray<ToonBlobShadowPackedData>(startSize, PackedDataAllocator, DefaultArrayOptions);
             PackedDataConstantBuffer = CreateConstantBuffer(startSize);
         }
 
+        public NativeArray<ToonBlobShadowPackedData> PackedData => _packedData;
+
+        public int Capacity => _packedData.Length;
+
         public int Size
         {
             get => _size;
             set
             {
-                if (value > _packedData.Length)
+                if (value > Capacity)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value), value,
-                        $"Count cannot be greater than the array length ({_packedData.Length})"
+                        $"Size cannot be greater than the capacity ({Capacity})"
                     );
                 }
 

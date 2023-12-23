@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace DELTation.ToonRP.Shadows.Blobs
@@ -20,7 +21,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public struct CullingGroup
         {
             [NativeDisableUnsafePtrRestriction]
-            public ToonBlobShadowsRendererData* Data;
+            public ToonBlobShadowPackedData* Data;
             public int BaseIndex;
             public int Count;
         }
@@ -32,8 +33,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             for (int localRendererIndex = 0; localRendererIndex < cullingGroup.Count; localRendererIndex++)
             {
-                ref readonly Bounds2D bounds =
-                    ref cullingGroup.Data[cullingGroup.BaseIndex + localRendererIndex].Bounds;
+                ref ToonBlobShadowPackedData packedData =
+                    ref cullingGroup.Data[cullingGroup.BaseIndex + localRendererIndex];
+                var positionSize = (float4) packedData.PositionSize;
+                var bounds = Bounds2D.FromCenterExtents(positionSize.xy, positionSize.zw);
                 if (ReceiverBounds.Intersects(bounds))
                 {
                     int previousCounterValue = SharedCounters[index]++;
@@ -73,11 +76,11 @@ namespace DELTation.ToonRP.Shadows.Blobs
         }
     }
 
-    public static unsafe class ToonBlobShadowsCulling
+    public static class ToonBlobShadowsCulling
     {
         private static readonly ProfilerMarker Marker = new("BlobShadows.ScheduleCulling");
 
-        public static ToonBlobShadowsCullingHandle ScheduleCulling(ToonBlobShadowsBatching batching,
+        public static unsafe ToonBlobShadowsCullingHandle ScheduleCulling(ToonBlobShadowsBatching batching,
             in Bounds2D receiverBounds)
         {
             using (Marker.Auto())
@@ -116,7 +119,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
                         cullingGroups[cullingGroupIndex] = new ToonBlobShadowsCullingJob.CullingGroup
                         {
-                            Data = batch.Group.DataPtr,
+                            Data = batch.Group.PackedDataPtr,
                             BaseIndex = batch.BaseIndex,
                             Count = batch.Count,
                         };

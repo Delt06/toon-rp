@@ -8,6 +8,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
         public float HalfSize;
         public Bounds2D Bounds;
         public ToonBlobShadowType ShadowType;
-        public ToonBlobShadowsPackedParams Params;
+        public ToonBlobShadowPackedParams Params;
     }
 }

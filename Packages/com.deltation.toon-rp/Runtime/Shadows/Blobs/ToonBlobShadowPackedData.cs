@@ -7,6 +7,6 @@ namespace DELTation.ToonRP.Shadows.Blobs
     public struct ToonBlobShadowPackedData
     {
         public half4 PositionSize;
-        public ToonBlobShadowsPackedParams Params;
+        public ToonBlobShadowPackedParams Params;
     }
 }

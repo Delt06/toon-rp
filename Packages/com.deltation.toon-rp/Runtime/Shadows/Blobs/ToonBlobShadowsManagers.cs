@@ -64,21 +64,10 @@ namespace DELTation.ToonRP.Shadows.Blobs
             Assert.IsTrue(renderer.Index == -1);
 
             Group group = manager.GetGroup(renderer.ShadowType);
-            group.Renderers.Add(renderer);
-            int index = group.Renderers.Count - 1;
-
-            if (index >= group.Data.Length)
-            {
-                group.ExpandData();
-            }
+            group.AddRenderer(renderer);
+            int index = group.Size - 1;
 
             renderer.AssignToManager(manager, index);
-            if (!renderer.IsStatic)
-            {
-                group.DynamicRenderers.Add(renderer);
-            }
-
-            group.MarkDataDirty();
         }
 
         public static void OnRendererDisabled(ToonBlobShadowRenderer renderer)
@@ -91,27 +80,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
             if (manager.TryGetGroup(renderer.AssignedGroupShadowType, out Group group))
             {
-                Assert.IsTrue(0 <= renderer.Index && renderer.Index < group.Renderers.Count);
-
-                int lastIndex = group.Renderers.Count - 1;
-                if (renderer.Index == lastIndex)
-                {
-                    group.Renderers.RemoveAt(renderer.Index);
-                }
-                else
-                {
-                    // Swap with the last renderer and remove
-                    ToonBlobShadowRenderer lastRenderer = group.Renderers[lastIndex];
-                    group.Renderers[renderer.Index] = lastRenderer;
-                    group.Renderers.RemoveAt(lastIndex);
-                    lastRenderer.Index = renderer.Index;
-
-                    lastRenderer.MarkAllDirty();
-                    lastRenderer.UpdateRendererData(out bool _);
-                    group.MarkDataDirty();
-                }
-
-                group.DynamicRenderers.FastRemoveByValue(renderer);
+                group.RemoveRenderer(renderer);
             }
 
             renderer.UnassignFromManager();

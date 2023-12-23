@@ -172,7 +172,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                 return;
             }
 
-            ref ToonBlobShadowsManager.RendererPackedData packedData =
+            ref ToonBlobShadowPackedData packedData =
                 ref group.PackedDataPtr[Index];
             packedData.PositionSize = new half4(
                 (half) rendererData.Position.x, (half) rendererData.Position.y,

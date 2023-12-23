@@ -216,7 +216,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
                                 }
 
                                 int packedDataStride =
-                                    UnsafeUtility.SizeOf<ToonBlobShadowsManager.RendererPackedData>();
+                                    UnsafeUtility.SizeOf<ToonBlobShadowPackedData>();
                                 GraphicsBuffer constantBuffer = batch.Group.PackedDataConstantBuffer;
 
                                 int startAddress = batch.BaseIndex * packedDataStride;

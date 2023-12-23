@@ -30,7 +30,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
 
         public void Batch(ToonBlobShadowsManager.Group group)
         {
-            if (group.Renderers.Count == 0)
+            if (group.Size == 0)
             {
                 return;
             }
@@ -43,7 +43,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             using (BatchMarker.Auto())
             {
                 int left = 0;
-                int right = group.Renderers.Count;
+                int right = group.Size;
 
                 while (left < right)
                 {

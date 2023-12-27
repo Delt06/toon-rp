@@ -10,6 +10,7 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_ToonRPMainLightDirection
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/DepthNormals.hlsl"
@@ -75,6 +76,11 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 float3 GetWorldSpaceNormalizeViewDir(const float3 positionWs)
 {
     return normalize(GetWorldSpaceViewDir(positionWs));
+}
+
+float3 shadergraph_ToonRPMainLightDirection()
+{
+    return -GetMainLight().direction;
 }
 
 // Always include Shader Graph version

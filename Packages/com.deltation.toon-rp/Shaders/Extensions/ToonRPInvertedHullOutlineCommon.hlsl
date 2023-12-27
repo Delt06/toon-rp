@@ -60,7 +60,9 @@ float GetVertexColorThickness(const appdata IN)
 float4 ApplyThicknessInCSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs, const float3 normalWs, const float thickness)
 {
     const float4 positionCs = mul(worldToHClipMatrix, float4(positionWs, 1.0));
-    const float3 normalCs = normalize(mul((float3x3)worldToHClipMatrix, normalWs).xyz);
+    float3 normalCs = normalize(mul((float3x3)worldToHClipMatrix, normalWs).xyz);
+    // Apply aspect ratio correction
+    normalCs.x *= _ToonRP_ScreenParams.x * _ToonRP_ScreenParams.w; 
     return positionCs + float4(normalCs, 0) * thickness * positionCs.w;
 }
 

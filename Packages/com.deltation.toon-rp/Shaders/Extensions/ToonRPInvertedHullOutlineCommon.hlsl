@@ -21,11 +21,11 @@ struct appdata
 {
     float3 vertex : POSITION;
     float3 normal : NORMAL_SEMANTIC;
-    
+
     #ifdef _NOISE
     float2 uv : TEXCOORD0;
     #endif // _NOISE
-    
+
     #ifdef USE_VERTEX_COLOR_THICKNESS
     float4 color : COLOR;
     #endif // USE_VERTEX_COLOR_THICKNESS
@@ -33,13 +33,19 @@ struct appdata
     EXTRA_APP_DATA
 };
 
-CBUFFER_START(UnityPerMaterial)
-float _Thickness;
-float3 _Color;
-float2 _DistanceFade;
-float _NoiseFrequency;
-float _NoiseAmplitude;
+CBUFFER_START(ToonRpInvertedHullOutline)
+    float _ToonRpInvertedHullOutline_Thickness;
+    float3 _ToonRpInvertedHullOutline_Color;
+    float2 _ToonRpInvertedHullOutline_DistanceFade;
+    float _ToonRpInvertedHullOutline_NoiseFrequency;
+    float _ToonRpInvertedHullOutline_NoiseAmplitude;
 CBUFFER_END
+
+#define _Thickness _ToonRpInvertedHullOutline_Thickness
+#define _Color _ToonRpInvertedHullOutline_Color
+#define _DistanceFade _ToonRpInvertedHullOutline_DistanceFade
+#define _NoiseFrequency _ToonRpInvertedHullOutline_NoiseFrequency
+#define _NoiseAmplitude _ToonRpInvertedHullOutline_NoiseAmplitude
 
 float GetVertexColorThickness(const appdata IN)
 {
@@ -57,21 +63,24 @@ float GetVertexColorThickness(const appdata IN)
 
 }
 
-float4 ApplyThicknessInCSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs, const float3 normalWs, const float thickness)
+float4 ApplyThicknessInCSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs,
+                                             const float3 normalWs, const float thickness)
 {
     const float4 positionCs = mul(worldToHClipMatrix, float4(positionWs, 1.0));
     float3 normalCs = normalize(mul((float3x3)worldToHClipMatrix, normalWs).xyz);
     // Apply aspect ratio correction
-    normalCs.x *= _ToonRP_ScreenParams.x * _ToonRP_ScreenParams.w; 
+    normalCs.x *= _ToonRP_ScreenParams.x * _ToonRP_ScreenParams.w;
     return positionCs + float4(normalCs, 0) * thickness * positionCs.w;
 }
 
-float4 ApplyThicknessInWSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs, const float3 normalWs, const float thickness)
+float4 ApplyThicknessInWSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs,
+                                             const float3 normalWs, const float thickness)
 {
     return mul(worldToHClipMatrix, float4(positionWs + normalWs * thickness, 1.0));
 }
 
-float4 ApplyThicknessAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs, const float3 normalWs, const float thickness)
+float4 ApplyThicknessAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs,
+                                         const float3 normalWs, const float thickness)
 {
     #ifdef _FIXED_SCREEN_SPACE_THICKNESS
     return ApplyThicknessInCSAndTransformToHClip(worldToHClipMatrix, positionWs, normalWs, thickness);

@@ -241,7 +241,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.FixedScreenSpaceThicknessKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.FixedScreenSpaceThicknessKeywordName
                     );
                 }
 
@@ -249,7 +249,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.ShaderKeywords.NoiseKeywordName
                     );
                 }
 
@@ -258,7 +259,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.DistanceFadeKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.DistanceFadeKeywordName
                     );
                 }
 
@@ -275,7 +276,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessRKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessRKeywordName
                     );
                 }
 
@@ -284,7 +285,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessGKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessGKeywordName
                     );
                 }
 
@@ -293,7 +294,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessBKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessBKeywordName
                     );
                 }
 
@@ -302,7 +303,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessAKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessAKeywordName
                     );
                 }
 
@@ -319,7 +320,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.NormalSemanticUV2KeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.NormalSemanticUV2KeywordName
                     );
                 }
 
@@ -328,7 +329,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.NormalSemanticTangentKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.NormalSemanticTangentKeywordName
                     );
                 }
             }

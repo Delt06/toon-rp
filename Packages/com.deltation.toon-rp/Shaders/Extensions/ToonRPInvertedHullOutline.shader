@@ -2,11 +2,6 @@
 {
     Properties 
     {
-        _Thickness("Thickness", Float) = 0
-        _Color("Color", Color) = (0, 0, 0, 0)
-        _DistanceFade("Distance Fade", Vector) = (0, 0, 0, 0)
-        _NoiseFrequency("Noise Frequency", Float) = 0
-        _NoiseAmplitude("Noise Amplitude", Float) = 0
     }
 	SubShader
 	{

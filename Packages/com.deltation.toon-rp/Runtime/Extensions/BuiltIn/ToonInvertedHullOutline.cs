@@ -211,7 +211,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 ref readonly Pass pass = ref passes[passIndex];
                 Material overrideMaterial = pass.OverrideMaterial;
                 if (existingMaterial == null ||
-                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.shader)
+                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.shader ||
+                    overrideMaterial == null && existingMaterial.shader != Shader.Find(ShaderName))
                 {
                     _materials[passIndex] = CreateMaterial(pass);
                 }

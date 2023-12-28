@@ -63,9 +63,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     passes = new PassCollection
                     {
                         Passes.Forward(target),
-                        CorePasses.DepthOnly(target),
-                        CorePasses.DepthNormals(target),
-                        CorePasses.MotionVectors(target),
+                        Passes.DepthOnly(target),
+                        Passes.DepthNormals(target),
+                        Passes.MotionVectors(target),
                     },
                 };
 
@@ -85,7 +85,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 var result = new PassDescriptor
                 {
                     // Definition
-                    displayName = pass.Name,
+                    displayName = "Toon RP Outline (Inverted Hull)",
                     referenceName = pass.ReferenceName,
                     useInPreview = true,
 
@@ -95,7 +95,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                     // Port Mask
                     validVertexBlocks = BlockMasks.Vertex,
-                    validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+                    validPixelBlocks = CoreBlockMasks.FragmentColor,
 
                     // Fields
                     structs = CoreStructCollections.Default,
@@ -118,12 +118,125 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 return result;
             }
 
-            
+            public static PassDescriptor DepthOnly(ToonTarget target)
+            {
+                ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthOnly;
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Toon RP Outline (Inverted Hull) Depth Only",
+                    referenceName = pass.ReferenceName,
+                    lightMode = pass.LightMode,
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = ToonTarget.UberTemplatePath,
+                    sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = BlockMasks.Vertex,
+                    validPixelBlocks = Array.Empty<BlockFieldDescriptor>(),
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = RequiredFields.DepthOnly,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = Keywords.Default,
+                    includes = Includes.DepthOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
+                };
+
+                return result;
+            }
+
+            public static PassDescriptor DepthNormals(ToonTarget target)
+            {
+                ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthNormals;
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Toon RP Outline (Inverted Hull) Depth Normals",
+                    referenceName = pass.ReferenceName,
+                    lightMode = pass.LightMode,
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = ToonTarget.UberTemplatePath,
+                    sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = BlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormalsNoAlpha,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = RequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormals(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = Keywords.Default,
+                    includes = Includes.DepthNormals,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
+                };
+
+                return result;
+            }
+
+            public static PassDescriptor MotionVectors(ToonTarget target)
+            {
+                ref readonly ToonPasses.Pass pass = ref ToonPasses.MotionVectors;
+                var result = new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Toon RP Outline (Inverted Hull) Motion Vectors",
+                    referenceName = pass.ReferenceName,
+                    lightMode = pass.LightMode,
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = ToonTarget.UberTemplatePath,
+                    sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = BlockMasks.Vertex,
+                    validPixelBlocks = Array.Empty<BlockFieldDescriptor>(),
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = RequiredFields.MotionVectors,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.MotionVectors(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = Keywords.Default,
+                    includes = Includes.MotionVector,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common,
+                };
+
+                return result;
+            }
         }
 
         #endregion
-        
+
         #region BlockMasks
+
         private static class BlockMasks
         {
             public static readonly BlockFieldDescriptor[] Vertex =
@@ -132,24 +245,41 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.VertexDescription.Normal,
             };
         }
-        
+
         #endregion
-        
+
         #region RequiredFields
 
         private static class RequiredFields
         {
             public static readonly FieldCollection ForwardPass = new()
             {
-                StructFields.Varyings.positionWS,
-                StructFields.Varyings.normalWS,
                 StructFields.Attributes.uv0,
                 ToonStructFields.Varyings.fogFactorAndVertexLight,
+            };
+
+            public static readonly FieldCollection DepthOnly = new()
+            {
+                StructFields.Attributes.uv0,
+            };
+
+            public static readonly FieldCollection DepthNormals = new()
+            {
+                StructFields.Attributes.uv0,
+                StructFields.Varyings.normalWS,
+            };
+
+            public static readonly FieldCollection MotionVectors = new()
+            {
+                StructFields.Attributes.uv0,
+                ToonStructFields.Attributes.positionOld,
+                ToonStructFields.Varyings.positionCsNoJitter,
+                ToonStructFields.Varyings.previousPositionCsNoJitter,
             };
         }
 
         #endregion
-        
+
         #region Keywords
 
         private static class Keywords
@@ -228,17 +358,55 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/Extensions/InvertedHullOutlinePreGraph.hlsl";
             private const string ForwardPass =
                 "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/Extensions/InvertedHullOutlineForwardPass.hlsl";
+            private const string MotionVectorPass =
+                "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/Extensions/InvertedHullOutlineMotionVectorsPass.hlsl";
 
             public static readonly IncludeCollection Forward = new()
             {
                 // Pre-graph
                 CoreIncludes.CorePregraph,
                 CoreIncludes.ShaderGraphPregraph,
-                {PreGraph, IncludeLocation.Pregraph},
+                { PreGraph, IncludeLocation.Pregraph },
 
                 // Post-graph
                 CoreIncludes.CorePostgraph,
                 { ForwardPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection DepthOnly = new()
+            {
+                // Pre-graph
+                CoreIncludes.CorePregraph,
+                CoreIncludes.ShaderGraphPregraph,
+                { PreGraph, IncludeLocation.Pregraph },
+
+                // Post-graph
+                CoreIncludes.CorePostgraph,
+                { CoreIncludes.DepthOnlyPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection DepthNormals = new()
+            {
+                // Pre-graph
+                CoreIncludes.CorePregraph,
+                CoreIncludes.ShaderGraphPregraph,
+                { PreGraph, IncludeLocation.Pregraph },
+
+                // Post-graph
+                CoreIncludes.CorePostgraph,
+                { CoreIncludes.DepthNormalsPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection MotionVector = new()
+            {
+                // Pre-graph
+                CoreIncludes.CorePregraph,
+                CoreIncludes.ShaderGraphPregraph,
+                { PreGraph, IncludeLocation.Pregraph },
+
+                // Post-graph
+                CoreIncludes.CorePostgraph,
+                { MotionVectorPass, IncludeLocation.Postgraph },
             };
         }
 

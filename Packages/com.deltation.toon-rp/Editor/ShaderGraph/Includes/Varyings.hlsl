@@ -27,7 +27,7 @@ VertexDescription BuildVertexDescription(Attributes input)
 #define TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, appdata) TransformWorldToHClip(positionWS)
 #endif // TRANSFORM_WORLD_TO_HCLIP
 
-Varyings BuildVaryings(Attributes input)
+Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 normalWS)
 {
     // ReSharper disable once CppRedundantCastExpression
     Varyings output = (Varyings) 0;
@@ -60,13 +60,13 @@ Varyings BuildVaryings(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
     // Returns the camera relative position (if enabled)
-    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    positionWS = TransformObjectToWorld(input.positionOS);
 
     #ifdef ATTRIBUTES_NEED_NORMAL
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+    normalWS = TransformObjectToWorldNormal(input.normalOS);
     #else
     // Required to compile ApplyVertexModification that doesn't use normal.
-    float3 normalWS = float3(0.0, 0.0, 0.0);
+    normalWS = float3(0.0, 0.0, 0.0);
     #endif
 
     #ifdef ATTRIBUTES_NEED_TANGENT

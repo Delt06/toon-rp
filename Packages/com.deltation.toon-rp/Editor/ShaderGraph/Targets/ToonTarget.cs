@@ -954,6 +954,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
 
+        public static readonly BlockFieldDescriptor[] FragmentColor =
+        {
+            ToonBlockFields.SurfaceDescription.Albedo,
+            ToonBlockFields.SurfaceDescription.Emission,
+            ToonBlockFields.SurfaceDescription.CustomFogFactor,
+            ToonBlockFields.SurfaceDescription.CustomFogColor,
+        };
+        
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
             ToonBlockFields.SurfaceDescription.Albedo,
@@ -971,6 +979,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.NormalWs,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
+        
+        public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
+        {
+            ToonBlockFields.SurfaceDescription.NormalOs,
+            ToonBlockFields.SurfaceDescription.NormalTs,
+            ToonBlockFields.SurfaceDescription.NormalWs,
         };
 
         public static readonly BlockFieldDescriptor[] MotionVectors =
@@ -1289,13 +1304,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/Varyings.hlsl";
         private const string ShaderPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
-        private const string DepthOnlyPass =
+        public const string DepthOnlyPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        private const string DepthNormalsPass =
+        public const string DepthNormalsPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DepthNormalsPass.hlsl";
-        private const string MotionVectorsPass =
+        public const string MotionVectorsPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/MotionVectorsPass.hlsl";
-        private const string ShadowCasterPass =
+        public const string ShadowCasterPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new()

@@ -23,14 +23,13 @@ float4 ApplyThicknessInCSAndTransformToHClip(const float4x4 worldToHClipMatrix, 
     return positionCs + float4(normalCs, 0) * thickness * positionCs.w;
 }
 
-float4 ApplyThicknessInWSAndTransformToHClip(const float4x4 worldToHClipMatrix, inout float3 positionWs,
+float4 ApplyThicknessInWSAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs,
                                              const float3 normalWs, const float thickness)
 {
-    positionWs = positionWs + normalWs * thickness;
-    return mul(worldToHClipMatrix, float4(positionWs, 1.0));
+    return mul(worldToHClipMatrix, float4(positionWs + normalWs * thickness, 1.0));
 }
 
-float4 ApplyThicknessAndTransformToHClip(const float4x4 worldToHClipMatrix, inout float3 positionWs,
+float4 ApplyThicknessAndTransformToHClip(const float4x4 worldToHClipMatrix, const float3 positionWs,
                                          const float3 normalWs, const float thickness)
 {
     #ifdef _FIXED_SCREEN_SPACE_THICKNESS
@@ -40,7 +39,7 @@ float4 ApplyThicknessAndTransformToHClip(const float4x4 worldToHClipMatrix, inou
     #endif // _FIXED_SCREEN_SPACE_THICKNESS
 }
 
-float4 ApplyThicknessAndTransformToHClip(inout float3 positionWs, const float3 normalWs, const float thickness)
+float4 ApplyThicknessAndTransformToHClip(const float3 positionWs, const float3 normalWs, const float thickness)
 {
     return ApplyThicknessAndTransformToHClip(GetWorldToHClipMatrix(), positionWs, normalWs, thickness);
 }

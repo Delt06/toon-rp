@@ -20,7 +20,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     // ReSharper disable once CppLocalVariableMayBeConst
-    float3 positionWs = TransformObjectToWorld(IN.vertex);
+    const float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
 
     {
@@ -31,8 +31,7 @@ v2f VS(const appdata IN)
 
     {
         const float3 previousPositionOs = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
-        // ReSharper disable once CppLocalVariableMayBeConst
-        float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
+        const float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
         const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), previousPositionWs, normalWs);
         OUT.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);    
     }

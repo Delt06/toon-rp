@@ -40,6 +40,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             );
         }
 
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            base.GetActiveBlocks(ref context);
+
+            context.AddBlock(ToonBlockFields.VertexDescription.OutlineThickness);
+        }
+
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo)
         {
@@ -243,6 +250,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             {
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
+                ToonBlockFields.VertexDescription.OutlineThickness,
             };
         }
 
@@ -259,7 +267,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 StructFields.Attributes.tangentOS,
                 StructFields.Attributes.uv2,
             };
-            
+
             public static readonly FieldCollection ForwardPass = new()
             {
                 BaseAttributes,
@@ -268,7 +276,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             public static readonly FieldCollection DepthOnly = new()
             {
-                BaseAttributes
+                BaseAttributes,
             };
 
             public static readonly FieldCollection DepthNormals = new()

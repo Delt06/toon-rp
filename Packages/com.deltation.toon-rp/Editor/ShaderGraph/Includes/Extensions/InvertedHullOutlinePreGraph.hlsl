@@ -3,14 +3,14 @@
 
 #include "Packages/com.deltation.toon-rp/Shaders/Extensions/ToonRPInvertedHullOutlineCommon.hlsl"
 
-float4 InvertedHullOutline_TransformWorldToHClip(const float3 positionWs, const float3 normalWs, const float2 uv)
+float4 InvertedHullOutline_TransformWorldToHClip(const float3 positionWs, const float3 normalWs, const float2 uv, const float thicknessMultiplier)
 {
-    const float thickness = ComputeThickness(uv, positionWs, normalWs);
+    const float thickness = ComputeThickness(uv, positionWs, normalWs) * thicknessMultiplier;
     const float4 positionCs = ApplyThicknessAndTransformToHClip(positionWs, normalWs, thickness);
     return positionCs;
 }
 
-#define TRANSFORM_WORLD_TO_HCLIP(positionWs, normalWs, appdata) (InvertedHullOutline_TransformWorldToHClip(positionWs, normalWs, appdata.uv0.xy))
+#define TRANSFORM_WORLD_TO_HCLIP(positionWs, normalWs, appdata, vertexDescription) (InvertedHullOutline_TransformWorldToHClip(positionWs, normalWs, appdata.uv0.xy, vertexDescription.OutlineThickness))
 
 #ifdef _NORMAL_SEMANTIC_TANGENT
 #define SHADER_GRAPH_NORMAL_SOURCE_TANGENT

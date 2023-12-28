@@ -3,7 +3,7 @@
 
 PackedVaryings PackVaryings(Varyings varyings);
 Varyings UnpackVaryings(PackedVaryings packedVaryings);
-Varyings BuildVaryings(Attributes attributes, out float3 positionWS, out float3 normalWS);
+Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription, out float3 positionWS, out float3 normalWS);
 
 SurfaceDescription BuildSurfaceDescription(Varyings varyings);
 

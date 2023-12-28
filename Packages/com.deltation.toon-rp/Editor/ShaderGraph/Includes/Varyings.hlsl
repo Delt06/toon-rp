@@ -24,10 +24,10 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 
 #ifndef TRANSFORM_WORLD_TO_HCLIP
-#define TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, appdata) TransformWorldToHClip(positionWS)
+#define TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, appdata, vertexDescription) TransformWorldToHClip(positionWS)
 #endif // TRANSFORM_WORLD_TO_HCLIP
 
-Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 normalWS)
+Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription, out float3 positionWS, out float3 normalWS)
 {
     // ReSharper disable once CppRedundantCastExpression
     Varyings output = (Varyings) 0;
@@ -39,7 +39,7 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
 
     #if defined(FEATURES_GRAPH_VERTEX)
 
-    VertexDescription vertexDescription = BuildVertexDescription(input);
+    vertexDescription = BuildVertexDescription(input);
 
     #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
         CustomInterpolatorPassThroughFunc(output, vertexDescription);
@@ -54,6 +54,10 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
         input.tangentOS.xyz = vertexDescription.Tangent.xyz;
     #endif //FEATURES GRAPH TANGENT
 
+    #else // !FEATURES_GRAPH_VERTEX
+
+    vertexDescription = (VertexDescription) 0;
+
     #endif //FEATURES_GRAPH_VERTEX
 
     // TODO: Avoid path via VertexPositionInputs (Universal)
@@ -66,11 +70,11 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
 
     float3 normalOS;
     #if defined(SHADER_GRAPH_NORMAL_SOURCE_TANGENT)
-    normalOS = input.tangentOS;
+    normalOS = input.tangentOS.xyz;
     #elif defined (SHADER_GRAPH_NORMAL_SOURCE_UV2)
-    normalOS = input.uv2;
+    normalOS = input.uv2.xyz;
     #else
-    normalOS = input.normalOS;
+    normalOS = input.normalOS.xyz;
     #endif 
     
     normalWS = TransformObjectToWorldNormal(normalOS);
@@ -104,7 +108,7 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
     #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     
     positionWS = ApplyShadowBias(positionWS, normalWS, _DirectionalLightDirection);
-    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input);
+    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input, vertexDescription);
     #if UNITY_REVERSED_Z
         output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #else
@@ -116,7 +120,7 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
     #endif // _TOON_RP_VSM
     
     #else
-    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input);
+    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input, vertexDescription);
     #endif
 
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)

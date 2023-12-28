@@ -20,6 +20,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.AssetCallbacks
             {
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
+                ToonBlockFields.VertexDescription.OutlineThickness,
+
                 ToonBlockFields.SurfaceDescription.Albedo,
                 ToonBlockFields.SurfaceDescription.Emission,
             };

@@ -39,6 +39,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public float NoiseAmplitude;
             [Min(0f)]
             public float NoiseFrequency;
+            public Material OverrideMaterial;
             public NormalsSource NormalsSource;
             public VertexColorThicknessSource VertexColorThicknessSource;
             public float DepthBias;

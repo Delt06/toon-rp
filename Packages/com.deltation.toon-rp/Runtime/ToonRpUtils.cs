@@ -30,6 +30,16 @@ namespace DELTation.ToonRP
             return material;
         }
 
+        public static Material CreateEngineMaterial(Material source, string materialName)
+        {
+            var material = new Material(source)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+            SetMaterialName(material, materialName);
+            return material;
+        }
+
         public static void ExecuteCommandBufferAndClear(ref this ScriptableRenderContext context, CommandBuffer cmd)
         {
             context.ExecuteCommandBuffer(cmd);

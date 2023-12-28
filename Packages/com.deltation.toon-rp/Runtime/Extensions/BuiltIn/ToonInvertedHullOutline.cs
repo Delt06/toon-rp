@@ -213,22 +213,33 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private void PopulateMaterialsForAllPasses()
         {
-            while (_materials.Count < _outlineSettings.Passes.Length)
+            Pass[] passes = _outlineSettings.Passes;
+
+            while (_materials.Count < passes.Length)
             {
-                _materials.Add(CreateMaterial());
+                _materials.Add(null);
             }
 
-            for (int i = 0; i < _materials.Count; i++)
+            for (int passIndex = 0; passIndex < passes.Length; passIndex++)
             {
-                if (_materials[i] == null)
+                Material existingMaterial = _materials[passIndex];
+                ref readonly Pass pass = ref passes[passIndex];
+                Material overrideMaterial = pass.OverrideMaterial;
+                if (existingMaterial == null ||
+                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.shader)
                 {
-                    _materials[i] = CreateMaterial();
+                    _materials[passIndex] = CreateMaterial(pass);
                 }
             }
         }
 
-        private static Material CreateMaterial() =>
-            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Outline (Inverted Hull)");
+        private static Material CreateMaterial(in Pass pass)
+        {
+            const string materialName = "Toon RP Outline (Inverted Hull)";
+            return pass.OverrideMaterial != null
+                ? ToonRpUtils.CreateEngineMaterial(pass.OverrideMaterial, materialName)
+                : ToonRpUtils.CreateEngineMaterial(ShaderName, materialName);
+        }
 
         public static class ShaderKeywords
         {

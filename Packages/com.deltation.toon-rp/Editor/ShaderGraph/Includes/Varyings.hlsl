@@ -23,6 +23,10 @@ VertexDescription BuildVertexDescription(Attributes input)
 #endif
 #endif
 
+#ifndef TRANSFORM_WORLD_TO_HCLIP
+#define TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, appdata) TransformWorldToHClip(positionWS)
+#endif // TRANSFORM_WORLD_TO_HCLIP
+
 Varyings BuildVaryings(Attributes input)
 {
     // ReSharper disable once CppRedundantCastExpression
@@ -90,7 +94,7 @@ Varyings BuildVaryings(Attributes input)
     #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     
     positionWS = ApplyShadowBias(positionWS, normalWS, _DirectionalLightDirection);
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input);
     #if UNITY_REVERSED_Z
         output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #else
@@ -102,7 +106,7 @@ Varyings BuildVaryings(Attributes input)
     #endif // _TOON_RP_VSM
     
     #else
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input);
     #endif
 
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)

@@ -263,50 +263,6 @@ namespace DELTation.ToonRP.Editor.Stripping
                     );
                 }
 
-                bool AnyExtensionHasVertexColorThicknessSource(
-                    ToonInvertedHullOutlineSettings.VertexColorThicknessSource vertexColorThicknessSource) =>
-                    AnyExtension<ToonInvertedHullOutlineAsset>(e =>
-                        e.Settings.Passes.Any(p =>
-                            p.VertexColorThicknessSource == vertexColorThicknessSource
-                        )
-                    );
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.R
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessRKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.G
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessGKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.B
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessBKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.A
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.ShaderKeywords.VertexColorThicknessAKeywordName
-                    );
-                }
-
                 bool AnyExtensionHasNormalSource(
                     ToonInvertedHullOutlineSettings.NormalsSource normalsSource) =>
                     AnyExtension<ToonInvertedHullOutlineAsset>(e =>

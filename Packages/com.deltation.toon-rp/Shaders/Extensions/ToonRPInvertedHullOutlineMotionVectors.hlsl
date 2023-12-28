@@ -4,6 +4,7 @@
 #define EXTRA_APP_DATA float3 positionOld : TEXCOORD4;
 
 #include "ToonRPInvertedHullOutlineCommon.hlsl"
+#include "ToonRPInvertedHullOutlineAppdata.hlsl"
 
 #include "../../ShaderLibrary/MotionVectors.hlsl"
 
@@ -18,19 +19,21 @@ v2f VS(const appdata IN)
 {
     v2f OUT;
 
-    const float3 positionWs = TransformObjectToWorld(IN.vertex);
+    // ReSharper disable once CppLocalVariableMayBeConst
+    float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
 
     {
-        const float thickness = ComputeThickness(IN, positionWs, normalWs);
+        const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), positionWs, normalWs);
         OUT.positionCs = ApplyThicknessAndTransformToHClip(positionWs, normalWs, thickness);
         OUT.positionCsNoJitter = ApplyThicknessAndTransformToHClip(_NonJitteredViewProjMatrix, positionWs, normalWs, thickness);    
     }
 
     {
         const float3 previousPositionOs = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
-        const float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
-        const float thickness = ComputeThickness(IN, previousPositionWs, normalWs);
+        // ReSharper disable once CppLocalVariableMayBeConst
+        float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
+        const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), previousPositionWs, normalWs);
         OUT.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);    
     }
 

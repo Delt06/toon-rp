@@ -61,21 +61,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             }
 
             {
-                material.SetKeyword(ShaderKeywords.VertexColorThicknessRKeywordName,
-                    pass.VertexColorThicknessSource == VertexColorThicknessSource.R
-                );
-                material.SetKeyword(ShaderKeywords.VertexColorThicknessGKeywordName,
-                    pass.VertexColorThicknessSource == VertexColorThicknessSource.G
-                );
-                material.SetKeyword(ShaderKeywords.VertexColorThicknessBKeywordName,
-                    pass.VertexColorThicknessSource == VertexColorThicknessSource.B
-                );
-                material.SetKeyword(ShaderKeywords.VertexColorThicknessAKeywordName,
-                    pass.VertexColorThicknessSource == VertexColorThicknessSource.A
-                );
-            }
-
-            {
                 material.SetKeyword(ShaderKeywords.NormalSemanticUV2KeywordName,
                     pass.NormalsSource == NormalsSource.UV2
                 );
@@ -244,10 +229,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         public static class ShaderKeywords
         {
             public const string NoiseKeywordName = "_NOISE";
-            public const string VertexColorThicknessRKeywordName = "_VERTEX_COLOR_THICKNESS_R";
-            public const string VertexColorThicknessGKeywordName = "_VERTEX_COLOR_THICKNESS_G";
-            public const string VertexColorThicknessBKeywordName = "_VERTEX_COLOR_THICKNESS_B";
-            public const string VertexColorThicknessAKeywordName = "_VERTEX_COLOR_THICKNESS_A";
             public const string FixedScreenSpaceThicknessKeywordName = "_FIXED_SCREEN_SPACE_THICKNESS";
             public const string NormalSemanticUV2KeywordName = "_NORMAL_SEMANTIC_UV2";
             public const string NormalSemanticTangentKeywordName = "_NORMAL_SEMANTIC_TANGENT";

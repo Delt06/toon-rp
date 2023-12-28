@@ -7,7 +7,9 @@ PackedVaryings VS(Attributes input)
 {
     // ReSharper disable once CppRedundantCastExpression
     Varyings output = (Varyings) 0;
-    output = BuildVaryings(input);
+    VertexDescription vertexDescription;
+    float3 positionWs, normalWs;
+    output = BuildVaryings(input, vertexDescription, positionWs, normalWs);
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }

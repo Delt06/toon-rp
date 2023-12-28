@@ -2,6 +2,7 @@
 #define TOON_RP_INVERTED_HULL_OUTLINE_DEPTH_ONLY
 
 #include "ToonRPInvertedHullOutlineCommon.hlsl"
+#include "ToonRPInvertedHullOutlineAppdata.hlsl"
 
 struct v2f
 {
@@ -12,10 +13,11 @@ v2f VS(const appdata IN)
 {
     v2f OUT;
 
-    const float3 positionWs = TransformObjectToWorld(IN.vertex);
+    // ReSharper disable once CppLocalVariableMayBeConst
+    float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
 
-    const float thickness = ComputeThickness(IN, positionWs, normalWs);
+    const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), positionWs, normalWs);
     const float4 positionCs = ApplyThicknessAndTransformToHClip(positionWs, normalWs, thickness);
     OUT.positionCs = positionCs;
 

@@ -129,7 +129,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public SurfaceType SurfaceType
         {
             get => _surfaceType;
-            private set => _surfaceType = value;
+            set => _surfaceType = value;
         }
 
         public ZWriteControl ZWriteControl
@@ -159,7 +159,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public bool AlphaClip
         {
             get => _alphaClip;
-            private set => _alphaClip = value;
+            set => _alphaClip = value;
         }
 
         public bool AlphaToCoverage
@@ -171,7 +171,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public bool ControlOutlinesStencilLayer
         {
             get => _controlOutlinesStencilLayer;
-            private set => _controlOutlinesStencilLayer = value;
+            set => _controlOutlinesStencilLayer = value;
         }
 
         public bool ControlOutlinesStencilLayerEffectivelyEnabled =>
@@ -495,31 +495,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 );
             }
 
-            context.AddProperty("Fog", new Toggle { value = Fog }, evt =>
-                {
-                    if (Equals(Fog, evt.newValue))
-                    {
-                        return;
-                    }
-
-                    registerUndo("Change Fog");
-                    Fog = evt.newValue;
-                    onChange();
-                }
-            );
-
-            context.AddProperty("Custom Fog", new Toggle { value = CustomFog }, evt =>
-                {
-                    if (Equals(CustomFog, evt.newValue))
-                    {
-                        return;
-                    }
-
-                    registerUndo("Change Custom Fog");
-                    CustomFog = evt.newValue;
-                    onChange();
-                }
-            );
+            AddDefaultFogProperties(ref context, onChange, registerUndo);
 
             context.AddProperty("Cast Shadows", new Toggle { value = CastShadows }, evt =>
                 {
@@ -560,6 +536,35 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                     registerUndo("Change Ignored Pre-Passes");
                     IgnoredPrePasses = (PrePassMode) evt.newValue;
+                    onChange();
+                }
+            );
+        }
+
+        public void AddDefaultFogProperties(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
+        {
+            context.AddProperty("Fog", new Toggle { value = Fog }, evt =>
+                {
+                    if (Equals(Fog, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Fog");
+                    Fog = evt.newValue;
+                    onChange();
+                }
+            );
+
+            context.AddProperty("Custom Fog", new Toggle { value = CustomFog }, evt =>
+                {
+                    if (Equals(CustomFog, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Custom Fog");
+                    CustomFog = evt.newValue;
                     onChange();
                 }
             );
@@ -678,7 +683,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             }
         }
 
-        private static void AddFogControlToPass(ref PassDescriptor pass, ToonTarget target)
+        internal static void AddFogControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
             {
@@ -690,7 +695,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             }
         }
 
-        private static void AddCustomFogControlToPass(ref PassDescriptor pass, ToonTarget target)
+        internal static void AddCustomFogControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
             {
@@ -739,7 +744,30 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             AddOutlinesControlToPass(ref pass, target);
         }
 
-        private static PassDescriptor DepthOnly(ToonTarget target)
+        public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
+        {
+            // cull pre-passes if we know they will never be used
+            if (target.MayWriteDepth)
+            {
+                // skip generating a pre-pass if it is in the ignore mask
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth))
+                {
+                    subShaderDescriptor.passes.Add(DepthOnly(target));
+                }
+
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth | PrePassMode.Normals))
+                {
+                    subShaderDescriptor.passes.Add(DepthNormals(target));
+                }
+
+                if (!target.IgnoredPrePasses.Includes(PrePassMode.MotionVectors))
+                {
+                    subShaderDescriptor.passes.Add(MotionVectors(target));
+                }
+            }
+        }
+
+        public static PassDescriptor DepthOnly(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthOnly;
             var result = new PassDescriptor
@@ -778,30 +806,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             return result;
         }
 
-        public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
-        {
-            // cull pre-passes if we know they will never be used
-            if (target.MayWriteDepth)
-            {
-                // skip generating a pre-pass if it is in the ignore mask
-                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth))
-                {
-                    subShaderDescriptor.passes.Add(DepthOnly(target));
-                }
-
-                if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth | PrePassMode.Normals))
-                {
-                    subShaderDescriptor.passes.Add(DepthNormals(target));
-                }
-
-                if (!target.IgnoredPrePasses.Includes(PrePassMode.MotionVectors))
-                {
-                    subShaderDescriptor.passes.Add(MotionVectors(target));
-                }
-            }
-        }
-
-        private static PassDescriptor DepthNormals(ToonTarget target)
+        public static PassDescriptor DepthNormals(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthNormals;
             var result = new PassDescriptor
@@ -841,7 +846,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             return result;
         }
 
-        private static PassDescriptor MotionVectors(ToonTarget target)
+        public static PassDescriptor MotionVectors(ToonTarget target)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.MotionVectors;
             var result = new PassDescriptor
@@ -949,6 +954,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
 
+        public static readonly BlockFieldDescriptor[] FragmentColor =
+        {
+            ToonBlockFields.SurfaceDescription.Albedo,
+            ToonBlockFields.SurfaceDescription.Emission,
+            ToonBlockFields.SurfaceDescription.CustomFogFactor,
+            ToonBlockFields.SurfaceDescription.CustomFogColor,
+        };
+        
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
             ToonBlockFields.SurfaceDescription.Albedo,
@@ -966,6 +979,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.NormalWs,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
+        
+        public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
+        {
+            ToonBlockFields.SurfaceDescription.NormalOs,
+            ToonBlockFields.SurfaceDescription.NormalTs,
+            ToonBlockFields.SurfaceDescription.NormalWs,
         };
 
         public static readonly BlockFieldDescriptor[] MotionVectors =
@@ -1284,13 +1304,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/Varyings.hlsl";
         private const string ShaderPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
-        private const string DepthOnlyPass =
+        public const string DepthOnlyPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
-        private const string DepthNormalsPass =
+        public const string DepthNormalsPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/DepthNormalsPass.hlsl";
-        private const string MotionVectorsPass =
+        public const string MotionVectorsPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/MotionVectorsPass.hlsl";
-        private const string ShadowCasterPass =
+        public const string ShadowCasterPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new()

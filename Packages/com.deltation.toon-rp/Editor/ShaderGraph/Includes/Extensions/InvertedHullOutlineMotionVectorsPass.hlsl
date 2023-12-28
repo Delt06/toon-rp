@@ -1,5 +1,6 @@
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/Common.hlsl"
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/MotionVectors.hlsl"
+#include "Packages/com.deltation.toon-rp/Shaders/Extensions/ToonRPInvertedHullOutlineCommon.hlsl"
 
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/ShaderGraphForwardDeclarations.hlsl"
 
@@ -11,10 +12,20 @@ PackedVaryings VS(Attributes input)
     float3 positionWs, normalWs;
     output = BuildVaryings(input, vertexDescription, positionWs, normalWs);
 
-    output.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
+    const float2 uv = input.uv0.xy;
 
-    const float3 previousPosition = UseLastFramePositions() ? input.positionOld : input.positionOS;
-    output.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));
+    {
+        const float thickness = ComputeThickness(uv, positionWs, normalWs);
+        output.positionCsNoJitter = ApplyThicknessAndTransformToHClip(_NonJitteredViewProjMatrix, positionWs, normalWs, thickness);    
+    }
+
+    {
+        const float3 previousPositionOs = UseLastFramePositions() ? input.positionOld : input.positionOS;
+        // ReSharper disable once CppLocalVariableMayBeConst
+        float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
+        const float thickness = ComputeThickness(uv, positionWs, normalWs);
+        output.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);  
+    }
 
     ApplyMotionVectorZBias(output.positionCS);
 
@@ -28,11 +39,6 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
 
     const SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
-
-    #if _ALPHATEST_ON
-    const float alpha = surfaceDescription.Alpha;
-    clip(alpha - surfaceDescription.AlphaClipThreshold);
-    #endif
 
     return float4(CalcNdcMotionVectorFromCsPositions(unpacked.positionCsNoJitter, unpacked.previousPositionCsNoJitter),
                   0, 0);

@@ -20,6 +20,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Tangent = new(Name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex
             );
+            
+            public static readonly BlockFieldDescriptor OutlineThickness = new(Name, "OutlineThickness", "VERTEXDESCRIPTION_OUTLINE_THICKNESS", 
+                new FloatControl(1.0f), ShaderStage.Vertex
+            );
         }
 
         [GenerateBlocks]

@@ -241,7 +241,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.FixedScreenSpaceThicknessKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.FixedScreenSpaceThicknessKeywordName
                     );
                 }
 
@@ -249,7 +249,8 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName, ToonInvertedHullOutline.NoiseKeywordName
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                        ToonInvertedHullOutline.ShaderKeywords.NoiseKeywordName
                     );
                 }
 
@@ -258,51 +259,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.DistanceFadeKeywordName
-                    );
-                }
-
-                bool AnyExtensionHasVertexColorThicknessSource(
-                    ToonInvertedHullOutlineSettings.VertexColorThicknessSource vertexColorThicknessSource) =>
-                    AnyExtension<ToonInvertedHullOutlineAsset>(e =>
-                        e.Settings.Passes.Any(p =>
-                            p.VertexColorThicknessSource == vertexColorThicknessSource
-                        )
-                    );
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.R
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessRKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.G
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessGKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.B
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessBKeywordName
-                    );
-                }
-
-                if (!AnyExtensionHasVertexColorThicknessSource(
-                        ToonInvertedHullOutlineSettings.VertexColorThicknessSource.A
-                    ))
-                {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.VertexColorThicknessAKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.DistanceFadeKeywordName
                     );
                 }
 
@@ -319,7 +276,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.NormalSemanticUV2KeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.NormalSemanticUV2KeywordName
                     );
                 }
 
@@ -328,7 +285,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
-                        ToonInvertedHullOutline.NormalSemanticTangentKeywordName
+                        ToonInvertedHullOutline.ShaderKeywords.NormalSemanticTangentKeywordName
                     );
                 }
             }

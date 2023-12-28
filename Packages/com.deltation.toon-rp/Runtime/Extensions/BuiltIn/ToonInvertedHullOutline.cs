@@ -8,25 +8,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 {
     public class ToonInvertedHullOutline : ToonRenderingExtensionBase
     {
-        public const int DepthOnlyPass = 1;
-        public const int DepthNormalsPass = 2;
-        public const int MotionVectorsPass = 3;
+        private const int DepthOnlyPass = 1;
+        private const int DepthNormalsPass = 2;
+        private const int MotionVectorsPass = 3;
 
         public const string ShaderName = "Hidden/Toon RP/Outline (Inverted Hull)";
-        public const string NoiseKeywordName = "_NOISE";
-        public const string VertexColorThicknessRKeywordName = "_VERTEX_COLOR_THICKNESS_R";
-        public const string VertexColorThicknessGKeywordName = "_VERTEX_COLOR_THICKNESS_G";
-        public const string VertexColorThicknessBKeywordName = "_VERTEX_COLOR_THICKNESS_B";
-        public const string VertexColorThicknessAKeywordName = "_VERTEX_COLOR_THICKNESS_A";
-        public const string FixedScreenSpaceThicknessKeywordName = "_FIXED_SCREEN_SPACE_THICKNESS";
-        public const string NormalSemanticUV2KeywordName = "_NORMAL_SEMANTIC_UV2";
-        public const string NormalSemanticTangentKeywordName = "_NORMAL_SEMANTIC_TANGENT";
-        public const string DistanceFadeKeywordName = "_DISTANCE_FADE";
-        private static readonly int ThicknessId = Shader.PropertyToID("_Thickness");
-        private static readonly int DistanceFadeId = Shader.PropertyToID("_DistanceFade");
-        private static readonly int ColorId = Shader.PropertyToID("_Color");
-        private static readonly int NoiseFrequencyId = Shader.PropertyToID("_NoiseFrequency");
-        private static readonly int NoiseAmplitudeId = Shader.PropertyToID("_NoiseAmplitude");
+
         private readonly List<Material> _materials = new();
         private ToonAdditionalCameraData _additionalCameraData;
 
@@ -50,62 +37,39 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _cameraRenderTarget = context.CameraRenderTarget;
             _outlineSettings = settingsStorage.GetSettings<ToonInvertedHullOutlineSettings>(this);
             _additionalCameraData = context.AdditionalCameraData;
-
-            PopulateMaterialsForAllPasses();
-            UpdateMaterials();
         }
 
-        private void UpdateMaterials()
+        private static void SetPassProperties(CommandBuffer cmd, in Pass pass, Material material)
         {
-            for (int passIndex = 0; passIndex < _outlineSettings.Passes.Length; passIndex++)
+            cmd.SetGlobalFloat(ShaderIds.ThicknessId, pass.Thickness);
+            cmd.SetGlobalVector(ShaderIds.ColorId, pass.Color);
+            cmd.SetGlobalVector(ShaderIds.DistanceFadeId,
+                new Vector4(
+                    1.0f / pass.MaxDistance,
+                    1.0f / pass.DistanceFade
+                )
+            );
+
+            material.SetKeyword(ShaderKeywords.FixedScreenSpaceThicknessKeywordName, pass.FixedScreenSpaceThickness);
+
+            bool noiseEnabled = pass.IsNoiseEnabled;
+            material.SetKeyword(ShaderKeywords.NoiseKeywordName, noiseEnabled);
+            if (noiseEnabled)
             {
-                ref readonly Pass pass = ref _outlineSettings.Passes[passIndex];
-                Material material = _materials[passIndex];
-                material.SetFloat(ThicknessId, pass.Thickness);
-                material.SetVector(ColorId, pass.Color);
-                material.SetVector(DistanceFadeId,
-                    new Vector4(
-                        1.0f / pass.MaxDistance,
-                        1.0f / pass.DistanceFade
-                    )
-                );
-
-                material.SetKeyword(FixedScreenSpaceThicknessKeywordName, pass.FixedScreenSpaceThickness);
-
-                bool noiseEnabled = pass.IsNoiseEnabled;
-                material.SetKeyword(NoiseKeywordName, noiseEnabled);
-                if (noiseEnabled)
-                {
-                    material.SetFloat(NoiseFrequencyId, pass.NoiseFrequency);
-                    material.SetFloat(NoiseAmplitudeId, pass.NoiseAmplitude);
-                }
-
-                {
-                    material.SetKeyword(VertexColorThicknessRKeywordName,
-                        pass.VertexColorThicknessSource == VertexColorThicknessSource.R
-                    );
-                    material.SetKeyword(VertexColorThicknessGKeywordName,
-                        pass.VertexColorThicknessSource == VertexColorThicknessSource.G
-                    );
-                    material.SetKeyword(VertexColorThicknessBKeywordName,
-                        pass.VertexColorThicknessSource == VertexColorThicknessSource.B
-                    );
-                    material.SetKeyword(VertexColorThicknessAKeywordName,
-                        pass.VertexColorThicknessSource == VertexColorThicknessSource.A
-                    );
-                }
-
-                {
-                    material.SetKeyword(NormalSemanticUV2KeywordName,
-                        pass.NormalsSource == NormalsSource.UV2
-                    );
-                    material.SetKeyword(NormalSemanticTangentKeywordName,
-                        pass.NormalsSource == NormalsSource.Tangents
-                    );
-                }
-
-                material.SetKeyword(DistanceFadeKeywordName, pass.IsDistanceFadeEnabled);
+                cmd.SetGlobalFloat(ShaderIds.NoiseFrequencyId, pass.NoiseFrequency);
+                cmd.SetGlobalFloat(ShaderIds.NoiseAmplitudeId, pass.NoiseAmplitude);
             }
+
+            {
+                material.SetKeyword(ShaderKeywords.NormalSemanticUV2KeywordName,
+                    pass.NormalsSource == NormalsSource.UV2
+                );
+                material.SetKeyword(ShaderKeywords.NormalSemanticTangentKeywordName,
+                    pass.NormalsSource == NormalsSource.Tangents
+                );
+            }
+
+            material.SetKeyword(ShaderKeywords.DistanceFadeKeywordName, pass.IsDistanceFadeEnabled);
         }
 
         public override void OnPrePass(PrePassMode prePassMode, ref ScriptableRenderContext context,
@@ -170,6 +134,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             var cameraOverride =
                 new ToonCameraOverride(_camera, _additionalCameraData, _cameraRenderTarget, prePassMode);
 
+            PopulateMaterialsForAllPasses();
+
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
                 context.ExecuteCommandBufferAndClear(cmd);
@@ -186,11 +152,14 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
                     {
+                        Material material = _materials[passIndex];
+                        SetPassProperties(cmd, pass, material);
+
                         cmd.SetGlobalDepthBias(pass.DepthBias, 0);
                         cameraOverride.OverrideIfEnabled(cmd, pass.CameraOverrides);
                         context.ExecuteCommandBufferAndClear(cmd);
 
-                        drawingSettings.overrideMaterial = _materials[passIndex];
+                        drawingSettings.overrideMaterial = material;
 
                         for (int i = 0; i < ShaderTagIds.Length; i++)
                         {
@@ -229,21 +198,56 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private void PopulateMaterialsForAllPasses()
         {
-            while (_materials.Count < _outlineSettings.Passes.Length)
+            Pass[] passes = _outlineSettings.Passes;
+
+            while (_materials.Count < passes.Length)
             {
-                _materials.Add(CreateMaterial());
+                _materials.Add(null);
             }
 
-            for (int i = 0; i < _materials.Count; i++)
+            for (int passIndex = 0; passIndex < passes.Length; passIndex++)
             {
-                if (_materials[i] == null)
+                Material existingMaterial = _materials[passIndex];
+                ref readonly Pass pass = ref passes[passIndex];
+                Material overrideMaterial = pass.OverrideMaterial;
+                if (existingMaterial == null ||
+                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.shader ||
+                    overrideMaterial == null && existingMaterial.shader != Shader.Find(ShaderName))
                 {
-                    _materials[i] = CreateMaterial();
+                    _materials[passIndex] = CreateMaterial(pass);
                 }
             }
         }
 
-        private static Material CreateMaterial() =>
-            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Outline (Inverted Hull)");
+        private static Material CreateMaterial(in Pass pass)
+        {
+            const string materialName = "Toon RP Outline (Inverted Hull)";
+            return pass.OverrideMaterial != null
+                ? ToonRpUtils.CreateEngineMaterial(pass.OverrideMaterial, materialName)
+                : ToonRpUtils.CreateEngineMaterial(ShaderName, materialName);
+        }
+
+        public static class ShaderKeywords
+        {
+            public const string NoiseKeywordName = "_NOISE";
+            public const string FixedScreenSpaceThicknessKeywordName = "_FIXED_SCREEN_SPACE_THICKNESS";
+            public const string NormalSemanticUV2KeywordName = "_NORMAL_SEMANTIC_UV2";
+            public const string NormalSemanticTangentKeywordName = "_NORMAL_SEMANTIC_TANGENT";
+            public const string DistanceFadeKeywordName = "_DISTANCE_FADE";
+        }
+
+        private static class ShaderIds
+        {
+            public static readonly int NoiseAmplitudeId =
+                Shader.PropertyToID("_ToonRpInvertedHullOutline_NoiseAmplitude");
+            public static readonly int ThicknessId =
+                Shader.PropertyToID("_ToonRpInvertedHullOutline_Thickness");
+            public static readonly int DistanceFadeId =
+                Shader.PropertyToID("_ToonRpInvertedHullOutline_DistanceFade");
+            public static readonly int ColorId =
+                Shader.PropertyToID("_ToonRpInvertedHullOutline_Color");
+            public static readonly int NoiseFrequencyId =
+                Shader.PropertyToID("_ToonRpInvertedHullOutline_NoiseFrequency");
+        }
     }
 }

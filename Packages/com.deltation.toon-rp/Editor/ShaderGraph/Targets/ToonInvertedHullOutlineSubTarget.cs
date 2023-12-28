@@ -252,26 +252,34 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class RequiredFields
         {
-            public static readonly FieldCollection ForwardPass = new()
+            private static readonly FieldCollection BaseAttributes = new()
             {
                 StructFields.Attributes.uv0,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.tangentOS,
+                StructFields.Attributes.uv2,
+            };
+            
+            public static readonly FieldCollection ForwardPass = new()
+            {
+                BaseAttributes,
                 ToonStructFields.Varyings.fogFactorAndVertexLight,
             };
 
             public static readonly FieldCollection DepthOnly = new()
             {
-                StructFields.Attributes.uv0,
+                BaseAttributes
             };
 
             public static readonly FieldCollection DepthNormals = new()
             {
-                StructFields.Attributes.uv0,
+                BaseAttributes,
                 StructFields.Varyings.normalWS,
             };
 
             public static readonly FieldCollection MotionVectors = new()
             {
-                StructFields.Attributes.uv0,
+                BaseAttributes,
                 ToonStructFields.Attributes.positionOld,
                 ToonStructFields.Varyings.positionCsNoJitter,
                 ToonStructFields.Varyings.previousPositionCsNoJitter,

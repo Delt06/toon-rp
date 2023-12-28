@@ -63,7 +63,17 @@ Varyings BuildVaryings(Attributes input, out float3 positionWS, out float3 norma
     positionWS = TransformObjectToWorld(input.positionOS);
 
     #ifdef ATTRIBUTES_NEED_NORMAL
-    normalWS = TransformObjectToWorldNormal(input.normalOS);
+
+    float3 normalOS;
+    #if defined(SHADER_GRAPH_NORMAL_SOURCE_TANGENT)
+    normalOS = input.tangentOS;
+    #elif defined (SHADER_GRAPH_NORMAL_SOURCE_UV2)
+    normalOS = input.uv2;
+    #else
+    normalOS = input.normalOS;
+    #endif 
+    
+    normalWS = TransformObjectToWorldNormal(normalOS);
     #else
     // Required to compile ApplyVertexModification that doesn't use normal.
     normalWS = float3(0.0, 0.0, 0.0);

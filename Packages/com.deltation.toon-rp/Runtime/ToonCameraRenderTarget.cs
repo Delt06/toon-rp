@@ -119,15 +119,6 @@ namespace DELTation.ToonRP
             RenderBufferLoadAction loadAction,
             ToonClearValue clearValue)
         {
-            // // "Init" the render target. Prevents certain Unity bugs from happening (e.g., misplaced immediate GUI). 
-            // if (loadAction != RenderBufferLoadAction.Load)
-            // {
-            //     cmd.SetRenderTarget(
-            //         ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
-            //     );
-            //     context.ExecuteCommandBufferAndClear(cmd);
-            // }
-
             const int colorIndex = 0;
             const int depthIndex = 1;
 
@@ -180,8 +171,7 @@ namespace DELTation.ToonRP
                     }
 
                     if (depthAttachment.loadAction == RenderBufferLoadAction.Load ||
-                        depthAttachment.storeAction == RenderBufferStoreAction.Store
-                       )
+                        depthAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
                         depthAttachment.loadStoreTarget = _state.DepthBufferId;
                     }

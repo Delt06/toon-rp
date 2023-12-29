@@ -21,28 +21,13 @@ namespace DELTation.ToonRP
 
         public bool ForceStoreAttachments { get; set; } = true;
 
-        public int MsaaSamples { get; private set; }
+        private int MsaaSamples { get; set; }
         public bool RenderToTexture { get; private set; }
-        public GraphicsFormat DepthStencilFormat { get; private set; }
+        private GraphicsFormat DepthStencilFormat { get; set; }
 
         public GraphicsFormat ColorFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
-
-
-        public RenderTargetIdentifier ColorBufferId => RenderToTexture
-            ? RenderToTextureColorBufferId
-            : _camera.targetTexture != null
-                ? _camera.targetTexture.colorBuffer
-                : BuiltinRenderTextureType.CameraTarget;
-
-        public RenderTargetIdentifier DepthBufferId => RenderToTexture
-            ? RenderToTextureDepthBufferId
-            : _camera.targetTexture != null
-                ? _camera.targetTexture.depthBuffer
-                : BuiltinRenderTextureType.CameraTarget;
-
-        public bool UsingMsaa => MsaaSamples > 1;
 
         public void FinalBlit(CommandBuffer cmd)
         {
@@ -63,25 +48,12 @@ namespace DELTation.ToonRP
         }
 
 
-        public void InitializeAsSeparateRenderTexture(Camera camera, int width, int height,
+        public void Initialize(Camera camera, bool renderToTexture, int width, int height,
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
             _filterMode = filterMode;
-            RenderToTexture = true;
-            _camera = camera;
-            Width = width;
-            Height = height;
-            ColorFormat = colorFormat;
-            MsaaSamples = msaaSamples;
-            DepthStencilFormat = depthStencilFormat;
-            _state = default;
-        }
-
-        public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
-            GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
-        {
-            RenderToTexture = false;
+            RenderToTexture = renderToTexture;
             _camera = camera;
             Width = width;
             Height = height;
@@ -159,7 +131,7 @@ namespace DELTation.ToonRP
             const int colorIndex = 0;
             const int depthIndex = 1;
 
-            bool usingMsaa = UsingMsaa;
+            bool usingMsaa = _camera.allowMSAA && MsaaSamples > 1;
             int msaaSamples = MsaaSamples;
             if (usingMsaa && loadAction == RenderBufferLoadAction.Load)
             {
@@ -216,7 +188,7 @@ namespace DELTation.ToonRP
 
                     if (depthAttachment.storeAction == RenderBufferStoreAction.Resolve)
                     {
-                        depthAttachment.resolveTarget = _state.ColorBufferId;
+                        depthAttachment.resolveTarget = _state.DepthBufferId;
                     }
 
                     // specifying camera depth more precisely is required here

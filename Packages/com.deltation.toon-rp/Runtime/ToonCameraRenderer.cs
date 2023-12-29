@@ -367,19 +367,16 @@ namespace DELTation.ToonRP
                         rtWidth = Mathf.CeilToInt(rtHeight * aspectRatio);
                     }
                 }
-
-                _renderTarget.InitializeAsSeparateRenderTexture(_camera, rtWidth, rtHeight,
-                    _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
-                    msaaSamples
-                );
             }
             else
             {
                 _depthStencilFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, false);
-                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat,
-                    _depthStencilFormat, msaaSamples
-                );
             }
+
+            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight,
+                _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
+                msaaSamples
+            );
 
             UpdateRtHandles(rtWidth, rtHeight);
 

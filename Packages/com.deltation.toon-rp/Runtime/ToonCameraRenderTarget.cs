@@ -93,10 +93,7 @@ namespace DELTation.ToonRP
                     : (BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
                 _state.ColorBufferId = colorBufferId;
-                if (ForceStoreAttachments)
-                {
-                    _state.DepthBufferId = depthBufferId;
-                }
+                _state.DepthBufferId = depthBufferId;
             }
         }
 
@@ -181,7 +178,22 @@ namespace DELTation.ToonRP
                         depthAttachment.resolveTarget = _state.DepthBufferId;
                     }
 
-                    // specifying camera depth more precisely is required here
+                    // Even if we don't store/resolve depth, we have to set anyway to prevent flickering on orientation change
+                    if (depthAttachment.storeAction == RenderBufferStoreAction.DontCare &&
+                        _state.DepthBufferId == BuiltinRenderTextureType.CameraTarget
+                       )
+                    {
+                        if (usingMsaa)
+                        {
+                            depthAttachment.resolveTarget = _state.DepthBufferId;
+                        }
+                        else
+                        {
+                            depthAttachment.loadStoreTarget = _state.DepthBufferId;
+                        }
+                    }
+
+                    // Specifying camera depth more precisely is required here
                     if (depthAttachment.loadStoreTarget == BuiltinRenderTextureType.CameraTarget)
                     {
                         depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;

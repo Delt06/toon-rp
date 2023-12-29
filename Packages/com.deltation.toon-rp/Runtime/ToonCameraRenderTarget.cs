@@ -119,9 +119,11 @@ namespace DELTation.ToonRP
             const int colorIndex = 0;
             const int depthIndex = 1;
 
+            bool storeDepth = ForceStoreAttachments;
             bool usingMsaa = _camera.allowMSAA && MsaaSamples > 1;
             int msaaSamples = MsaaSamples;
-            if (usingMsaa && loadAction == RenderBufferLoadAction.Load)
+            if (usingMsaa && (loadAction == RenderBufferLoadAction.Load ||
+                              storeDepth && !ToonRpUtils.MultisampleDepthResolveSupported()))
             {
                 usingMsaa = false;
                 msaaSamples = 1;
@@ -159,8 +161,7 @@ namespace DELTation.ToonRP
                 var depthAttachment = new AttachmentDescriptor(DepthStencilFormat);
                 {
                     depthAttachment.loadAction = loadAction;
-                    depthAttachment.storeAction =
-                        ForceStoreAttachments ? storeAction : RenderBufferStoreAction.DontCare;
+                    depthAttachment.storeAction = storeDepth ? storeAction : RenderBufferStoreAction.DontCare;
 
                     if (clearValue.ClearDepth)
                     {
@@ -179,19 +180,17 @@ namespace DELTation.ToonRP
                     }
 
                     // Even if we don't store/resolve depth, we have to set anyway to prevent flickering on orientation change
-                    if (depthAttachment.storeAction == RenderBufferStoreAction.DontCare &&
+                    if (!usingMsaa &&
+                        depthAttachment.storeAction == RenderBufferStoreAction.DontCare &&
                         _state.DepthBufferId == BuiltinRenderTextureType.CameraTarget
                        )
                     {
-                        if (usingMsaa)
-                        {
-                            depthAttachment.resolveTarget = _state.DepthBufferId;
-                        }
-                        else
-                        {
-                            depthAttachment.loadStoreTarget = _state.DepthBufferId;
-                        }
+                        depthAttachment.loadStoreTarget = _state.DepthBufferId;
                     }
+
+                    Assert.IsTrue(depthAttachment.resolveTarget == BuiltinRenderTextureType.None ||
+                                  ToonRpUtils.MultisampleDepthResolveSupported()
+                    );
 
                     // Specifying camera depth more precisely is required here
                     if (depthAttachment.loadStoreTarget == BuiltinRenderTextureType.CameraTarget)

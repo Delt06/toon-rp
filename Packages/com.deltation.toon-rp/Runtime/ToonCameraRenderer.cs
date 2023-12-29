@@ -21,7 +21,6 @@ namespace DELTation.ToonRP
             new(ToonPasses.Forward.LightMode),
             new("SRPDefaultUnlit"),
         };
-        private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
         private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
@@ -43,7 +42,6 @@ namespace DELTation.ToonRP
         private string _cmdName = DefaultCmdName;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private PrePassMode _prePassMode;
         private bool _requireStencil;
@@ -337,10 +335,12 @@ namespace DELTation.ToonRP
             }
 
             _requireStencil = RequireStencil(extensionSettings);
-            _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);
+            GraphicsFormat depthStencilFormat;
 
             if (renderToTexture)
             {
+                depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);
+
                 rtWidth = Mathf.CeilToInt(rtWidth * renderScale);
                 rtHeight = Mathf.CeilToInt(rtHeight * renderScale);
                 float aspectRatio = (float) rtWidth / rtHeight;
@@ -375,11 +375,12 @@ namespace DELTation.ToonRP
             }
             else
             {
-                _depthStencilFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, false);
+                renderTextureColorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+                depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
             }
 
-            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight,
-                _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
+            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, _settings.RenderTextureFilterMode,
+                renderTextureColorFormat, depthStencilFormat,
                 msaaSamples
             );
 
@@ -545,26 +546,6 @@ namespace DELTation.ToonRP
         private void RenderPostProcessing(CommandBuffer cmd)
         {
             RenderTargetIdentifier sourceId = _renderTarget.CurrentColorBufferId();
-
-            // RenderTargetIdentifier colorBufferId = _renderTarget.CurrentColorBufferId();
-            // if (_renderTarget.UsingMsaa)
-            // {
-            //     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ResolveCameraColor)))
-            //     {
-            //         cmd.GetTemporaryRT(
-            //             PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-            //             _settings.RenderTextureFilterMode, _renderTarget.ColorFormat
-            //         );
-            //         cmd.Blit(colorBufferId, PostProcessingSourceId);
-            //     }
-            //
-            //     _context.ExecuteCommandBufferAndClear(cmd);
-            //     sourceId = PostProcessingSourceId;
-            // }
-            // else
-            // {
-            //     sourceId = colorBufferId;
-            // }
 
             _context.ExecuteCommandBufferAndClear(cmd);
 

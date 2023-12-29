@@ -299,6 +299,11 @@ namespace DELTation.ToonRP
                 }
             }
 
+            Rect cameraRect = _camera.rect;
+            cameraRect.min = Vector2.Max(cameraRect.min, Vector2.zero);
+            cameraRect.max = Vector2.Min(cameraRect.max, Vector2.one);
+            _camera.rect = cameraRect;
+
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
 

@@ -214,8 +214,8 @@ namespace DELTation.ToonRP
                     if (cameraRect != new Rect(0, 0, 1, 1))
                     {
                         Rect pixelRect = _camera.pixelRect;
-                        fullScreenWidth = (int) (pixelRect.width / cameraRect.width);
-                        fullScreenHeight = (int) (pixelRect.height / cameraRect.height);
+                        fullScreenWidth = Mathf.RoundToInt(pixelRect.width / cameraRect.width);
+                        fullScreenHeight = Mathf.RoundToInt(pixelRect.height / cameraRect.height);
                     }
                 }
 

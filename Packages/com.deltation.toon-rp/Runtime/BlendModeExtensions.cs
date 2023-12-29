@@ -11,7 +11,7 @@ namespace DELTation.ToonRP
             {
                 ToonBlendMode.Alpha => (BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha),
                 ToonBlendMode.Premultiply => (BlendMode.One, BlendMode.OneMinusSrcAlpha),
-                ToonBlendMode.Additive => (BlendMode.One, BlendMode.One),
+                ToonBlendMode.Additive => (BlendMode.SrcAlpha, BlendMode.One),
                 ToonBlendMode.Multiply => (BlendMode.DstColor, BlendMode.Zero),
                 _ => throw new ArgumentOutOfRangeException(),
             };

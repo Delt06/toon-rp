@@ -57,7 +57,7 @@ namespace DELTation.ToonRP
             TransparentLayerMask = -1,
             UseSrpBatching = true,
             UseDynamicBatching = false,
-            NativeRenderPasses = false,
+            ForceRenderToIntermediateBuffer = false,
         };
 
         public ToonShadowSettings ShadowSettings = new()

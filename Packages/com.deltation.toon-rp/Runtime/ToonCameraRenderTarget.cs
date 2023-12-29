@@ -63,7 +63,7 @@ namespace DELTation.ToonRP
         }
 
 
-        public void InitializeAsSeparateRenderTexture(CommandBuffer cmd, Camera camera, int width, int height,
+        public void InitializeAsSeparateRenderTexture(Camera camera, int width, int height,
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
@@ -159,6 +159,14 @@ namespace DELTation.ToonRP
             const int colorIndex = 0;
             const int depthIndex = 1;
 
+            bool usingMsaa = UsingMsaa;
+            int msaaSamples = MsaaSamples;
+            if (usingMsaa && loadAction == RenderBufferLoadAction.Load)
+            {
+                usingMsaa = false;
+                msaaSamples = 1;
+            }
+
             {
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory
@@ -166,7 +174,7 @@ namespace DELTation.ToonRP
 
                 var colorAttachment = new AttachmentDescriptor(ColorFormat);
                 RenderBufferStoreAction storeAction =
-                    UsingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                    usingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 {
                     colorAttachment.loadAction = loadAction;
                     colorAttachment.storeAction = storeAction;
@@ -226,15 +234,20 @@ namespace DELTation.ToonRP
                 attachments[colorIndex] = colorAttachment;
                 attachments[depthIndex] = depthAttachment;
 
-                Rect cameraRect = _camera.rect;
                 int fullScreenWidth = Width, fullScreenHeight = Height;
-                if (_camera.rect != new Rect(0, 0, 1, 1))
+
+                if (!RenderToTexture)
                 {
-                    fullScreenWidth = (int) (fullScreenWidth / cameraRect.width);
-                    fullScreenHeight = (int) (fullScreenHeight / cameraRect.height);
+                    Rect cameraRect = _camera.rect;
+                    if (cameraRect != new Rect(0, 0, 1, 1))
+                    {
+                        Rect pixelRect = _camera.pixelRect;
+                        fullScreenWidth = (int) (pixelRect.width / cameraRect.width);
+                        fullScreenHeight = (int) (pixelRect.height / cameraRect.height);
+                    }
                 }
 
-                context.BeginRenderPass(fullScreenWidth, fullScreenHeight, MsaaSamples, attachments, depthIndex);
+                context.BeginRenderPass(fullScreenWidth, fullScreenHeight, msaaSamples, attachments, depthIndex);
                 attachments.Dispose();
             }
 

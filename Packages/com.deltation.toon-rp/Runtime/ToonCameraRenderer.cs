@@ -233,7 +233,7 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
-            if (_camera.targetTexture == null)
+            if (_renderTarget.CurrentColorBufferId() == BuiltinRenderTextureType.CameraTarget)
             {
                 sharedContext.NumberOfCamerasUsingBackbuffer++;
             }
@@ -317,6 +317,7 @@ namespace DELTation.ToonRP
             );
 
             bool renderToTexture =
+                    _settings.ForceRenderToIntermediateBuffer ||
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
@@ -367,7 +368,7 @@ namespace DELTation.ToonRP
                     }
                 }
 
-                _renderTarget.InitializeAsSeparateRenderTexture(cmd, _camera, rtWidth, rtHeight,
+                _renderTarget.InitializeAsSeparateRenderTexture(_camera, rtWidth, rtHeight,
                     _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
                     msaaSamples
                 );

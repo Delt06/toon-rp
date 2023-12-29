@@ -137,7 +137,8 @@ namespace DELTation.ToonRP.PostProcessing
             cmd.Clear();
         }
 
-        public void RenderFullScreenEffects(int width, int height, GraphicsFormat format, int sourceId,
+        public void RenderFullScreenEffects(int width, int height, GraphicsFormat format,
+            RenderTargetIdentifier sourceId,
             RenderTargetIdentifier destination)
         {
             if (!AnyFullScreenEffectsEnabled)

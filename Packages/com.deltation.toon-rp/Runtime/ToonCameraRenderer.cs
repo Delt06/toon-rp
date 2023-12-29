@@ -321,6 +321,7 @@ namespace DELTation.ToonRP
 
             bool renderToTexture =
                     _settings.ForceRenderToIntermediateBuffer ||
+                    msaaSamples > 1 ||
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||

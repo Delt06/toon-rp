@@ -35,39 +35,46 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 CBUFFER_END
 
-float4x4 unity_MatrixVP;
-float4x4 unity_MatrixV;
-float4x4 unity_MatrixInvV;
-float4x4 unity_MatrixInvP;
-float4x4 glstate_matrix_projection;
+CBUFFER_START(UnityPerFrame)
+    float4x4 unity_MatrixVP;
+    float4x4 unity_MatrixV;
+    float4x4 unity_MatrixInvV;
+    float4x4 unity_MatrixInvP;
+    float4x4 glstate_matrix_projection;
 
-// Time (t = time since current level load) values from Unity
-float4 _Time; // (t/20, t, t*2, t*3)
-float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
-float4 _TimeParameters; // t, sin(t), cos(t)
+    // Time (t = time since current level load) values from Unity
+    float4 _Time; // (t/20, t, t*2, t*3)
+    float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
+    float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
+    float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
+    float4 _TimeParameters; // t, sin(t), cos(t)
 
-float3 _WorldSpaceCameraPos;
-float4 _ZBufferParams;
+    float3 _WorldSpaceCameraPos;
+    float4 _ZBufferParams;
 
-float4 _ScreenParams; // xy = resolution, zw = 1 + 1 / resolution
-float4 _ProjectionParams;
+    float4 _ScreenParams; // xy = resolution, zw = 1 + 1 / resolution
+    float4 _ProjectionParams;
 
-// x = orthographic camera's width
-// y = orthographic camera's height
-// z = unused
-// w = 1.0 if camera is ortho, 0.0 if perspective
-float4 unity_OrthoParams;
+    // x = orthographic camera's width
+    // y = orthographic camera's height
+    // z = unused
+    // w = 1.0 if camera is ortho, 0.0 if perspective
+    float4 unity_OrthoParams;
 
-real4 unity_AmbientSky;
-real4 unity_AmbientEquator;
-real4 unity_AmbientGround;
-float4 unity_FogParams;
-real4 unity_FogColor;
+    real4 unity_AmbientSky;
+    real4 unity_AmbientEquator;
+    real4 unity_AmbientGround;
+CBUFFER_END
 
-float4x4 _PrevViewProjMatrix; // non-jittered. Motion vectors.
-float4x4 _NonJitteredViewProjMatrix; // non-jittered.
+CBUFFER_START(UnityFog)
+    float4 unity_FogParams;
+    real4 unity_FogColor;
+CBUFFER_END
+
+CBUFFER_START(ToonRpJitteredMatrices)
+    float4x4 _PrevViewProjMatrix; // non-jittered. Motion vectors.
+    float4x4 _NonJitteredViewProjMatrix; // non-jittered.
+CBUFFER_END
 
 #endif // !UNITY_SHADER_VARIABLES_INCLUDED
 

@@ -17,9 +17,11 @@
 // Include order is important here, instancing should come after macro definitions
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
-float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution (viewport)
-float4 _ToonRP_FullScreenParams; // xy = 1 / resolution, zw = resolution (full screen)
-float4 _ToonRP_ViewportRect; // xy = 1 / size, zw = -xy_min / size
+CBUFFER_START(ToonRpScreenParams)
+    float4 _ToonRP_ScreenParams; // xy = 1 / resolution, zw = resolution (viewport)
+    float4 _ToonRP_FullScreenParams; // xy = 1 / resolution, zw = resolution (full screen)
+    float4 _ToonRP_ViewportRect; // xy = 1 / size, zw = -xy_min / size
+CBUFFER_END
 
 #if UNITY_REVERSED_Z
 // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
@@ -114,22 +116,22 @@ float2 PositionHClipToScreenUv(float4 positionCs, const bool applyViewportRect =
     #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     positionCs = ApplyPretransformRotationPixelCoords(positionCs);
     #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
-    
+
     float2 screenUv = positionCs.xy * _ToonRP_FullScreenParams.xy;
 
     #ifdef UNITY_UV_STARTS_AT_TOP
     if (_ProjectionParams.x > 0.0)
     {
-        screenUv.y = 1.0f - screenUv.y;    
+        screenUv.y = 1.0f - screenUv.y;
     }
     #endif // UNITY_UV_STARTS_AT_TOP
 
     if (applyViewportRect)
     {
         // this is equivalent to InverseLerp(viewportRect.min, viewportRect.max, screenUv)
-        screenUv = screenUv * _ToonRP_ViewportRect.xy + _ToonRP_ViewportRect.zw;    
+        screenUv = screenUv * _ToonRP_ViewportRect.xy + _ToonRP_ViewportRect.zw;
     }
-    
+
     return screenUv;
 }
 

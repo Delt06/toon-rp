@@ -52,7 +52,8 @@ MonoBehaviour:
       m_Bits: 247
     UseSrpBatching: 1
     UseDynamicBatching: 0
-    NativeRenderPasses: 0
+    ForceRenderToIntermediateBuffer: 0
+    NativeRenderPasses: 1
     ForceStoreCameraDepth: 0
   ShadowSettings:
     Mode: 1

@@ -174,9 +174,8 @@ namespace DELTation.ToonRP
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
-
-            _renderTarget.GetTemporaryRTs(cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
+            _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
+            _renderTarget.InitState();
 
             ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData, _camera.projectionMatrix);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
@@ -231,7 +230,7 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
-            if (_renderTarget.CurrentColorBufferId() == BuiltinRenderTextureType.CameraTarget)
+            if (_renderTarget.CurrentColorBufferId(false) == BuiltinRenderTextureType.CameraTarget)
             {
                 sharedContext.NumberOfCamerasUsingBackbuffer++;
             }
@@ -517,7 +516,7 @@ namespace DELTation.ToonRP
             DrawGizmosPreImageEffects();
 
             _context.ExecuteCommandBufferAndClear(cmd);
-            _renderTarget.EndRenderPass(ref _context);
+            _renderTarget.EndRenderPass(ref _context, cmd);
         }
 
         private ToonClearValue GetRenderTargetsClearValue()

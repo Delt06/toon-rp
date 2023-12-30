@@ -63,7 +63,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
             {
                 _srpContext.ExecuteCommandBufferAndClear(cmd);
-                _cameraRenderTarget.EndRenderPass(ref _srpContext);
+                _cameraRenderTarget.EndRenderPass(ref _srpContext, cmd);
 
                 if (_settings.DepthMode == DepthRenderMode.PrePass)
                 {

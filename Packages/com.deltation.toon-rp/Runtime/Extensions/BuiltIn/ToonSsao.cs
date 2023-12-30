@@ -210,7 +210,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private float GetRadius()
         {
             float radius = _settings.Radius;
-            if (GraphicsApiUtils.OpenGlStyleClipDepth)
+            if (ToonGraphicsApi.OpenGlStyleClipDepth)
             {
                 radius *= 2;
             }

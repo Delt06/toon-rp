@@ -32,7 +32,7 @@ namespace DELTation.ToonRP
             {
                 _context.ExecuteCommandBufferAndClear(cmd);
 
-                _renderTarget.EndRenderPass(ref _context);
+                _renderTarget.EndRenderPass(ref _context, cmd);
 
                 int rtWidth = _renderTarget.Width;
                 int rtHeight = _renderTarget.Height;

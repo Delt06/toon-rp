@@ -120,6 +120,16 @@ namespace DELTation.ToonRP.Editor
             );
 
             root.Add(
+                new PropertyField(property.FindPropertyRelative(
+                        nameof(ToonCameraRendererSettings.NativeRenderPasses)
+                    )
+                )
+                {
+                    label = "Native Render Passes (Experimental)",
+                }
+            );
+
+            root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.ForceStoreCameraDepth)
                     )
                 )

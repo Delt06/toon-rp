@@ -320,7 +320,8 @@ namespace DELTation.ToonRP
 
             bool renderToTexture =
                     _settings.ForceRenderToIntermediateBuffer ||
-                    msaaSamples > 1 ||
+                    msaaSamples >
+                    1 || // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||

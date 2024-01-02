@@ -22,6 +22,8 @@ namespace DELTation.ToonRP.Extensions
 
         public virtual bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context) => false;
 
+        public virtual void Dispose() { }
+
         protected static bool IsGameOrSceneView(in ToonRenderingExtensionContext context) =>
             context.Camera.cameraType <= CameraType.SceneView;
     }

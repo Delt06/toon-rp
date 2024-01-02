@@ -36,6 +36,7 @@ namespace DELTation.ToonRP.Shadows
 
         public static GraphicsFormat GetSupportedVsmTextureFormat(VsmTexturePrecision desiredPrecision)
         {
+            // R - depth, G - depth^2
             const GraphicsFormat floatFormat = GraphicsFormat.R32G32_SFloat;
             const GraphicsFormat halfFormat = GraphicsFormat.R16G16_SFloat;
 

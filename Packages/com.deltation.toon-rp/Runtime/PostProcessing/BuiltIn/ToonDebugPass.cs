@@ -16,12 +16,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int MotionVectorsSceneIntensityId =
             Shader.PropertyToID("_MotionVectors_SceneIntensity");
 
-        // Using Lazy to avoid creating a material when it's not used (it also can be stripped).
-        private readonly Lazy<Material> _material = new(
-            () => ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Debug Pass")
-        );
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Debug Pass");
         private Camera _camera;
         private ToonDebugPassSettings _settings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override bool IsEnabled(in ToonPostProcessingSettings settings) =>
             settings.Find<ToonDebugPassSettings>().IsEffectivelyEnabled();
@@ -40,7 +43,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 if (_camera.cameraType == CameraType.Game)
                 {
-                    Material material = _material.Value;
+                    Material material = _material.GetOrCreate();
 
                     switch (_settings.Mode)
                     {

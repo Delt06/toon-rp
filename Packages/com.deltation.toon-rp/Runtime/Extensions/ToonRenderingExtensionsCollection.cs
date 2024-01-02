@@ -49,6 +49,22 @@ namespace DELTation.ToonRP.Extensions
             return castedSourceAsset.Settings;
         }
 
+        public void Dispose()
+        {
+            foreach (List<IToonRenderingExtension> extensions in _extensions)
+            {
+                if (extensions == null)
+                {
+                    continue;
+                }
+
+                foreach (IToonRenderingExtension extension in extensions)
+                {
+                    extension?.Dispose();
+                }
+            }
+        }
+
         public void PreSetup(in ToonRenderingExtensionSettings settings)
         {
             CheckForReset();

@@ -34,14 +34,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             Shader.PropertyToID("_FilmGrain_LuminanceThreshold0");
         private static readonly int FilmGrainLuminanceThreshold1Id =
             Shader.PropertyToID("_FilmGrain_LuminanceThreshold1");
-        private readonly Material _material =
-            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Post-Processing Stack");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Post-Processing Stack");
 
-        private ToonFilmGrainSettings _filmGrainSettings;
-        private ToonFxaaSettings _fxaaSettings;
-        private ToonLookupTableSettings _lookupTable;
-        private ToonToneMappingSettings _toneMapping;
-        private ToonVignetteSettings _vignette;
+        private ToonPostProcessingStackSettings _stackSettings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override bool IsEnabled(in ToonPostProcessingSettings settings)
         {
@@ -57,95 +58,94 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            ToonPostProcessingStackSettings stackSettings = context.Settings.Find<ToonPostProcessingStackSettings>();
-            _fxaaSettings = stackSettings.Fxaa;
-            _toneMapping = stackSettings.ToneMapping;
-            _vignette = stackSettings.Vignette;
-            _lookupTable = stackSettings.LookupTable;
-            _filmGrainSettings = stackSettings.FilmGrain;
+            _stackSettings = context.Settings.Find<ToonPostProcessingStackSettings>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
             RenderTargetIdentifier destination)
         {
-            HandleFxaaProperties();
-            HandleToneMappingProperties();
-            HandleVignetteProperties();
-            HandleLookupTextureProperties();
-            HandleFilmGrainProperties();
+            Material material = _material.GetOrCreate();
+
+            HandleFxaaProperties(material, _stackSettings.Fxaa);
+            HandleToneMappingProperties(material, _stackSettings.ToneMapping);
+            HandleVignetteProperties(material, _stackSettings.Vignette);
+            HandleLookupTextureProperties(material, _stackSettings.LookupTable);
+            HandleFilmGrainProperties(material, _stackSettings.FilmGrain);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
             {
-                cmd.Blit(source, destination, _material);
+                cmd.Blit(source, destination, material);
             }
         }
 
-        private void HandleFxaaProperties()
+        private static void HandleFxaaProperties(Material material, in ToonFxaaSettings fxaaSettings)
         {
-            if (_fxaaSettings is { Enabled: true, HighQuality: true })
+            if (fxaaSettings is { Enabled: true, HighQuality: true })
             {
-                _material.SetFloat(FxaaFixedContrastThresholdId, _fxaaSettings.FixedContrastThresholdId);
-                _material.SetFloat(FxaaRelativeContrastThresholdId, _fxaaSettings.RelativeContrastThreshold);
-                _material.SetFloat(FxaaSubpixelBlendingFactorId, _fxaaSettings.SubpixelBlendingFactor);
+                material.SetFloat(FxaaFixedContrastThresholdId, fxaaSettings.FixedContrastThresholdId);
+                material.SetFloat(FxaaRelativeContrastThresholdId, fxaaSettings.RelativeContrastThreshold);
+                material.SetFloat(FxaaSubpixelBlendingFactorId, fxaaSettings.SubpixelBlendingFactor);
             }
 
-            (bool fxaaLow, bool fxaaHigh) = (_fxaaSettings.Enabled, _fxaaSettings.HighQuality) switch
+            (bool fxaaLow, bool fxaaHigh) = (fxaaSettings.Enabled, fxaaSettings.HighQuality) switch
             {
                 (false, var _) => (false, false),
                 (true, false) => (true, false),
                 (true, true) => (false, true),
             };
-            _material.SetKeyword(FxaaLowKeywordName, fxaaLow);
-            _material.SetKeyword(FxaaHighKeywordName, fxaaHigh);
+            material.SetKeyword(FxaaLowKeywordName, fxaaLow);
+            material.SetKeyword(FxaaHighKeywordName, fxaaHigh);
         }
 
-        private void HandleToneMappingProperties()
+        private static void HandleToneMappingProperties(Material material,
+            in ToonToneMappingSettings toneMappingSettings)
         {
-            _material.SetKeyword(ToneMappingKeywordName, _toneMapping.Enabled);
-            if (_toneMapping.Enabled)
+            material.SetKeyword(ToneMappingKeywordName, toneMappingSettings.Enabled);
+            if (toneMappingSettings.Enabled)
             {
-                _material.SetFloat(ToneMappingExposureId, _toneMapping.Exposure);
+                material.SetFloat(ToneMappingExposureId, toneMappingSettings.Exposure);
             }
         }
 
-        private void HandleVignetteProperties()
+        private static void HandleVignetteProperties(Material material, in ToonVignetteSettings vignetteSettings)
         {
-            _material.SetKeyword(VignetteKeywordName, _vignette.Enabled);
-            if (!_vignette.Enabled)
-            {
-                return;
-            }
-
-            _material.SetVector(VignetteCenterId, new Vector4(_vignette.CenterX, _vignette.CenterY));
-            _material.SetFloat(VignetteIntensityId, _vignette.Intensity);
-            _material.SetFloat(VignetteSmoothnessId, 1.0f / _vignette.Roundness);
-            _material.SetFloat(VignetteRoundnessId, 1.0f / _vignette.Smoothness);
-            _material.SetColor(VignetteColorId, _vignette.Color);
-        }
-
-        private void HandleLookupTextureProperties()
-        {
-            _material.SetKeyword(LookupTableKeywordName, _lookupTable.Enabled);
-            _material.SetTexture(LookupTableTextureId, _lookupTable.Enabled ? _lookupTable.Texture : null);
-        }
-
-        private void HandleFilmGrainProperties()
-        {
-            _material.SetKeyword(FilmGrainKeywordName, _filmGrainSettings.Enabled);
-            Texture2D texture = _filmGrainSettings.Enabled ? _filmGrainSettings.Texture : null;
-            _material.SetTexture(FilmGrainTextureId, texture);
-
-            if (!_filmGrainSettings.Enabled)
+            material.SetKeyword(VignetteKeywordName, vignetteSettings.Enabled);
+            if (!vignetteSettings.Enabled)
             {
                 return;
             }
 
-            _material.SetFloat(FilmGrainIntensityId, _filmGrainSettings.Intensity);
+            material.SetVector(VignetteCenterId, new Vector4(vignetteSettings.CenterX, vignetteSettings.CenterY));
+            material.SetFloat(VignetteIntensityId, vignetteSettings.Intensity);
+            material.SetFloat(VignetteSmoothnessId, 1.0f / vignetteSettings.Roundness);
+            material.SetFloat(VignetteRoundnessId, 1.0f / vignetteSettings.Smoothness);
+            material.SetColor(VignetteColorId, vignetteSettings.Color);
+        }
 
-            float threshold0 = _filmGrainSettings.LuminanceThreshold * 0.5f;
-            float threshold1 = _filmGrainSettings.LuminanceThreshold;
-            _material.SetFloat(FilmGrainLuminanceThreshold0Id, threshold0);
-            _material.SetFloat(FilmGrainLuminanceThreshold1Id, threshold1);
+        private static void HandleLookupTextureProperties(Material material,
+            in ToonLookupTableSettings lookupTableSettings)
+        {
+            material.SetKeyword(LookupTableKeywordName, lookupTableSettings.Enabled);
+            material.SetTexture(LookupTableTextureId, lookupTableSettings.Enabled ? lookupTableSettings.Texture : null);
+        }
+
+        private static void HandleFilmGrainProperties(Material material, in ToonFilmGrainSettings filmGrainSettings)
+        {
+            material.SetKeyword(FilmGrainKeywordName, filmGrainSettings.Enabled);
+            Texture2D texture = filmGrainSettings.Enabled ? filmGrainSettings.Texture : null;
+            material.SetTexture(FilmGrainTextureId, texture);
+
+            if (!filmGrainSettings.Enabled)
+            {
+                return;
+            }
+
+            material.SetFloat(FilmGrainIntensityId, filmGrainSettings.Intensity);
+
+            float threshold0 = filmGrainSettings.LuminanceThreshold * 0.5f;
+            float threshold1 = filmGrainSettings.LuminanceThreshold;
+            material.SetFloat(FilmGrainLuminanceThreshold0Id, threshold0);
+            material.SetFloat(FilmGrainLuminanceThreshold1Id, threshold1);
         }
     }
 }

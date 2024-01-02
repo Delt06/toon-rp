@@ -6,7 +6,7 @@ using static DELTation.ToonRP.Shadows.ToonShadowMapsSettings;
 
 namespace DELTation.ToonRP.Shadows
 {
-    public class ToonShadowMaps
+    public sealed class ToonShadowMaps : IDisposable
     {
         private const string RenderShadowsSample = "Render Shadows";
         private const string BlurSample = "Blur";
@@ -72,7 +72,7 @@ namespace DELTation.ToonRP.Shadows
             new(0.19984126f, 0.78641367f),
             new(0.14383161f, -0.14100790f),
         };
-        private readonly Material _blurMaterial;
+        private readonly ToonPipelineMaterial _blurMaterial;
         private readonly Shader _blurShader;
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
 
@@ -104,10 +104,8 @@ namespace DELTation.ToonRP.Shadows
         public ToonShadowMaps()
         {
             _blurShader = Shader.Find(BlurShaderName);
-            _blurMaterial = ToonRpUtils.CreateEngineMaterial(_blurShader, "Toon RP VSM Blur");
+            _blurMaterial = new ToonPipelineMaterial(_blurShader, "Toon RP VSM Blur");
         }
-
-        // R - depth, G - depth^2
 
         private string PassName
         {
@@ -118,6 +116,11 @@ namespace DELTation.ToonRP.Shadows
                     : ToonRpPassId.VsmShadows;
                 return passName;
             }
+        }
+
+        public void Dispose()
+        {
+            _blurMaterial.Dispose();
         }
 
         public void Setup(in ScriptableRenderContext context,
@@ -433,6 +436,8 @@ namespace DELTation.ToonRP.Shadows
                 const int gaussianVerticalPass = 1;
                 const int boxBlurPass = 2;
 
+                Material blurMaterial = _blurMaterial.GetOrCreate();
+
                 if (_shadowMapsSettings.Blur == BlurMode.Box)
                 {
                     {
@@ -445,22 +450,22 @@ namespace DELTation.ToonRP.Shadows
                         );
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
-                        ToonBlitter.Blit(cmd, _blurMaterial, boxBlurPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, boxBlurPass);
                     }
                 }
                 else
                 {
                     bool highQualityBlur = _shadowMapsSettings.Blur == BlurMode.GaussianHighQuality;
-                    _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
+                    blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurHighQualityKeywordName),
                         highQualityBlur
                     );
 
-                    _blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
+                    blurMaterial.SetKeyword(new LocalKeyword(_blurShader, BlurEarlyBailKeywordName),
                         _shadowMapsSettings.IsBlurEarlyBailEnabled
                     );
                     if (_shadowMapsSettings.IsBlurEarlyBailEnabled)
                     {
-                        _blurMaterial.SetFloat(EarlyBailThresholdId,
+                        blurMaterial.SetFloat(EarlyBailThresholdId,
                             _shadowMapsSettings.BlurEarlyBailThreshold * DepthScale
                         );
                     }
@@ -477,7 +482,7 @@ namespace DELTation.ToonRP.Shadows
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
                         // ReSharper disable once RedundantArgumentDefaultValue
-                        ToonBlitter.Blit(cmd, _blurMaterial, gaussianHorizontalPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, gaussianHorizontalPass);
                     }
 
                     // Vertical
@@ -489,7 +494,7 @@ namespace DELTation.ToonRP.Shadows
                             RenderBufferLoadAction.Load,
                             RenderBufferStoreAction.DontCare
                         );
-                        ToonBlitter.Blit(cmd, _blurMaterial, gaussianVerticalPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, gaussianVerticalPass);
                     }
                 }
 

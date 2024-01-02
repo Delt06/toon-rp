@@ -15,8 +15,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int BlurWidthId = Shader.PropertyToID("_BlurWidth");
         private static readonly int IntensityId = Shader.PropertyToID("_Intensity");
         private static readonly int NumSamplesId = Shader.PropertyToID("_NumSamples");
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Light Scattering");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Light Scattering");
         private ToonLightScatteringSettings _lightScatteringSettings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override bool NeedsDistinctSourceAndDestination() => false;
 
@@ -36,11 +42,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 Vector3 sunPosition = camera.transform.position - sun.transform.forward * 1000;
                 Vector2 sunViewport = camera.WorldToViewportPoint(sunPosition);
 
-                _material.SetVector(CenterId, sunViewport);
-                _material.SetFloat(ThresholdId, _lightScatteringSettings.Threshold);
-                _material.SetFloat(BlurWidthId, _lightScatteringSettings.BlurWidth);
-                _material.SetFloat(IntensityId, _lightScatteringSettings.Intensity);
-                _material.SetInteger(NumSamplesId, _lightScatteringSettings.Samples);
+                Material material = _material.GetOrCreate();
+                material.SetVector(CenterId, sunViewport);
+                material.SetFloat(ThresholdId, _lightScatteringSettings.Threshold);
+                material.SetFloat(BlurWidthId, _lightScatteringSettings.BlurWidth);
+                material.SetFloat(IntensityId, _lightScatteringSettings.Intensity);
+                material.SetInteger(NumSamplesId, _lightScatteringSettings.Samples);
 
                 int resolutionFactor = Mathf.Max(1, _lightScatteringSettings.ResolutionFactor);
                 int scatteringWidth = Mathf.Max(1, Context.RtWidth / resolutionFactor);
@@ -60,7 +67,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         cmd.EnableScissorRect(ComputeScissorRect(sunViewport, scatteringWidth, scatteringHeight));
                     }
 
-                    cmd.Blit(source, ScatteringTextureId, _material, ComputePass);
+                    cmd.Blit(source, ScatteringTextureId, material, ComputePass);
                 }
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Combine")))
@@ -70,7 +77,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         cmd.EnableScissorRect(ComputeScissorRect(sunViewport, Context.RtWidth, Context.RtHeight));
                     }
 
-                    cmd.Blit(source, destination, _material, CombinePass);
+                    cmd.Blit(source, destination, material, CombinePass);
                 }
 
                 if (useScissor)

@@ -57,6 +57,8 @@ namespace DELTation.ToonRP
         {
             _shadows.Dispose();
             _tiledLighting?.Dispose();
+            _extensionsCollection.Dispose();
+            _postProcessing.Dispose();
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat() =>

@@ -11,18 +11,24 @@ using static Unity.Mathematics.math;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public class ToonFakeAdditionalLights : ToonRenderingExtensionBase
+    public sealed class ToonFakeAdditionalLights : ToonRenderingExtensionBase
     {
         private const int BatchSize = 256;
         public const string ShaderName = "Hidden/Toon RP/Fake Additional Lights";
 
         private readonly Vector4[] _batchLightsData = new Vector4[BatchSize];
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Fake Additional Lights");
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private Material _material;
         private ToonFakeAdditionalLightsSettings _settings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override void Setup(in ToonRenderingExtensionContext context,
             IToonRenderingExtensionSettingsStorage settingsStorage)
@@ -132,8 +138,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                     cmd.SetGlobalVectorArray(ShaderIds.LightsBufferId, _batchLightsData);
 
-                    EnsureMaterialIsCreated();
-                    cmd.DrawProcedural(Matrix4x4.identity, _material, 0, MeshTopology.Quads,
+                    cmd.DrawProcedural(Matrix4x4.identity, _material.GetOrCreate(), 0, MeshTopology.Quads,
                         4 * count
                     );
                 }
@@ -153,14 +158,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private static float2 PackFade(float maxDistance, float distanceFade) =>
             1.0f / float2(maxDistance, distanceFade);
-
-        private void EnsureMaterialIsCreated()
-        {
-            if (_material == null)
-            {
-                _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Fake Additional Lights");
-            }
-        }
 
         private unsafe NativeList<Vector4> CollectLights()
         {

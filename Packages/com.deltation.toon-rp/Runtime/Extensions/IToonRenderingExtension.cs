@@ -1,8 +1,9 @@
-﻿using UnityEngine.Rendering;
+﻿using System;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions
 {
-    public interface IToonRenderingExtension
+    public interface IToonRenderingExtension : IDisposable
     {
         bool ShouldRender(in ToonRenderingExtensionContext context);
 

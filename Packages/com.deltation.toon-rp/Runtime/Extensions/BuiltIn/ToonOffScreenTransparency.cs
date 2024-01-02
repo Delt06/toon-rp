@@ -17,14 +17,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int HeightOverWidthId = Shader.PropertyToID("_HeightOverWidth");
         private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
         private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
-        private readonly ToonDepthDownsample _depthDownsample = new();
 
+        private readonly ToonDepthDownsample _depthDownsample = new();
         private readonly DepthPrePass _depthPrePass = new(
             DepthId,
             0
         );
-        private readonly Material _material =
-            ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Off-Screen Transparency");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Off-Screen Transparency");
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
@@ -34,6 +33,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private ToonOffScreenTransparencySettings _settings;
         private ScriptableRenderContext _srpContext;
         private int _width;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _depthDownsample.Dispose();
+            _material.Dispose();
+        }
 
         public override bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context) => true;
 
@@ -145,15 +151,16 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compose with Camera Render Target")))
                 {
+                    Material material = _material.GetOrCreate();
                     _srpContext.ExecuteCommandBufferAndClear(cmd);
-
                     _cameraRenderTarget.BeginRenderPass(ref _srpContext, RenderBufferLoadAction.Load);
-                    _material.SetVector(TintId, _settings.Tint);
-                    _material.SetTexture(PatternId,
+
+                    material.SetVector(TintId, _settings.Tint);
+                    material.SetTexture(PatternId,
                         _settings.Pattern != null ? _settings.Pattern : Texture2D.whiteTexture
                     );
-                    _material.SetFloat(PatternHorizontalTilingId, _settings.PatternHorizontalTiling);
-                    _material.SetFloat(HeightOverWidthId, (float) _height / _width);
+                    material.SetFloat(PatternHorizontalTilingId, _settings.PatternHorizontalTiling);
+                    material.SetFloat(HeightOverWidthId, (float) _height / _width);
 
                     (BlendMode blendSource, BlendMode blendDestination) = _settings.BlendMode switch
                     {
@@ -161,10 +168,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         TransparencyBlendMode.Additive => (BlendMode.One, BlendMode.One),
                         _ => throw new ArgumentOutOfRangeException(),
                     };
-                    _material.SetFloat(BlendSrcId, (float) blendSource);
-                    _material.SetFloat(BlendDstId, (float) blendDestination);
+                    material.SetFloat(BlendSrcId, (float) blendSource);
+                    material.SetFloat(BlendDstId, (float) blendDestination);
 
-                    ToonBlitter.Blit(cmd, _material);
+                    ToonBlitter.Blit(cmd, material);
                 }
 
 

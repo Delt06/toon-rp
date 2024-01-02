@@ -32,7 +32,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {
-            ToonInvertedHullOutline.ShaderName,
+            ToonInvertedHullOutline.DefaultShaderName,
         };
 
         public override bool RequiresStencil()

@@ -1,27 +1,35 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public sealed class ToonDepthDownsample
+    public sealed class ToonDepthDownsample : IDisposable
     {
         public const string ShaderName = "Hidden/Toon RP/Depth Downsample";
         public const string HighQualityKeyword = "_HIGH_QUALITY";
         private static readonly int ResolutionFactorId = Shader.PropertyToID("_ResolutionFactor");
 
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Depth Downsample");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Depth Downsample");
+
+        public void Dispose()
+        {
+            _material.Dispose();
+        }
 
         public void Downsample(CommandBuffer cmd, bool highQuality, int resolutionFactor)
         {
+            Material material = _material.GetOrCreate();
+
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Downsample Depth")))
             {
-                _material.SetKeyword(HighQualityKeyword, highQuality);
+                material.SetKeyword(HighQualityKeyword, highQuality);
                 if (highQuality)
                 {
-                    _material.SetInteger(ResolutionFactorId, resolutionFactor);
+                    material.SetInteger(ResolutionFactorId, resolutionFactor);
                 }
 
-                ToonBlitter.Blit(cmd, _material);
+                ToonBlitter.Blit(cmd, material);
             }
         }
     }

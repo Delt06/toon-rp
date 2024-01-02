@@ -240,7 +240,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.FixedScreenSpaceThickness)
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.DefaultShaderName,
                         ToonInvertedHullOutline.ShaderKeywords.FixedScreenSpaceThicknessKeywordName
                     );
                 }
@@ -249,7 +249,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsNoiseEnabled)
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.DefaultShaderName,
                         ToonInvertedHullOutline.ShaderKeywords.NoiseKeywordName
                     );
                 }
@@ -258,7 +258,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         e.Settings.Passes.Any(p => p.IsDistanceFadeEnabled)
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.DefaultShaderName,
                         ToonInvertedHullOutline.ShaderKeywords.DistanceFadeKeywordName
                     );
                 }
@@ -275,7 +275,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonInvertedHullOutlineSettings.NormalsSource.UV2
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.DefaultShaderName,
                         ToonInvertedHullOutline.ShaderKeywords.NormalSemanticUV2KeywordName
                     );
                 }
@@ -284,7 +284,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonInvertedHullOutlineSettings.NormalsSource.Tangents
                     ))
                 {
-                    AddLocalKeywordToStrip(ToonInvertedHullOutline.ShaderName,
+                    AddLocalKeywordToStrip(ToonInvertedHullOutline.DefaultShaderName,
                         ToonInvertedHullOutline.ShaderKeywords.NormalSemanticTangentKeywordName
                     );
                 }

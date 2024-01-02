@@ -10,7 +10,7 @@ namespace DELTation.ToonRP
         private const int SubmeshIndex = 0;
         public static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static Mesh _triangleMesh;
-        private static Material _defaultBlitMaterial;
+        private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
 
         public static void Blit(CommandBuffer cmd, Material material, int shaderPass = 0)
         {
@@ -21,9 +21,8 @@ namespace DELTation.ToonRP
         public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source)
         {
             EnsureMeshIsInitialized();
-            EnsureDefaultBlitMaterialIsInitialized();
             cmd.SetGlobalTexture(MainTexId, source);
-            cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, _defaultBlitMaterial, SubmeshIndex);
+            cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, DefaultBlitMaterial.GetOrCreate(), SubmeshIndex);
         }
 
         private static void EnsureMeshIsInitialized()
@@ -80,16 +79,6 @@ namespace DELTation.ToonRP
                     return r;
                 }
             }
-        }
-
-        private static void EnsureDefaultBlitMaterialIsInitialized()
-        {
-            if (_defaultBlitMaterial != null)
-            {
-                return;
-            }
-
-            _defaultBlitMaterial = ToonRpUtils.CreateEngineMaterial(DefaultBlitShaderPath, "Toon RP Blit");
         }
     }
 }

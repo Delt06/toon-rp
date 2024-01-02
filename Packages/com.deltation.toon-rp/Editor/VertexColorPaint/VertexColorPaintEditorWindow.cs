@@ -28,10 +28,10 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
         [SerializeField] private float _cameraPitch;
 
         private readonly HashSet<KeyCode> _heldKeys = new();
+
+        private readonly ToonPipelineMaterial _material = new("Hidden/Vertex Color Paint", "Vertex Color Paint");
         private bool _autoAdjustCamera;
         private Rect _controlsRect;
-
-        private Material _material;
         private PreviewRenderUtility _renderer;
         private Rect _renderRect;
         private SerializedObject _serializedObject;
@@ -46,17 +46,12 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
 
             UploadCameraTransform();
 
-            _material = ToonRpUtils.CreateEngineMaterial("Hidden/Vertex Color Paint", "Vertex Color Paint");
             _time = EditorApplication.timeSinceStartup;
         }
 
         private void OnDisable()
         {
-            if (_material != null)
-            {
-                DestroyImmediate(_material);
-            }
-
+            _material.Dispose();
             _renderer?.Cleanup();
         }
 
@@ -439,16 +434,17 @@ namespace DELTation.ToonRP.Editor.VertexColorPaint
 
         private void DrawMesh(Mesh mesh)
         {
+            Material material = _material.GetOrCreate();
             _renderer.BeginPreview(new Rect(0, 0, _renderRect.width, _renderRect.height), GUIStyle.none);
 
             Matrix4x4 meshMatrix = MeshMatrix();
-            _material.SetKeyword("VIEW_ALPHA", _viewAlpha);
+            material.SetKeyword("VIEW_ALPHA", _viewAlpha);
 
             for (int i = 0; i < mesh.subMeshCount; i++)
             {
                 _renderer.DrawMesh(mesh,
                     meshMatrix,
-                    _material, i
+                    material, i
                 );
             }
 

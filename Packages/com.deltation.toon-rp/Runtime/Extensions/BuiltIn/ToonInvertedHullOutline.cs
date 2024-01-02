@@ -6,15 +6,15 @@ using static DELTation.ToonRP.ToonCameraRenderer;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public class ToonInvertedHullOutline : ToonRenderingExtensionBase
+    public sealed class ToonInvertedHullOutline : ToonRenderingExtensionBase
     {
         private const int DepthOnlyPass = 1;
         private const int DepthNormalsPass = 2;
         private const int MotionVectorsPass = 3;
 
-        public const string ShaderName = "Hidden/Toon RP/Outline (Inverted Hull)";
+        public const string DefaultShaderName = "Hidden/Toon RP/Outline (Inverted Hull)";
 
-        private readonly List<Material> _materials = new();
+        private readonly List<ToonPipelineMaterial> _materials = new();
         private ToonAdditionalCameraData _additionalCameraData;
 
         private Camera _camera;
@@ -24,6 +24,18 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private CullingResults _cullingResults;
 
         private ToonInvertedHullOutlineSettings _outlineSettings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (ToonPipelineMaterial material in _materials)
+            {
+                material.Dispose();
+            }
+
+            _materials.Clear();
+        }
 
         public override bool ShouldRender(in ToonRenderingExtensionContext context) => IsGameOrSceneView(context);
 
@@ -152,7 +164,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
                     {
-                        Material material = _materials[passIndex];
+                        Material material = _materials[passIndex].GetOrCreate();
                         SetPassProperties(cmd, pass, material);
 
                         cmd.SetGlobalDepthBias(pass.DepthBias, 0);
@@ -207,24 +219,24 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             for (int passIndex = 0; passIndex < passes.Length; passIndex++)
             {
-                Material existingMaterial = _materials[passIndex];
+                ToonPipelineMaterial existingMaterial = _materials[passIndex];
                 ref readonly Pass pass = ref passes[passIndex];
                 Material overrideMaterial = pass.OverrideMaterial;
                 if (existingMaterial == null ||
-                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.shader ||
-                    overrideMaterial == null && existingMaterial.shader != Shader.Find(ShaderName))
+                    overrideMaterial != null && overrideMaterial.shader != existingMaterial.Shader ||
+                    overrideMaterial == null && existingMaterial.ShaderName != DefaultShaderName)
                 {
                     _materials[passIndex] = CreateMaterial(pass);
                 }
             }
         }
 
-        private static Material CreateMaterial(in Pass pass)
+        private static ToonPipelineMaterial CreateMaterial(in Pass pass)
         {
             const string materialName = "Toon RP Outline (Inverted Hull)";
             return pass.OverrideMaterial != null
-                ? ToonRpUtils.CreateEngineMaterial(pass.OverrideMaterial, materialName)
-                : ToonRpUtils.CreateEngineMaterial(ShaderName, materialName);
+                ? new ToonPipelineMaterial(pass.OverrideMaterial, materialName)
+                : new ToonPipelineMaterial(DefaultShaderName, materialName);
         }
 
         public static class ShaderKeywords

@@ -32,7 +32,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private readonly int _bloomPyramidId;
 
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Bloom");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Bloom");
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonBloomSettings _settings;
 
@@ -44,6 +44,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 Shader.PropertyToID("_ToonRP_BloomPyramid" + i);
             }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
         }
 
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
@@ -71,22 +77,23 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     return;
                 }
 
-
-                Prefilter(cmd, source, width, height);
+                Material material = _material.GetOrCreate();
+                Prefilter(cmd, material, source, width, height);
 
                 width /= 2;
                 height /= 2;
 
                 int fromId = PrefilterSourceId, toId = _bloomPyramidId + 1;
 
-                int i = Downsample(cmd, height, width, ref toId, ref fromId);
-                Combine(cmd, source, destination, i, fromId, toId);
+                int i = Downsample(cmd, material, height, width, ref toId, ref fromId);
+                Combine(cmd, material, source, destination, i, fromId, toId);
 
                 cmd.ReleaseTemporaryRT(PrefilterSourceId);
             }
         }
 
-        private void Prefilter(CommandBuffer cmd, RenderTargetIdentifier source, int width, int height)
+        private void Prefilter(CommandBuffer cmd, Material material, RenderTargetIdentifier source, int width,
+            int height)
         {
             cmd.BeginSample(PrefilterSampleName);
             cmd.GetTemporaryRT(PrefilterSourceId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
@@ -101,11 +108,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalVector(ThresholdId, threshold);
             }
 
-            cmd.Blit(source, PrefilterSourceId, _material, PrefilterPass);
+            cmd.Blit(source, PrefilterSourceId, material, PrefilterPass);
             cmd.EndSample(PrefilterSampleName);
         }
 
-        private int Downsample(CommandBuffer cmd, int height, int width, ref int toId, ref int fromId)
+        private int Downsample(CommandBuffer cmd, Material material, int height, int width, ref int toId,
+            ref int fromId)
         {
             cmd.BeginSample(DownsampleSampleName);
             int i;
@@ -120,8 +128,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
                 cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
 
-                cmd.Blit(fromId, midId, _material, HorizontalBlurPass);
-                cmd.Blit(midId, toId, _material, VerticalBlurPass);
+                cmd.Blit(fromId, midId, material, HorizontalBlurPass);
+                cmd.Blit(midId, toId, material, VerticalBlurPass);
 
                 fromId = toId;
                 toId += 2;
@@ -133,7 +141,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             return i;
         }
 
-        private void Combine(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination,
+        private void Combine(CommandBuffer cmd, Material material,
+            RenderTargetIdentifier source, RenderTargetIdentifier destination,
             int i, int fromId,
             int toId)
         {
@@ -151,7 +160,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 for (; i > 0; i--)
                 {
                     cmd.SetGlobalTexture(MainTex2Id, toId + 1);
-                    cmd.Blit(fromId, toId, _material, CombinePass);
+                    cmd.Blit(fromId, toId, material, CombinePass);
                     cmd.ReleaseTemporaryRT(fromId);
                     cmd.ReleaseTemporaryRT(toId + 1);
                     fromId = toId;
@@ -181,7 +190,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             }
 
             cmd.SetGlobalTexture(MainTex2Id, source);
-            cmd.Blit(fromId, destination, _material, CombinePass);
+            cmd.Blit(fromId, destination, material, CombinePass);
             cmd.ReleaseTemporaryRT(fromId);
 
             cmd.EndSample(CombineSampleName);

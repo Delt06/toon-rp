@@ -7,9 +7,15 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     {
         public const string ShaderName = "Hidden/Toon RP/Sharpen";
         private static readonly int AmountId = Shader.PropertyToID("_Amount");
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Sharpen");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Sharpen");
         private Camera _camera;
         private ToonSharpenSettings _settings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
@@ -26,8 +32,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 if (_camera.cameraType == CameraType.Game)
                 {
-                    _material.SetFloat(AmountId, _settings.Amount);
-                    cmd.Blit(source, destination, _material);
+                    Material material = _material.GetOrCreate();
+                    material.SetFloat(AmountId, _settings.Amount);
+                    cmd.Blit(source, destination, material);
                 }
                 else
                 {

@@ -9,10 +9,16 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private const string HistoryRtName = "_ToonRP_TAAHistory";
         private static readonly int HistoryRtId = Shader.PropertyToID(HistoryRtName);
         private static readonly int ModulationFactorId = Shader.PropertyToID("_ToonRP_TemporalAA_ModulationFactor");
-        private readonly Material _material = ToonRpUtils.CreateEngineMaterial(ShaderName, "Toon RP Temporal AA");
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Temporal AA");
         private Camera _camera;
         private ToonTemporalAAPersistentData _persistentData;
         private ToonTemporalAASettings _settings;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
 
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
@@ -45,7 +51,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 {
                     cmd.SetGlobalTexture(HistoryRtId, _persistentData.HistoryRt);
                     cmd.SetGlobalFloat(ModulationFactorId, _settings.ModulationFactor);
-                    cmd.Blit(source, destination, _material);
+                    cmd.Blit(source, destination, _material.GetOrCreate());
                 }
                 else
                 {

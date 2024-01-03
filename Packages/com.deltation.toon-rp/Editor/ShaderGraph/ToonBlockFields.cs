@@ -20,8 +20,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Tangent = new(Name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex
             );
-            
-            public static readonly BlockFieldDescriptor OutlineThickness = new(Name, "OutlineThickness", "VERTEXDESCRIPTION_OUTLINE_THICKNESS", 
+
+            public static readonly BlockFieldDescriptor OutlineThickness = new(Name, "OutlineThickness",
+                "VERTEXDESCRIPTION_OUTLINE_THICKNESS",
                 new FloatControl(1.0f), ShaderStage.Vertex
             );
         }
@@ -101,6 +102,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "Diffuse Offset",
                 "SURFACEDESCRIPTION_DIFFUSEOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment
+            );
+            public static readonly BlockFieldDescriptor ShadowReceivePositionOffset = new(Name,
+                "ShadowReceivePositionOffset",
+                "Shadow Receive Position Offset",
+                "SURFACEDESCRIPTION_SHADOWRECEIVEPOSITIONOFFSET",
+                new Vector3Control(Vector3.zero), ShaderStage.Fragment
             );
 
             public static readonly BlockFieldDescriptor RimColor = new(Name, "RimColor", "Rim Color",

@@ -29,6 +29,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.AssetCallbacks
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
                 ToonBlockFields.SurfaceDescription.DiffuseOffset,
+                ToonBlockFields.SurfaceDescription.ShadowReceivePositionOffset,
                 ToonBlockFields.SurfaceDescription.SpecularColor,
                 ToonBlockFields.SurfaceDescription.SpecularSizeOffset,
                 ToonBlockFields.SurfaceDescription.RimColor,

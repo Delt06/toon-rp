@@ -50,6 +50,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = surfaceDescription.ShadowColor;
     lightComputationParameters.diffuseOffset = surfaceDescription.DiffuseOffset;
+    lightComputationParameters.shadowReceivePositionOffset = surfaceDescription.ShadowReceivePositionOffset;
 
     #if _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = surfaceDescription.SpecularSizeOffset;

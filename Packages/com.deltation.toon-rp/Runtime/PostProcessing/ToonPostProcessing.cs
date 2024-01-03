@@ -30,9 +30,12 @@ namespace DELTation.ToonRP.PostProcessing
 
         public void Dispose()
         {
-            foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
+            if (_allFullScreenPasses != null)
             {
-                pass.Dispose();
+                foreach (IToonPostProcessingPass pass in _allFullScreenPasses)
+                {
+                    pass.Dispose();
+                }
             }
         }
 

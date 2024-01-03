@@ -28,6 +28,7 @@ struct LightComputationParameters
     float4 albedo;
     float4 shadowColor;
     float diffuseOffset;
+    float3 shadowReceivePositionOffset;
     float3 specularColor;
     float specularSizeOffset;
 
@@ -109,9 +110,11 @@ float GetShadowAttenuation(const LightComputationParameters parameters, const Li
 
 Light GetMainLight(const LightComputationParameters parameters)
 {
+    const float3 shadowPositionWs = parameters.positionWs + parameters.shadowReceivePositionOffset;
+    
     #ifdef _TOON_RP_SHADOW_MAPS
-    const uint tileIndex = ComputeShadowTileIndex(parameters.positionWs);
-    const float3 shadowCoords = TransformWorldToShadowCoords(parameters.positionWs, tileIndex);
+    const uint tileIndex = ComputeShadowTileIndex(shadowPositionWs);
+    const float3 shadowCoords = TransformWorldToShadowCoords(shadowPositionWs, tileIndex);
     Light light = GetMainLight(shadowCoords, parameters.positionWs);
     #else // !_TOON_RP_SHADOW_MAPS
     Light light = GetMainLight();
@@ -119,7 +122,7 @@ Light GetMainLight(const LightComputationParameters parameters)
 
     #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 
-    const float blobShadowAttenuation = SampleBlobShadowAttenuation(parameters.positionWs);
+    const float blobShadowAttenuation = SampleBlobShadowAttenuation(shadowPositionWs);
     light.shadowAttenuation = blobShadowAttenuation;
 
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS

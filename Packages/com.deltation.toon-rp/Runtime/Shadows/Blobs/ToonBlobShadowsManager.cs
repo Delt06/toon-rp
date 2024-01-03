@@ -163,7 +163,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
             {
                 _renderers.Add(renderer);
 
-                if (!renderer.IsStatic)
+                if (!renderer.IsStatic || ToonBlobShadowRenderer.ForceUpdateRenderers)
                 {
                     _dynamicRenderers.Add(renderer);
                 }

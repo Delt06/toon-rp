@@ -92,6 +92,8 @@ namespace DELTation.ToonRP.Shadows.Blobs
             }
         }
 
+        public static bool ForceUpdateRenderers => !Application.isPlaying;
+
         private void Awake()
         {
             _transform = transform;
@@ -193,7 +195,7 @@ namespace DELTation.ToonRP.Shadows.Blobs
         {
             changed = false;
 
-            if (_isStatic && !forceRecompute && !_allDirty)
+            if (_isStatic && !ForceUpdateRenderers && !forceRecompute && !_allDirty)
             {
                 return;
             }

@@ -24,7 +24,7 @@ struct LightComputationParameters
     float3 normalWs;
     float3 viewDirectionWs;
     float3 perVertexAdditionalLights;
-    
+
     float4 albedo;
     float4 shadowColor;
     float diffuseOffset;
@@ -86,32 +86,35 @@ float GetSsao(const LightComputationParameters parameters)
     #endif // TOON_RP_SSAO_ANY
 }
 
+float ApplyShadowRampAndPattern(const LightComputationParameters parameters, float shadowAttenuation)
+{
+    shadowAttenuation = ComputeShadowRamp(shadowAttenuation, parameters.positionWs);
+
+    #ifdef _TOON_RP_SHADOWS_PATTERN
+    const float pattern = SampleShadowPattern(parameters.positionWs);
+    shadowAttenuation = lerp(shadowAttenuation, 1, pattern);
+    #endif // _TOON_RP_SHADOWS_PATTERN
+
+    return shadowAttenuation;
+}
+
 float GetShadowAttenuation(const LightComputationParameters parameters, const Light light)
 {
     #if defined(_TOON_RP_BLOB_SHADOWS) && !defined(_RECEIVE_BLOB_SHADOWS)
     return 1.0f;
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
-    
+
     #if defined(_TOON_RP_ANY_SHADOWS)
-    
-    float shadowAttenuation = ComputeShadowRamp(light.shadowAttenuation, parameters.positionWs);
-    #ifdef _TOON_RP_SHADOWS_PATTERN
-    const float pattern = SampleShadowPattern(parameters.positionWs);
-    shadowAttenuation = lerp(shadowAttenuation, 1, pattern);
-    #endif // _TOON_RP_SHADOWS_PATTERN
-    return shadowAttenuation;
-
+    return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
     #else // !_TOON_RP_ANY_SHADOWS
-
     return 1.0f;
-
     #endif  // _TOON_RP_ANY_SHADOWS
 }
 
 Light GetMainLight(const LightComputationParameters parameters)
 {
     const float3 shadowPositionWs = parameters.positionWs + parameters.shadowReceivePositionOffset;
-    
+
     #ifdef _TOON_RP_SHADOW_MAPS
     const uint tileIndex = ComputeShadowTileIndex(shadowPositionWs);
     const float3 shadowCoords = TransformWorldToShadowCoords(shadowPositionWs, tileIndex);
@@ -159,7 +162,8 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     return light.color * (diffuse + specular);
 }
 
-void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters parameters, const float ssao, out float3 diffuse, out float3 specular)
+void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters parameters, const float ssao,
+                                            out float3 diffuse, out float3 specular)
 {
     #ifdef _TOON_RP_TILED_LIGHTING
     TiledLighting_LightGridCell cell = TiledLighting_GetLightGridCell(parameters.positionCs.xy);
@@ -200,6 +204,7 @@ void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters par
         const float specularRamp = ComputeRampSpecular(parameters, nDotH + _AdditionalLightRampOffset.y);
         specular += specularRamp * attenuationCutoff * specularRampCutoff * light.color;
         #endif // !_TOON_RP_ADDITIONAL_LIGHTS_VERTEX && _TOON_LIGHTING_SPECULAR && _TOON_LIGHTING_ADDITIONAL_LIGHTS_SPECULAR
+
     }
 }
 

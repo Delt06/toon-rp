@@ -53,7 +53,7 @@ MonoBehaviour:
     UseSrpBatching: 1
     UseDynamicBatching: 0
     ForceRenderToIntermediateBuffer: 0
-    NativeRenderPasses: 1
+    NativeRenderPasses: 0
     ForceStoreCameraDepth: 0
   ShadowSettings:
     Mode: 1

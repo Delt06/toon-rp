@@ -9,7 +9,7 @@ void GetMainLightShadowAttenuation_float(
     const float3 positionWs,
     const float3 shadowReceivePositionOffset,
     out float shadowAttenuation
-    )
+)
 {
     #ifdef SHADERGRAPH_PREVIEW
     shadowAttenuation = 1;
@@ -17,10 +17,21 @@ void GetMainLightShadowAttenuation_float(
 
     #if defined(_TOON_RP_ANY_SHADOWS)
 
-    LightComputationParameters parameters = (LightComputationParameters) 0;
-    parameters.positionWs = positionWs;
-    parameters.shadowReceivePositionOffset = shadowReceivePositionOffset;
-    Light light = GetMainLight(parameters);
+    const float3 shadowPositionWs = positionWs + shadowReceivePositionOffset;
+
+    #ifdef _TOON_RP_SHADOW_MAPS
+    const uint tileIndex = ComputeShadowTileIndex(shadowPositionWs);
+    const float3 shadowCoords = TransformWorldToShadowCoords(shadowPositionWs, tileIndex);
+    Light light = GetMainLight(shadowCoords, positionWs);
+    #else // !_TOON_RP_SHADOW_MAPS
+    Light light = GetMainLight();
+    #endif // _TOON_RP_SHADOW_MAPS
+
+    #if defined(_TOON_RP_BLOB_SHADOWS)
+    const float blobShadowAttenuation = SampleBlobShadowAttenuation(shadowPositionWs);
+    light.shadowAttenuation = blobShadowAttenuation;
+    #endif // _TOON_RP_BLOB_SHADOWS
+    
     shadowAttenuation = ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
 
     #else // !_TOON_RP_ANY_SHADOWS
@@ -28,7 +39,7 @@ void GetMainLightShadowAttenuation_float(
     shadowAttenuation = 1;
 
     #endif // _TOON_RP_ANY_SHADOWS
-    
+
     #endif // SHADERGRAPH_PREVIEW
 }
 

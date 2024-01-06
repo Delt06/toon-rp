@@ -31,7 +31,9 @@ void GetMainLightShadowAttenuation_float(
     const float blobShadowAttenuation = SampleBlobShadowAttenuation(shadowPositionWs);
     light.shadowAttenuation = blobShadowAttenuation;
     #endif // _TOON_RP_BLOB_SHADOWS
-    
+
+    LightComputationParameters parameters = (LightComputationParameters) 0;
+    parameters.positionWs = positionWs;
     shadowAttenuation = ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
 
     #else // !_TOON_RP_ANY_SHADOWS

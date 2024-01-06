@@ -23,9 +23,11 @@ void GetMainLightShadowAttenuation_float(
     Light light = GetMainLight(parameters);
     shadowAttenuation = ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
 
-    #endif // _TOON_RP_ANY_SHADOWS
+    #else // !_TOON_RP_ANY_SHADOWS
 
     shadowAttenuation = 1;
+
+    #endif // _TOON_RP_ANY_SHADOWS
     
     #endif // SHADERGRAPH_PREVIEW
 }

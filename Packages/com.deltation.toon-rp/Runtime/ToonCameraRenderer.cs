@@ -21,7 +21,6 @@ namespace DELTation.ToonRP
             new(ToonPasses.Forward.LightMode),
             new("SRPDefaultUnlit"),
         };
-        private static readonly int PostProcessingSourceId = Shader.PropertyToID("_ToonRP_PostProcessingSource");
         private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
         private readonly DepthPrePass _depthPrePass = new();
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
@@ -43,7 +42,6 @@ namespace DELTation.ToonRP
         private string _cmdName = DefaultCmdName;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
-        private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionContext _extensionContext;
         private PrePassMode _prePassMode;
         private bool _requireStencil;
@@ -178,10 +176,8 @@ namespace DELTation.ToonRP
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
-            _renderTarget.ForceDisableNativeRenderPass = !_settings.NativeRenderPasses;
-
-            _renderTarget.GetTemporaryRTs(cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
+            _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
+            _renderTarget.InitState();
 
             ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData, _camera.projectionMatrix);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
@@ -236,7 +232,7 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
-            if (_camera.targetTexture == null)
+            if (_renderTarget.CurrentColorBufferId(false) == BuiltinRenderTextureType.CameraTarget)
             {
                 sharedContext.NumberOfCamerasUsingBackbuffer++;
             }
@@ -302,6 +298,11 @@ namespace DELTation.ToonRP
                 }
             }
 
+            Rect cameraRect = _camera.rect;
+            cameraRect.min = Vector2.Max(cameraRect.min, Vector2.zero);
+            cameraRect.max = Vector2.Min(cameraRect.max, Vector2.one);
+            _camera.rect = cameraRect;
+
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
 
@@ -320,8 +321,10 @@ namespace DELTation.ToonRP
             );
 
             bool renderToTexture =
+                    _settings.ForceRenderToIntermediateBuffer ||
+                    msaaSamples >
+                    1 || // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
-                    msaaSamples > 1 ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
                     !Mathf.Approximately(renderScale, 1.0f) ||
@@ -335,10 +338,12 @@ namespace DELTation.ToonRP
             }
 
             _requireStencil = RequireStencil(extensionSettings);
-            _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);
+            GraphicsFormat depthStencilFormat;
 
             if (renderToTexture)
             {
+                depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(_requireStencil);
+
                 rtWidth = Mathf.CeilToInt(rtWidth * renderScale);
                 rtHeight = Mathf.CeilToInt(rtHeight * renderScale);
                 float aspectRatio = (float) rtWidth / rtHeight;
@@ -370,19 +375,17 @@ namespace DELTation.ToonRP
                         rtWidth = Mathf.CeilToInt(rtHeight * aspectRatio);
                     }
                 }
-
-                _renderTarget.InitializeAsSeparateRenderTexture(cmd, _camera, rtWidth, rtHeight,
-                    _settings.RenderTextureFilterMode, renderTextureColorFormat, _depthStencilFormat,
-                    msaaSamples
-                );
             }
             else
             {
-                _depthStencilFormat = GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, false);
-                _renderTarget.InitializeAsCameraRenderTarget(_camera, rtWidth, rtHeight, renderTextureColorFormat,
-                    _depthStencilFormat, 1
-                );
+                renderTextureColorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+                depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
             }
+
+            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, _settings.RenderTextureFilterMode,
+                renderTextureColorFormat, depthStencilFormat,
+                msaaSamples
+            );
 
             UpdateRtHandles(rtWidth, rtHeight);
 
@@ -516,7 +519,7 @@ namespace DELTation.ToonRP
             DrawGizmosPreImageEffects();
 
             _context.ExecuteCommandBufferAndClear(cmd);
-            _renderTarget.EndRenderPass(ref _context);
+            _renderTarget.EndRenderPass(ref _context, cmd);
         }
 
         private ToonClearValue GetRenderTargetsClearValue()
@@ -545,25 +548,7 @@ namespace DELTation.ToonRP
 
         private void RenderPostProcessing(CommandBuffer cmd)
         {
-            int sourceId;
-            if (_renderTarget.UsingMsaa)
-            {
-                using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ResolveCameraColor)))
-                {
-                    cmd.GetTemporaryRT(
-                        PostProcessingSourceId, _camera.pixelWidth, _camera.pixelHeight, 0,
-                        _settings.RenderTextureFilterMode, _renderTarget.ColorFormat
-                    );
-                    cmd.Blit(ToonCameraRenderTarget.CameraColorBufferId, PostProcessingSourceId);
-                }
-
-                _context.ExecuteCommandBufferAndClear(cmd);
-                sourceId = PostProcessingSourceId;
-            }
-            else
-            {
-                sourceId = ToonCameraRenderTarget.CameraColorBufferId;
-            }
+            RenderTargetIdentifier sourceId = _renderTarget.CurrentColorBufferId();
 
             _context.ExecuteCommandBufferAndClear(cmd);
 

@@ -32,7 +32,7 @@ namespace DELTation.ToonRP
             {
                 _context.ExecuteCommandBufferAndClear(cmd);
 
-                _renderTarget.EndRenderPass(ref _context);
+                _renderTarget.EndRenderPass(ref _context, cmd);
 
                 int rtWidth = _renderTarget.Width;
                 int rtHeight = _renderTarget.Height;
@@ -43,7 +43,7 @@ namespace DELTation.ToonRP
 
                 cmd.GetTemporaryRT(OpaqueTextureId, desc);
                 cmd.SetRenderTarget(OpaqueTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                ToonBlitter.BlitDefault(cmd, _renderTarget.ColorBufferId);
+                ToonBlitter.BlitDefault(cmd, _renderTarget.CurrentColorBufferId());
                 _context.ExecuteCommandBufferAndClear(cmd);
 
                 _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);

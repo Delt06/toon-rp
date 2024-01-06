@@ -16,7 +16,6 @@
         public const string ScreenSpaceOutlines = "Outlines (Screen-Space)";
         public const string ScreenSpaceOutlinesAfterOpaque = "Outlines (Screen-Space, After Opaque)";
         public const string TransparentGeometry = "Transparent Geometry";
-        public const string ResolveCameraColor = "Resolve Camera Color";
         public const string PostProcessing = "Post-Processing";
         public const string PostProcessingStack = "Stack";
         public const string Bloom = "Bloom";

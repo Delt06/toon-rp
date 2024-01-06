@@ -10,44 +10,44 @@ namespace DELTation.ToonRP
     {
         private static readonly int ToonScreenParamsId = Shader.PropertyToID("_ToonRP_ScreenParams");
         private static readonly int ScreenParamsId = Shader.PropertyToID("_ScreenParams");
-        public static readonly int CameraColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
-        public static readonly int CameraDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
+        private static readonly int RenderToTextureColorBufferId = Shader.PropertyToID("_ToonRP_CameraColorBuffer");
+        private static readonly int RenderToTextureDepthBufferId = Shader.PropertyToID("_ToonRP_CameraDepthBuffer");
+        private static readonly int RenderToTextureMsColorBufferId =
+            Shader.PropertyToID("_ToonRP_CameraColorBuffer_MSAA");
+        private static readonly int RenderToTextureMsDepthBufferId =
+            Shader.PropertyToID("_ToonRP_CameraDepthBuffer_MSAA");
 
         private Camera _camera;
         private FilterMode _filterMode;
         private bool _inRenderPass;
-        private RenderBufferLoadAction _lastRenderPassLoadAction;
+
+        private State _state;
+        private bool _useNativeRenderPasses;
 
         public bool ForceStoreAttachments { get; set; } = true;
 
-        public bool ForceDisableNativeRenderPass { get; set; }
-        public int MsaaSamples { get; private set; }
+        private int MsaaSamples { get; set; }
         public bool RenderToTexture { get; private set; }
-        public GraphicsFormat DepthStencilFormat { get; private set; }
-
-
-        public bool UseNativeRenderPass =>
-            !ForceStoreAttachments && !ForceDisableNativeRenderPass &&
-            SystemInfo.graphicsDeviceType is GraphicsDeviceType.Vulkan or GraphicsDeviceType.Metal;
+        private GraphicsFormat DepthStencilFormat { get; set; }
 
         public GraphicsFormat ColorFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
 
+        public void ConfigureNativeRenderPasses(bool useNativeRenderPasses)
+        {
+            _useNativeRenderPasses = useNativeRenderPasses && ToonGraphicsApi.SupportsNativeRenderPasses;
+        }
 
-        public RenderTargetIdentifier ColorBufferId => RenderToTexture
-            ? CameraColorBufferId
-            : _camera.targetTexture != null
-                ? _camera.targetTexture.colorBuffer
-                : BuiltinRenderTextureType.CameraTarget;
+        public RenderTargetIdentifier CurrentColorBufferId(bool shouldBeAllocated = true)
+        {
+            if (shouldBeAllocated)
+            {
+                Assert.IsTrue(_state.ColorBufferId.IsAllocated);
+            }
 
-        public RenderTargetIdentifier DepthBufferId => RenderToTexture
-            ? CameraDepthBufferId
-            : _camera.targetTexture != null
-                ? _camera.targetTexture.depthBuffer
-                : BuiltinRenderTextureType.CameraTarget;
-
-        public bool UsingMsaa => MsaaSamples > 1;
+            return _state.ColorBufferId.Identifier;
+        }
 
         public void FinalBlit(CommandBuffer cmd)
         {
@@ -63,61 +63,68 @@ namespace DELTation.ToonRP
                 SetScreenParamsOverride(cmd, screenParams);
                 cmd.SetViewport(_camera.pixelRect);
 
-                ToonBlitter.BlitDefault(cmd, CameraColorBufferId);
+                ToonBlitter.BlitDefault(cmd, RenderToTextureColorBufferId);
             }
         }
 
 
-        public void InitializeAsSeparateRenderTexture(CommandBuffer cmd, Camera camera, int width, int height,
+        public void Initialize(Camera camera, bool renderToTexture, int width, int height,
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
             _filterMode = filterMode;
-            RenderToTexture = true;
+            RenderToTexture = renderToTexture;
             _camera = camera;
             Width = width;
             Height = height;
             ColorFormat = colorFormat;
             MsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
+            _state = default;
         }
 
-        public void InitializeAsCameraRenderTarget(Camera camera, int width, int height,
-            GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
-        {
-            RenderToTexture = false;
-            _camera = camera;
-            Width = width;
-            Height = height;
-            ColorFormat = colorFormat;
-            MsaaSamples = msaaSamples;
-            DepthStencilFormat = depthStencilFormat;
-        }
-
-        public void GetTemporaryRTs(CommandBuffer cmd)
+        public void InitState()
         {
             if (RenderToTexture)
             {
                 var colorDesc = new RenderTextureDescriptor(Width, Height,
                     ColorFormat, 0, 1
                 );
+                var depthDesc = new RenderTextureDescriptor(Width, Height,
+                    GraphicsFormat.None, DepthStencilFormat, 1
+                );
 
-                if (!UseNativeRenderPass)
+                _state.ColorBufferId = CameraRtId.Temporary(RenderToTextureColorBufferId, colorDesc, _filterMode);
+
+                if (ForceStoreAttachments || !_useNativeRenderPasses)
                 {
-                    var depthDesc = new RenderTextureDescriptor(Width, Height,
-                        GraphicsFormat.None, DepthStencilFormat,
-                        1
-                    );
-
-                    colorDesc.msaaSamples = MsaaSamples;
-                    depthDesc.msaaSamples = MsaaSamples;
-                    depthDesc.memoryless = ForceStoreAttachments
-                        ? RenderTextureMemoryless.None
-                        : RenderTextureMemoryless.Depth;
-                    cmd.GetTemporaryRT(CameraDepthBufferId, depthDesc, FilterMode.Point);
+                    _state.DepthBufferId =
+                        CameraRtId.Temporary(RenderToTextureDepthBufferId, depthDesc, FilterMode.Point);
                 }
 
-                cmd.GetTemporaryRT(CameraColorBufferId, colorDesc, _filterMode);
+                if (!_useNativeRenderPasses && MsaaSamples > 1)
+                {
+                    RenderTextureDescriptor msColorDesc = colorDesc;
+                    msColorDesc.msaaSamples = MsaaSamples;
+                    _state.MsColorBufferId =
+                        CameraRtId.Temporary(RenderToTextureMsColorBufferId, msColorDesc, _filterMode);
+
+                    RenderTextureDescriptor msDepthDesc = depthDesc;
+                    msDepthDesc.msaaSamples = MsaaSamples;
+                    _state.MsDepthBufferId =
+                        CameraRtId.Temporary(RenderToTextureMsDepthBufferId, msDepthDesc, FilterMode.Point);
+                }
+            }
+            else
+            {
+                RenderTexture targetTexture = _camera.targetTexture;
+                (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) = targetTexture != null
+                    ? ((RenderTargetIdentifier) targetTexture.colorBuffer,
+                        (RenderTargetIdentifier) targetTexture.depthBuffer)
+                    : (BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+
+                _state.ColorBufferId = CameraRtId.Persistent(colorBufferId);
+                _state.DepthBufferId = CameraRtId.Persistent(depthBufferId);
             }
         }
 
@@ -128,15 +135,7 @@ namespace DELTation.ToonRP
 
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            _lastRenderPassLoadAction = loadAction;
-            if (UseNativeRenderPass && IsLoadActionSupportedByNativeRenderPass(loadAction))
-            {
-                BeginNativeRenderPass(ref context, cmd, loadAction, clearValue);
-            }
-            else
-            {
-                BeginRenderPassFallback(loadAction, clearValue, cmd);
-            }
+            BeginRenderPass(ref context, cmd, loadAction, clearValue);
 
             SetScreenParams(cmd);
             context.ExecuteCommandBufferAndClear(cmd);
@@ -144,26 +143,47 @@ namespace DELTation.ToonRP
             _inRenderPass = true;
         }
 
-        private void BeginNativeRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
+        private void BeginRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
             RenderBufferLoadAction loadAction,
             ToonClearValue clearValue)
         {
-            // "Init" the render target. Prevents certain Unity bugs from happening (e.g., misplaced immediate GUI). 
-            if (loadAction != RenderBufferLoadAction.Load)
+            int msaaSamples = _camera.allowMSAA ? MsaaSamples : 1;
+            if (msaaSamples > 1 && (loadAction == RenderBufferLoadAction.Load ||
+                                    ForceStoreAttachments && !ToonGraphicsApi.SupportsMultisampleDepthResolve()))
             {
-                cmd.SetRenderTarget(
-                    ColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare
-                );
-                context.ExecuteCommandBufferAndClear(cmd);
+                msaaSamples = 1;
             }
 
+            if (_state.ColorBufferId.IsValid)
+            {
+                _state.ColorBufferId.EnsureTemporaryRT(cmd);
+            }
+
+            if (_state.DepthBufferId.IsValid)
+            {
+                _state.DepthBufferId.EnsureTemporaryRT(cmd);
+            }
+
+            context.ExecuteCommandBufferAndClear(cmd);
+
+            if (_useNativeRenderPasses)
+            {
+                BeginNativeRenderPass(ref context, cmd, loadAction, clearValue, msaaSamples);
+            }
+            else
+            {
+                BeginFallbackRenderPass(ref context, cmd, loadAction, clearValue, msaaSamples);
+            }
+        }
+
+        private void BeginNativeRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
+            RenderBufferLoadAction loadAction,
+            ToonClearValue clearValue, int msaaSamples)
+        {
             const int colorIndex = 0;
             const int depthIndex = 1;
 
-            if (!IsLoadActionSupportedByNativeRenderPass(loadAction))
-            {
-                Debug.LogError("Load action is not supported for native render passes.");
-            }
+            bool usingMsaa = msaaSamples > 1;
 
             {
                 var attachments =
@@ -171,10 +191,12 @@ namespace DELTation.ToonRP
                     );
 
                 var colorAttachment = new AttachmentDescriptor(ColorFormat);
+                RenderBufferStoreAction storeAction =
+                    usingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 {
                     colorAttachment.loadAction = loadAction;
-                    colorAttachment.storeAction =
-                        UsingMsaa ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                    colorAttachment.storeAction = storeAction;
+
                     if (clearValue.ClearColor)
                     {
                         colorAttachment.ConfigureClear(clearValue.BackgroundColor);
@@ -183,40 +205,79 @@ namespace DELTation.ToonRP
                     if (colorAttachment.loadAction == RenderBufferLoadAction.Load ||
                         colorAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
-                        colorAttachment.loadStoreTarget = ColorBufferId;
+                        colorAttachment.loadStoreTarget = _state.ColorBufferId.Identifier;
                     }
 
                     if (colorAttachment.storeAction == RenderBufferStoreAction.Resolve)
                     {
-                        colorAttachment.resolveTarget = ColorBufferId;
+                        colorAttachment.resolveTarget = _state.ColorBufferId.Identifier;
                     }
                 }
 
                 var depthAttachment = new AttachmentDescriptor(DepthStencilFormat);
                 {
                     depthAttachment.loadAction = loadAction;
-                    depthAttachment.storeAction = RenderBufferStoreAction.DontCare;
+                    depthAttachment.storeAction =
+                        ForceStoreAttachments ? storeAction : RenderBufferStoreAction.DontCare;
+
                     if (clearValue.ClearDepth)
                     {
                         depthAttachment.ConfigureClear(Color.black);
                     }
 
                     if (depthAttachment.loadAction == RenderBufferLoadAction.Load ||
-                        depthAttachment.storeAction == RenderBufferStoreAction.Store ||
-                        DepthBufferId == BuiltinRenderTextureType.CameraTarget
-                        )
+                        depthAttachment.storeAction == RenderBufferStoreAction.Store)
+                    {
+                        depthAttachment.loadStoreTarget = _state.DepthBufferId.Identifier;
+                    }
+
+                    if (depthAttachment.storeAction == RenderBufferStoreAction.Resolve)
+                    {
+                        depthAttachment.resolveTarget = _state.DepthBufferId.Identifier;
+                    }
+
+                    // Even if we don't store/resolve depth, we have to set anyway to prevent flickering on orientation change
+                    if (!usingMsaa &&
+                        depthAttachment.storeAction == RenderBufferStoreAction.DontCare &&
+                        _state.DepthBufferId.Identifier == BuiltinRenderTextureType.CameraTarget
+                       )
+                    {
+                        depthAttachment.loadStoreTarget = _state.DepthBufferId.Identifier;
+                    }
+
+                    Assert.IsTrue(depthAttachment.resolveTarget == BuiltinRenderTextureType.None ||
+                                  ToonGraphicsApi.SupportsMultisampleDepthResolve()
+                    );
+
+                    // Specifying camera depth more precisely is required here
+                    if (depthAttachment.loadStoreTarget == BuiltinRenderTextureType.CameraTarget)
                     {
                         depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;
+                    }
+
+                    if (depthAttachment.resolveTarget == BuiltinRenderTextureType.CameraTarget)
+                    {
+                        depthAttachment.resolveTarget = BuiltinRenderTextureType.Depth;
                     }
                 }
 
                 attachments[colorIndex] = colorAttachment;
                 attachments[depthIndex] = depthAttachment;
 
-                Rect cameraRect = _camera.rect;
-                int fullScreenWidth = (int) (Width / cameraRect.width);
-                int fullScreenHeight = (int) (Height / cameraRect.height);
-                context.BeginRenderPass(fullScreenWidth, fullScreenHeight, MsaaSamples, attachments, depthIndex);
+                int fullScreenWidth = Width, fullScreenHeight = Height;
+
+                if (!RenderToTexture)
+                {
+                    Rect cameraRect = _camera.rect;
+                    if (cameraRect != new Rect(0, 0, 1, 1))
+                    {
+                        Rect pixelRect = _camera.pixelRect;
+                        fullScreenWidth = Mathf.RoundToInt(pixelRect.width / cameraRect.width);
+                        fullScreenHeight = Mathf.RoundToInt(pixelRect.height / cameraRect.height);
+                    }
+                }
+
+                context.BeginRenderPass(fullScreenWidth, fullScreenHeight, msaaSamples, attachments, depthIndex);
                 attachments.Dispose();
             }
 
@@ -228,6 +289,53 @@ namespace DELTation.ToonRP
             }
 
             SetViewport(cmd);
+            context.ExecuteCommandBufferAndClear(cmd);
+        }
+
+        private void BeginFallbackRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd,
+            RenderBufferLoadAction loadAction,
+            ToonClearValue clearValue, int msaaSamples)
+        {
+            RenderTargetIdentifier colorId, depthId;
+
+            _state.ColorBufferId.EnsureTemporaryRT(cmd);
+            _state.DepthBufferId.EnsureTemporaryRT(cmd);
+
+            if (msaaSamples > 1)
+            {
+                _state.MsColorBufferId.EnsureTemporaryRT(cmd);
+                _state.MsDepthBufferId.EnsureTemporaryRT(cmd);
+                colorId = _state.MsColorBufferId.Identifier;
+                depthId = _state.MsDepthBufferId.Identifier;
+            }
+            else
+            {
+                colorId = _state.ColorBufferId.Identifier;
+                depthId = _state.DepthBufferId.Identifier;
+            }
+
+            if (loadAction == RenderBufferLoadAction.Clear)
+            {
+                loadAction = RenderBufferLoadAction.DontCare;
+            }
+
+            const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
+            RenderBufferStoreAction depthStoreAction =
+                ForceStoreAttachments ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+
+            cmd.SetRenderTarget(
+                colorId, loadAction, colorStoreAction,
+                depthId, loadAction, depthStoreAction
+            );
+
+            SetViewport(cmd);
+
+            if (clearValue.ClearColor || clearValue.ClearDepth)
+            {
+                cmd.ClearRenderTarget(clearValue.ClearDepth, clearValue.ClearColor, clearValue.BackgroundColor);
+            }
+
+            context.ExecuteCommandBufferAndClear(cmd);
         }
 
         private void SetViewport(CommandBuffer cmd)
@@ -235,59 +343,57 @@ namespace DELTation.ToonRP
             cmd.SetViewport(RenderToTexture ? new Rect(0, 0, Width, Height) : _camera.pixelRect);
         }
 
-        private void BeginRenderPassFallback(RenderBufferLoadAction loadAction, in ToonClearValue clearValue,
-            CommandBuffer cmd)
-        {
-            const RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store;
-            RenderBufferStoreAction depthStoreAction =
-                ForceStoreAttachments ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
-
-            if (RenderToTexture)
-            {
-                cmd.SetRenderTarget(
-                    CameraColorBufferId, loadAction, colorStoreAction,
-                    CameraDepthBufferId, loadAction, depthStoreAction
-                );
-            }
-            else
-            {
-                cmd.SetRenderTarget(
-                    BuiltinRenderTextureType.CameraTarget, loadAction, colorStoreAction,
-                    BuiltinRenderTextureType.CameraTarget, loadAction, depthStoreAction
-                );
-            }
-
-            SetViewport(cmd);
-            cmd.ClearRenderTarget(clearValue.ClearDepth, clearValue.ClearColor, clearValue.BackgroundColor);
-        }
-
-        public void EndRenderPass(ref ScriptableRenderContext context)
+        public void EndRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd)
         {
             Assert.IsTrue(_inRenderPass);
 
-            if (UseNativeRenderPass && IsLoadActionSupportedByNativeRenderPass(_lastRenderPassLoadAction))
+            if (_useNativeRenderPasses)
             {
                 context.EndSubPass();
                 context.EndRenderPass();
             }
+            else
+            {
+                _state.ColorBufferId.EnsureTemporaryRT(cmd);
+                _state.DepthBufferId.EnsureTemporaryRT(cmd);
 
-            _lastRenderPassLoadAction = RenderBufferLoadAction.DontCare;
+                if (_state.MsColorBufferId.IsAllocated)
+                {
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Resolve Camera Color")))
+                    {
+                        Assert.IsTrue(_state.MsColorBufferId.IsValid);
+                        Assert.IsTrue(_state.ColorBufferId.IsValid);
+                        cmd.Blit(_state.MsColorBufferId.Identifier, _state.ColorBufferId.Identifier);
+                    }
+
+                    _state.MsColorBufferId.ReleaseTemporaryRT(cmd);
+                }
+
+                if (_state.MsDepthBufferId.IsAllocated && ForceStoreAttachments)
+                {
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Resolve Camera Depth")))
+                    {
+                        Assert.IsTrue(_state.MsDepthBufferId.IsValid);
+                        Assert.IsTrue(_state.DepthBufferId.IsValid);
+                        cmd.Blit(_state.MsDepthBufferId.Identifier, _state.DepthBufferId.Identifier);
+                    }
+
+                    _state.MsDepthBufferId.ReleaseTemporaryRT(cmd);
+                }
+
+                context.ExecuteCommandBufferAndClear(cmd);
+            }
+
             _inRenderPass = false;
         }
 
-        private bool IsLoadActionSupportedByNativeRenderPass(RenderBufferLoadAction loadAction) =>
-            loadAction != RenderBufferLoadAction.Load;
-
         public void ReleaseTemporaryRTs(CommandBuffer cmd)
         {
-            if (RenderToTexture)
-            {
-                cmd.ReleaseTemporaryRT(CameraColorBufferId);
-                if (!UseNativeRenderPass)
-                {
-                    cmd.ReleaseTemporaryRT(CameraDepthBufferId);
-                }
-            }
+            _state.ColorBufferId.ReleaseTemporaryRT(cmd);
+            _state.DepthBufferId.ReleaseTemporaryRT(cmd);
+
+            _state.MsColorBufferId.ReleaseTemporaryRT(cmd);
+            _state.MsDepthBufferId.ReleaseTemporaryRT(cmd);
         }
 
         private void SetScreenParams(CommandBuffer cmd)
@@ -344,10 +450,87 @@ namespace DELTation.ToonRP
             );
         }
 
+        private struct State
+        {
+            public CameraRtId ColorBufferId;
+            public CameraRtId DepthBufferId;
+
+            public CameraRtId MsColorBufferId;
+            public CameraRtId MsDepthBufferId;
+        }
+
+        private struct CameraRtId
+        {
+            private readonly int _id;
+            public readonly RenderTargetIdentifier Identifier;
+            private readonly RenderTextureDescriptor _descriptor;
+            private readonly FilterMode _filterMode;
+            private RtState _state;
+
+            private CameraRtId(int id, RenderTextureDescriptor descriptor, FilterMode filterMode)
+            {
+                _id = id;
+                Identifier = _id;
+                _descriptor = descriptor;
+                _filterMode = filterMode;
+                _state = RtState.TempNotAllocated;
+            }
+
+            private CameraRtId(RenderTargetIdentifier identifier)
+            {
+                _id = 0;
+                Identifier = identifier;
+                _descriptor = default;
+                _filterMode = FilterMode.Point;
+                _state = RtState.Persistent;
+            }
+
+            public static CameraRtId Temporary(int id, RenderTextureDescriptor descriptor, FilterMode filterMode) =>
+                new(id, descriptor, filterMode);
+
+            public static CameraRtId Persistent(RenderTargetIdentifier identifier) => new(identifier);
+
+            private enum RtState
+            {
+                Invalid,
+                Persistent,
+                TempNotAllocated,
+                TempAllocated,
+            }
+
+            public void EnsureTemporaryRT(CommandBuffer cmd)
+            {
+                Assert.IsTrue(IsValid);
+
+                if (_state != RtState.TempNotAllocated)
+                {
+                    return;
+                }
+
+                Assert.IsTrue(_id != 0);
+
+                cmd.GetTemporaryRT(_id, _descriptor, _filterMode);
+                _state = RtState.TempAllocated;
+            }
+
+            public void ReleaseTemporaryRT(CommandBuffer cmd)
+            {
+                if (_state == RtState.TempAllocated)
+                {
+                    Assert.IsTrue(_id != 0);
+                    cmd.ReleaseTemporaryRT(_id);
+                    _state = RtState.TempNotAllocated;
+                }
+            }
+
+            public bool IsValid => _state != RtState.Invalid;
+            public bool IsAllocated => _state is RtState.Persistent or RtState.TempAllocated;
+        }
+
         public struct ScreenParams
         {
-            public int Width;
-            public int Height;
+            public readonly int Width;
+            public readonly int Height;
             public Rect CameraRect;
             public bool SetViewportRect;
 

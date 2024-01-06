@@ -25,6 +25,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     lightComputationParameters.globalRampUv = IN.uv;
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = _ShadowColor;
+    lightComputationParameters.mainLightOcclusion = 1;
     #ifdef _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = _SpecularSizeOffset;
     lightComputationParameters.specularColor = _SpecularColor;

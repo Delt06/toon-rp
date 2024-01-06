@@ -103,6 +103,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_DIFFUSEOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment
             );
+            
+            public static readonly BlockFieldDescriptor MainLightOcclusion = new(Name, "MainLightOcclusion",
+                "Main Light Occlusion",
+                "SURFACEDESCRIPTION_MAINLIGHTOCCLUSION",
+                new FloatControl(1.0f), ShaderStage.Fragment
+            );
+            
             public static readonly BlockFieldDescriptor ShadowReceivePositionOffset = new(Name,
                 "ShadowReceivePositionOffset",
                 "Shadow Receive Position Offset",

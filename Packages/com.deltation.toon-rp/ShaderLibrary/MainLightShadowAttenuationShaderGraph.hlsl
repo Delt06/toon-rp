@@ -8,6 +8,7 @@
 void GetMainLightShadowAttenuation_float(
     const float3 positionWs,
     const float3 shadowReceivePositionOffset,
+    const float occlusion,
     out float shadowAttenuation
 )
 {
@@ -34,7 +35,7 @@ void GetMainLightShadowAttenuation_float(
 
     LightComputationParameters parameters = (LightComputationParameters) 0;
     parameters.positionWs = positionWs;
-    shadowAttenuation = ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
+    shadowAttenuation = ApplyShadowRampAndPattern(parameters, light.shadowAttenuation * occlusion);
 
     #else // !_TOON_RP_ANY_SHADOWS
 

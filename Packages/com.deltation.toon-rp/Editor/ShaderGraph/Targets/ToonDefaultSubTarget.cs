@@ -110,6 +110,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.SurfaceDescription.GlobalRampUV, !OverrideRamp);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowColor);
             context.AddBlock(ToonBlockFields.SurfaceDescription.DiffuseOffset);
+            context.AddBlock(ToonBlockFields.SurfaceDescription.MainLightOcclusion);
             context.AddBlock(ToonBlockFields.SurfaceDescription.ShadowReceivePositionOffset);
         }
 
@@ -413,6 +414,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.SurfaceDescription.GlobalRampUV,
                 ToonBlockFields.SurfaceDescription.ShadowColor,
                 ToonBlockFields.SurfaceDescription.DiffuseOffset,
+                ToonBlockFields.SurfaceDescription.MainLightOcclusion,
                 ToonBlockFields.SurfaceDescription.ShadowReceivePositionOffset,
 
                 ToonBlockFields.SurfaceDescription.OverrideRampThreshold,

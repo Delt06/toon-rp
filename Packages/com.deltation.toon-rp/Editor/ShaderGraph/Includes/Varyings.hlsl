@@ -173,8 +173,6 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     #if _FORCE_DISABLE_FOG
     fogFactor = 1.0;
     #endif // _FORCE_DISABLE_FOG
-
-    
     
     #ifdef _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;

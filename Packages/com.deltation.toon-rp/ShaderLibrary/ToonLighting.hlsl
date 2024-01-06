@@ -28,6 +28,7 @@ struct LightComputationParameters
     float4 albedo;
     float4 shadowColor;
     float diffuseOffset;
+    float mainLightOcclusion;
     float3 shadowReceivePositionOffset;
     float3 specularColor;
     float specularSizeOffset;
@@ -101,11 +102,11 @@ float ApplyShadowRampAndPattern(const LightComputationParameters parameters, flo
 float GetShadowAttenuation(const LightComputationParameters parameters, const Light light)
 {
     #if defined(_TOON_RP_BLOB_SHADOWS) && !defined(_RECEIVE_BLOB_SHADOWS)
-    return 1.0f;
+    return parameters.mainLightOcclusion == 1.0f ? 1.0f : ApplyShadowRampAndPattern(parameters, parameters.mainLightOcclusion);
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
 
     #if defined(_TOON_RP_ANY_SHADOWS)
-    return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
+    return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation * parameters.mainLightOcclusion);
     #else // !_TOON_RP_ANY_SHADOWS
     return 1.0f;
     #endif  // _TOON_RP_ANY_SHADOWS

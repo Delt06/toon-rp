@@ -43,14 +43,12 @@ v2f VS(const appdata IN)
     return OUT;
 }
 
-float4 PS(const v2f IN) : SV_TARGET
+void PS(const v2f IN)
 {
     #ifdef _ALPHATEST_ON
     const float alpha = SampleAlbedo(IN.uv).a;
     AlphaClip(alpha);
     #endif // _ALPHATEST_ON
-
-    return 0;
 }
 
 #endif // TOON_RP_DEFAULT_DEPTH_ONLY_PASS

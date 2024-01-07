@@ -14,7 +14,7 @@ PackedVaryings VS(Attributes input)
     return packedOutput;
 }
 
-float4 PS(PackedVaryings packedInput) : SV_TARGET
+float3 PS(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -28,5 +28,5 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     const float3 normalWS = GetNormalWsFromVaryings(surfaceDescription, unpacked);
 
-    return float4(PackNormal(normalWS), 0);
+    return PackNormal(normalWS);
 }

@@ -13,7 +13,7 @@ PackedVaryings VS(Attributes input)
     return packedOutput;
 }
 
-float4 PS(PackedVaryings packedInput) : SV_TARGET
+void PS(PackedVaryings packedInput)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -24,6 +24,4 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     const float alpha = surfaceDescription.Alpha;
     clip(alpha - surfaceDescription.AlphaClipThreshold);
     #endif
-
-    return 1;
 }

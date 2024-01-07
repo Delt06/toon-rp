@@ -62,7 +62,7 @@ v2f VS(const appdata IN)
     return OUT;
 }
 
-float4 PS(const v2f IN) : SV_TARGET
+float3 PS(const v2f IN) : SV_TARGET
 {
     #ifdef _ALPHATEST_ON
     const float alpha = SampleAlbedo(IN.uv).a;
@@ -77,7 +77,7 @@ float4 PS(const v2f IN) : SV_TARGET
     #endif // _NORMAL_MAP
     normalWs = normalize(normalWs);
 
-    return float4(PackNormal(normalWs), 0);
+    return PackNormal(normalWs);
 }
 
 #endif // TOON_RP_DEFAULT_DEPTH_ONLY_PASS

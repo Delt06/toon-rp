@@ -22,7 +22,7 @@ PackedVaryings VS(Attributes input)
     return packedOutput;
 }
 
-float4 PS(PackedVaryings packedInput) : SV_TARGET
+float2 PS(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -34,6 +34,5 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     clip(alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    return float4(CalcNdcMotionVectorFromCsPositions(unpacked.positionCsNoJitter, unpacked.previousPositionCsNoJitter),
-                  0, 0);
+    return CalcNdcMotionVectorFromCsPositions(unpacked.positionCsNoJitter, unpacked.previousPositionCsNoJitter);
 }

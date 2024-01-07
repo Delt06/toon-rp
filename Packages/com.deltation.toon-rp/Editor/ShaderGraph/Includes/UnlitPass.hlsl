@@ -41,12 +41,12 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     const float3 emission = surfaceDescription.Emission * albedo.a;
     float3 outputColor = albedo.rgb + emission;
 
+    ApplyCustomFog(outputColor, surfaceDescription);
+
     #if !_FORCE_DISABLE_FOG
     const float fogFactor = unpacked.fogFactorAndVertexLight.x;
     outputColor = MixFog(outputColor.rgb, fogFactor);
     #endif // !_FORCE_DISABLE_FOG
-
-    ApplyCustomFog(outputColor, surfaceDescription);
 
     return float4(outputColor, albedo.a);
 }

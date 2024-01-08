@@ -310,6 +310,7 @@ namespace DELTation.ToonRP
             if (ToonSceneViewUtils.IsDrawingWireframes(_camera))
             {
                 renderTextureColorFormat = GetDefaultGraphicsFormat();
+                msaaSamples = 1;
             }
 
             // Get the maximum supported MSAA level for this RT format

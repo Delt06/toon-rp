@@ -227,7 +227,7 @@ float3 ComputeLights(const in LightComputationParameters parameters, out float o
     const float ssao = GetSsao(parameters);
     float3 lights = ComputeMainLightComponent(parameters, ssao, outShadowAttenuation);
 
-    #if defined(_TOON_RP_ADDITIONAL_LIGHTS)
+    #if defined(TOON_RP_ADDITIONAL_LIGHTS_ANY_PER_PIXEL)
     lights += ComputeAdditionalLightComponent(parameters, ssao);
     #elif defined(_TOON_RP_ADDITIONAL_LIGHTS_VERTEX)
     lights += ComputeAdditionalLightComponentPerVertex(parameters);

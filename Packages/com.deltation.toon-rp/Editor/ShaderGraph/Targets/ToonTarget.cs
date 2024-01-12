@@ -541,7 +541,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             );
         }
 
-        public void AddDefaultFogProperties(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
+        public void AddDefaultFogProperties(ref TargetPropertyGUIContext context, Action onChange,
+            Action<string> registerUndo)
         {
             context.AddProperty("Fog", new Toggle { value = Fog }, evt =>
                 {
@@ -961,7 +962,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.CustomFogFactor,
             ToonBlockFields.SurfaceDescription.CustomFogColor,
         };
-        
+
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
             ToonBlockFields.SurfaceDescription.Albedo,
@@ -980,7 +981,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-        
+
         public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
         {
             ToonBlockFields.SurfaceDescription.NormalOs,
@@ -1617,6 +1618,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             entries = new KeywordEntry[]
             {
                 new() { displayName = "Off", referenceName = "" },
+                new() { displayName = "Tiled Lighting", referenceName = "TOON_RP_TILED_LIGHTING" },
                 new() { displayName = "Per Pixel", referenceName = "TOON_RP_ADDITIONAL_LIGHTS" },
                 new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_VERTEX" },
             },

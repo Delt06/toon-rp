@@ -5,8 +5,11 @@
 
 #define TILE_SIZE 16
 
-// the opaque and transparent light counters are stored in the beginning of the buffer
-#define LIGHT_INDEX_LIST_BASE_INDEX_OFFSET 2
+// Mirrored with ToonLighting.cs
+#define MAX_ADDITIONAL_LIGHTS_COUNT_TILED 1024
+
+// the counter is stored in the beginning of the buffer
+#define LIGHT_INDEX_LIST_BASE_INDEX_OFFSET 1
 
 #include "../../ShaderLibrary/Common.hlsl"
 #include "../../ShaderLibrary/Lighting.hlsl"
@@ -15,9 +18,6 @@ CBUFFER_START(TiledLighting)
     float2 _TiledLighting_ScreenDimensions;
     uint _TiledLighting_TilesX;
     uint _TiledLighting_TilesY;
-
-    uint _TiledLighting_CurrentLightIndexListOffset;
-    uint _TiledLighting_CurrentLightGridOffset;
 
     uint _TiledLighting_ReservedLightsPerTile;
 CBUFFER_END
@@ -29,7 +29,15 @@ struct TiledLight
     float4 positionWs_attenuation; // xyz = position, w = 1/range^2
 };
 
-StructuredBuffer<TiledLight> _TiledLighting_Lights;
+StructuredBuffer<TiledLight> _TiledLighting_Lights_SB;
+
+CBUFFER_START(TiledLighting_Lights_CB_Colors)
+float4 _TiledLighting_Light_Color[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
+CBUFFER_END
+
+CBUFFER_START(TiledLighting_Lights_CB_PositionsAttenuations)
+float4 _TiledLighting_Light_PositionsWs_Attenuation[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
+CBUFFER_END
 
 struct TiledLighting_Plane
 {
@@ -60,9 +68,19 @@ TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 
     return plane;
 }
 
-struct TiledLighting_Frustum
+#define TILED_LIGHTING_TILE_CORNERS_COUNT 4
+
+struct TiledLighting_TileBounds
 {
-    TiledLighting_Plane planes[4]; // left, right, top, bottom; back and front can be computed from depth values
+    // top-left, top-right, bottom-left, bottom-right
+    float3 frustumCorners[TILED_LIGHTING_TILE_CORNERS_COUNT];
+    float3 frustumDirections[TILED_LIGHTING_TILE_CORNERS_COUNT];
+};
+
+struct TiledLighting_Aabb
+{
+    float3 center;
+    float3 extents;
 };
 
 // Convert clip space coordinates to view space
@@ -99,31 +117,11 @@ struct TiledLighting_Sphere
     float radius;
 };
 
-bool TiledLighting_SphereInsidePlane(const TiledLighting_Sphere sphere, const TiledLighting_Plane plane)
+bool TiledLighting_SphereInsideAabb(const TiledLighting_Sphere sphere, const TiledLighting_Aabb aabb)
 {
-    return (dot(plane.normal, sphere.center) - plane.distance) < -sphere.radius;
-}
-
-bool TiledLighting_SphereInsideFrustum(const TiledLighting_Sphere sphere, const TiledLighting_Frustum frustum,
-                                       const float zNear, const float zFar)
-{
-    bool result = true;
-
-    if (sphere.center.z - sphere.radius > zNear || sphere.center.z + sphere.radius < zFar)
-    {
-        result = false;
-    }
-
-    // Then check frustum planes
-    for (uint i = 0; i < 4 && result; i++)
-    {
-        if (TiledLighting_SphereInsidePlane(sphere, frustum.planes[i]))
-        {
-            result = false;
-        }
-    }
-
-    return result;
+    const float3 delta = max(0, abs(aabb.center - sphere.center) - aabb.extents);
+    const float distSq = dot(delta, delta);
+    return distSq <= sphere.radius * sphere.radius;
 }
 
 uint TiledLighting_GetOpaqueLightGridIndex(const uint tileIndex)
@@ -131,21 +129,9 @@ uint TiledLighting_GetOpaqueLightGridIndex(const uint tileIndex)
     return tileIndex;
 }
 
-uint TiledLighting_GetTransparentLightGridIndex(const uint tileIndex)
-{
-    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY;
-    return transparentOffset + TiledLighting_GetOpaqueLightGridIndex(tileIndex);
-}
-
 uint TiledLighting_GetOpaqueLightIndexListIndex(const uint tileIndex)
 {
     return tileIndex + LIGHT_INDEX_LIST_BASE_INDEX_OFFSET;
-}
-
-uint TiledLighting_GetTransparentLightIndexListIndex(const uint tileIndex)
-{
-    const uint transparentOffset = _TiledLighting_TilesX * _TiledLighting_TilesY * _TiledLighting_ReservedLightsPerTile;
-    return transparentOffset + TiledLighting_GetOpaqueLightIndexListIndex(tileIndex);
 }
 
 #endif // TOON_RP_TILED_LIGHTING_SHARED

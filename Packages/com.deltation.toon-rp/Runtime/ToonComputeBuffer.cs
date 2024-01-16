@@ -3,14 +3,16 @@ using UnityEngine;
 
 namespace DELTation.ToonRP
 {
-    public class ToonStructuredComputeBuffer : IDisposable
+    public class ToonComputeBuffer : IDisposable
     {
+        private readonly ComputeBufferType _bufferType;
         private readonly int _stride;
         private ComputeBuffer _buffer;
         private int _count;
 
-        public ToonStructuredComputeBuffer(int stride, int countGrowStep = 1)
+        public ToonComputeBuffer(ComputeBufferType bufferType, int stride, int countGrowStep = 1)
         {
+            _bufferType = bufferType;
             _stride = stride;
             CountGrowStep = countGrowStep;
         }
@@ -51,7 +53,7 @@ namespace DELTation.ToonRP
         private void RecreateWithCount(int count)
         {
             _buffer?.Release();
-            _buffer = new ComputeBuffer(count, _stride, ComputeBufferType.Structured);
+            _buffer = new ComputeBuffer(count, _stride, _bufferType);
             _count = count;
         }
     }

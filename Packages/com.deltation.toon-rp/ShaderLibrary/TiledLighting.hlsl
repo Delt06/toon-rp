@@ -12,11 +12,11 @@ uint2 TiledLighting_ScreenPositionToTileIndex(float2 screenPosition)
     #ifdef TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
     screenPosition = ApplyPretransformRotationPixelCoords2(screenPosition);
     #endif // TOON_PRETRANSFORM_TO_DISPLAY_ORIENTATION
-    
+
     #ifdef UNITY_UV_STARTS_AT_TOP
     if (_ProjectionParams.x < 0.0)
     {
-        screenPosition.y = _TiledLighting_ScreenDimensions.y - screenPosition.y;    
+        screenPosition.y = _TiledLighting_ScreenDimensions.y - screenPosition.y;
     }
     #endif // UNITY_UV_STARTS_AT_TOP
     return uint2(floor(screenPosition / TILE_SIZE));
@@ -32,7 +32,7 @@ TiledLighting_LightGridCell TiledLighting_GetLightGridCell(const float2 screenCo
 {
     const uint2 tileIndex = TiledLighting_ScreenPositionToTileIndex(screenCoords);
     const uint flatTileIndex = TiledLighting_GetFlatTileIndex(tileIndex.x, tileIndex.y);
-    const uint2 lightGridValue = _TiledLighting_LightGrid[_TiledLighting_CurrentLightGridOffset + flatTileIndex];
+    const uint2 lightGridValue = _TiledLighting_LightGrid[flatTileIndex];
     TiledLighting_LightGridCell cell;
     cell.indexStartOffset = lightGridValue.x;
     cell.lightCount = lightGridValue.y;
@@ -41,19 +41,17 @@ TiledLighting_LightGridCell TiledLighting_GetLightGridCell(const float2 screenCo
 
 LightEntry GetTiledLightEntry(const uint globalLightIndex)
 {
-    const TiledLight tiledLight = _TiledLighting_Lights[globalLightIndex];
-
     LightEntry lightEntry;
-    lightEntry.color = tiledLight.color.rgb;
-    lightEntry.positionWs_attenuation = tiledLight.positionWs_attenuation;
+    lightEntry.color = _TiledLighting_Light_Color[globalLightIndex].rgb;
+    lightEntry.positionWs_attenuation = _TiledLighting_Light_PositionsWs_Attenuation[globalLightIndex];
     return lightEntry;
 }
 
 Light GetAdditionalLightTiled(const uint perTileLightIndex, const TiledLighting_LightGridCell cell,
                               const float3 positionWs)
 {
-    const uint offset = _TiledLighting_CurrentLightIndexListOffset + cell.indexStartOffset + perTileLightIndex;
-    const uint globalLightIndex = _TiledLighting_LightIndexList[offset];
+    const uint listIndex = TiledLighting_GetOpaqueLightIndexListIndex(cell.indexStartOffset + perTileLightIndex);
+    const uint globalLightIndex = _TiledLighting_LightIndexList[listIndex];
     const LightEntry lightEntry = GetTiledLightEntry(globalLightIndex);
     return ConvertEntryToLight(lightEntry, positionWs);
 }

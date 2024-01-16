@@ -75,7 +75,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                     ))
                 {
                     _computeShadersToStrip.Add(ToonTiledLighting.SetupComputeShaderName);
-                    _computeShadersToStrip.Add(ToonTiledLighting.ComputeFrustumsComputeShaderName);
+                    _computeShadersToStrip.Add(ToonTiledLighting.ComputeTileBoundsComputeShaderName);
                     _computeShadersToStrip.Add(ToonTiledLighting.CullLightsComputeShaderName);
 
                     _keywordsToStrip.Add(new ShaderKeyword(ToonTiledLighting.TiledLightingKeywordName));

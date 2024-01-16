@@ -256,8 +256,7 @@ namespace DELTation.ToonRP
                 return false;
             }
 
-            if (_settings.AdditionalLights == AdditionalLightsMode.Off ||
-                _settings.IsTiledLightingEnabledAndSupported())
+            if (_settings.AdditionalLights == AdditionalLightsMode.Off)
             {
                 parameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             }
@@ -610,8 +609,6 @@ namespace DELTation.ToonRP
         private void DrawVisibleGeometry(CommandBuffer cmd)
         {
             {
-                _tiledLighting.PrepareForOpaqueGeometry(cmd);
-
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeOpaque);
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
@@ -632,7 +629,7 @@ namespace DELTation.ToonRP
             _opaqueTexture.Capture();
 
             {
-                _tiledLighting.PrepareForTransparentGeometry(cmd);
+                _tiledLighting.SetTiledLightingKeyword(cmd, false);
                 _context.ExecuteCommandBufferAndClear(cmd);
 
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeTransparent);
@@ -658,11 +655,14 @@ namespace DELTation.ToonRP
             {
                 criteria = sortingCriteria,
             };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, layerMask);
+            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, transparent,
+                layerMask
+            );
         }
 
         public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
             in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+            bool includesTransparent,
             int layerMask = -1, in RenderStateBlock? renderStateBlock = null,
             IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
@@ -673,7 +673,7 @@ namespace DELTation.ToonRP
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
             if (perObjectLightData)
             {
-                if (!settings.IsTiledLightingEnabledAndSupported())
+                if (includesTransparent || !settings.IsTiledLightingEnabledAndSupported())
                 {
                     perObjectData |= PerObjectData.LightData | PerObjectData.LightIndices;
                 }

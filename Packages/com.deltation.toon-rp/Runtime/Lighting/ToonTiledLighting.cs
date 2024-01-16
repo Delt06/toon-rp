@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using DELTation.ToonRP.Extensions;
 using JetBrains.Annotations;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -12,26 +12,27 @@ namespace DELTation.ToonRP.Lighting
         private const int TileSize = 16;
         public const int MinLightsPerTile = 8;
         public const int MaxLightsPerTile = 64;
-        private const int FrustumSize = 4 * 4 * sizeof(float);
-        private const int LightIndexListBaseIndexOffset = 2;
+        private const int TileBoundsStride = 2 * 4 * 3 * sizeof(float);
+        private const int LightIndexListBaseIndexOffset = 1;
 
         public const string SetupComputeShaderName = "TiledLighting_Setup";
-        public const string ComputeFrustumsComputeShaderName = "TiledLighting_ComputeFrustums";
+        public const string ComputeTileBoundsComputeShaderName = "TiledLighting_ComputeTileBounds";
         public const string CullLightsComputeShaderName = "TiledLighting_CullLights";
         public const string TiledLightingKeywordName = "_TOON_RP_TILED_LIGHTING";
-
-        private readonly ToonStructuredComputeBuffer _frustumsBuffer = new(FrustumSize);
-        private readonly ToonStructuredComputeBuffer _lightGrid = new(sizeof(uint) * 2);
-        private readonly ToonStructuredComputeBuffer _lightIndexList = new(sizeof(uint));
+        private readonly ToonComputeBuffer _lightGrid = new(ComputeBufferType.Structured, sizeof(uint) * 2);
+        private readonly ToonComputeBuffer _lightIndexList = new(ComputeBufferType.Structured, sizeof(uint));
         private readonly ToonLighting _lighting;
+
+        private readonly ToonComputeBuffer _tileBoundsBuffer = new(ComputeBufferType.Structured, TileBoundsStride);
         private readonly GlobalKeyword _tiledLightingKeyword;
-        private readonly ToonStructuredComputeBuffer _tiledLightsBuffer =
-            new(Marshal.SizeOf<TiledLight>(), ToonLighting.MaxAdditionalLightCountTiled / 8);
-
-
-        private ComputeShaderKernel _computeFrustumsKernel;
+        private readonly ToonComputeBuffer _tiledLightsBuffer =
+            new(ComputeBufferType.Structured, UnsafeUtility.SizeOf<TiledLight>(),
+                ToonLighting.MaxAdditionalLightCountTiled / 8
+            );
 
         private bool _computeShadersAreValid;
+
+        private ComputeShaderKernel _computeTileBoundsKernel;
 
         private ScriptableRenderContext _context;
         private ComputeShaderKernel _cullLightsKernel;
@@ -50,11 +51,9 @@ namespace DELTation.ToonRP.Lighting
             _tiledLightingKeyword = GlobalKeyword.Create(TiledLightingKeywordName);
         }
 
-        private int TotalTilesCount => (int) (_tilesX * _tilesY);
-
         public void Dispose()
         {
-            _frustumsBuffer?.Dispose();
+            _tileBoundsBuffer?.Dispose();
             _lightGrid?.Dispose();
             _lightIndexList?.Dispose();
             _tiledLightsBuffer?.Dispose();
@@ -70,8 +69,8 @@ namespace DELTation.ToonRP.Lighting
                 _setupKernel = new ComputeShaderKernel(clearCountersComputeShader, 0);
 
                 ComputeShader computeFrustumsComputeShader =
-                    Resources.Load<ComputeShader>(ComputeFrustumsComputeShaderName);
-                _computeFrustumsKernel = new ComputeShaderKernel(computeFrustumsComputeShader, 0);
+                    Resources.Load<ComputeShader>(ComputeTileBoundsComputeShaderName);
+                _computeTileBoundsKernel = new ComputeShaderKernel(computeFrustumsComputeShader, 0);
 
                 ComputeShader cullLightsComputeShader = Resources.Load<ComputeShader>(CullLightsComputeShaderName);
                 _cullLightsKernel = new ComputeShaderKernel(cullLightsComputeShader, 0);
@@ -97,43 +96,51 @@ namespace DELTation.ToonRP.Lighting
             _tilesY = (uint) Mathf.CeilToInt(_screenHeight / TileSize);
             int totalTilesCount = (int) (_tilesX * _tilesY);
 
-            _frustumsBuffer.Update(totalTilesCount);
-            _lightGrid.Update(totalTilesCount * 2);
+            _tileBoundsBuffer.Update(totalTilesCount);
+            _lightGrid.Update(totalTilesCount);
 
             _reservedLightsPerTile = Mathf.Clamp(
                 toonContext.CameraRendererSettings.MaxLightsPerTile,
                 MinLightsPerTile,
                 MaxLightsPerTile
             );
-            _lightIndexList.Update(totalTilesCount * _reservedLightsPerTile * 2 + LightIndexListBaseIndexOffset);
+            _lightIndexList.Update(totalTilesCount * _reservedLightsPerTile + LightIndexListBaseIndexOffset);
 
-            _lighting.GetTiledAdditionalLightsBuffer(out _, out int tiledLightsCount);
+            _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] _, out Vector4[] _, out Vector4[] _,
+                out int tiledLightsCount
+            );
             _tiledLightsBuffer.Update(tiledLightsCount);
 
-            _computeFrustumsKernel.Setup();
+            _computeTileBoundsKernel.Setup();
         }
 
         public void CullLights()
         {
             CommandBuffer cmd = CommandBufferPool.Get();
 
-            cmd.SetKeyword(_tiledLightingKeyword, _enabled);
+            SetTiledLightingKeyword(cmd, _enabled);
 
             if (_enabled)
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TiledLighting)))
                 {
-                    _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] tiledLights, out int tiledLightsCount);
+                    _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] tiledLights,
+                        out Vector4[] colors, out Vector4[] positionsAttenuations, out int tiledLightsCount
+                    );
+
                     _tiledLightsBuffer.Buffer.SetData(tiledLights, 0, 0, tiledLightsCount);
-                    cmd.SetGlobalBuffer(ShaderIds.LightsId, _tiledLightsBuffer.Buffer);
+                    cmd.SetGlobalBuffer(ShaderIds.LightsStructuredBufferId, _tiledLightsBuffer.Buffer);
+
+                    cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferColorsId, colors);
+                    cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferPositionsAttenuationsId,
+                        positionsAttenuations
+                    );
 
                     cmd.SetGlobalVector(ShaderIds.ScreenDimensionsId,
                         new Vector4(_screenWidth, _screenHeight)
                     );
                     cmd.SetGlobalInt(ShaderIds.TilesXId, (int) _tilesX);
                     cmd.SetGlobalInt(ShaderIds.TilesYId, (int) _tilesY);
-                    cmd.SetGlobalInt(ShaderIds.CurrentLightIndexListOffsetId, 0);
-                    cmd.SetGlobalInt(ShaderIds.CurrentLightGridOffsetId, 0);
                     cmd.SetGlobalInt(ShaderIds.ReservedLightsPerTileId, _reservedLightsPerTile);
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Clear Counters")))
@@ -142,10 +149,10 @@ namespace DELTation.ToonRP.Lighting
                         _setupKernel.Dispatch(cmd, 1);
                     }
 
-                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compute Frustums")))
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compute Tile Bounds")))
                     {
-                        cmd.SetGlobalBuffer(ShaderIds.FrustumsId, _frustumsBuffer.Buffer);
-                        _computeFrustumsKernel.Dispatch(cmd, _tilesX, _tilesY);
+                        cmd.SetGlobalBuffer(ShaderIds.TileBoundsId, _tileBoundsBuffer.Buffer);
+                        _computeTileBoundsKernel.Dispatch(cmd, _tilesX, _tilesY);
                     }
 
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Cull Lights")))
@@ -161,37 +168,23 @@ namespace DELTation.ToonRP.Lighting
             CommandBufferPool.Release(cmd);
         }
 
-        public void PrepareForOpaqueGeometry(CommandBuffer cmd)
+        public void SetTiledLightingKeyword(CommandBuffer cmd, bool enabled)
         {
-            PrepareForGeometryPass(cmd, 0);
-        }
-
-        public void PrepareForTransparentGeometry(CommandBuffer cmd)
-        {
-            PrepareForGeometryPass(cmd, TotalTilesCount);
-        }
-
-        private void PrepareForGeometryPass(CommandBuffer cmd, int offset)
-        {
-            cmd.SetGlobalInt(ShaderIds.CurrentLightIndexListOffsetId,
-                LightIndexListBaseIndexOffset + offset * _reservedLightsPerTile
-            );
-            cmd.SetGlobalInt(ShaderIds.CurrentLightGridOffsetId, offset);
+            cmd.SetKeyword(_tiledLightingKeyword, enabled);
         }
 
         private static class ShaderIds
         {
-            public static readonly int LightsId = Shader.PropertyToID("_TiledLighting_Lights");
+            public static readonly int LightsStructuredBufferId = Shader.PropertyToID("_TiledLighting_Lights_SB");
+            public static readonly int LightsConstantBufferColorsId = Shader.PropertyToID("_TiledLighting_Light_Color");
+            public static readonly int LightsConstantBufferPositionsAttenuationsId =
+                Shader.PropertyToID("_TiledLighting_Light_PositionsWs_Attenuation");
             public static readonly int ScreenDimensionsId = Shader.PropertyToID("_TiledLighting_ScreenDimensions");
             public static readonly int LightIndexListId = Shader.PropertyToID("_TiledLighting_LightIndexList");
-            public static readonly int FrustumsId = Shader.PropertyToID("_TiledLighting_Frustums");
+            public static readonly int TileBoundsId = Shader.PropertyToID("_TiledLighting_TileBounds");
             public static readonly int LightGridId = Shader.PropertyToID("_TiledLighting_LightGrid");
             public static readonly int TilesYId = Shader.PropertyToID("_TiledLighting_TilesY");
             public static readonly int TilesXId = Shader.PropertyToID("_TiledLighting_TilesX");
-            public static readonly int CurrentLightIndexListOffsetId =
-                Shader.PropertyToID("_TiledLighting_CurrentLightIndexListOffset");
-            public static readonly int CurrentLightGridOffsetId =
-                Shader.PropertyToID("_TiledLighting_CurrentLightGridOffset");
             public static readonly int ReservedLightsPerTileId =
                 Shader.PropertyToID("_TiledLighting_ReservedLightsPerTile");
         }

@@ -68,11 +68,13 @@ TiledLighting_Plane ComputePlane(const float3 p0, const float3 p1, const float3 
     return plane;
 }
 
+#define TILED_LIGHTING_TILE_CORNERS_COUNT 4
+
 struct TiledLighting_TileBounds
 {
     // top-left, top-right, bottom-left, bottom-right
-    float3 frustumCorners[4];
-    float3 frustumDirections[4];
+    float3 frustumCorners[TILED_LIGHTING_TILE_CORNERS_COUNT];
+    float3 frustumDirections[TILED_LIGHTING_TILE_CORNERS_COUNT];
 };
 
 struct TiledLighting_Aabb

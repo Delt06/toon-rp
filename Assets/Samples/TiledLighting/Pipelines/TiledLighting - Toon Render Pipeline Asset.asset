@@ -32,7 +32,7 @@ MonoBehaviour:
   CameraRendererSettings:
     AdditionalLights: 1
     TiledLighting: 1
-    MaxLightsPerTile: 16
+    MaxLightsPerTile: 32
     OverrideRenderTextureFormat: 0
     RenderTextureFormat: 4
     AllowHdr: 0

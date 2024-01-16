@@ -135,8 +135,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             ),
                             _ => throw new ArgumentOutOfRangeException(),
                         };
+                        const bool includesTransparent = true;
                         ToonCameraRenderer.DrawGeometry(_cameraRendererSettings,
                             ref _srpContext, _cullingResults, sortingSettings, RenderQueueRange.transparent,
+                            includesTransparent,
                             _settings.LayerMask,
                             new RenderStateBlock(RenderStateMask.Blend)
                             {

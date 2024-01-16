@@ -58,9 +58,6 @@
 
 			HLSLPROGRAM
 
-			bool _TiledLighting_ShowOpaque;
-			bool _TiledLighting_ShowTransparent;
-
 			float4 PS(const v2f IN) : SV_TARGET
             {
                 const uint2 tileIndex = TiledLighting_ScreenPositionToTileIndex(IN.positionCs.xy);
@@ -70,30 +67,14 @@
 
                 if (_AdditionalLightCount)
                 {
-                    if (_TiledLighting_ShowOpaque)
+                    const uint lightGridIndex = TiledLighting_GetOpaqueLightGridIndex(flatTileIndex);
+                    const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
+                
+                    output.r = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
+
+                    if (output.r > 0.0f)
                     {
-                        const uint lightGridIndex = TiledLighting_GetOpaqueLightGridIndex(flatTileIndex);
-                        const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
-                    
-                        output.r = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
-
-                        if (output.r > 0.0f)
-                        {
-                            output.rg = lerp(float2(0.0f, 1.0f), float2(1.0f, 0.0f), output.r);
-                        }
-                    }
-
-                    if (_TiledLighting_ShowTransparent)
-                    {
-                        const uint lightGridIndex = TiledLighting_GetTransparentLightGridIndex(flatTileIndex);
-                        const uint lightCount = _TiledLighting_LightGrid[lightGridIndex].y;
-                    
-                        output.b = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
-
-                        if (output.b > 0.0f)
-                        {
-                            output.b = output.g * 0.75f + 0.25f;
-                        }
+                        output.rg = lerp(float2(0.0f, 1.0f), float2(1.0f, 0.0f), output.r);
                     }
                 }
                 

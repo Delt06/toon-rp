@@ -16,9 +16,6 @@ MonoBehaviour:
   - {fileID: 4800000, guid: 0eec813a273941379a316bcb7c6049aa, type: 3}
   Settings:
     Mode: 0
-    TiledLighting:
-      ShowOpaque: 1
-      ShowTransparent: 0
     MotionVectors:
       Scale: 10
       SceneIntensity: 0.5

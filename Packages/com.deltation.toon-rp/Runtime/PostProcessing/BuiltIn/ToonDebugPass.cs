@@ -7,10 +7,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     public class ToonDebugPass : ToonPostProcessingPassBase
     {
         public const string ShaderName = "Hidden/Toon RP/Debug Pass";
-        private static readonly int TiledLightingShowTransparentId =
-            Shader.PropertyToID("_TiledLighting_ShowTransparent");
-        private static readonly int TiledLightingShowOpaqueId =
-            Shader.PropertyToID("_TiledLighting_ShowOpaque");
         private static readonly int MotionVectorsScaleId =
             Shader.PropertyToID("_MotionVectors_Scale");
         private static readonly int MotionVectorsSceneIntensityId =
@@ -51,13 +47,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                             break;
                         case ToonDebugPassSettings.DebugMode.TiledLighting:
                         {
-                            material.SetInt(TiledLightingShowOpaqueId,
-                                _settings.TiledLighting.ShowOpaque ? 1 : 0
-                            );
-
-                            material.SetInt(TiledLightingShowTransparentId,
-                                _settings.TiledLighting.ShowTransparent ? 1 : 0
-                            );
                             break;
                         }
                         case ToonDebugPassSettings.DebugMode.MotionVectors:

@@ -64,8 +64,9 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
                 RenderStateBlock? renderStateBlock = ConstructRenderStateBlock();
                 RenderQueueRange renderQueueRange = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
+                bool includesTransparent = !opaque;
                 ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, _cullingResults, sortingSettings,
-                    renderQueueRange, _settings.Filters.LayerMask, renderStateBlock,
+                    renderQueueRange, includesTransparent, _settings.Filters.LayerMask, renderStateBlock,
                     overrideLightModeTags ? _lightModeTags : null,
                     false,
                     _settings.Overrides.Material

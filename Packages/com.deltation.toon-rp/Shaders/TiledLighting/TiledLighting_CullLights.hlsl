@@ -1,22 +1,18 @@
 ﻿#include "TiledLighting_Shared.hlsl"
 
-StructuredBuffer<TiledLighting_Frustum> _TiledLighting_Frustums;
+StructuredBuffer<TiledLighting_TileBounds> _TiledLighting_TileBounds;
 RWStructuredBuffer<uint> _TiledLighting_LightIndexList;
 RWStructuredBuffer<uint2> _TiledLighting_LightGrid;
 
 groupshared uint g_MinDepth;
 groupshared uint g_MaxDepth;
-groupshared TiledLighting_Frustum g_Frustum;
+groupshared TiledLighting_TileBounds g_TileBounds;
 
 #define MAX_LIGHTS_PER_TILE 64
 
 groupshared uint g_LightList_Count_Opaque;
 groupshared uint g_LightList_IndexStartOffset_Opaque;
 groupshared uint g_LightList_Opaque[MAX_LIGHTS_PER_TILE];
-
-groupshared uint g_LightList_Count_Transparent;
-groupshared uint g_LightList_IndexStartOffset_Transparent;
-groupshared uint g_LightList_Transparent[MAX_LIGHTS_PER_TILE];
 
 void AppendLight_Opaque(const uint lightIndex)
 {
@@ -29,17 +25,6 @@ void AppendLight_Opaque(const uint lightIndex)
     }
 }
 
-void AppendLight_Transparent(const uint lightIndex)
-{
-    uint index;
-    InterlockedAdd(g_LightList_Count_Transparent, 1, index);
-
-    if (index < _TiledLighting_ReservedLightsPerTile)
-    {
-        g_LightList_Transparent[index] = lightIndex;
-    }
-}
-
 float RemapDepthToClipZ(const float depth)
 {
     if (UNITY_NEAR_CLIP_VALUE == -1)
@@ -49,6 +34,27 @@ float RemapDepthToClipZ(const float depth)
     }
 
     return depth;
+}
+
+TiledLighting_Aabb ComputeFrustumSliceAabb(const TiledLighting_TileBounds tileBounds, const float minDepthVs,
+                                           const float maxDepthVs)
+{
+    float3 aabbMin = FLT_INF, aabbMax = -FLT_INF;
+    const bool orthographicCamera = IsOrthographicCamera();
+
+    UNITY_UNROLL
+    for (uint i = 0; i < 4; ++i)
+    {
+        const float3 corner = orthographicCamera ? tileBounds.frustumCorners[i] : float3(0, 0, 0);
+        const float3 direction = tileBounds.frustumDirections[i];
+        aabbMin = min(aabbMin, min(corner + direction * minDepthVs, corner + direction * maxDepthVs));
+        aabbMax = max(aabbMax, max(corner + direction * minDepthVs, corner + direction * maxDepthVs));
+    }
+
+    TiledLighting_Aabb aabb;
+    aabb.center = (aabbMin + aabbMax) * 0.5f;
+    aabb.extents = (aabbMax - aabbMin) * 0.5f;
+    return aabb;
 }
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -70,8 +76,7 @@ void CS(
         g_MinDepth = 0xFFFFFFFF;
         g_MaxDepth = 0;
         g_LightList_Count_Opaque = 0;
-        g_LightList_Count_Transparent = 0;
-        g_Frustum = _TiledLighting_Frustums[TiledLighting_GetFlatTileIndex(groupId.x, groupId.y)];
+        g_TileBounds = _TiledLighting_TileBounds[TiledLighting_GetFlatTileIndex(groupId.x, groupId.y)];
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -93,11 +98,7 @@ void CS(
     Swap(minDepthVs, maxDepthVs);
     #endif // UNITY_REVERSED_Z
 
-    const float nearClipVs = TiledLighting_ClipToView(float4(0, 0, UNITY_NEAR_CLIP_VALUE, 1)).z;
-
-    TiledLighting_Plane minPlane;
-    minPlane.normal = float3(0, 0, -1);
-    minPlane.distance = -minDepthVs;
+    const TiledLighting_Aabb opaqueAabb = ComputeFrustumSliceAabb(g_TileBounds, minDepthVs, maxDepthVs);
 
     uint i;
 
@@ -111,14 +112,9 @@ void CS(
         boundingSphere.center = positionVs;
         boundingSphere.radius = range;
 
-        if (TiledLighting_SphereInsideFrustum(boundingSphere, g_Frustum, nearClipVs, maxDepthVs))
+        if (TiledLighting_SphereInsideAabb(boundingSphere, opaqueAabb))
         {
-            AppendLight_Transparent(i);
-
-            if (!TiledLighting_SphereInsidePlane(boundingSphere, minPlane))
-            {
-                AppendLight_Opaque(i);
-            }
+            AppendLight_Opaque(i);
         }
     }
 
@@ -135,14 +131,6 @@ void CS(
         _TiledLighting_LightGrid[TiledLighting_GetOpaqueLightGridIndex(tileIndex)] = uint2(
             g_LightList_IndexStartOffset_Opaque,
             g_LightList_Count_Opaque);
-
-        g_LightList_Count_Transparent = min(_TiledLighting_ReservedLightsPerTile, g_LightList_Count_Transparent);
-        InterlockedAdd(_TiledLighting_LightIndexList[1],
-                       g_LightList_Count_Transparent,
-                       g_LightList_IndexStartOffset_Transparent);
-        _TiledLighting_LightGrid[TiledLighting_GetTransparentLightGridIndex(tileIndex)] = uint2(
-            g_LightList_IndexStartOffset_Transparent,
-            g_LightList_Count_Transparent);
     }
 
     GroupMemoryBarrierWithGroupSync();
@@ -152,12 +140,5 @@ void CS(
         const uint tileIndex = g_LightList_IndexStartOffset_Opaque + i;
         const uint index = TiledLighting_GetOpaqueLightIndexListIndex(tileIndex);
         _TiledLighting_LightIndexList[index] = g_LightList_Opaque[i];
-    }
-
-    for (i = localIndex; i < g_LightList_Count_Transparent; i += TILE_SIZE * TILE_SIZE)
-    {
-        const uint tileIndex = g_LightList_IndexStartOffset_Transparent + i;
-        const uint index = TiledLighting_GetTransparentLightIndexListIndex(tileIndex);
-        _TiledLighting_LightIndexList[index] = g_LightList_Transparent[i];
     }
 }

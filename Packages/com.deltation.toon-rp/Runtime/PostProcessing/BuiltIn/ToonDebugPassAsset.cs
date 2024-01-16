@@ -9,11 +9,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     {
         private void Reset()
         {
-            Settings.TiledLighting = new TiledLightingSettings
-            {
-                ShowOpaque = true,
-                ShowTransparent = false,
-            };
             Settings.MotionVectors = new MotionVectorsSettings
             {
                 Scale = 10f,

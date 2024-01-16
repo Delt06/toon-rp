@@ -18,12 +18,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public DebugMode Mode;
 
-        [ToonRpShowIf(nameof(TiledLightingOn))]
-        public TiledLightingSettings TiledLighting;
         [ToonRpShowIf(nameof(MotionVectorsOn))]
         public MotionVectorsSettings MotionVectors;
 
-        private bool TiledLightingOn => Mode == DebugMode.TiledLighting;
         private bool MotionVectorsOn => Mode == DebugMode.MotionVectors;
 
         public bool IsEffectivelyEnabled()
@@ -33,13 +30,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 #else
             return false;
 #endif
-        }
-
-        [Serializable]
-        public struct TiledLightingSettings
-        {
-            public bool ShowOpaque;
-            public bool ShowTransparent;
         }
 
         [Serializable]

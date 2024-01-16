@@ -12,6 +12,7 @@ namespace DELTation.ToonRP.Lighting
         private const string CmdName = "Lighting";
 
         private const int MaxAdditionalLightCount = 64;
+        // Mirrored with TiledLighting_Shared.hlsl
         public const int MaxAdditionalLightCountTiled = 1024;
 
         public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
@@ -31,6 +32,8 @@ namespace DELTation.ToonRP.Lighting
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
         private TiledLight[] _additionalTiledLights;
+        private Vector4[] _additionalTiledLightsColors;
+        private Vector4[] _additionalTiledLightsPositionWsAttenuations;
         private Camera _camera;
         private int _currentMaxAdditionalLights;
 
@@ -54,6 +57,8 @@ namespace DELTation.ToonRP.Lighting
             if (settings.IsTiledLightingEnabledAndSupported())
             {
                 _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
+                _additionalTiledLightsColors ??= new Vector4[MaxAdditionalLightCountTiled];
+                _additionalTiledLightsPositionWsAttenuations ??= new Vector4[MaxAdditionalLightCountTiled];
             }
 
             _buffer.BeginSample(CmdName);
@@ -157,10 +162,14 @@ namespace DELTation.ToonRP.Lighting
             }
         }
 
-        public void GetTiledAdditionalLightsBuffer(out TiledLight[] lights, out int count)
+        public void GetTiledAdditionalLightsBuffer(out TiledLight[] lights, out Vector4[] colors,
+            out Vector4[] positionsAttenuations, out int count)
         {
             Assert.IsNotNull(_additionalTiledLights, "Tiled lights are not initialized");
+
             lights = _additionalTiledLights;
+            colors = _additionalTiledLightsColors;
+            positionsAttenuations = _additionalTiledLightsPositionWsAttenuations;
             count = _additionalLightsCount;
         }
 
@@ -188,6 +197,16 @@ namespace DELTation.ToonRP.Lighting
                 tiledLight.Color = color;
                 tiledLight.PositionVsRange = positionVsRange;
                 tiledLight.PositionWsAttenuation = positionWsAttenuation;
+            }
+
+            if (_additionalTiledLightsColors != null)
+            {
+                _additionalTiledLightsColors[index] = color;
+            }
+
+            if (_additionalTiledLightsPositionWsAttenuations != null)
+            {
+                _additionalTiledLightsPositionWsAttenuations[index] = positionWsAttenuation;
             }
         }
     }

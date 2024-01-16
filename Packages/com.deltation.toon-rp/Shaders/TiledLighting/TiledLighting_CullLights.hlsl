@@ -103,7 +103,7 @@ void CS(
 
     for (i = localIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
     {
-        const TiledLight light = _TiledLighting_Lights[i];
+        const TiledLight light = _TiledLighting_Lights_SB[i];
         const float3 positionVs = light.positionVs_range.xyz;
         const float range = light.positionVs_range.w;
 

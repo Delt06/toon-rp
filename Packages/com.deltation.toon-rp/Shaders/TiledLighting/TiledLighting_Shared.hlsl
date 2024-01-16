@@ -5,6 +5,9 @@
 
 #define TILE_SIZE 16
 
+// Mirrored with ToonLighting.cs
+#define MAX_ADDITIONAL_LIGHTS_COUNT_TILED 1024
+
 // the opaque and transparent light counters are stored in the beginning of the buffer
 #define LIGHT_INDEX_LIST_BASE_INDEX_OFFSET 2
 
@@ -29,7 +32,15 @@ struct TiledLight
     float4 positionWs_attenuation; // xyz = position, w = 1/range^2
 };
 
-StructuredBuffer<TiledLight> _TiledLighting_Lights;
+StructuredBuffer<TiledLight> _TiledLighting_Lights_SB;
+
+CBUFFER_START(TiledLighting_Lights_CB_Colors)
+float4 _TiledLighting_Light_Color[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
+CBUFFER_END
+
+CBUFFER_START(TiledLighting_Lights_CB_PositionsAttenuations)
+float4 _TiledLighting_Light_PositionsWs_Attenuation[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
+CBUFFER_END
 
 struct TiledLighting_Plane
 {

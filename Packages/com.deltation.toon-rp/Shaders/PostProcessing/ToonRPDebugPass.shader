@@ -72,9 +72,17 @@
                 
                     output.r = (float) lightCount / _TiledLighting_ReservedLightsPerTile;
 
-                    if (output.r > 0.0f)
+                    const float3 lowColor = float3(0.0f, 0.0f, 1.0f);
+                    const float3 midColor = float3(0.0f, 1.0f, 0.0f);
+                    const float3 highColor = float3(1.0f, 0.0f, 0.0f);
+                    
+                    if (output.r > 0.5f)
                     {
-                        output.rg = lerp(float2(0.0f, 1.0f), float2(1.0f, 0.0f), output.r);
+                        output.rgb = lerp(midColor, highColor, output.r * 2.0f - 1.0f);
+                    }
+                    else if (output.r > 0.0f)
+                    {
+                        output.rgb = lerp(lowColor, midColor, output.r * 2.0f);
                     }
                 }
                 

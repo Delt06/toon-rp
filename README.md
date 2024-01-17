@@ -5,7 +5,7 @@
 
 A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
-> 🚧 The project is in its very **early** stages and has **not** been tested in production.
+> 🚧 The project is in its **early** stages and has **not** been tested in production.
 
 > ⚠️ The project only supports **Linear** color space. 
  

@@ -15,6 +15,14 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 > 🔨 Developed and verified with Unity 2022.3.12f1 LTS and Core RP Library v14.0.9.
 
+### Verified Platforms
+
+- Windows (DirectX 11, Vulkan, OpenGL)
+- Android (OpenGL ES 3.0+, Vulkan)
+- WebGL 2.0
+
+> ⚠️ Other platforms may work but have not been tested yet.
+
 ### Table of Contents
 
 - [Features](#features)

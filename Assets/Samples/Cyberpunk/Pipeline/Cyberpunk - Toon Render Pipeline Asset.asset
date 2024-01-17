@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: Cyberpunk - Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  GlobalRampSettings:
+    Threshold: 0.374
+    SpecularThreshold: 0.995
+    RimThreshold: 0.709
+    Mode: 2
+    Smoothness: 0.02
+    SpecularSmoothness: 0.0025
+    RimSmoothness: 0.018
+    RampTexture: {fileID: 2800000, guid: b1e75ccd9f882ec44894c12b1dcc56dd, type: 3}
+    AdditionalLights:
+      DiffuseOffset: 0.13
+      SpecularOffset: 0
+      DistanceAttenuationFactor: 1
+  CameraRendererSettings:
+    AdditionalLights: 1
+    TiledLighting: 0
+    MaxLightsPerTile: 32
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 4
+    AllowHdr: 1
+    Stencil: 0
+    Msaa: 8
+    RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 1
+    PrePass: 0
+    OpaqueTexture: 0
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+    ForceRenderToIntermediateBuffer: 0
+    NativeRenderPasses: 0
+    ForceStoreCameraDepth: 0
+  ShadowSettings:
+    Mode: 1
+    Threshold: 0.073
+    CrispAntiAliased: 1
+    Smoothness: 0.713
+    MaxDistance: 15
+    DistanceFade: 0.1
+    Pattern: {fileID: 2800000, guid: 00216c7407cfba94dbe2a93705fd6639, type: 3}
+    PatternScale: {x: 3, y: 3, z: 0}
+    ShadowMaps:
+      DepthBits: 16
+      Blur: 0
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.01
+      BlurScatter: 1
+      VsmPrecision: 0
+      SoftShadows:
+        Enabled: 1
+        Quality: 1
+        Mode: 0
+        EarlyBail: 1
+        Spread: 0.72
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
+      LightBleedingReduction: 0.4
+      PrecisionCompensation: 0
+      Directional:
+        Enabled: 1
+        AtlasSize: 2048
+        CascadeCount: 4
+        CascadeRatio1: 0.1
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
+        DepthBias: 0.035
+        NormalBias: -0.01
+        SlopeBias: 0.49
+    Blobs:
+      AtlasSize: 128
+      Mode: 0
+      BakedShadowsAtlas: {fileID: 0}
+      Saturation: 1
+      ShadowPositionOffset: {x: 0, y: 0}
+      ReceiverPlaneY: 0
+  Extensions:
+    Extensions:
+    - {fileID: 11400000, guid: fee4f93385f0bc94bb938716a87b47bd, type: 2}
+  PostProcessing:
+    Enabled: 1
+    Passes:
+    - {fileID: 11400000, guid: d2e8c55680224f7429985dd7a620cae2, type: 2}

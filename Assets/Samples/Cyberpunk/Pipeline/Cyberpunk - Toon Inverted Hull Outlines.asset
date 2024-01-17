@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f036c9ca4ff4e409d6e8deef785e27d, type: 3}
+  m_Name: Cyberpunk - Toon Inverted Hull Outlines
+  m_EditorClassIdentifier: 
+  _forceIncludedShaders:
+  - {fileID: 4800000, guid: 51c4ad33920f4c3f8710d758c39ac159, type: 3}
+  Settings:
+    Passes:
+    - Name: Outline (Thick)
+      LayerMask:
+        serializedVersion: 2
+        m_Bits: 512
+      StencilLayer: 8
+      Color: {r: 0, g: 0, b: 0, a: 1}
+      Thickness: 0.01
+      FixedScreenSpaceThickness: 1
+      NoiseAmplitude: 0
+      NoiseFrequency: 0
+      OverrideMaterial: {fileID: 2100000, guid: e059aa553332eb64b9bc195e970be394, type: 2}
+      NormalsSource: 2
+      DepthBias: 0
+      MaxDistance: 0
+      DistanceFade: 0.1
+      PrePassIgnoreMask: 0
+      CameraOverrides:
+        Enabled: 0
+        FieldOfView: 60
+    - Name: Outline (Thin)
+      LayerMask:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      StencilLayer: 0
+      Color: {r: 0, g: 0, b: 0, a: 1}
+      Thickness: 0.004
+      FixedScreenSpaceThickness: 1
+      NoiseAmplitude: 0
+      NoiseFrequency: 0
+      OverrideMaterial: {fileID: 2100000, guid: e059aa553332eb64b9bc195e970be394, type: 2}
+      NormalsSource: 2
+      DepthBias: 0
+      MaxDistance: 0
+      DistanceFade: 1
+      PrePassIgnoreMask: 0
+      CameraOverrides:
+        Enabled: 0
+        FieldOfView: 60

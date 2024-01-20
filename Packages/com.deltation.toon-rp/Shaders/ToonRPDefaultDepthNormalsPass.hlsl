@@ -39,6 +39,8 @@ struct v2f
     float3 tangentWs : TANGENT_WS;
     float3 bitangentWs : BITANGENT_WS;
     #endif // REQUIRE_TANGENT_INTERPOLANT
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 v2f VS(const appdata IN)
@@ -46,6 +48,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     OUT.positionCs = TransformObjectToHClip(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);

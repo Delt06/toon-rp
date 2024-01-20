@@ -27,6 +27,8 @@ struct v2f
     TOON_RP_FOG_FACTOR_INTERPOLANT
 
     float4 positionCs : SV_POSITION;
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 v2f VS(const appdata IN)
@@ -34,6 +36,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);

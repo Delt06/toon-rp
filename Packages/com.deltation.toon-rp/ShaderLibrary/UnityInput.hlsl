@@ -3,8 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-#ifndef UNITY_SHADER_VARIABLES_INCLUDED
-
 #if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(UNITY_COMPILER_DXC)))
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
@@ -16,6 +14,8 @@
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define USING_STEREO_MATRICES
 #endif
+
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
 
 #if defined(USING_STEREO_MATRICES)
 // Current pass transforms.

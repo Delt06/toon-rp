@@ -1056,6 +1056,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly DependencyCollection Default = new()
         {
             ToonFieldDependencies.Default,
+            new FieldDependency(ToonStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
+                StructFields.Attributes.instanceID
+            ),
+            new FieldDependency(ToonStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                StructFields.Attributes.instanceID
+            ),
         };
     }
 

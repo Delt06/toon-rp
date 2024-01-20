@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
@@ -12,8 +13,11 @@ namespace DELTation.ToonRP
     {
         private readonly Dictionary<Type, object> _persistentDataStorage = new();
         public Camera Camera { get; private set; }
+        public XRPass XrPass { get; internal set; } = XRSystem.emptyPass;
 
+        public Matrix4x4 ViewMatrix { get; set; }
         public Matrix4x4 BaseProjectionMatrix { get; set; }
+        public Matrix4x4 JitterMatrix { get; set; }
         public Matrix4x4 JitteredProjectionMatrix { get; set; }
         public Matrix4x4 JitteredGpuProjectionMatrix { get; set; }
         public int RtWidth { get; set; }
@@ -40,6 +44,39 @@ namespace DELTation.ToonRP
             _persistentDataStorage.Clear();
 
             RTHandleSystem.Dispose();
+        }
+
+        public Matrix4x4 GetViewMatrix(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (XrPass.enabled)
+            {
+                return XrPass.GetViewMatrix(viewIndex);
+            }
+#endif
+            return ViewMatrix;
+        }
+
+        public Matrix4x4 GetProjectionMatrix(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (XrPass.enabled)
+            {
+                return JitterMatrix * XrPass.GetProjMatrix(viewIndex);
+            }
+#endif
+            return JitteredProjectionMatrix;
+        }
+
+        internal Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (XrPass.enabled)
+            {
+                return XrPass.GetProjMatrix(viewIndex);
+            }
+#endif
+            return BaseProjectionMatrix;
         }
 
         public T GetPersistentData<T>() where T : class, new()

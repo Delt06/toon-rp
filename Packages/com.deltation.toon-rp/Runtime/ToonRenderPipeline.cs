@@ -2,6 +2,7 @@
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
@@ -56,20 +57,55 @@ namespace DELTation.ToonRP
                 return;
             }
 
+            XRSystem.SetDisplayMSAASamples((MSAASamples) _cameraRendererSettings.Msaa);
+
             var sharedContext = new ToonRenderPipelineSharedContext();
 
             foreach (Camera camera in cameras)
             {
+                // Prepare XR rendering
+                bool xrActive = false;
+                XRLayout xrLayout = XRSystem.NewLayout();
+                xrLayout.AddCamera(camera, true);
+
                 ToonAdditionalCameraData additionalCameraData = GetOrAddAdditionalCameraData(camera);
 
-                _cameraRenderer.Render(context, ref sharedContext,
-                    camera, additionalCameraData,
-                    _cameraRendererSettings,
-                    _globalRampSettings,
-                    _shadowSettings,
-                    _postProcessingSettings,
-                    _extensions
-                );
+                foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
+                {
+                    if (xrPass.enabled)
+                    {
+                        xrActive = true;
+                        UpdateCameraStereoMatrices(camera, xrPass);
+                    }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (xrPass.enabled)
+                    {
+                        additionalCameraData.XrPass = xrPass;
+                        // UpdateCameraData();
+                    }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+                    _cameraRenderer.Render(context, ref sharedContext,
+                        camera, additionalCameraData,
+                        _cameraRendererSettings,
+                        _globalRampSettings,
+                        _shadowSettings,
+                        _postProcessingSettings,
+                        _extensions
+                    );
+                }
+
+                if (xrActive)
+                {
+                    CommandBuffer cmd = CommandBufferPool.Get();
+                    XRSystem.RenderMirrorView(cmd, camera);
+                    context.ExecuteCommandBuffer(cmd);
+                    context.Submit();
+                    CommandBufferPool.Release(cmd);
+                }
+
+                XRSystem.EndLayout();
             }
         }
 
@@ -82,5 +118,58 @@ namespace DELTation.ToonRP
 
             return additionalCameraData;
         }
+
+        private static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                if (xr.singlePassEnabled)
+                {
+                    for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                    {
+                        camera.SetStereoProjectionMatrix((Camera.StereoscopicEye) i, xr.GetProjMatrix(i));
+                        camera.SetStereoViewMatrix((Camera.StereoscopicEye) i, xr.GetViewMatrix(i));
+                    }
+                }
+                else
+                {
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetProjMatrix());
+                    camera.SetStereoViewMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetViewMatrix());
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+        }
+
+        // static void UpdateCameraData(Camera camera, ref ToonXrPersistentData xrPersistentData, in XRPass xr)
+        // {
+        //     // Update cameraData viewport for XR
+        //     Rect cameraRect = camera.rect;
+        //     Rect xrViewport = xr.GetViewport();
+        //     xrPersistentData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
+        //         cameraRect.y * xrViewport.height + xrViewport.y,
+        //         cameraRect.width * xrViewport.width,
+        //         cameraRect.height * xrViewport.height);
+        //     Rect camPixelRect = xrPersistentData.pixelRect;
+        //     xrPersistentData.pixelWidth = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
+        //     xrPersistentData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
+        //     xrPersistentData.aspectRatio = (float)xrPersistentData.pixelWidth / (float)xrPersistentData.pixelHeight;
+        //
+        //     bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
+        //         Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
+        //         Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
+        //     xrPersistentData.isDefaultViewport = xrPersistentData.isDefaultViewport && isDefaultXRViewport;
+        //
+        //     // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
+        //     var originalTargetDesc = xrPersistentData.cameraTargetDescriptor;
+        //     xrPersistentData.cameraTargetDescriptor = xr.renderTargetDesc;
+        //     if (xrPersistentData.isHdrEnabled)
+        //     {
+        //         xrPersistentData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
+        //     }
+        //     xrPersistentData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+        //     xrPersistentData.cameraTargetDescriptor.width = xrPersistentData.pixelWidth;
+        //     xrPersistentData.cameraTargetDescriptor.height = xrPersistentData.pixelHeight;
+        // }
     }
 }

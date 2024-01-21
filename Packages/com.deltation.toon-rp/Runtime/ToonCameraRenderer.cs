@@ -55,6 +55,7 @@ namespace DELTation.ToonRP
 
         public void Dispose()
         {
+            _renderTarget.Dispose();
             _shadows.Dispose();
             _tiledLighting?.Dispose();
             _extensionsCollection.Dispose();
@@ -177,7 +178,7 @@ namespace DELTation.ToonRP
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
             _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
-            _renderTarget.InitState();
+            _renderTarget.InitState(_additionalCameraData);
 
             ToonRpUtils.SetupCameraProperties(ref _context, cmd, _additionalCameraData, _camera.projectionMatrix, true);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
@@ -328,19 +329,7 @@ namespace DELTation.ToonRP
 
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            {
-                XRPass xrPass = _additionalCameraData.XrPass;
-                if (xrPass.enabled)
-                {
-                    rtWidth = xrPass.renderTargetDesc.width;
-                    rtHeight = xrPass.renderTargetDesc.height;
-                    cameraPixelRect = xrPass.GetViewport();
-                }
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-
+            
             GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
             if (ToonSceneViewUtils.IsDrawingWireframes(_camera))
             {
@@ -355,11 +344,26 @@ namespace DELTation.ToonRP
                     msaaSamples = msaaSamples,
                 }
             );
+            
+            // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
+            bool requireMsaaRenderToTexture = msaaSamples > 1;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled)
+                {
+                    rtWidth = xrPass.renderTargetDesc.width;
+                    rtHeight = xrPass.renderTargetDesc.height;
+                    cameraPixelRect = xrPass.GetViewport();
+                    // requireMsaaRenderToTexture = false;
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+            
             bool renderToTexture =
                     _settings.ForceRenderToIntermediateBuffer ||
-                    msaaSamples >
-                    1 || // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
+                    requireMsaaRenderToTexture || 
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
@@ -675,8 +679,12 @@ namespace DELTation.ToonRP
 
         private void BlitToCameraTarget()
         {
+            BeginXrRendering(_finalBlitCmd);
+            
             _renderTarget.FinalBlit(_finalBlitCmd);
             _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
+            
+            EndXrRendering(_finalBlitCmd);
         }
 
         private void Cleanup(CommandBuffer cmd)

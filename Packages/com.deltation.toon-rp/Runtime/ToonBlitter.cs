@@ -9,8 +9,14 @@ namespace DELTation.ToonRP
 
         private const int SubmeshIndex = 0;
         public static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
         private static Mesh _triangleMesh;
         private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
+        
+        public static void SetBlitScaleBias(CommandBuffer cmd, Vector4 scaleBias)
+        {
+            cmd.SetGlobalVector(BlitScaleBiasId, scaleBias);
+        }
 
         public static void Blit(CommandBuffer cmd, Material material, int shaderPass = 0)
         {

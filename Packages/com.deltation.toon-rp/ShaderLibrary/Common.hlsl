@@ -201,4 +201,19 @@ VertexNormalInputs GetVertexNormalInputs(const float3 normalOs, const float4 tan
     return tbn;
 }
 
+#if defined(UNITY_SINGLE_PASS_STEREO)
+float2 TransformStereoScreenSpaceTex(float2 uv, float w)
+{
+    float4 scaleOffset = unity_StereoScaleOffset[unity_StereoEyeIndex];
+    return uv.xy * scaleOffset.xy + scaleOffset.zw * w;
+}
+
+float2 UnityStereoTransformScreenSpaceTex(float2 uv)
+{
+    return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
+}
+#else
+#define UnityStereoTransformScreenSpaceTex(uv) uv
+#endif // defined(UNITY_SINGLE_PASS_STEREO)
+
 #endif // TOON_RP_COMMON

@@ -502,7 +502,7 @@ namespace DELTation.ToonRP
             private CameraRtId(int id, RenderTextureDescriptor descriptor, FilterMode filterMode, int arraySize)
             {
                 _id = id;
-                Identifier = new RenderTargetIdentifier(_id, 0, CubemapFace.Unknown, -1);
+                Identifier = ToonRpUtils.FixupTextureArrayIdentifier(id);
                 _descriptor = descriptor;
                 _filterMode = filterMode;
                 _arraySize = arraySize;

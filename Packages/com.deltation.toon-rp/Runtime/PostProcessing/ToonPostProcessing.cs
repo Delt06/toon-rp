@@ -242,12 +242,12 @@ namespace DELTation.ToonRP.PostProcessing
             {
                 int arraySize = xrPass.viewCount;
                 cmd.GetTemporaryRTArray(id, width, height, arraySize, depthBuffer, filterMode, format);
-                return new RenderTargetIdentifier(id, 0, CubemapFace.Unknown, -1);
+                return ToonRpUtils.FixupTextureArrayIdentifier(id);
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
 
             cmd.GetTemporaryRT(id, width, height, depthBuffer, filterMode, format);
-            return new RenderTargetIdentifier(id);
+            return id;
         }
 
         public void Cleanup()

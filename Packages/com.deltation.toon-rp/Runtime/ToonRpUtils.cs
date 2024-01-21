@@ -98,6 +98,10 @@ namespace DELTation.ToonRP
             return new Vector4(invBMinusA, -threshold * invBMinusA);
         }
 
+        public static RenderTargetIdentifier FixupTextureArrayIdentifier(RenderTargetIdentifier id) =>
+            // Use all slices. The default uses only the first one.
+            new(id, 0, CubemapFace.Unknown, -1);
+
         public static class ShaderPropertyId
         {
             public static readonly int ViewMatrix = Shader.PropertyToID("unity_MatrixV");

@@ -2,13 +2,14 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
 	    Pass
 		{
 		    Name "Toon RP Post-Processing Stack"
+		    
+		    Cull Off ZWrite Off ZTest Always
 
 			HLSLPROGRAM
 
@@ -20,8 +21,8 @@
 			#pragma multi_compile_local_fragment _ _LOOKUP_TABLE
 	        #pragma multi_compile_local_fragment _ _FILM_GRAIN
 
-	        #pragma vertex VS
-		    #pragma fragment PS
+	        #pragma vertex Vert
+		    #pragma fragment Frag
 
 			#if defined(_FXAA_LOW) || defined(_FXAA_HIGH)
 			#define _FXAA

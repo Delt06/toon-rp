@@ -29,7 +29,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     material.SetInteger(ResolutionFactorId, resolutionFactor);
                 }
 
-                ToonBlitter.Blit(cmd, material);
+                ToonBlitter.Blit(cmd, material, true);
             }
         }
     }

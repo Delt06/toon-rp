@@ -100,6 +100,7 @@ namespace DELTation.ToonRP.PostProcessing
         public void Setup(in ScriptableRenderContext context, in ToonPostProcessingSettings settings,
             in ToonCameraRendererSettings cameraRendererSettings,
             ToonAdditionalCameraData additionalCameraData,
+            ToonCameraRenderTarget cameraRenderTarget,
             GraphicsFormat colorFormat, Camera camera, int rtWidth, int rtHeight)
         {
             _context = context;
@@ -114,6 +115,7 @@ namespace DELTation.ToonRP.PostProcessing
                 Camera = camera,
                 CameraRendererSettings = _cameraRendererSettings,
                 AdditionalCameraData = additionalCameraData,
+                CameraRenderTarget = cameraRenderTarget,
             };
 
             SetupPasses();
@@ -154,11 +156,12 @@ namespace DELTation.ToonRP.PostProcessing
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessing)))
             {
                 RenderTargetIdentifier currentSource = sourceId;
-                RenderTargetIdentifier currentDestination = PostProcessingBufferId;
-
-                cmd.GetTemporaryRT(PostProcessingBufferId, width, height, 0,
-                    _cameraRendererSettings.RenderTextureFilterMode, format
-                );
+                RenderTargetIdentifier currentDestination =
+                    GetTemporaryRT(cmd, PostProcessingBufferId, width, height,
+                        _cameraRendererSettings.RenderTextureFilterMode, format
+                    );
+                RenderTargetIdentifier native0Id;
+                RenderTargetIdentifier native1Id = default;
 
                 bool native = false;
 
@@ -170,13 +173,15 @@ namespace DELTation.ToonRP.PostProcessing
                     {
                         int nativeWidth = _postProcessingContext.Camera.pixelWidth;
                         int nativeHeight = _postProcessingContext.Camera.pixelHeight;
-                        cmd.GetTemporaryRT(PostProcessingBufferNative0Id, nativeWidth, nativeHeight, 0,
-                            FilterMode.Point, RenderTextureFormat.Default
+                        GraphicsFormat defaultGraphicsFormat =
+                            GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Default, true);
+                        native0Id = GetTemporaryRT(cmd, PostProcessingBufferNative0Id, nativeWidth, nativeHeight,
+                            FilterMode.Point, defaultGraphicsFormat
                         );
-                        cmd.GetTemporaryRT(PostProcessingBufferNative1Id, nativeWidth, nativeHeight, 0,
-                            FilterMode.Point, RenderTextureFormat.Default
+                        native1Id = GetTemporaryRT(cmd, PostProcessingBufferNative1Id, nativeWidth, nativeHeight,
+                            FilterMode.Point, defaultGraphicsFormat
                         );
-                        currentDestination = PostProcessingBufferNative0Id;
+                        currentDestination = native0Id;
                         native = true;
                         switchedToNative = true;
                     }
@@ -189,7 +194,7 @@ namespace DELTation.ToonRP.PostProcessing
 
                         if (switchedToNative)
                         {
-                            (currentSource, currentDestination) = (currentDestination, PostProcessingBufferNative1Id);
+                            (currentSource, currentDestination) = (currentDestination, native1Id);
                         }
                         else
                         {
@@ -208,9 +213,7 @@ namespace DELTation.ToonRP.PostProcessing
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.BlitPostProcessingResults)
                            ))
                     {
-                        cmd.SetRenderTarget(destination);
-                        cmd.SetViewport(_postProcessingContext.Camera.pixelRect);
-                        ToonBlitter.BlitDefault(cmd, currentSource);
+                        _postProcessingContext.CameraRenderTarget.FinalBlit(cmd, currentSource);
                     }
                 }
 
@@ -226,6 +229,25 @@ namespace DELTation.ToonRP.PostProcessing
 
             _context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+        }
+
+        private RenderTargetIdentifier GetTemporaryRT(CommandBuffer cmd, int id, int width, int height,
+            FilterMode filterMode, GraphicsFormat format)
+        {
+            const int depthBuffer = 0;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _postProcessingContext.AdditionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                int arraySize = xrPass.viewCount;
+                cmd.GetTemporaryRTArray(id, width, height, arraySize, depthBuffer, filterMode, format);
+                return new RenderTargetIdentifier(id, 0, CubemapFace.Unknown, -1);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            cmd.GetTemporaryRT(id, width, height, depthBuffer, filterMode, format);
+            return new RenderTargetIdentifier(id);
         }
 
         public void Cleanup()

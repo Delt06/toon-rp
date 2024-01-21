@@ -12,15 +12,22 @@ namespace DELTation.ToonRP
         private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
         private static Mesh _triangleMesh;
         private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
-        
+
         public static void SetBlitScaleBias(CommandBuffer cmd, Vector4 scaleBias)
         {
             cmd.SetGlobalVector(BlitScaleBiasId, scaleBias);
         }
 
-        public static void Blit(CommandBuffer cmd, Material material, int shaderPass = 0)
+        public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass = 0)
         {
             EnsureMeshIsInitialized();
+
+            bool yFlip = !renderToTexture && SystemInfo.graphicsUVStartsAtTop;
+            Vector2 viewportScale = Vector2.one;
+            Vector4 scaleBias = yFlip
+                ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y)
+                : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+            SetBlitScaleBias(cmd, scaleBias);
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, material, SubmeshIndex, shaderPass);
         }
 

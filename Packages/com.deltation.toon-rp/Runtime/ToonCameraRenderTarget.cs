@@ -62,7 +62,7 @@ namespace DELTation.ToonRP
             return _state.ColorBufferId.Identifier;
         }
 
-        public void FinalBlit(CommandBuffer cmd)
+        public void FinalBlit(CommandBuffer cmd, RenderTargetIdentifier? source = default)
         {
             if (RenderToTexture)
             {
@@ -77,14 +77,9 @@ namespace DELTation.ToonRP
                 cmd.SetViewport(PixelRect);
 
                 Material material = _finalBlitMaterial.GetOrCreate();
-                bool yFlip = _camera.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
-                Vector2 viewportScale = Vector2.one;
-                Vector4 scaleBias = yFlip
-                    ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y)
-                    : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                ToonBlitter.SetBlitScaleBias(cmd, scaleBias);
-                cmd.SetGlobalTexture(BlitSourceId, _state.ColorBufferId.Identifier);
-                ToonBlitter.Blit(cmd, material);
+                cmd.SetGlobalTexture(BlitSourceId, source ?? _state.ColorBufferId.Identifier);
+                bool renderToTexture = _camera.targetTexture != null;
+                ToonBlitter.Blit(cmd, material, renderToTexture);
             }
         }
 

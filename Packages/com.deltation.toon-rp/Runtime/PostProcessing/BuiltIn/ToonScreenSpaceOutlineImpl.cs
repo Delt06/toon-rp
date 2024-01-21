@@ -60,7 +60,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             UpdateMaterial(settings);
 
             Material material = _material.GetOrCreate();
-            ToonBlitter.Blit(cmd, material);
+            ToonBlitter.Blit(cmd, material, true);
         }
 
         public void RenderViaBlit(CommandBuffer cmd, in ToonScreenSpaceOutlineSettings settings,

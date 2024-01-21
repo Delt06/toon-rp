@@ -168,7 +168,8 @@ namespace DELTation.ToonRP
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _opaqueTexture.Setup(ref _context, settings);
             _extensionsCollection.Setup(_extensionContext);
-            _postProcessing.Setup(_context, postProcessingSettings, _settings, additionalCameraData,
+            _postProcessing.Setup(_context, postProcessingSettings, _settings,
+                additionalCameraData, _renderTarget,
                 _renderTarget.ColorFormat, _camera,
                 _renderTarget.Width,
                 _renderTarget.Height
@@ -219,7 +220,9 @@ namespace DELTation.ToonRP
 
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
+                BeginXrRendering(cmd);
                 RenderPostProcessing(cmd);
+                EndXrRendering(cmd);
             }
             else
             {
@@ -329,7 +332,7 @@ namespace DELTation.ToonRP
 
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
-            
+
             GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
             if (ToonSceneViewUtils.IsDrawingWireframes(_camera))
             {
@@ -344,7 +347,7 @@ namespace DELTation.ToonRP
                     msaaSamples = msaaSamples,
                 }
             );
-            
+
             // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
             bool requireMsaaRenderToTexture = msaaSamples > 1;
 
@@ -360,10 +363,10 @@ namespace DELTation.ToonRP
                 }
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
-            
+
             bool renderToTexture =
                     _settings.ForceRenderToIntermediateBuffer ||
-                    requireMsaaRenderToTexture || 
+                    requireMsaaRenderToTexture ||
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
@@ -680,10 +683,10 @@ namespace DELTation.ToonRP
         private void BlitToCameraTarget()
         {
             BeginXrRendering(_finalBlitCmd);
-            
+
             _renderTarget.FinalBlit(_finalBlitCmd);
             _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
-            
+
             EndXrRendering(_finalBlitCmd);
         }
 

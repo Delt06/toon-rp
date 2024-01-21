@@ -173,7 +173,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     material.SetFloat(BlendSrcId, (float) blendSource);
                     material.SetFloat(BlendDstId, (float) blendDestination);
 
-                    ToonBlitter.Blit(cmd, material);
+                    ToonBlitter.Blit(cmd, material, true);
                 }
 
 

@@ -33,7 +33,7 @@ namespace DELTation.ToonRP
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            Shader occlusionMeshShader = null;
+            var occlusionMeshShader = Shader.Find(ToonXr.OcclusionMeshShaderName);
             var mirrorViewShader = Shader.Find(ToonXr.MirrorViewShaderName);
             XRSystem.Initialize(ToonXrPass.Create, occlusionMeshShader, mirrorViewShader);
 #endif // ENABLE_VR && ENABLE_XR_MODULE

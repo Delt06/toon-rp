@@ -559,6 +559,7 @@ namespace DELTation.ToonRP
 
             _renderTarget.BeginRenderPass(ref _context, loadAction, clearValue);
 
+            DrawOcclusionMesh(cmd);
             DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();
             DrawGizmosPreImageEffects();
@@ -576,6 +577,19 @@ namespace DELTation.ToonRP
             {
                 _additionalCameraData.XrPass.StartSinglePass(cmd);
                 _context.ExecuteCommandBufferAndClear(cmd);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+        }
+
+        private void DrawOcclusionMesh(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.hasValidOcclusionMesh)
+            {
+                xrPass.RenderOcclusionMesh(cmd);
+                _context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
         }
@@ -610,6 +624,18 @@ namespace DELTation.ToonRP
             {
                 clearColor = cameraClearFlags == CameraClearFlags.Color || _camera.cameraType != CameraType.Game;
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (_camera.cameraType == CameraType.Game)
+                {
+                    XRPass xrPass = _additionalCameraData.XrPass;
+                    if (xrPass.enabled && !clearColor)
+                    {
+                        clearColor = true;
+                        backgroundColor = Color.black;
+                    }
+                }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
             }
 
             return new ToonClearValue(clearColor, clearDepth, backgroundColor);

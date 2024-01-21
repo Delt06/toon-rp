@@ -330,9 +330,22 @@ namespace DELTation.ToonRP
             cameraRect.min = Vector2.Max(cameraRect.min, Vector2.zero);
             cameraRect.max = Vector2.Min(cameraRect.max, Vector2.one);
             _camera.rect = cameraRect;
+            Rect cameraPixelRect = _camera.pixelRect;
 
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled)
+                {
+                    rtWidth = xrPass.renderTargetDesc.width;
+                    rtHeight = xrPass.renderTargetDesc.height;
+                    cameraPixelRect = xrPass.GetViewport();
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
 
             GraphicsFormat renderTextureColorFormat = GetRenderTextureColorFormat(_settings);
             if (ToonSceneViewUtils.IsDrawingWireframes(_camera))
@@ -411,10 +424,14 @@ namespace DELTation.ToonRP
                 depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
             }
 
-            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, _settings.RenderTextureFilterMode,
+            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, cameraPixelRect,
+                _settings.RenderTextureFilterMode,
                 renderTextureColorFormat, depthStencilFormat,
                 msaaSamples
             );
+            (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) cameraTarget =
+                GetCameraTarget();
+            _renderTarget.SetCameraTarget(cameraTarget.colorBufferId, cameraTarget.depthBufferId);
 
             UpdateRtHandles(rtWidth, rtHeight);
 
@@ -611,11 +628,28 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
+            RenderTargetIdentifier destination = _renderTarget.CameraTargetColorId;
             _postProcessing.RenderFullScreenEffects(
                 _renderTarget.Width, _renderTarget.Height, _renderTarget.ColorFormat,
-                sourceId, BuiltinRenderTextureType.CameraTarget
+                sourceId, destination
             );
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPostProcessing);
+        }
+
+        private (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) GetCameraTarget()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                return (xrPass.renderTarget, xrPass.renderTarget);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            RenderTexture targetTexture = _camera.targetTexture;
+            return targetTexture != null
+                ? (targetTexture.colorBuffer, targetTexture.depthBuffer)
+                : (BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
         }
 
 

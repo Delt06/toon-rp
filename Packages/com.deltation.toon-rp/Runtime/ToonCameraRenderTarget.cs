@@ -23,6 +23,8 @@ namespace DELTation.ToonRP
 
         private State _state;
         private bool _useNativeRenderPasses;
+        public RenderTargetIdentifier CameraTargetColorId { get; private set; } = BuiltinRenderTextureType.CameraTarget;
+        public RenderTargetIdentifier CameraTargetDepthId { get; private set; } = BuiltinRenderTextureType.CameraTarget;
 
         public bool ForceStoreAttachments { get; set; } = true;
 
@@ -33,6 +35,7 @@ namespace DELTation.ToonRP
         public GraphicsFormat ColorFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
+        public Rect PixelRect { get; private set; }
 
         public void ConfigureNativeRenderPasses(bool useNativeRenderPasses)
         {
@@ -53,7 +56,7 @@ namespace DELTation.ToonRP
         {
             if (RenderToTexture)
             {
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                cmd.SetRenderTarget(CameraTargetColorId);
 
                 var screenParams = new ScreenParams(_camera.pixelWidth, _camera.pixelHeight)
                 {
@@ -68,7 +71,7 @@ namespace DELTation.ToonRP
         }
 
 
-        public void Initialize(Camera camera, bool renderToTexture, int width, int height,
+        public void Initialize(Camera camera, bool renderToTexture, int width, int height, Rect pixelRect,
             FilterMode filterMode,
             GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat, int msaaSamples)
         {
@@ -77,10 +80,17 @@ namespace DELTation.ToonRP
             _camera = camera;
             Width = width;
             Height = height;
+            PixelRect = pixelRect;
             ColorFormat = colorFormat;
             MsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
             _state = default;
+        }
+
+        public void SetCameraTarget(RenderTargetIdentifier colorId, RenderTargetIdentifier depthId)
+        {
+            CameraTargetColorId = colorId;
+            CameraTargetDepthId = depthId;
         }
 
         public void InitState()
@@ -117,18 +127,13 @@ namespace DELTation.ToonRP
             }
             else
             {
-                RenderTexture targetTexture = _camera.targetTexture;
-                (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) = targetTexture != null
-                    ? ((RenderTargetIdentifier) targetTexture.colorBuffer,
-                        (RenderTargetIdentifier) targetTexture.depthBuffer)
-                    : (BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
-
-                _state.ColorBufferId = CameraRtId.Persistent(colorBufferId);
-                _state.DepthBufferId = CameraRtId.Persistent(depthBufferId);
+                _state.ColorBufferId = CameraRtId.Persistent(CameraTargetColorId);
+                _state.DepthBufferId = CameraRtId.Persistent(CameraTargetDepthId);
             }
         }
 
-        public void BeginRenderPass(ref ScriptableRenderContext context, RenderBufferLoadAction loadAction,
+        public void BeginRenderPass(ref ScriptableRenderContext context,
+            RenderBufferLoadAction loadAction,
             in ToonClearValue clearValue = default)
         {
             Assert.IsFalse(_inRenderPass);
@@ -340,7 +345,24 @@ namespace DELTation.ToonRP
 
         private void SetViewport(CommandBuffer cmd)
         {
-            cmd.SetViewport(RenderToTexture ? new Rect(0, 0, Width, Height) : _camera.pixelRect);
+            // Rect pixelViewport;
+            //
+            // if (_additionalCameraData.XrPass.enabled)
+            // {
+            //     Rect viewport = RenderToTexture ? new Rect(0, 0, 1.0f, 1.0f) : _camera.rect;
+            //     Rect xrViewport = _additionalCameraData.XrPass.GetViewport();
+            //     pixelViewport = new Rect(viewport.x * xrViewport.width + xrViewport.x,
+            //         viewport.y * xrViewport.height + xrViewport.y,
+            //         viewport.width * xrViewport.width,
+            //         viewport.height * xrViewport.height
+            //     );
+            // }
+            // else
+            // {
+            //     pixelViewport = RenderToTexture ? new Rect(0, 0, Width, Height) : _camera.pixelRect;
+            // }
+
+            cmd.SetViewport(RenderToTexture ? new Rect(0, 0, Width, Height) : PixelRect);
         }
 
         public void EndRenderPass(ref ScriptableRenderContext context, CommandBuffer cmd)

@@ -58,12 +58,9 @@ namespace DELTation.ToonRP
 
                 context.ExecuteCommandBufferAndClear(cmd);
             }
-            else
-#endif
-            {
-                additionalCameraData.SetCustomProjectionMatrix(overrideProjectionMatrix);
-                context.SetupCameraProperties(additionalCameraData.Camera);
-            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+            additionalCameraData.SetCustomProjectionMatrix(overrideProjectionMatrix);
+            context.SetupCameraProperties(additionalCameraData.Camera);
         }
 
         private static void SetInverseViewAndProjectionMatrices(CommandBuffer cmd,

@@ -5,7 +5,6 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
-using DELTation.ToonRP.Xr;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -52,10 +51,6 @@ namespace DELTation.ToonRP
         {
             _tiledLighting = new ToonTiledLighting(_lighting);
             _opaqueTexture = new ToonOpaqueTexture(_renderTarget);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            XRSystem.Initialize(ToonXrPass.Create, null, null);
-#endif // ENABLE_VR && ENABLE_XR_MODULE
         }
 
         public void Dispose()
@@ -64,7 +59,6 @@ namespace DELTation.ToonRP
             _tiledLighting?.Dispose();
             _extensionsCollection.Dispose();
             _postProcessing.Dispose();
-            XRSystem.Dispose();
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat() =>

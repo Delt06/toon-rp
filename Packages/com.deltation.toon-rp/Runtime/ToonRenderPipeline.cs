@@ -1,6 +1,7 @@
 ﻿using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
+using DELTation.ToonRP.Xr;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -30,6 +31,12 @@ namespace DELTation.ToonRP
             _postProcessingSettings = postProcessingSettings;
             _extensions = extensions;
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Shader occlusionMeshShader = null;
+            var mirrorViewShader = Shader.Find(ToonXr.MirrorViewShaderName);
+            XRSystem.Initialize(ToonXrPass.Create, occlusionMeshShader, mirrorViewShader);
+#endif // ENABLE_VR && ENABLE_XR_MODULE
         }
 
         public ref ToonCameraRendererSettings CameraRendererSettings => ref _cameraRendererSettings;
@@ -45,6 +52,7 @@ namespace DELTation.ToonRP
         {
             base.Dispose(disposing);
             _cameraRenderer.Dispose();
+            XRSystem.Dispose();
         }
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)

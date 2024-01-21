@@ -75,7 +75,7 @@ namespace DELTation.ToonRP
                 };
                 SetScreenParamsOverride(cmd, screenParams);
                 cmd.SetViewport(PixelRect);
-                
+
                 Material material = _finalBlitMaterial.GetOrCreate();
                 bool yFlip = _camera.targetTexture == null && SystemInfo.graphicsUVStartsAtTop;
                 Vector2 viewportScale = Vector2.one;
@@ -507,7 +507,7 @@ namespace DELTation.ToonRP
             private CameraRtId(int id, RenderTextureDescriptor descriptor, FilterMode filterMode, int arraySize)
             {
                 _id = id;
-                Identifier = _id;
+                Identifier = new RenderTargetIdentifier(_id, 0, CubemapFace.Unknown, -1);
                 _descriptor = descriptor;
                 _filterMode = filterMode;
                 _arraySize = arraySize;

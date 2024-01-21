@@ -82,6 +82,13 @@ namespace DELTation.ToonRP
                 {
                     if (xrPass.enabled)
                     {
+                        if (!xrPass.singlePassEnabled)
+                        {
+                            Debug.LogError(
+                                "Toon RP only supports Single Pass Instanced rendering. Please enable it in XR settings."
+                            );
+                        }
+
                         xrActive = true;
                         UpdateCameraStereoMatrices(camera, xrPass);
                     }

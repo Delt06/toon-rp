@@ -709,7 +709,7 @@ namespace DELTation.ToonRP
             }
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeSkybox);
-            _context.DrawSkybox(_camera);
+            DrawSkybox(cmd);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             _opaqueTexture.Capture();
@@ -790,6 +790,49 @@ namespace DELTation.ToonRP
                 context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings,
                     ref renderStateBlockValue
                 );
+            }
+        }
+
+        private void DrawSkybox(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                // Setup Legacy XR buffer states
+                if (xrPass.singlePassEnabled)
+                {
+                    // Use legacy stereo instancing mode to have legacy XR code path configured
+                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview
+                        ? SinglePassStereoMode.Multiview
+                        : SinglePassStereoMode.Instancing
+                    );
+                    _context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    // Calling into built-in skybox pass
+                    _context.DrawSkybox(_camera);
+
+                    // Disable Legacy XR path
+                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
+                    _context.ExecuteCommandBuffer(cmd);
+                    // We do not need to submit here due to special handling of stereo matrices in core.
+                    // context.Submit();
+                    cmd.Clear();
+
+                    _camera.ResetStereoProjectionMatrices();
+                    _camera.ResetStereoViewMatrices();
+                }
+                else
+                {
+                    _context.DrawSkybox(_camera);
+                }
+            }
+            else
+#endif
+            {
+                _context.DrawSkybox(_camera);
             }
         }
 

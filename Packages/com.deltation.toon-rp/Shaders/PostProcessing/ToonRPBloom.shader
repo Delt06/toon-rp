@@ -5,6 +5,8 @@
 	}
 	SubShader
 	{
+	    Cull Off ZWrite Off ZTest Always
+	    
         HLSLINCLUDE
 
         //#pragma enable_d3d11_debug_symbols

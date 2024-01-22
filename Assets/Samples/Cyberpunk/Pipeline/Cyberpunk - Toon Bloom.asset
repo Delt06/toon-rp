@@ -21,7 +21,6 @@ MonoBehaviour:
     MaxIterations: 5
     ResolutionFactor: 2
     DownsampleLimit: 2
-    BicubicUpsampling: 0
     Pattern:
       Enabled: 1
       Scale: 350

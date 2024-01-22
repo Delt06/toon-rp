@@ -23,8 +23,6 @@
         TEXTURE2D_X(_MainTex);
         SAMPLER(sampler_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
-
-        bool _ToonRP_Bloom_UseBicubicUpsampling;
         
 	    ENDHLSL
 
@@ -147,15 +145,7 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
                 const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
                 
-                float3 source1;
-                if (_ToonRP_Bloom_UseBicubicUpsampling)
-                {
-                    source1 = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_MainTex, sampler_MainTex), uv, _MainTex_TexelSize.zwxy, 1.0, 0.0).rgb;
-                }
-                else
-                {
-                    source1 = SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;    
-                }
+                float3 source1 = SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;
 
                 if (_ToonRP_Bloom_UsePattern)
                 {

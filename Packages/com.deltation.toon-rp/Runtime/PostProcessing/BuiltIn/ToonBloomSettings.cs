@@ -23,8 +23,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         [Min(1)]
         public int DownsampleLimit;
 
-        public bool BicubicUpsampling;
-
         public PatternSettings Pattern;
 
         [Serializable]

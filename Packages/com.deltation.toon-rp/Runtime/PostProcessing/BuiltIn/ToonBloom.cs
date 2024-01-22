@@ -22,7 +22,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private const float MinPatternSize = 3;
 
         private static readonly int MainTex2Id = Shader.PropertyToID("_MainTex2");
-        private static readonly int UseBicubicUpsamplingId = Shader.PropertyToID("_ToonRP_Bloom_UseBicubicUpsampling");
         private static readonly int PrefilterSourceId = Shader.PropertyToID("_ToonRP_Bloom_Prefilter");
         private static readonly int ThresholdId = Shader.PropertyToID("_ToonRP_Bloom_Threshold");
         private static readonly int IntensityId = Shader.PropertyToID("_ToonRP_Bloom_Intensity");
@@ -177,7 +176,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             int toId)
         {
             cmd.BeginSample(CombineSampleName);
-            cmd.SetGlobalInteger(UseBicubicUpsamplingId, _settings.BicubicUpsampling ? 1 : 0);
             cmd.SetGlobalFloat(IntensityId, 1.0f);
             cmd.SetGlobalInteger(UsePatternId, 0);
             if (i > 1)

@@ -148,36 +148,5 @@ namespace DELTation.ToonRP
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
         }
-
-        // static void UpdateCameraData(Camera camera, ref ToonXrPersistentData xrPersistentData, in XRPass xr)
-        // {
-        //     // Update cameraData viewport for XR
-        //     Rect cameraRect = camera.rect;
-        //     Rect xrViewport = xr.GetViewport();
-        //     xrPersistentData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
-        //         cameraRect.y * xrViewport.height + xrViewport.y,
-        //         cameraRect.width * xrViewport.width,
-        //         cameraRect.height * xrViewport.height);
-        //     Rect camPixelRect = xrPersistentData.pixelRect;
-        //     xrPersistentData.pixelWidth = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
-        //     xrPersistentData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
-        //     xrPersistentData.aspectRatio = (float)xrPersistentData.pixelWidth / (float)xrPersistentData.pixelHeight;
-        //
-        //     bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
-        //         Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
-        //         Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
-        //     xrPersistentData.isDefaultViewport = xrPersistentData.isDefaultViewport && isDefaultXRViewport;
-        //
-        //     // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
-        //     var originalTargetDesc = xrPersistentData.cameraTargetDescriptor;
-        //     xrPersistentData.cameraTargetDescriptor = xr.renderTargetDesc;
-        //     if (xrPersistentData.isHdrEnabled)
-        //     {
-        //         xrPersistentData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-        //     }
-        //     xrPersistentData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-        //     xrPersistentData.cameraTargetDescriptor.width = xrPersistentData.pixelWidth;
-        //     xrPersistentData.cameraTargetDescriptor.height = xrPersistentData.pixelHeight;
-        // }
     }
 }

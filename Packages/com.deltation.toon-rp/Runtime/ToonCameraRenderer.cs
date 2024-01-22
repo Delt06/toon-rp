@@ -359,7 +359,6 @@ namespace DELTation.ToonRP
                     rtWidth = xrPass.renderTargetDesc.width;
                     rtHeight = xrPass.renderTargetDesc.height;
                     cameraPixelRect = xrPass.GetViewport();
-                    // requireMsaaRenderToTexture = false;
                 }
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE

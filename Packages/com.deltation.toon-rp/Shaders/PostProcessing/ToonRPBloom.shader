@@ -114,6 +114,7 @@
 			float _ToonRP_Bloom_PatternPower;
 			float _ToonRP_Bloom_PatternMultiplier;
 			float _ToonRP_Bloom_PatternEdge;
+			float _ToonRP_Bloom_PatternLuminanceThreshold;
 
 			float ComputePattern(const float2 uv)
 			{
@@ -133,7 +134,7 @@
 			    // smooth circle in each grid cell
                 float patternIntensity = smoothstep(1, _ToonRP_Bloom_PatternEdge, length(centeredPatternUv));
 			    // avoid very small details
-                patternIntensity *= step(0.05, luminance);
+                patternIntensity *= step(_ToonRP_Bloom_PatternLuminanceThreshold, luminance);
 			    return patternIntensity;
 			}
 

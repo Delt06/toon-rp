@@ -28,3 +28,4 @@ MonoBehaviour:
       Power: 2.02
       Multiplier: 9.4
       Smoothness: 0.185
+      LuminanceThreshold: 0.15

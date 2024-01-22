@@ -26,18 +26,11 @@ namespace DELTation.ToonRP.Editor
 
             enabledField.RegisterValueChangeCallback(_ => RefreshFields());
 
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(PatternSettings.Scale)))
-            );
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(PatternSettings.Power)))
-            );
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(PatternSettings.Multiplier)))
-            );
-            settingsContainer.Add(
-                new PropertyField(property.FindPropertyRelative(nameof(PatternSettings.Smoothness)))
-            );
+            AddProperty(settingsContainer, property, nameof(PatternSettings.Scale));
+            AddProperty(settingsContainer, property, nameof(PatternSettings.Power));
+            AddProperty(settingsContainer, property, nameof(PatternSettings.Multiplier));
+            AddProperty(settingsContainer, property, nameof(PatternSettings.Smoothness));
+            AddProperty(settingsContainer, property, nameof(PatternSettings.LuminanceThreshold));
 
             root.Add(new ToonRpHeaderLabel("Pattern"));
             root.Add(enabledField);
@@ -45,5 +38,8 @@ namespace DELTation.ToonRP.Editor
 
             return root;
         }
+
+        private static void AddProperty(VisualElement container, SerializedProperty property, string relativeName) =>
+            container.Add(new PropertyField(property.FindPropertyRelative(relativeName)));
     }
 }

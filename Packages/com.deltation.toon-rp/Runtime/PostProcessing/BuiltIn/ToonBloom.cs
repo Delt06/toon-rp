@@ -31,6 +31,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int PatternPowerId = Shader.PropertyToID("_ToonRP_Bloom_PatternPower");
         private static readonly int PatternMultiplierId = Shader.PropertyToID("_ToonRP_Bloom_PatternMultiplier");
         private static readonly int PatternEdgeId = Shader.PropertyToID("_ToonRP_Bloom_PatternEdge");
+        private static readonly int PatternLuminanceThresholdId = Shader.PropertyToID("_ToonRP_Bloom_PatternLuminanceThreshold");
 
         private readonly int _bloomPyramidId;
 
@@ -210,6 +211,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalFloat(PatternPowerId, _settings.Pattern.Power);
                 cmd.SetGlobalFloat(PatternMultiplierId, _settings.Pattern.Multiplier);
                 cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);
+                cmd.SetGlobalFloat(PatternLuminanceThresholdId, _settings.Pattern.LuminanceThreshold);
             }
 
             cmd.SetGlobalTexture(MainTex2Id, FixupTextureArrayIdentifier(source));

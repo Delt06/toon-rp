@@ -21,6 +21,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     Power = 2,
                     Multiplier = 4,
                     Smoothness = 0.5f,
+                    LuminanceThreshold = 0.1f,
                 },
             };
         }

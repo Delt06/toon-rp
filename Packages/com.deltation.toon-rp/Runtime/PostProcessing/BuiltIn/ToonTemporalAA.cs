@@ -36,9 +36,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonCameraRendererSettings cameraRendererSettings = context.CameraRendererSettings;
             RTHandleSystem rtHandleSystem = context.AdditionalCameraData.RTHandleSystem;
-            rtHandleSystem.EnsureAllocatedCameraTarget(
+            rtHandleSystem.ReAllocateCameraRtIfNeeded(
                 ref persistentData.HistoryRt, HistoryRtName,
-                cameraRendererSettings, false
+                cameraRendererSettings
             );
         }
 

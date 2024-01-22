@@ -14,7 +14,8 @@ namespace DELTation.ToonRP.PostProcessing
         public delegate bool PassPredicate([NotNull] IToonPostProcessingPass pass,
             in ToonPostProcessingContext context);
 
-        private static readonly int PostProcessingBufferId = Shader.PropertyToID("_ToonRP_PostProcessing");
+        private static readonly int PostProcessingBuffer0Id = Shader.PropertyToID("_ToonRP_PostProcessing_0");
+        private static readonly int PostProcessingBuffer1Id = Shader.PropertyToID("_ToonRP_PostProcessing_1");
         private static readonly int PostProcessingBufferNative0Id =
             Shader.PropertyToID("_ToonRP_PostProcessing_Native0");
         private static readonly int PostProcessingBufferNative1Id =
@@ -157,7 +158,7 @@ namespace DELTation.ToonRP.PostProcessing
             {
                 RenderTargetIdentifier currentSource = sourceId;
                 RenderTargetIdentifier currentDestination =
-                    GetTemporaryRT(cmd, PostProcessingBufferId, width, height,
+                    GetTemporaryRT(cmd, PostProcessingBuffer0Id, width, height,
                         _cameraRendererSettings.RenderTextureFilterMode, format
                     );
                 RenderTargetIdentifier native0Id;
@@ -188,9 +189,17 @@ namespace DELTation.ToonRP.PostProcessing
 
 
                     // Case 1: source and destination need to be distinct
-                    if (switchedToNative || pass.NeedsDistinctSourceAndDestination())
+                    if (switchedToNative || pass.NeedsDistinctSourceAndDestination() || currentSource == sourceId)
                     {
                         pass.Render(cmd, currentSource, currentDestination);
+
+                        if (currentSource == sourceId)
+                        {
+                            // Avoid reusing the original resource at it may cause repeated MSAA resolve
+                            currentSource = GetTemporaryRT(cmd, PostProcessingBuffer1Id, width, height,
+                                _cameraRendererSettings.RenderTextureFilterMode, format
+                            );
+                        }
 
                         if (switchedToNative)
                         {
@@ -217,7 +226,8 @@ namespace DELTation.ToonRP.PostProcessing
                     }
                 }
 
-                cmd.ReleaseTemporaryRT(PostProcessingBufferId);
+                cmd.ReleaseTemporaryRT(PostProcessingBuffer0Id);
+                cmd.ReleaseTemporaryRT(PostProcessingBuffer1Id);
 
                 if (native)
                 {

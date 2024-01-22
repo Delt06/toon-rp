@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -12,6 +13,12 @@ namespace DELTation.ToonRP
     public sealed class ToonAdditionalCameraData : MonoBehaviour, IAdditionalData
     {
         private readonly Dictionary<Type, object> _persistentDataStorage = new();
+        
+        [NonSerialized] [CanBeNull]
+        public RTHandle IntermediateColorRt;
+        [NonSerialized] [CanBeNull]
+        public RTHandle IntermediateDepthRt;
+
         public Camera Camera { get; private set; }
         public XRPass XrPass { get; internal set; } = XRSystem.emptyPass;
 
@@ -42,6 +49,9 @@ namespace DELTation.ToonRP
             }
 
             _persistentDataStorage.Clear();
+
+            RTHandleSystem.ReleaseIfAllocated(ref IntermediateColorRt);
+            RTHandleSystem.ReleaseIfAllocated(ref IntermediateDepthRt);
 
             RTHandleSystem.Dispose();
         }

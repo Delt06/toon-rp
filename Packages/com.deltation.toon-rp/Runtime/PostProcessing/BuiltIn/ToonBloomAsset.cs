@@ -23,6 +23,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     Smoothness = 0.5f,
                     LuminanceThreshold = 0.1f,
                     DotSizeLimit = 1.0f,
+                    Blend = 0.1f,
+                    FinalIntensityThreshold = 0.25f,
                 },
             };
         }

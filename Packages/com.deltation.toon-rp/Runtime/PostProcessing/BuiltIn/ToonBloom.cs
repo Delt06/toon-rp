@@ -34,6 +34,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int PatternLuminanceThresholdId =
             Shader.PropertyToID("_ToonRP_Bloom_PatternLuminanceThreshold");
         private static readonly int PatternDotSizeLimitId = Shader.PropertyToID("_ToonRP_Bloom_PatternDotSizeLimit");
+        private static readonly int PatternBlendId =
+            Shader.PropertyToID("_ToonRP_Bloom_PatternBlend");
+        private static readonly int PatternFinalIntensityRampId =
+            Shader.PropertyToID("_ToonRP_Bloom_PatternFinalIntensityRamp");
 
         private readonly int _bloomPyramidId;
 
@@ -216,6 +220,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalFloat(PatternLuminanceThresholdId, _settings.Pattern.LuminanceThreshold);
                 cmd.SetGlobalFloat(PatternDotSizeLimitId,
                     _settings.Pattern.DotSizeLimit > 0.0f ? _settings.Pattern.DotSizeLimit : 10.0f
+                );
+                cmd.SetGlobalFloat(PatternBlendId, _settings.Pattern.Blend);
+                cmd.SetGlobalVector(PatternFinalIntensityRampId,
+                    BuildRampVectorFromEdges(_settings.Pattern.FinalIntensityThreshold, 1.0f)
                 );
             }
 

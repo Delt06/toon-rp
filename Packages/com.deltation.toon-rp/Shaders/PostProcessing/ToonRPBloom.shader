@@ -106,6 +106,7 @@
 
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Ramp.hlsl"
 
 			TEXTURE2D_X(_MainTex2);
 			float _ToonRP_Bloom_Intensity;
@@ -116,6 +117,8 @@
 			float _ToonRP_Bloom_PatternEdge;
 			float _ToonRP_Bloom_PatternLuminanceThreshold;
 			float _ToonRP_Bloom_PatternDotSizeLimit;
+			float _ToonRP_Bloom_PatternBlend;
+			float2 _ToonRP_Bloom_PatternFinalIntensityRamp;
 
 			float ComputePattern(const float2 uv)
 			{
@@ -156,7 +159,9 @@
 
                 if (_ToonRP_Bloom_UsePattern)
                 {
-                    source1 *= ComputePattern(uv);
+                    source1 *= ComputeRamp(max(source1.r, max(source1.g, source1.b)), _ToonRP_Bloom_PatternFinalIntensityRamp);
+                    const float patternStrength = lerp(_ToonRP_Bloom_PatternBlend, 1, ComputePattern(uv));
+                    source1 *= patternStrength;
                 }
                  
                 const float3 source2 = SAMPLE_TEXTURE2D_X_LOD(_MainTex2, sampler_MainTex, uv, 0).rgb;

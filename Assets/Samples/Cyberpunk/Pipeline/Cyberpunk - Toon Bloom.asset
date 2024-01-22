@@ -24,7 +24,7 @@ MonoBehaviour:
     BicubicUpsampling: 0
     Pattern:
       Enabled: 1
-      Scale: 50
+      Scale: 250
       Power: 1.66
       Multiplier: 9.4
       Smoothness: 0.185

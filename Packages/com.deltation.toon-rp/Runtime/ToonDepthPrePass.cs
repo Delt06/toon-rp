@@ -6,13 +6,13 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
 {
-    public class DepthPrePass
+    public class ToonDepthPrePass : ToonPrePassBase
     {
         private static readonly ShaderTagId DepthOnlyShaderTagId = new(ToonPasses.DepthOnly.LightMode);
         private static readonly ShaderTagId DepthNormalsShaderTagId = new(ToonPasses.DepthNormals.LightMode);
 
-        public static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
-        public static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");
+        private static readonly int DepthTextureId = Shader.PropertyToID("_ToonRP_DepthTexture");
+        private static readonly int NormalsTextureId = Shader.PropertyToID("_ToonRP_NormalsTexture");
 
         private readonly int _depthTextureId;
         private readonly int _normalsTextureId;
@@ -28,20 +28,26 @@ namespace DELTation.ToonRP
         private ToonCameraRendererSettings _settings;
         private bool _stencil;
 
-        public DepthPrePass() : this(DepthTextureId, NormalsTextureId) { }
+        public ToonDepthPrePass() : this(DepthTextureId, NormalsTextureId) { }
 
-        public DepthPrePass(int depthTextureId, int normalsTextureId)
+        public ToonDepthPrePass(int depthTextureId, int normalsTextureId)
         {
             _depthTextureId = depthTextureId;
             _normalsTextureId = normalsTextureId;
         }
 
+        public RenderTargetIdentifier DepthTexture { get; private set; }
+        public RenderTargetIdentifier NormalsTexture { get; private set; }
+
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
             ToonRenderingExtensionsCollection extensionsCollection,
+            ToonAdditionalCameraData additionalCameraData,
             in ToonCameraRendererSettings settings, PrePassMode mode, int rtWidth, int rtHeight,
             bool stencil = false)
         {
             Assert.IsTrue(mode.Includes(PrePassMode.Depth), "mode.Includes(PrePassMode.Depth)");
+
+            Setup(additionalCameraData);
 
             _context = context;
             _cullingResults = cullingResults;
@@ -64,22 +70,23 @@ namespace DELTation.ToonRP
                     GraphicsFormat.None, ToonFormatUtils.GetDefaultDepthFormat(_stencil),
                     0
                 );
-                cmd.GetTemporaryRT(_depthTextureId, depthDesc);
+                DepthTexture = GetTemporaryRT(cmd, _depthTextureId, depthDesc, FilterMode.Point);
                 if (_normals)
                 {
-                    cmd.GetTemporaryRT(_normalsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
-                        RenderTextureFormat.RGB565
+                    var normalsDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                        RenderTextureFormat.RGB565, 0
                     );
+                    NormalsTexture = GetTemporaryRT(cmd, _normalsTextureId, normalsDesc, FilterMode.Point);
                     cmd.SetRenderTarget(
-                        _normalsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                        _depthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                        NormalsTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                        DepthTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                     );
                     cmd.ClearRenderTarget(true, true, Color.grey);
                 }
                 else
                 {
                     cmd.SetRenderTarget(
-                        _depthTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                        DepthTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
                     );
                     cmd.ClearRenderTarget(true, false, Color.clear);
                 }

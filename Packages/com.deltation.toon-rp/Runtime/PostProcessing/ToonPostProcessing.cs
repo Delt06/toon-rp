@@ -187,7 +187,6 @@ namespace DELTation.ToonRP.PostProcessing
                         switchedToNative = true;
                     }
 
-
                     // Case 1: source and destination need to be distinct
                     if (switchedToNative || pass.NeedsDistinctSourceAndDestination() || currentSource == sourceId)
                     {

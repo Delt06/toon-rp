@@ -2,8 +2,9 @@
 #define TOON_RP_MOTION_VECTORS
 
 #include "Common.hlsl"
+#include "Textures.hlsl"
 
-TEXTURE2D(_ToonRP_MotionVectorsTexture);
+TEXTURE2D_X(_ToonRP_MotionVectorsTexture);
 SAMPLER(sampler_ToonRP_MotionVectorsTexture);
 
 // Use last frame positions from the vertex buffer (required for skinned meshes)

@@ -19,11 +19,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
 
         private readonly ToonDepthDownsample _depthDownsample = new();
-        private readonly DepthPrePass _depthPrePass = new(
+        private readonly ToonDepthPrePass _depthPrePass = new(
             DepthId,
             0
         );
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Off-Screen Transparency");
+        private ToonAdditionalCameraData _additionalCameraData;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
@@ -54,6 +55,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _cameraRendererSettings = context.CameraRendererSettings;
             _cameraRenderTarget = context.CameraRenderTarget;
             _extensionsCollection = context.Collection;
+            _additionalCameraData = context.AdditionalCameraData;
 
             _width = Mathf.Max(1, _cameraRenderTarget.Width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _cameraRenderTarget.Height / _settings.ResolutionFactor);
@@ -75,7 +77,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 {
                     const bool stencil = true;
                     _depthPrePass.Setup(_srpContext, _cullingResults,
-                        _camera, _extensionsCollection, _cameraRendererSettings,
+                        _camera, _extensionsCollection, _additionalCameraData, _cameraRendererSettings,
                         PrePassMode.Depth,
                         _width, _height,
                         stencil

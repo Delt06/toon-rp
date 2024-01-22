@@ -5,12 +5,13 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
 {
-    public class MotionVectorsPrePass
+    public class ToonMotionVectorsPrePass : ToonPrePassBase
     {
         private static readonly ShaderTagId MotionVectorsShaderTagId = new(ToonPasses.MotionVectors.LightMode);
         private static readonly int PrevViewProjMatrixId = Shader.PropertyToID("_PrevViewProjMatrix");
         private static readonly int NonJitteredViewProjMatrixId = Shader.PropertyToID("_NonJitteredViewProjMatrix");
-        public readonly int MotionVectorsTextureId = Shader.PropertyToID("_ToonRP_MotionVectorsTexture");
+        private static readonly int MotionVectorsTextureId = Shader.PropertyToID("_ToonRP_MotionVectorsTexture");
+        private readonly ToonDepthPrePass _depthPrePass;
 
         private Camera _camera;
         private ScriptableRenderContext _context;
@@ -22,11 +23,17 @@ namespace DELTation.ToonRP
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
 
+        public ToonMotionVectorsPrePass(ToonDepthPrePass depthPrePass) => _depthPrePass = depthPrePass;
+
+        public RenderTargetIdentifier MotionVectorsTexture { get; private set; }
+
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
             ToonRenderingExtensionsCollection extensionsCollection,
             ToonAdditionalCameraData additionalCameraData,
             in ToonCameraRendererSettings settings, int rtWidth, int rtHeight)
         {
+            Setup(additionalCameraData);
+
             _context = context;
             _cullingResults = cullingResults;
             _camera = camera;
@@ -49,12 +56,13 @@ namespace DELTation.ToonRP
                 cmd.SetGlobalMatrix(PrevViewProjMatrixId, _motionVectorsPersistentData.PreviousViewProjection);
                 cmd.SetGlobalMatrix(NonJitteredViewProjMatrixId, _motionVectorsPersistentData.ViewProjection);
 
-                cmd.GetTemporaryRT(MotionVectorsTextureId, _rtWidth, _rtHeight, 0, FilterMode.Point,
-                    GraphicsFormat.R16G16_SFloat
+                var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                    GraphicsFormat.R16G16_SFloat, 0
                 );
+                MotionVectorsTexture = GetTemporaryRT(cmd, MotionVectorsTextureId, desc, FilterMode.Point);
                 cmd.SetRenderTarget(
-                    MotionVectorsTextureId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    DepthPrePass.DepthTextureId, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
+                    MotionVectorsTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    _depthPrePass.DepthTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store
                 );
                 cmd.ClearRenderTarget(false, true, Color.black);
 
@@ -93,7 +101,7 @@ namespace DELTation.ToonRP
 
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Depth)
             {
-                depthState = new DepthState { writeEnabled = false, compareFunction = CompareFunction.LessEqual },
+                depthState = new DepthState { writeEnabled = true, compareFunction = CompareFunction.LessEqual },
             };
 
             _context.DrawRenderers(_cullingResults,

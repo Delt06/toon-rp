@@ -22,12 +22,12 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
-        private readonly DepthPrePass _depthPrePass = new();
+        private readonly ToonDepthPrePass _depthPrePass;
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
-        private readonly MotionVectorsPrePass _motionVectorsPrePass = new();
+        private readonly ToonMotionVectorsPrePass _motionVectorsPrePass;
         private readonly ToonOpaqueTexture _opaqueTexture;
         private readonly ToonPostProcessing _postProcessing = new();
 
@@ -51,6 +51,8 @@ namespace DELTation.ToonRP
         {
             _tiledLighting = new ToonTiledLighting(_lighting);
             _opaqueTexture = new ToonOpaqueTexture(_renderTarget);
+            _depthPrePass = new ToonDepthPrePass();
+            _motionVectorsPrePass = new ToonMotionVectorsPrePass(_depthPrePass);
         }
 
         public void Dispose()
@@ -198,11 +200,12 @@ namespace DELTation.ToonRP
 
             if (_prePassMode != PrePassMode.Off)
             {
-                _context.ExecuteCommandBufferAndClear(cmd);
+                BeginXrRendering(cmd);
 
                 if (_prePassMode.Includes(PrePassMode.Depth))
                 {
                     _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
+                        _additionalCameraData,
                         settings, _prePassMode,
                         _renderTarget.Width, _renderTarget.Height, _requireStencil
                     );
@@ -218,6 +221,8 @@ namespace DELTation.ToonRP
                     );
                     _motionVectorsPrePass.Render();
                 }
+
+                EndXrRendering(cmd);
             }
 
             SetupProjectionMatricesForMainView(cmd, postProcessingSettings);

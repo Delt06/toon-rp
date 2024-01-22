@@ -106,7 +106,7 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
                 Renderers.Clear();
 
                 cmd.SetRenderTarget(tempRt1);
-                ToonBlitter.BlitDefault(cmd, depthRt);
+                ToonBlitter.BlitDefault(cmd, depthRt, true);
 
                 for (int i = 0; i < BlurIterations; i++)
                 {

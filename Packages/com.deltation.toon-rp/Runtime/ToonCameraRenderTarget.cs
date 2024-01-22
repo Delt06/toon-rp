@@ -66,7 +66,8 @@ namespace DELTation.ToonRP
         {
             if (RenderToTexture)
             {
-                cmd.SetRenderTarget(CameraTargetColorId);
+                cmd.SetRenderTarget(CameraTargetColorId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+                );
 
                 var screenParams = new ScreenParams(_camera.pixelWidth, _camera.pixelHeight)
                 {

@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using static DELTation.ToonRP.ToonRpUtils;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -34,6 +36,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Bloom");
         private ToonCameraRendererSettings _cameraRendererSettings;
+        private ToonPostProcessingContext _postProcessingContext;
         private ToonBloomSettings _settings;
 
         public ToonBloom()
@@ -56,6 +59,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             base.Setup(cmd, in context);
             _settings = context.Settings.Find<ToonBloomSettings>();
+            _postProcessingContext = context;
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -73,7 +77,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
                     height < downscaleLimit || width < downscaleLimit)
                 {
-                    cmd.Blit(source, destination);
+                    BlitDefault(cmd, source, destination);
                     return;
                 }
 
@@ -96,7 +100,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             int height)
         {
             cmd.BeginSample(PrefilterSampleName);
-            cmd.GetTemporaryRT(PrefilterSourceId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
+            GetTemporaryRT(cmd, PrefilterSourceId, width, height, FilterMode.Bilinear, Context.ColorFormat);
 
             {
                 Vector4 threshold;
@@ -108,7 +112,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalVector(ThresholdId, threshold);
             }
 
-            cmd.Blit(source, PrefilterSourceId, material, PrefilterPass);
+            Blit(cmd, source, PrefilterSourceId, material, PrefilterPass);
             cmd.EndSample(PrefilterSampleName);
         }
 
@@ -125,11 +129,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 }
 
                 int midId = toId - 1;
-                cmd.GetTemporaryRT(midId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
-                cmd.GetTemporaryRT(toId, width, height, 0, FilterMode.Bilinear, Context.ColorFormat);
+                GetTemporaryRT(cmd, midId, width, height, FilterMode.Bilinear, Context.ColorFormat);
+                GetTemporaryRT(cmd, toId, width, height, FilterMode.Bilinear, Context.ColorFormat);
 
-                cmd.Blit(fromId, midId, material, HorizontalBlurPass);
-                cmd.Blit(midId, toId, material, VerticalBlurPass);
+                Blit(cmd, fromId, midId, material, HorizontalBlurPass);
+                Blit(cmd, midId, toId, material, VerticalBlurPass);
 
                 fromId = toId;
                 toId += 2;
@@ -139,6 +143,25 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             cmd.EndSample(DownsampleSampleName);
             return i;
+        }
+
+        private static void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination,
+            Material material, int shaderPass)
+        {
+            cmd.SetRenderTarget(FixupTextureArrayIdentifier(destination), RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.Store
+            );
+            cmd.SetGlobalTexture(ToonBlitter.MainTexId, FixupTextureArrayIdentifier(source));
+            ToonBlitter.Blit(cmd, material, true, shaderPass);
+        }
+
+        private static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source,
+            RenderTargetIdentifier destination)
+        {
+            cmd.SetRenderTarget(FixupTextureArrayIdentifier(destination), RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.Store
+            );
+            ToonBlitter.BlitDefault(cmd, source, true);
         }
 
         private void Combine(CommandBuffer cmd, Material material,
@@ -159,8 +182,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
                 for (; i > 0; i--)
                 {
-                    cmd.SetGlobalTexture(MainTex2Id, toId + 1);
-                    cmd.Blit(fromId, toId, material, CombinePass);
+                    cmd.SetGlobalTexture(MainTex2Id, FixupTextureArrayIdentifier(toId + 1));
+                    Blit(cmd, fromId, toId, material, CombinePass);
                     cmd.ReleaseTemporaryRT(fromId);
                     cmd.ReleaseTemporaryRT(toId + 1);
                     fromId = toId;
@@ -189,11 +212,30 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);
             }
 
-            cmd.SetGlobalTexture(MainTex2Id, source);
-            cmd.Blit(fromId, destination, material, CombinePass);
+            cmd.SetGlobalTexture(MainTex2Id, FixupTextureArrayIdentifier(source));
+            Blit(cmd, fromId, destination, material, CombinePass);
             cmd.ReleaseTemporaryRT(fromId);
 
             cmd.EndSample(CombineSampleName);
+        }
+
+        private void GetTemporaryRT(CommandBuffer cmd, int id, int width, int height,
+            FilterMode filterMode, GraphicsFormat format)
+        {
+            const int depthBuffer = 0;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _postProcessingContext.AdditionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                int arraySize = xrPass.viewCount;
+                cmd.GetTemporaryRTArray(id, width, height, arraySize, depthBuffer, filterMode, format);
+            }
+            else
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+            {
+                cmd.GetTemporaryRT(id, width, height, depthBuffer, filterMode, format);
+            }
         }
     }
 }

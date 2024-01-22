@@ -13,28 +13,33 @@ namespace DELTation.ToonRP
         private static Mesh _triangleMesh;
         private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
 
-        public static void SetBlitScaleBias(CommandBuffer cmd, Vector4 scaleBias)
-        {
-            cmd.SetGlobalVector(BlitScaleBiasId, scaleBias);
-        }
-
         public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass = 0)
         {
             EnsureMeshIsInitialized();
+            SetBlitScaleBias(cmd, renderToTexture);
+            cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, material, SubmeshIndex, shaderPass);
+        }
 
+        private static void SetBlitScaleBias(CommandBuffer cmd, bool renderToTexture)
+        {
             bool yFlip = !renderToTexture && SystemInfo.graphicsUVStartsAtTop;
             Vector2 viewportScale = Vector2.one;
             Vector4 scaleBias = yFlip
                 ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y)
                 : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
             SetBlitScaleBias(cmd, scaleBias);
-            cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, material, SubmeshIndex, shaderPass);
         }
 
-        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source)
+        private static void SetBlitScaleBias(CommandBuffer cmd, Vector4 scaleBias)
+        {
+            cmd.SetGlobalVector(BlitScaleBiasId, scaleBias);
+        }
+
+        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source, bool renderToTexture)
         {
             EnsureMeshIsInitialized();
             cmd.SetGlobalTexture(MainTexId, source);
+            SetBlitScaleBias(cmd, renderToTexture);
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, DefaultBlitMaterial.GetOrCreate(), SubmeshIndex);
         }
 

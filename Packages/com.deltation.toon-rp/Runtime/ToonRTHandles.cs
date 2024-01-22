@@ -32,7 +32,8 @@ namespace DELTation.ToonRP
                     rtHandle.rt.filterMode != filterMode ||
                     rtHandle.rt.wrapMode != wrapMode ||
                     // rtHandle.rt.depth != depthBufferBits ||
-                    rtHandle.rt.volumeDepth != arraySlices
+                    rtHandle.rt.volumeDepth != arraySlices ||
+                    rtHandle.rt.descriptor.msaaSamples != (int) msaaSamples
                    )
                 {
                     realloc = true;

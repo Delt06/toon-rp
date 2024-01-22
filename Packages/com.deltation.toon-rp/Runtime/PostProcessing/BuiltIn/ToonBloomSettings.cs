@@ -41,6 +41,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             public float Smoothness;
             [Range(0.05f, 1.0f)]
             public float LuminanceThreshold;
+            [Min(0.0f)]
+            public float DotSizeLimit;
         }
     }
 }

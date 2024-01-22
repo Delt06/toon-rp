@@ -24,8 +24,9 @@ MonoBehaviour:
     BicubicUpsampling: 0
     Pattern:
       Enabled: 1
-      Scale: 250
-      Power: 2.02
+      Scale: 50
+      Power: 1.66
       Multiplier: 9.4
       Smoothness: 0.185
       LuminanceThreshold: 0.15
+      DotSizeLimit: 1.25

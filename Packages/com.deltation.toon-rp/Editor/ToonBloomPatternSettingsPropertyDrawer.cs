@@ -31,6 +31,7 @@ namespace DELTation.ToonRP.Editor
             AddProperty(settingsContainer, property, nameof(PatternSettings.Multiplier));
             AddProperty(settingsContainer, property, nameof(PatternSettings.Smoothness));
             AddProperty(settingsContainer, property, nameof(PatternSettings.LuminanceThreshold));
+            AddProperty(settingsContainer, property, nameof(PatternSettings.DotSizeLimit));
 
             root.Add(new ToonRpHeaderLabel("Pattern"));
             root.Add(enabledField);

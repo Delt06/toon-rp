@@ -115,6 +115,7 @@
 			float _ToonRP_Bloom_PatternMultiplier;
 			float _ToonRP_Bloom_PatternEdge;
 			float _ToonRP_Bloom_PatternLuminanceThreshold;
+			float _ToonRP_Bloom_PatternDotSizeLimit;
 
 			float ComputePattern(const float2 uv)
 			{
@@ -129,7 +130,7 @@
 
 			    // scale pattern based on how bright the bloom in that area is
                 float2 centeredPatternUv = patternUv * 2 - 1;
-                centeredPatternUv /= _ToonRP_Bloom_PatternMultiplier * min(pow(abs(luminance), _ToonRP_Bloom_PatternPower), 1);
+                centeredPatternUv /= min(_ToonRP_Bloom_PatternDotSizeLimit, _ToonRP_Bloom_PatternMultiplier * min(pow(abs(luminance), _ToonRP_Bloom_PatternPower), 1));
 
 			    // smooth circle in each grid cell
                 float patternIntensity = smoothstep(1, _ToonRP_Bloom_PatternEdge, length(centeredPatternUv));

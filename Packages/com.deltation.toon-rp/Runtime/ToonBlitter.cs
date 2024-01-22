@@ -5,13 +5,14 @@ namespace DELTation.ToonRP
 {
     public static class ToonBlitter
     {
-        public const string DefaultBlitShaderPath = "Hidden/Toon RP/Blit";
+        public const string DefaultBlitShaderName = "Hidden/Toon RP/Blit";
 
         private const int SubmeshIndex = 0;
         public static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        public static readonly int MainTexMsId = Shader.PropertyToID("_MainTexMs");
         private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
         private static Mesh _triangleMesh;
-        private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
+        private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderName, "Toon RP Blit");
 
         public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass = 0)
         {

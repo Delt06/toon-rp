@@ -15,6 +15,7 @@ namespace DELTation.ToonRP
             GraphicsFormat colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
             int depthBufferBits = 0,
             MSAASamples msaaSamples = MSAASamples.None,
+            bool bindTextureMs = false,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat
         )
@@ -33,7 +34,8 @@ namespace DELTation.ToonRP
                     rtHandle.rt.wrapMode != wrapMode ||
                     // rtHandle.rt.depth != depthBufferBits ||
                     rtHandle.rt.volumeDepth != arraySlices ||
-                    rtHandle.rt.descriptor.msaaSamples != (int) msaaSamples
+                    rtHandle.rt.descriptor.msaaSamples != (int) msaaSamples ||
+                    rtHandle.rt.bindTextureMS != bindTextureMs
                    )
                 {
                     realloc = true;
@@ -62,13 +64,14 @@ namespace DELTation.ToonRP
                     int width = dimensions.Value.x;
                     int height = dimensions.Value.y;
                     rtHandle = rtHandleSystem.Alloc(width, height, arraySlices, depthBits, colorFormat, filterMode,
-                        wrapMode, textureDimensions, msaaSamples: msaaSamples, name: name
+                        wrapMode, textureDimensions, msaaSamples: msaaSamples, bindTextureMS: bindTextureMs, name: name
                     );
                 }
                 else
                 {
                     rtHandle = rtHandleSystem.Alloc(scaleFactor ?? Vector2.one, arraySlices, depthBits, colorFormat,
-                        filterMode, wrapMode, textureDimensions, msaaSamples: msaaSamples, name: name
+                        filterMode, wrapMode, textureDimensions, msaaSamples: msaaSamples, bindTextureMS: bindTextureMs,
+                        name: name
                     );
                 }
             }

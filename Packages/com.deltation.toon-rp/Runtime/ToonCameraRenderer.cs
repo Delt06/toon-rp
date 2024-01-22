@@ -178,6 +178,18 @@ namespace DELTation.ToonRP
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled && xrPass.copyDepth)
+                {
+                    _renderTarget.ForceStoreAttachments = true;
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+
             _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
             _renderTarget.InitState(_additionalCameraData);
 

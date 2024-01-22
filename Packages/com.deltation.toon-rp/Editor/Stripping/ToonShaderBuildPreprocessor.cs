@@ -436,6 +436,7 @@ namespace DELTation.ToonRP.Editor.Stripping
 #if !(ENABLE_VR && ENABLE_XR_MODULE)
             _shadersToStrip.Add(ToonXr.OcclusionMeshShaderName);
             _shadersToStrip.Add(ToonXr.MirrorViewShaderName);
+            _shadersToStrip.Add(ToonCopyDepth.ShaderName);
 #endif // !(ENABLE_VR && ENABLE_XR_MODULE)
 
             ReportStrippingConfiguration();

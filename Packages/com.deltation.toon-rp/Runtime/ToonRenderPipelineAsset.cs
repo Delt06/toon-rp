@@ -5,6 +5,7 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.Shadows;
 using DELTation.ToonRP.Shadows.Blobs;
+using DELTation.ToonRP.Xr;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -20,10 +21,13 @@ namespace DELTation.ToonRP
     {
         private static readonly string[] ForceIncludedShaderNames =
         {
-            ToonBlitter.DefaultBlitShaderPath,
+            ToonBlitter.DefaultBlitShaderName,
             ToonCameraRenderTarget.FinalBlitShaderName,
             ToonShadowMaps.BlurShaderName,
             ToonBlobShadows.ShaderName,
+            ToonCopyDepth.ShaderName,
+            ToonXr.MirrorViewShaderName,
+            ToonXr.OcclusionMeshShaderName,
         };
 
         // Hold references to all shaders access in runtime to ensure they get included to the build

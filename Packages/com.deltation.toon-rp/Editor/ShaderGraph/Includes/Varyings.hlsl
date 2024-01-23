@@ -65,6 +65,15 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
 
     // Returns the camera relative position (if enabled)
     positionWS = TransformObjectToWorld(input.positionOS);
+    
+    #if _BILLBOARD
+    {
+        const float3 pivot = GetObjectPosition();
+        const float3 pivotViewDir = GetWorldSpaceViewDir(pivot);
+        positionWS = mul(UNITY_MATRIX_I_V, float4(input.positionOS * GetObjectScale(), 0)).xyz + pivot;
+        positionWS += pivotViewDir * vertexDescription.BillboardCameraPull;
+    }
+    #endif // _BILLBOARD
 
     #ifdef ATTRIBUTES_NEED_NORMAL
 
@@ -112,7 +121,7 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     #if UNITY_REVERSED_Z
         output.positionCS.z = min(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #else
-    output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
+        output.positionCS.z = max(output.positionCS.z, UNITY_NEAR_CLIP_VALUE);
     #endif
 
     #ifdef _TOON_RP_VSM

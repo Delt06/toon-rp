@@ -1,6 +1,7 @@
 using System;
 using DELTation.ToonRP.Editor.ShaderGUI;
 using DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
@@ -17,11 +18,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public ToonParticlesUnlitSubTarget() => displayName = "Particles (Unlit)";
 
         protected override ShaderID ShaderID => ShaderID.ParticlesUnlit;
-
-        // ReSharper disable Unity.RedundantSerializeFieldAttribute
-        [field: SerializeField]
-        private bool SoftParticles { get; set; }
-        // ReSharper restore Unity.RedundantSerializeFieldAttribute
 
         private bool SoftParticlesEffectivelyEnabled => SoftParticles && SoftParticlesCanBeEnabled;
 
@@ -44,7 +40,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             // Process SubShaders
             context.AddSubShader(PostProcessSubShader(SubShaders.ParticlesUnlit(target, target.RenderType,
-                        target.RenderQueueString, SoftParticlesEffectivelyEnabled
+                        target.RenderQueueString, Billboard, SoftParticlesEffectivelyEnabled
                     )
                 )
             );
@@ -54,6 +50,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             base.GetActiveBlocks(ref context);
 
+            context.AddBlock(ToonBlockFields.VertexDescription.BillboardCameraPull, Billboard);
             context.AddBlock(ToonBlockFields.SurfaceDescription.SoftParticlesDistance, SoftParticlesEffectivelyEnabled);
             context.AddBlock(ToonBlockFields.SurfaceDescription.SoftParticlesRange, SoftParticlesEffectivelyEnabled);
         }
@@ -63,6 +60,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         {
             base.GetPropertiesGUI(ref context, onChange, registerUndo);
 
+            context.AddProperty("Billboard", new Toggle { value = Billboard }, evt =>
+                {
+                    if (Equals(Billboard, evt.newValue))
+                    {
+                        return;
+                    }
+
+                    registerUndo("Change Billboard");
+                    Billboard = evt.newValue;
+                    onChange();
+                }
+            );
             if (SoftParticlesCanBeEnabled)
             {
                 context.AddProperty("Soft Particles", new Toggle { value = SoftParticles }, evt =>
@@ -85,10 +94,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         private static class SubShaders
         {
             public static SubShaderDescriptor ParticlesUnlit(ToonTarget target, string renderType, string renderQueue,
-                bool softParticles)
+                bool billboard, bool softParticles)
             {
                 const string customTags = "\"PreviewType\"=\"Plane\"";
 
+                var passConfigurator = new CorePasses.PassConfigurator((ref PassDescriptor passDescriptor) =>
+                    {
+                        ParticlesUnlitPasses.AddBillboardControlToPass(ref passDescriptor, target, billboard);
+                    }
+                );
                 var result = new SubShaderDescriptor
                 {
                     pipelineTag = ToonRenderPipeline.PipelineTag,
@@ -97,13 +111,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        ParticlesUnlitPasses.Forward(target, softParticles),
+                        ParticlesUnlitPasses.Forward(target, softParticles, passConfigurator),
                     },
                     customTags = customTags,
                 };
 
-                CorePasses.AddPrePasses(target, ref result);
-                CorePasses.AddShadowCasterPass(target, ref result);
+                CorePasses.AddPrePasses(target, ref result, passConfigurator);
+                CorePasses.AddShadowCasterPass(target, ref result, passConfigurator);
 
                 return result;
             }
@@ -115,6 +129,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class ParticlesUnlitPasses
         {
+            public static void AddBillboardControlToPass(ref PassDescriptor pass, ToonTarget target, bool billboard)
+            {
+                if (target.AllowMaterialOverride)
+                {
+                    pass.keywords.Add(ParticlesUnlitKeywords.Billboard);
+                }
+                else if (billboard)
+                {
+                    pass.defines.Add(ParticlesUnlitKeywords.Billboard, 1);
+                }
+            }
+
             private static void AddSoftParticlesControlToPass(ref PassDescriptor pass, ToonTarget target,
                 bool softParticles)
             {
@@ -128,7 +154,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 }
             }
 
-            public static PassDescriptor Forward(ToonTarget target, bool softParticles)
+            public static PassDescriptor Forward(ToonTarget target, bool softParticles,
+                [CanBeNull] CorePasses.PassConfigurator configurePass = null)
             {
                 ref readonly ToonPasses.Pass pass = ref ToonPasses.ForwardParticlesUnlit;
                 var result = new PassDescriptor
@@ -164,6 +191,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 AddSoftParticlesControlToPass(ref result, target, softParticles);
+                configurePass?.Invoke(ref result);
 
                 return result;
             }
@@ -177,6 +205,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     ToonBlockFields.VertexDescription.Position,
                     ToonBlockFields.VertexDescription.Normal,
                     ToonBlockFields.VertexDescription.Tangent,
+
+                    ToonBlockFields.VertexDescription.BillboardCameraPull,
                 };
 
                 public static readonly BlockFieldDescriptor[] ParticlesUnlitForward =
@@ -216,6 +246,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static class ParticlesUnlitKeywords
         {
+            public static readonly KeywordDescriptor Billboard = new()
+            {
+                displayName = ShaderKeywords.Billboard,
+                referenceName = ShaderKeywords.Billboard,
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment,
+            };
+
             public static readonly KeywordDescriptor SoftParticles = new()
             {
                 displayName = ShaderKeywords.SoftParticles,
@@ -250,5 +290,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         }
 
         #endregion
+
+        // ReSharper disable Unity.RedundantSerializeFieldAttribute
+        [field: SerializeField]
+        private bool Billboard { get; set; }
+
+        [field: SerializeField]
+        private bool SoftParticles { get; set; }
+        // ReSharper restore Unity.RedundantSerializeFieldAttribute
     }
 }

@@ -5,7 +5,7 @@
 
 A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visuals.
 
-> 🚧 The project is in its very **early** stages and has **not** been tested in production.
+> 🚧 The project is in its **early** stages and has **not** been tested in production.
 
 > ⚠️ The project only supports **Linear** color space. 
  
@@ -14,6 +14,14 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 ### Unity Version
 
 > 🔨 Developed and verified with Unity 2022.3.12f1 LTS and Core RP Library v14.0.9.
+
+### Verified Platforms
+
+- Windows (DirectX 11, Vulkan, OpenGL)
+- Android (OpenGL ES 3.0+, Vulkan)
+- WebGL 2.0
+
+> ⚠️ Other platforms may work but have not been tested yet.
 
 ### Table of Contents
 

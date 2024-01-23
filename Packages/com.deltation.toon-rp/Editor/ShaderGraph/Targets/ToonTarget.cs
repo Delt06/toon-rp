@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DELTation.ToonRP.Editor.ShaderGUI;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
@@ -672,6 +673,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
     internal static class CorePasses
     {
+        public delegate void PassConfigurator(ref PassDescriptor passDescriptor);
+
         private static void AddAlphaClipControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
@@ -745,7 +748,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             AddOutlinesControlToPass(ref pass, target);
         }
 
-        public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
+        public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor,
+            [CanBeNull] PassConfigurator configurePass = null)
         {
             // cull pre-passes if we know they will never be used
             if (target.MayWriteDepth)
@@ -753,22 +757,22 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 // skip generating a pre-pass if it is in the ignore mask
                 if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth))
                 {
-                    subShaderDescriptor.passes.Add(DepthOnly(target));
+                    subShaderDescriptor.passes.Add(DepthOnly(target, configurePass));
                 }
 
                 if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth | PrePassMode.Normals))
                 {
-                    subShaderDescriptor.passes.Add(DepthNormals(target));
+                    subShaderDescriptor.passes.Add(DepthNormals(target, configurePass));
                 }
 
                 if (!target.IgnoredPrePasses.Includes(PrePassMode.MotionVectors))
                 {
-                    subShaderDescriptor.passes.Add(MotionVectors(target));
+                    subShaderDescriptor.passes.Add(MotionVectors(target, configurePass));
                 }
             }
         }
 
-        public static PassDescriptor DepthOnly(ToonTarget target)
+        public static PassDescriptor DepthOnly(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthOnly;
             var result = new PassDescriptor
@@ -803,11 +807,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            configurePass?.Invoke(ref result);
 
             return result;
         }
 
-        public static PassDescriptor DepthNormals(ToonTarget target)
+        public static PassDescriptor DepthNormals(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthNormals;
             var result = new PassDescriptor
@@ -843,11 +848,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            configurePass?.Invoke(ref result);
 
             return result;
         }
 
-        public static PassDescriptor MotionVectors(ToonTarget target)
+        public static PassDescriptor MotionVectors(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.MotionVectors;
             var result = new PassDescriptor
@@ -883,20 +889,22 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            configurePass?.Invoke(ref result);
 
             return result;
         }
 
-        public static void AddShadowCasterPass(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor)
+        public static void AddShadowCasterPass(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor,
+            [CanBeNull] PassConfigurator configurePass = null)
         {
             // cull the shadowcaster pass if we know it will never be used
             if (target.CastShadows || target.AllowMaterialOverride)
             {
-                subShaderDescriptor.passes.Add(ShadowCaster(target));
+                subShaderDescriptor.passes.Add(ShadowCaster(target, configurePass));
             }
         }
 
-        private static PassDescriptor ShadowCaster(ToonTarget target)
+        private static PassDescriptor ShadowCaster(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.ShadowCaster;
             var result = new PassDescriptor
@@ -931,6 +939,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             };
 
             AddAlphaClipControlToPass(ref result, target);
+            configurePass?.Invoke(ref result);
 
             return result;
         }

@@ -21,6 +21,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex
             );
 
+            public static readonly BlockFieldDescriptor BillboardCameraPull = new(Name, "BillboardCameraPull",
+                "Billboard Camera Pull",
+                "VERTEXDESCRIPTION_BILLBOARDCAMERAPULL",
+                new FloatControl(0.0f), ShaderStage.Vertex
+            );
             public static readonly BlockFieldDescriptor OutlineThickness = new(Name, "OutlineThickness",
                 "VERTEXDESCRIPTION_OUTLINE_THICKNESS",
                 new FloatControl(1.0f), ShaderStage.Vertex
@@ -157,7 +162,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_OVERRIDERAMPRIMSMOOTHNESS",
                 new FloatControl(0.1f), ShaderStage.Fragment
             );
-
+            
             public static readonly BlockFieldDescriptor SoftParticlesDistance = new(Name, "SoftParticlesDistance",
                 "Soft Particles Distance",
                 "SURFACEDESCRIPTION_SOFTPARTICLESDISTANCE",

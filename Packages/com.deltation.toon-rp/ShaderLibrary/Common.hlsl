@@ -64,6 +64,20 @@ float3 GetViewForwardDir()
     return -viewMat[2].xyz;
 }
 
+float3 GetObjectPosition()
+{
+    return UNITY_MATRIX_M._m03_m13_m23;
+}
+
+float3 GetObjectScale()
+{
+    float3 scale;
+    scale.x = length(float3(UNITY_MATRIX_M[0].x, UNITY_MATRIX_M[1].x, UNITY_MATRIX_M[2].x));
+    scale.y = length(float3(UNITY_MATRIX_M[0].y, UNITY_MATRIX_M[1].y, UNITY_MATRIX_M[2].y));
+    scale.z = length(float3(UNITY_MATRIX_M[0].z, UNITY_MATRIX_M[1].z, UNITY_MATRIX_M[2].z));
+    return scale;
+}
+
 #endif // !UNITY_SHADER_VARIABLES_INCLUDED
 
 float3 GetWorldSpaceViewDir(const float3 positionWs)

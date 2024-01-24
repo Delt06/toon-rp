@@ -15,6 +15,7 @@ v2f VS(const appdata IN)
 {
     v2f OUT;
 
+    UNITY_SETUP_INSTANCE_ID(IN);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     // ReSharper disable once CppLocalVariableMayBeConst

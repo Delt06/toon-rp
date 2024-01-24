@@ -5,6 +5,7 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
+using DELTation.ToonRP.Xr;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -593,40 +594,14 @@ namespace DELTation.ToonRP
             _renderTarget.EndRenderPass(ref _context, cmd);
         }
 
-        private void BeginXrRendering(CommandBuffer cmd)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (_additionalCameraData.XrPass.enabled)
-            {
-                _additionalCameraData.XrPass.StartSinglePass(cmd);
-                _context.ExecuteCommandBufferAndClear(cmd);
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-        }
+        private void BeginXrRendering(CommandBuffer cmd) =>
+            ToonXr.BeginXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
 
-        private void DrawOcclusionMesh(CommandBuffer cmd)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            XRPass xrPass = _additionalCameraData.XrPass;
-            if (xrPass.hasValidOcclusionMesh)
-            {
-                xrPass.RenderOcclusionMesh(cmd);
-                _context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-        }
+        private void EndXrRendering(CommandBuffer cmd) =>
+            ToonXr.EndXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
 
-        private void EndXrRendering(CommandBuffer cmd)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (_additionalCameraData.XrPass.enabled)
-            {
-                _additionalCameraData.XrPass.StopSinglePass(cmd);
-                _context.ExecuteCommandBufferAndClear(cmd);
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-        }
+        private void DrawOcclusionMesh(CommandBuffer cmd) =>
+            ToonXr.DrawOcclusionMesh(ref _context, cmd, _additionalCameraData.XrPass);
 
         private ToonClearValue GetRenderTargetsClearValue()
         {

@@ -14,34 +14,14 @@
 	    //#pragma enable_d3d11_debug_symbols
 
 	    #include "../../ShaderLibrary/Common.hlsl"
+	    #include "../../ShaderLibrary/Textures.hlsl"
 
-	    #pragma vertex VS
-		#pragma fragment PS
+	    #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-	    struct v2f
-		{
-            float4 positionCs : SV_POSITION;
-            float2 uv : TEXCOORD0;
-        };
+	    #pragma vertex Vert
+		#pragma fragment Frag
 
-	    v2f VS(const uint vertexId : SV_VertexID)
-        {
-            v2f OUT;
-            OUT.positionCs = float4(
-                vertexId == 1 ? 3.0 : -1.0,
-		        vertexId <= 1 ? -1.0 : 3.0,
-		        0.0, 1.0
-	        );
-            float2 uv = float2(
-	            vertexId == 1 ? 2.0 : 0.0,
-		        vertexId <= 1 ? 0.0 : 2.0
-	        );
-            #if UNITY_UV_STARTS_AT_TOP
-            uv.y = 1 - uv.y;
-            #endif // UNITY_UV_STARTS_AT_TOP
-	        OUT.uv = uv;
-            return OUT;
-        }
+	    float4 Frag(Varyings IN);
 	    
 	    ENDHLSL
 	     
@@ -89,11 +69,12 @@
                 return positionVs;
             }
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
                 // Adapted from https://github.com/Delt06/dx12-renderer
                 // Originally based on https://learnopengl.com/Advanced-Lighting/SSAO
-                const float2 uv = IN.uv;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
                 const float3 normalWs = SampleNormalsTexture(uv);
 
                 const float zNdc = SampleDepthTexture(uv);
@@ -170,7 +151,7 @@
 	        #include "../../ShaderLibrary/Textures.hlsl"
 
 	        float2 _ToonRP_SSAO_Blur_Direction;
-	        TEXTURE2D(_ToonRP_SSAO_Blur_SourceTex);
+	        TEXTURE2D_X(_ToonRP_SSAO_Blur_SourceTex);
 	        SAMPLER(sampler_ToonRP_SSAO_Blur_SourceTex);
 	        DECLARE_TEXEL_SIZE(_ToonRP_SSAO_Blur_SourceTex);
 
@@ -188,14 +169,16 @@
 	            for (int i = 0; i < 5; i++)
 	            {
                     const float2 offset = offsets[i] * _ToonRP_SSAO_Blur_Direction * _ToonRP_SSAO_Blur_SourceTex_TexelSize.xy;
-		            result += SAMPLE_TEXTURE2D_LOD(_ToonRP_SSAO_Blur_SourceTex, sampler_ToonRP_SSAO_Blur_SourceTex, uv + offset, 0).r * weights[i];
+		            result += SAMPLE_TEXTURE2D_X_LOD(_ToonRP_SSAO_Blur_SourceTex, sampler_ToonRP_SSAO_Blur_SourceTex, uv + offset, 0).r * weights[i];
 	            }
                 return result;
             }
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                return float4(Blur(IN.uv), 0.0f, 0.0f, 0.0f); 
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                return float4(Blur(uv), 0.0f, 0.0f, 0.0f); 
             }
 	        
 	        ENDHLSL

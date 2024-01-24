@@ -8,7 +8,7 @@
 #include "Textures.hlsl"
 #include "Math.hlsl"
 
-TEXTURE2D(_ToonRP_SSAOTexture);
+TEXTURE2D_X(_ToonRP_SSAOTexture);
 SAMPLER(sampler_ToonRP_SSAOTexture);
 float2 _ToonRP_SSAO_Ramp;
 TEXTURE2D(_ToonRP_SSAO_Pattern);
@@ -17,7 +17,7 @@ float3 _ToonRP_SSAO_PatternScale;
 
 float SampleAmbientOcclusionRaw(const float2 screenUv)
 {
-    return SAMPLE_TEXTURE2D(_ToonRP_SSAOTexture, sampler_ToonRP_SSAOTexture, screenUv).x;
+    return SAMPLE_TEXTURE2D_X(_ToonRP_SSAOTexture, sampler_ToonRP_SSAOTexture, screenUv).x;
 }
 
 float GetAmbientOcclusionPattern(const float3 positionWs)

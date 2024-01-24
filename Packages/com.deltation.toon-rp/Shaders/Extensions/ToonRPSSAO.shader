@@ -30,8 +30,6 @@
 		    Name "Toon RP SSAO"
 			
 			HLSLPROGRAM
-
-			//#pragma enable_d3d11_debug_symbols
 			
             #include "../../ShaderLibrary/DepthNormals.hlsl"
 
@@ -45,6 +43,7 @@
 			float4 _ToonRP_SSAO_Samples[MAX_SAMPLES_COUNT];
 			float _ToonRP_SSAO_Radius;
 			float _ToonRP_SSAO_Power;
+            float _ToonRP_SSAO_FlipUV;
 			CBUFFER_END
 
 			TEXTURE2D(_NoiseTexture);
@@ -55,7 +54,10 @@
                 float3 positionNdc;
                 positionNdc.xy = uv * 2 - 1;
                 #if UNITY_UV_STARTS_AT_TOP
-                positionNdc.y *= -1;
+			    if (_ToonRP_SSAO_FlipUV)
+			    {
+			        positionNdc.y *= -1;    
+			    }
                 #endif // UNITY_UV_STARTS_AT_TOP
                 positionNdc.z = zNdc;
                 return positionNdc;
@@ -119,7 +121,10 @@
                     }
                     
                     #if UNITY_UV_STARTS_AT_TOP
-                    sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;
+                    if (_ToonRP_SSAO_FlipUV)
+                    {
+                        sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;    
+                    }
                     #endif // UNITY_UV_STARTS_AT_TOP
 
                     const float sampleDepthZNdc = SampleDepthTexture(sampleScreenSpaceUv);
@@ -145,10 +150,6 @@
 	        Name "Toon RP SSAO Blur"
 	        
 	        HLSLPROGRAM
-
-	        //#pragma enable_d3d11_debug_symbols
-
-	        #include "../../ShaderLibrary/Textures.hlsl"
 
 	        float2 _ToonRP_SSAO_Blur_Direction;
 	        TEXTURE2D_X(_ToonRP_SSAO_Blur_SourceTex);

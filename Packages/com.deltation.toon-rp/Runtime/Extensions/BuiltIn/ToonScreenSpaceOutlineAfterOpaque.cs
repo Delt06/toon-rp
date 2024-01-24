@@ -1,4 +1,5 @@
 ﻿using DELTation.ToonRP.PostProcessing.BuiltIn;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
@@ -6,6 +7,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     public class ToonScreenSpaceOutlineAfterOpaque : ToonRenderingExtensionBase
     {
         private readonly ToonScreenSpaceOutlineImpl _impl = new();
+        private Camera _camera;
+        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private int _rtHeight;
         private int _rtWidth;
@@ -21,8 +24,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _settings = ToonScreenSpaceOutlineAfterOpaqueSettings.ConvertToCommonSettings(
                 settingsStorage.GetSettings<ToonScreenSpaceOutlineAfterOpaqueSettings>(this)
             );
-            _rtWidth = context.CameraRenderTarget.Width;
-            _rtHeight = context.CameraRenderTarget.Height;
+            _cameraRenderTarget = context.CameraRenderTarget;
+            _rtWidth = _cameraRenderTarget.Width;
+            _rtHeight = _cameraRenderTarget.Height;
+            _camera = context.Camera;
         }
 
         public override void Render()
@@ -33,7 +38,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             {
                 _impl.EnableAlphaBlending(true);
                 _impl.SetRtSize(_rtWidth, _rtHeight);
-                _impl.RenderViaCustomBlit(cmd, _settings);
+                bool renderToTexture = _cameraRenderTarget.RenderToTexture || _camera.targetTexture != null;
+                _impl.RenderViaBlit(cmd, _settings, renderToTexture);
             }
 
             _context.ExecuteCommandBuffer(cmd);

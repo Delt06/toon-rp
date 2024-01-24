@@ -2,7 +2,6 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	    _OutlineColor ("Outline Color", Color) = (0, 0, 0, 0)
 	    _ColorThreshold ("Color Threshold", Float) = 0
 	    _DepthThreshold ("Depth Threshold", Float) = 0
@@ -22,15 +21,16 @@
 
 			HLSLPROGRAM
 
+			#include "../../ShaderLibrary/Common.hlsl"
+			#include "../../ShaderLibrary/Textures.hlsl"
+
+			#include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-            #include "../../ShaderLibrary/Common.hlsl"
-			#include "../../ShaderLibrary/CustomBlit.hlsl"
             #include "../../ShaderLibrary/DepthNormals.hlsl"
             #include "../../ShaderLibrary/Fog.hlsl"
             #include "../../ShaderLibrary/Math.hlsl"
             #include "../../ShaderLibrary/Ramp.hlsl"
-            #include "../../ShaderLibrary/Textures.hlsl"
 
 			// commenting this out causes artifacts on Android (Vulkan), most likely due to a compiler bug
 			#pragma enable_d3d11_debug_symbols
@@ -43,10 +43,10 @@
 			#pragma multi_compile_local_fragment _ _USE_FOG
 			#pragma multi_compile_local_fragment _ _ALPHA_BLENDING
 
-	        #pragma vertex VS
-	        #pragma fragment PS
+	        #pragma vertex Vert
+	        #pragma fragment Frag
 
-			TEXTURE2D(_MainTex);            
+			TEXTURE2D_X(_MainTex);            
 
             #define POINT_SAMPLER sampler_point_clamp
             SAMPLER(POINT_SAMPLER);
@@ -88,7 +88,7 @@
 
 			float3 SampleSceneColor(const float2 uv)
 			{
-			    return SAMPLE_TEXTURE2D_LOD(_MainTex, POINT_SAMPLER, uv, 0).rgb;
+			    return SAMPLE_TEXTURE2D_X_LOD(_MainTex, POINT_SAMPLER, uv, 0).rgb;
 			}
 
 			float SampleLinearDepth(const float2 uv)
@@ -147,11 +147,13 @@
 			    return ComputeRamp(sobel, ramp);
 			}
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
 			{
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+			    
                 float sobelStrength = 0.0;
-			    const float2 uv = IN.uv;
-			    float3 sceneColor;
+                float3 sceneColor;
 			    float sceneDepth;
 
                 {

@@ -1,4 +1,6 @@
-﻿namespace DELTation.ToonRP
+﻿using System;
+
+namespace DELTation.ToonRP
 {
     public enum ToonRenderingEvent
     {
@@ -14,5 +16,11 @@
         AfterPostProcessing = 9,
 
         BeforeGeometryPasses = 10,
+    }
+
+    internal static class ToonRenderingEvents
+    {
+        public static readonly ToonRenderingEvent[] All =
+            (ToonRenderingEvent[]) Enum.GetValues(typeof(ToonRenderingEvent));
     }
 }

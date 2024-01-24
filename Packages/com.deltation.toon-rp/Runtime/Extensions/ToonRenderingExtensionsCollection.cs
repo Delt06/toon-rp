@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions
@@ -12,6 +14,7 @@ namespace DELTation.ToonRP.Extensions
             in ToonRenderingExtensionContext context);
 
         private static readonly int EventsCount;
+        private static readonly int FlipUvId = Shader.PropertyToID("_ToonRP_Extensions_FlipUV");
         [ItemCanBeNull]
         private readonly List<IToonRenderingExtension>[] _extensions = new List<IToonRenderingExtension>[EventsCount];
         private readonly List<IToonRenderingExtension>[] _filteredExtensions =
@@ -90,9 +93,16 @@ namespace DELTation.ToonRP.Extensions
                         continue;
                     }
 
-                    IToonRenderingExtension renderingExtension = extensionAsset.CreateExtension();
-                    AddExtension(extensionAsset.Event, renderingExtension);
-                    _sourceAssets[renderingExtension] = extensionAsset;
+                    foreach (ToonRenderingEvent renderingEvent in ToonRenderingEvents.All)
+                    {
+                        IToonRenderingExtension renderingExtension =
+                            extensionAsset.CreateExtensionOrDefault(renderingEvent);
+                        if (renderingExtension != null)
+                        {
+                            AddExtension(renderingEvent, renderingExtension);
+                            _sourceAssets[renderingExtension] = extensionAsset;
+                        }
+                    }
                 }
             }
 
@@ -129,7 +139,7 @@ namespace DELTation.ToonRP.Extensions
 
                 foreach (IToonRenderingExtension extension in extensions)
                 {
-                    if (_sourceAssets[extension].Event == @event)
+                    if (_sourceAssets[extension].IncludesEvent(@event))
                     {
                         continue;
                     }
@@ -154,15 +164,17 @@ namespace DELTation.ToonRP.Extensions
                 return;
             }
 
+
             foreach (IToonRenderingExtension extension in extensions)
             {
                 extension.Render();
             }
         }
 
-        public void Setup(in ToonRenderingExtensionContext context)
+        public void Setup(in ToonRenderingExtensionContext context, CommandBuffer cmd)
         {
             _context = context;
+            cmd.SetGlobalFloat(FlipUvId, ShouldFlipUv(context) ? 1f : 0f);
 
             foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
             {
@@ -189,6 +201,19 @@ namespace DELTation.ToonRP.Extensions
                     _filteredExtensions[index].Add(extension);
                 }
             }
+        }
+
+        private static bool ShouldFlipUv(in ToonRenderingExtensionContext context)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = context.AdditionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                // We should only skip flipping UVs if geometries are rendered directly to XR texture.
+                return context.CameraRenderTarget.RenderToTexture || context.Camera.targetTexture != null;
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+            return true;
         }
 
         public void Cleanup()

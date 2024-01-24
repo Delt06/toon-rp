@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Xr;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -6,24 +7,16 @@ using static DELTation.ToonRP.Extensions.BuiltIn.ToonOffScreenTransparencySettin
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
-    public class ToonOffScreenTransparency : ToonRenderingExtensionBase
+    public class ToonOffScreenTransparencyRender : ToonRenderingExtensionBase
     {
-        public const string ShaderName = "Hidden/Toon RP/Off-Screen Transparency";
         private static readonly int ColorId = Shader.PropertyToID("_ToonRP_CompositeTransparency_Color");
         private static readonly int DepthId = Shader.PropertyToID("_ToonRP_CompositeTransparency_Depth");
-        private static readonly int TintId = Shader.PropertyToID("_Tint");
-        private static readonly int PatternId = Shader.PropertyToID("_Pattern");
-        private static readonly int PatternHorizontalTilingId = Shader.PropertyToID("_PatternHorizontalTiling");
-        private static readonly int HeightOverWidthId = Shader.PropertyToID("_HeightOverWidth");
-        private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
-        private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
 
         private readonly ToonDepthDownsample _depthDownsample = new();
         private readonly ToonDepthPrePass _depthPrePass = new(
             DepthId,
             0
         );
-        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Off-Screen Transparency");
         private ToonAdditionalCameraData _additionalCameraData;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
@@ -41,10 +34,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             base.Dispose();
             _depthDownsample.Dispose();
-            _material.Dispose();
         }
-
-        public override bool InterruptsGeometryRenderPass(in ToonRenderingExtensionContext context) => true;
 
         public override void Setup(in ToonRenderingExtensionContext context,
             IToonRenderingExtensionSettingsStorage settingsStorage)
@@ -71,11 +61,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             string passName = !string.IsNullOrWhiteSpace(_settings.PassName)
                 ? _settings.PassName
-                : "Off-Screen Transparency";
+                : DefaultPassName;
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
             {
                 _srpContext.ExecuteCommandBufferAndClear(cmd);
-                _cameraRenderTarget.EndRenderPass(ref _srpContext, cmd);
+                ToonXr.BeginXrRendering(ref _srpContext, cmd, _additionalCameraData.XrPass);
 
                 if (_settings.DepthMode == DepthRenderMode.PrePass)
                 {
@@ -161,46 +151,30 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     }
                 }
 
-                using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compose with Camera Render Target")))
-                {
-                    Material material = _material.GetOrCreate();
-                    _srpContext.ExecuteCommandBufferAndClear(cmd);
-                    _cameraRenderTarget.BeginRenderPass(ref _srpContext, RenderBufferLoadAction.Load);
+                ToonXr.EndXrRendering(ref _srpContext, cmd, _additionalCameraData.XrPass);
+            }
 
-                    material.SetVector(TintId, _settings.Tint);
-                    material.SetTexture(PatternId,
-                        _settings.Pattern != null ? _settings.Pattern : Texture2D.whiteTexture
-                    );
-                    material.SetFloat(PatternHorizontalTilingId, _settings.PatternHorizontalTiling);
-                    material.SetFloat(HeightOverWidthId, (float) _height / _width);
+            _srpContext.ExecuteCommandBufferAndClear(cmd);
+            CommandBufferPool.Release(cmd);
+        }
 
-                    (BlendMode blendSource, BlendMode blendDestination) = _settings.BlendMode switch
-                    {
-                        TransparencyBlendMode.Alpha => (BlendMode.OneMinusSrcAlpha, BlendMode.SrcAlpha),
-                        TransparencyBlendMode.Additive => (BlendMode.One, BlendMode.One),
-                        _ => throw new ArgumentOutOfRangeException(),
-                    };
-                    material.SetFloat(BlendSrcId, (float) blendSource);
-                    material.SetFloat(BlendDstId, (float) blendDestination);
+        public override void Cleanup()
+        {
+            base.Cleanup();
 
-                    bool renderToTexture = _cameraRenderTarget.RenderToTexture || _camera.targetTexture != null;
-                    ToonBlitter.Blit(cmd, material, renderToTexture, 0);
-                }
+            CommandBuffer cmd = CommandBufferPool.Get();
 
-                cmd.ReleaseTemporaryRT(ColorId);
-                switch (_settings.DepthMode)
-                {
-                    case DepthRenderMode.Downsample:
-                        cmd.ReleaseTemporaryRT(DepthId);
-                        break;
-                    case DepthRenderMode.PrePass:
-                        _depthPrePass.Cleanup();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                _srpContext.ExecuteCommandBufferAndClear(cmd);
+            cmd.ReleaseTemporaryRT(ColorId);
+            switch (_settings.DepthMode)
+            {
+                case DepthRenderMode.Downsample:
+                    cmd.ReleaseTemporaryRT(DepthId);
+                    break;
+                case DepthRenderMode.PrePass:
+                    _depthPrePass.Cleanup();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             _srpContext.ExecuteCommandBufferAndClear(cmd);
@@ -224,6 +198,82 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             cmd.GetTemporaryRT(identifier, descriptor, filterMode);
             return identifier;
+        }
+    }
+
+    public class ToonOffScreenTransparencyCompose : ToonRenderingExtensionBase
+    {
+        public const string ShaderName = "Hidden/Toon RP/Off-Screen Transparency";
+        private static readonly int TintId = Shader.PropertyToID("_Tint");
+        private static readonly int PatternId = Shader.PropertyToID("_Pattern");
+        private static readonly int PatternHorizontalTilingId = Shader.PropertyToID("_PatternHorizontalTiling");
+        private static readonly int HeightOverWidthId = Shader.PropertyToID("_HeightOverWidth");
+        private static readonly int BlendSrcId = Shader.PropertyToID("_BlendSrc");
+        private static readonly int BlendDstId = Shader.PropertyToID("_BlendDst");
+
+        private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Off-Screen Transparency");
+        private Camera _camera;
+        private ToonCameraRenderTarget _cameraRenderTarget;
+        private int _height;
+        private ToonOffScreenTransparencySettings _settings;
+        private ScriptableRenderContext _srpContext;
+        private int _width;
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _material.Dispose();
+        }
+
+        public override void Setup(in ToonRenderingExtensionContext context,
+            IToonRenderingExtensionSettingsStorage settingsStorage)
+        {
+            base.Setup(in context, settingsStorage);
+            _srpContext = context.ScriptableRenderContext;
+            _settings = settingsStorage.GetSettings<ToonOffScreenTransparencySettings>(this);
+            _camera = context.Camera;
+            _cameraRenderTarget = context.CameraRenderTarget;
+
+            _width = Mathf.Max(1, _cameraRenderTarget.Width / _settings.ResolutionFactor);
+            _height = Mathf.Max(1, _cameraRenderTarget.Height / _settings.ResolutionFactor);
+        }
+
+        public override void Render()
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+
+            string passName = !string.IsNullOrWhiteSpace(_settings.PassName)
+                ? _settings.PassName
+                : DefaultPassName;
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
+            {
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compose with Camera Render Target")))
+                {
+                    Material material = _material.GetOrCreate();
+
+                    material.SetVector(TintId, _settings.Tint);
+                    material.SetTexture(PatternId,
+                        _settings.Pattern != null ? _settings.Pattern : Texture2D.whiteTexture
+                    );
+                    material.SetFloat(PatternHorizontalTilingId, _settings.PatternHorizontalTiling);
+                    material.SetFloat(HeightOverWidthId, (float) _height / _width);
+
+                    (BlendMode blendSource, BlendMode blendDestination) = _settings.BlendMode switch
+                    {
+                        TransparencyBlendMode.Alpha => (BlendMode.OneMinusSrcAlpha, BlendMode.SrcAlpha),
+                        TransparencyBlendMode.Additive => (BlendMode.One, BlendMode.One),
+                        _ => throw new ArgumentOutOfRangeException(),
+                    };
+                    material.SetFloat(BlendSrcId, (float) blendSource);
+                    material.SetFloat(BlendDstId, (float) blendDestination);
+
+                    bool renderToTexture = _cameraRenderTarget.RenderToTexture || _camera.targetTexture != null;
+                    ToonBlitter.Blit(cmd, material, renderToTexture, 0);
+                }
+            }
+
+            _srpContext.ExecuteCommandBufferAndClear(cmd);
+            CommandBufferPool.Release(cmd);
         }
     }
 }

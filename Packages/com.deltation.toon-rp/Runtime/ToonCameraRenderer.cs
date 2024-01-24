@@ -170,7 +170,10 @@ namespace DELTation.ToonRP
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _opaqueTexture.Setup(ref _context, additionalCameraData, settings);
-            _extensionsCollection.Setup(_extensionContext);
+
+            _extensionsCollection.Setup(_extensionContext, cmd);
+            _context.ExecuteCommandBufferAndClear(cmd);
+
             _postProcessing.Setup(_context, postProcessingSettings, _settings,
                 additionalCameraData, _renderTarget,
                 _renderTarget.ColorFormat, _camera,

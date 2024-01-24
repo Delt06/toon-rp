@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using DELTation.ToonRP.Attributes;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace DELTation.ToonRP.Extensions
@@ -10,8 +11,6 @@ namespace DELTation.ToonRP.Extensions
 
         [SerializeField] [HideInInspector] private Shader[] _forceIncludedShaders;
 
-        public abstract ToonRenderingEvent Event { get; }
-
         protected virtual void OnValidate()
         {
             if (_forceIncludedShaders == null || _forceIncludedShaders.Length != ForceIncludedShaderNames().Length)
@@ -20,12 +19,15 @@ namespace DELTation.ToonRP.Extensions
             }
         }
 
+        public abstract bool IncludesEvent(ToonRenderingEvent renderingEvent);
+
         public virtual bool RequiresStencil() => false;
 
         public virtual PrePassMode RequiredPrePassMode() =>
             PrePassMode.Off;
 
-        public abstract IToonRenderingExtension CreateExtension();
+        [CanBeNull]
+        public abstract IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent);
 
         protected abstract string[] ForceIncludedShaderNames();
     }

@@ -23,7 +23,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private static readonly int NoiseTextureId = Shader.PropertyToID("_ToonRP_SSAO_NoiseTexture");
         private static readonly int RadiusId = Shader.PropertyToID("_ToonRP_SSAO_Radius");
         private static readonly int PowerId = Shader.PropertyToID("_ToonRP_SSAO_Power");
-        private static readonly int FlipUvId = Shader.PropertyToID("_ToonRP_SSAO_FlipUV");
         private static readonly int NoiseScaleId = Shader.PropertyToID("_ToonRP_SSAO_NoiseScale");
         private static readonly int KernelSizeId = Shader.PropertyToID("_ToonRP_SSAO_KernelSize");
         private static readonly int SamplesId = Shader.PropertyToID("_ToonRP_SSAO_Samples");
@@ -34,8 +33,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private readonly GlobalKeyword _ssaoKeyword = GlobalKeyword.Create(SsaoKeywordName);
         private readonly GlobalKeyword _ssaoPatternKeyword = GlobalKeyword.Create(SsaoPatternKeywordName);
         private ToonAdditionalCameraData _additionalCameraData;
-        private Camera _camera;
-        private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private int _height;
         private Material _material;
@@ -50,12 +47,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         {
             _context = context.ScriptableRenderContext;
             _settings = settingsStorage.GetSettings<ToonSsaoSettings>(this);
-            _camera = context.Camera;
             _additionalCameraData = context.AdditionalCameraData;
-            _cameraRenderTarget = context.CameraRenderTarget;
 
-            _width = _cameraRenderTarget.Width;
-            _height = _cameraRenderTarget.Height;
+            _width = context.CameraRenderTarget.Width;
+            _height = context.CameraRenderTarget.Height;
 
             _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
@@ -232,27 +227,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             cmd.SetGlobalFloat(RadiusId, GetRadius());
             cmd.SetGlobalFloat(PowerId, _settings.Power);
 
-            cmd.SetGlobalFloat(FlipUvId, ShouldFlipUv() ? 1.0f : 0.0f);
-
             cmd.SetGlobalVector(NoiseScaleId,
                 new Vector4((float) _width / _noiseTexture.width, (float) _height / _noiseTexture.height)
             );
             cmd.SetGlobalInteger(KernelSizeId, _settings.KernelSize);
             cmd.SetGlobalVectorArray(SamplesId, _samples);
             Draw(cmd, MainPass);
-        }
-
-        private bool ShouldFlipUv()
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            XRPass xrPass = _additionalCameraData.XrPass;
-            if (xrPass.enabled)
-            {
-                // We should only skip flipping UVs if geometries are rendered directly to XR texture.
-                return _cameraRenderTarget.RenderToTexture || _camera.targetTexture != null;
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-            return true;
         }
 
         private float GetRadius()

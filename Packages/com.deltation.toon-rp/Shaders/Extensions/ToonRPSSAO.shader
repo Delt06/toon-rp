@@ -43,7 +43,6 @@
 			float4 _ToonRP_SSAO_Samples[MAX_SAMPLES_COUNT];
 			float _ToonRP_SSAO_Radius;
 			float _ToonRP_SSAO_Power;
-            float _ToonRP_SSAO_FlipUV;
 			CBUFFER_END
 
 			TEXTURE2D(_NoiseTexture);
@@ -54,7 +53,7 @@
                 float3 positionNdc;
                 positionNdc.xy = uv * 2 - 1;
                 #if UNITY_UV_STARTS_AT_TOP
-			    if (_ToonRP_SSAO_FlipUV)
+			    if (_ToonRP_Extensions_FlipUV)
 			    {
 			        positionNdc.y *= -1;    
 			    }
@@ -121,7 +120,7 @@
                     }
                     
                     #if UNITY_UV_STARTS_AT_TOP
-                    if (_ToonRP_SSAO_FlipUV)
+                    if (_ToonRP_Extensions_FlipUV)
                     {
                         sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;    
                     }

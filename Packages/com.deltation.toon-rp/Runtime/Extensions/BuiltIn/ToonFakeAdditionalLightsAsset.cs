@@ -5,7 +5,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "Fake Additional Lights")]
     public class ToonFakeAdditionalLightsAsset : ToonRenderingExtensionAsset<ToonFakeAdditionalLightsSettings>
     {
-        public override ToonRenderingEvent Event => ToonRenderingEvent.BeforeGeometryPasses;
+        private const ToonRenderingEvent RenderingEvent = ToonRenderingEvent.BeforeGeometryPasses;
 
         private void Reset()
         {
@@ -24,7 +24,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Settings.HeightFade = 1.0f;
         }
 
-        public override IToonRenderingExtension CreateExtension() => new ToonFakeAdditionalLights();
+        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+
+        public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
+            renderingEvent == RenderingEvent ? new ToonFakeAdditionalLights() : null;
 
         protected override string[] ForceIncludedShaderNames() => new[] { ToonFakeAdditionalLights.ShaderName };
     }

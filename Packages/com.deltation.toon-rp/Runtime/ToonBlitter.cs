@@ -14,7 +14,7 @@ namespace DELTation.ToonRP
         private static Mesh _triangleMesh;
         private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderName, "Toon RP Blit");
 
-        public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass = 0)
+        public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass)
         {
             EnsureMeshIsInitialized();
             SetBlitScaleBias(cmd, renderToTexture);

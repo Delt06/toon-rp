@@ -67,7 +67,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.SetGlobalTexture(ToonBlitter.MainTexId, source.Value);
             }
 
-            ToonBlitter.Blit(cmd, material, renderToTexture);
+            ToonBlitter.Blit(cmd, material, renderToTexture, 0);
         }
 
         private void UpdateMaterial(in ToonScreenSpaceOutlineSettings settings)

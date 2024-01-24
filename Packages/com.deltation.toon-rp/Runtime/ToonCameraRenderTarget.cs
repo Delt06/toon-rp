@@ -84,7 +84,7 @@ namespace DELTation.ToonRP
                 Material material = _finalBlitMaterial.GetOrCreate();
                 cmd.SetGlobalTexture(BlitSourceId, sourceOverride ?? _state.ColorBufferId.Identifier);
                 bool renderToTexture = _camera.targetTexture != null;
-                ToonBlitter.Blit(cmd, material, renderToTexture);
+                ToonBlitter.Blit(cmd, material, renderToTexture, 0);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 {

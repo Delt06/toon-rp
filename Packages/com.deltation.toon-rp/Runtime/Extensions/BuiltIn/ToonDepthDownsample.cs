@@ -29,7 +29,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     material.SetInteger(ResolutionFactorId, resolutionFactor);
                 }
 
-                ToonBlitter.Blit(cmd, material, true);
+                const bool renderToTexture = true;
+                ToonBlitter.Blit(cmd, material, renderToTexture, 0);
             }
         }
     }

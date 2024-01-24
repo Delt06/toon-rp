@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
@@ -16,6 +17,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int IntensityId = Shader.PropertyToID("_Intensity");
         private static readonly int NumSamplesId = Shader.PropertyToID("_NumSamples");
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Light Scattering");
+        private ToonAdditionalCameraData _additionalCameraData;
         private ToonLightScatteringSettings _lightScatteringSettings;
 
         public override void Dispose()
@@ -30,6 +32,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             base.Setup(cmd, in context);
             _lightScatteringSettings = context.Settings.Find<ToonLightScatteringSettings>();
+            _additionalCameraData = context.AdditionalCameraData;
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -56,9 +59,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     scatteringWidth, scatteringHeight,
                     Context.ColorFormat, 0, 0
                 );
-                cmd.GetTemporaryRT(ScatteringTextureId, descriptor, FilterMode.Bilinear);
+                RenderTargetIdentifier scatteringTextureId =
+                    EnsureTemporaryRT(cmd, ScatteringTextureId, descriptor, FilterMode.Bilinear);
 
                 bool useScissor = _lightScatteringSettings.ScissorRadius > 0.0f;
+                const bool renderToTexture = true;
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compute")))
                 {
@@ -67,7 +72,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         cmd.EnableScissorRect(ComputeScissorRect(sunViewport, scatteringWidth, scatteringHeight));
                     }
 
-                    cmd.Blit(source, ScatteringTextureId, material, ComputePass);
+                    cmd.SetRenderTarget(scatteringTextureId, RenderBufferLoadAction.DontCare,
+                        RenderBufferStoreAction.Store
+                    );
+                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                    ToonBlitter.Blit(cmd, material, renderToTexture, ComputePass);
                 }
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Combine")))
@@ -77,7 +86,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         cmd.EnableScissorRect(ComputeScissorRect(sunViewport, Context.RtWidth, Context.RtHeight));
                     }
 
-                    cmd.Blit(source, destination, material, CombinePass);
+                    cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                    ToonBlitter.Blit(cmd, material, renderToTexture, CombinePass);
                 }
 
                 if (useScissor)
@@ -87,6 +98,33 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
                 cmd.ReleaseTemporaryRT(ScatteringTextureId);
             }
+        }
+
+        private RenderTargetIdentifier EnsureTemporaryRT(CommandBuffer cmd, int id, RenderTextureDescriptor descriptor,
+            FilterMode filterMode)
+        {
+            int arraySize = 1;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled)
+                {
+                    arraySize = xrPass.viewCount;
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            if (arraySize > 1)
+            {
+                cmd.GetTemporaryRTArray(id, descriptor.width, descriptor.height, arraySize,
+                    descriptor.depthBufferBits, filterMode, descriptor.graphicsFormat, descriptor.msaaSamples
+                );
+                return ToonRpUtils.FixupTextureArrayIdentifier(id);
+            }
+
+            cmd.GetTemporaryRT(id, descriptor, filterMode);
+            return id;
         }
 
         private Rect ComputeScissorRect(Vector2 sunViewport, int rtWidth, int rtHeight)

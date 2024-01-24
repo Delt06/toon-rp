@@ -78,7 +78,7 @@ namespace DELTation.ToonRP
                     cmd.SetGlobalTexture(ToonBlitter.MainTexMsId, (RenderTexture) null);
                 }
 
-                ToonBlitter.Blit(cmd, material, renderToTexture);
+                ToonBlitter.Blit(cmd, material, renderToTexture, 0);
             }
         }
 

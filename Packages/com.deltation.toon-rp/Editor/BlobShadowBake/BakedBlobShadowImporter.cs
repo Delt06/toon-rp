@@ -190,14 +190,14 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             cmd.SetGlobalTexture(ToonBlitter.MainTexId, rt1);
             cmd.SetGlobalInt(ApplyStepToSourceSamplesId, i == 0 ? 1 : 0);
             cmd.SetGlobalVector(DirectionId, new Vector2(1, 0));
-            ToonBlitter.Blit(cmd, blurMaterial, renderToTexture);
+            ToonBlitter.Blit(cmd, blurMaterial, renderToTexture, 0);
 
             // Vertical
             cmd.SetRenderTarget(rt1);
             cmd.SetGlobalTexture(ToonBlitter.MainTexId, rt2);
             cmd.SetGlobalInt(ApplyStepToSourceSamplesId, 0);
             cmd.SetGlobalVector(DirectionId, new Vector2(0, 1));
-            ToonBlitter.Blit(cmd, blurMaterial, renderToTexture);
+            ToonBlitter.Blit(cmd, blurMaterial, renderToTexture, 0);
         }
     }
 }

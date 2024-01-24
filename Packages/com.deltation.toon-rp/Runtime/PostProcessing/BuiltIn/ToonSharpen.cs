@@ -38,7 +38,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     Material material = _material.GetOrCreate();
                     material.SetFloat(AmountId, _settings.Amount);
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                    ToonBlitter.Blit(cmd, material, renderToTexture);
+                    ToonBlitter.Blit(cmd, material, renderToTexture, 0);
                 }
                 else
                 {

@@ -69,7 +69,7 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     #if _BILLBOARD
     {
         const float3 pivot = GetObjectPosition();
-        const float3 pivotViewDir = GetWorldSpaceViewDir(pivot);
+        const float3 pivotViewDir = normalize(GetWorldSpaceViewDir(pivot));
         positionWS = mul(UNITY_MATRIX_I_V, float4(input.positionOS * GetObjectScale(), 0)).xyz + pivot;
         positionWS += pivotViewDir * vertexDescription.BillboardCameraPull;
     }

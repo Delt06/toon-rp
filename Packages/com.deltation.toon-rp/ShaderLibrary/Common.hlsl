@@ -15,6 +15,7 @@
 #define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
 
 // Include order is important here, instancing should come after macro definitions
+#include "ToonInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 CBUFFER_START(ToonRpScreenParams)

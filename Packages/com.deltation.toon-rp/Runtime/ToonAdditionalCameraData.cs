@@ -13,11 +13,16 @@ namespace DELTation.ToonRP
     public sealed class ToonAdditionalCameraData : MonoBehaviour, IAdditionalData
     {
         private readonly Dictionary<Type, object> _persistentDataStorage = new();
-        
+
         [NonSerialized] [CanBeNull]
         public RTHandle IntermediateColorRt;
         [NonSerialized] [CanBeNull]
         public RTHandle IntermediateDepthRt;
+
+#if !(ENABLE_VR && ENABLE_XR_MODULE)
+        [HideInInspector]
+#endif // !(ENABLE_VR && ENABLE_XR_MODULE)
+        public bool EnableXRRendering = true;
 
         public Camera Camera { get; private set; }
         public XRPass XrPass { get; internal set; } = XRSystem.emptyPass;

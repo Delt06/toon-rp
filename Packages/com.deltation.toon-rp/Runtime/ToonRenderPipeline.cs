@@ -71,12 +71,13 @@ namespace DELTation.ToonRP
 
             foreach (Camera camera in cameras)
             {
+                ToonAdditionalCameraData additionalCameraData = GetOrAddAdditionalCameraData(camera);
+
                 // Prepare XR rendering
                 bool xrActive = false;
                 XRLayout xrLayout = XRSystem.NewLayout();
-                xrLayout.AddCamera(camera, true);
-
-                ToonAdditionalCameraData additionalCameraData = GetOrAddAdditionalCameraData(camera);
+                bool enableXrRendering = EnableXrRendering(additionalCameraData, camera);
+                xrLayout.AddCamera(camera, enableXrRendering);
 
                 foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
@@ -84,15 +85,11 @@ namespace DELTation.ToonRP
                     {
                         xrActive = true;
                         ToonXr.UpdateCameraStereoMatrices(camera, xrPass);
-                    }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                    if (xrPass.enabled)
-                    {
                         additionalCameraData.XrPass = xrPass;
-                        // UpdateCameraData();
-                    }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
+                    }
 
                     _cameraRenderer.Render(context, ref sharedContext,
                         camera, additionalCameraData,
@@ -115,6 +112,15 @@ namespace DELTation.ToonRP
 
                 XRSystem.EndLayout();
             }
+        }
+
+        private static bool EnableXrRendering(ToonAdditionalCameraData additionalCameraData, Camera camera)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return additionalCameraData.EnableXRRendering && camera.targetTexture == null;
+#else
+            return false;
+#endif // ENABLE_VR && ENABLE_XR_MODULE
         }
 
         private static ToonAdditionalCameraData GetOrAddAdditionalCameraData(Camera camera)

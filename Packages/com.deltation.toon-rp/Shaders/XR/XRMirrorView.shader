@@ -19,13 +19,13 @@ Shader "Hidden/Toon RP/XR/XRMirrorView"
             HLSLPROGRAM
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
-                #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                // #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
                 #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
                 // Foveated rendering currently not supported in dxc on metal
                 #pragma never_use_dxc metal
 
                 #define SRC_TEXTURE2D_X_ARRAY 0
-                #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRMirrorView.hlsl"
+                #include "Packages/com.deltation.toon-rp/Shaders/XR/XRMirrorView.hlsl"
             ENDHLSL
         }
 
@@ -37,13 +37,13 @@ Shader "Hidden/Toon RP/XR/XRMirrorView"
             HLSLPROGRAM
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinear
-                #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+                // #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
                 #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
                 // Foveated rendering currently not supported in dxc on metal
                 #pragma never_use_dxc metal
 
                 #define SRC_TEXTURE2D_X_ARRAY 1
-                #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRMirrorView.hlsl"
+                #include "Packages/com.deltation.toon-rp/Shaders/XR/XRMirrorView.hlsl"
             ENDHLSL
         }
     }

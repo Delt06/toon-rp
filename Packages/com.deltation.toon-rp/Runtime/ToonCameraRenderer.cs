@@ -170,10 +170,7 @@ namespace DELTation.ToonRP
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
             _opaqueTexture.Setup(ref _context, additionalCameraData, settings);
-
-            _extensionsCollection.Setup(_extensionContext, cmd);
-            _context.ExecuteCommandBufferAndClear(cmd);
-
+            _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings,
                 additionalCameraData, _renderTarget,
                 _renderTarget.ColorFormat, _camera,
@@ -200,6 +197,9 @@ namespace DELTation.ToonRP
             _renderTarget.InitState(_additionalCameraData);
 
             ToonRpUtils.SetupCameraProperties(ref _context, cmd, _additionalCameraData, _camera.projectionMatrix, true);
+            SetInverseProjectionMatrix(cmd, _camera.projectionMatrix);
+            _context.ExecuteCommandBufferAndClear(cmd);
+
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
 
             if (_prePassMode != PrePassMode.Off)
@@ -229,10 +229,10 @@ namespace DELTation.ToonRP
                 EndXrRendering(cmd);
             }
 
-            SetupProjectionMatricesForMainView(cmd, postProcessingSettings);
             _context.ExecuteCommandBufferAndClear(cmd);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
 
+            SetupProjectionMatricesForMainView(cmd, postProcessingSettings);
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _tiledLighting.CullLights();
@@ -493,9 +493,14 @@ namespace DELTation.ToonRP
                 _additionalCameraData, _additionalCameraData.JitteredProjectionMatrix, _renderTarget.RenderToTexture
             );
 
+            SetInverseProjectionMatrix(cmd, _additionalCameraData.JitteredProjectionMatrix);
+        }
+
+        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 projectionMatrix)
+        {
             var inverseProjectionMatrix =
                 Matrix4x4.Inverse(
-                    ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix, true)
+                    ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix, true)
                 );
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
                 inverseProjectionMatrix
@@ -852,8 +857,7 @@ namespace DELTation.ToonRP
                     // context.Submit();
                     cmd.Clear();
 
-                    _camera.ResetStereoProjectionMatrices();
-                    _camera.ResetStereoViewMatrices();
+                    ToonXr.UpdateCameraStereoMatrices(_camera, xrPass);
                 }
                 else
                 {

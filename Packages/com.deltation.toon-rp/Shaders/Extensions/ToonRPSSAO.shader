@@ -53,10 +53,7 @@
                 float3 positionNdc;
                 positionNdc.xy = uv * 2 - 1;
                 #if UNITY_UV_STARTS_AT_TOP
-			    if (_ToonRP_Extensions_FlipUV)
-			    {
-			        positionNdc.y *= -1;    
-			    }
+                positionNdc.y *= -1;
                 #endif // UNITY_UV_STARTS_AT_TOP
                 positionNdc.z = zNdc;
                 return positionNdc;
@@ -120,10 +117,7 @@
                     }
                     
                     #if UNITY_UV_STARTS_AT_TOP
-                    if (_ToonRP_Extensions_FlipUV)
-                    {
-                        sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;    
-                    }
+                    sampleScreenSpaceUv.y = 1 - sampleScreenSpaceUv.y;
                     #endif // UNITY_UV_STARTS_AT_TOP
 
                     const float sampleDepthZNdc = SampleDepthTexture(sampleScreenSpaceUv);

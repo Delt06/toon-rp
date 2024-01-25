@@ -83,7 +83,7 @@ namespace DELTation.ToonRP
                     if (xrPass.enabled)
                     {
                         xrActive = true;
-                        UpdateCameraStereoMatrices(camera, xrPass);
+                        ToonXr.UpdateCameraStereoMatrices(camera, xrPass);
                     }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -125,28 +125,6 @@ namespace DELTation.ToonRP
             }
 
             return additionalCameraData;
-        }
-
-        private static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xr.enabled)
-            {
-                if (xr.singlePassEnabled)
-                {
-                    for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
-                    {
-                        camera.SetStereoProjectionMatrix((Camera.StereoscopicEye) i, xr.GetProjMatrix(i));
-                        camera.SetStereoViewMatrix((Camera.StereoscopicEye) i, xr.GetViewMatrix(i));
-                    }
-                }
-                else
-                {
-                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetProjMatrix());
-                    camera.SetStereoViewMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetViewMatrix());
-                }
-            }
-#endif // ENABLE_VR && ENABLE_XR_MODULE
         }
     }
 }

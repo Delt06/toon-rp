@@ -5,7 +5,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "Off-Screen Transparency")]
     public class ToonOffScreenTransparencyAsset : ToonRenderingExtensionAsset<ToonOffScreenTransparencySettings>
     {
-        private const ToonRenderingEvent MainRenderingEvent = ToonRenderingEvent.BeforePrepass;
+        private const ToonRenderingEvent MainRenderingEvent = ToonRenderingEvent.AfterPrepass;
 
         private void Reset()
         {

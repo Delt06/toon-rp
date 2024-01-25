@@ -23,10 +23,6 @@ CBUFFER_START(ToonRpScreenParams)
     float4 _ToonRP_ViewportRect; // xy = 1 / size, zw = -xy_min / size
 CBUFFER_END
 
-CBUFFER_START(ToonRpExtensions)
-    float _ToonRP_Extensions_FlipUV;
-CBUFFER_END
-
 #if UNITY_REVERSED_Z
 // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
 #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)

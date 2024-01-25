@@ -54,13 +54,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
-
-            CommandBuffer cmd = CommandBufferPool.Get();
-            bool patternEnabled = _settings.Pattern != null;
-            cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
-            cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
-            _context.ExecuteCommandBufferAndClear(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         public override void Render()
@@ -113,6 +106,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         ToonRpUtils.BuildRampVectorFromSmoothness(effectiveThreshold, _settings.Smoothness)
                     );
                 }
+
+                bool patternEnabled = _settings.Pattern != null;
+                cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
+                cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
 
                 Texture2D patternTexture = _settings.Pattern != null ? _settings.Pattern : Texture2D.blackTexture;
                 cmd.SetGlobalTexture(PatternId, patternTexture);

@@ -128,7 +128,9 @@ namespace DELTation.ToonRP
             _additionalCameraData = additionalCameraData;
             RTHandleSystem rtHandleSystem = additionalCameraData.RTHandleSystem;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
             _copyDepth.Setup(_camera, this);
+#endif // ENABLE_VR && ENABLE_XR_MODULE
 
             if (RenderToTexture)
             {

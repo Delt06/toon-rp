@@ -130,7 +130,15 @@ namespace DELTation.ToonRP
 
             if (RenderToTexture)
             {
+                MSAASamples msaaSamples = MSAASamples.None;
+
+                if (!_useNativeRenderPasses && MsaaSamples > 1)
+                {
+                    msaaSamples = (MSAASamples) MsaaSamples;
+                }
+
                 int arraySize = 1;
+                bool bindDepthTextureMs = false;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 {
@@ -138,6 +146,8 @@ namespace DELTation.ToonRP
                     if (xrPass.enabled)
                     {
                         arraySize = xrPass.viewCount;
+                        // Only need to bind depth texture as multi-sampled for copy depth pass
+                        bindDepthTextureMs = msaaSamples != MSAASamples.None;
                     }
                 }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
@@ -146,12 +156,6 @@ namespace DELTation.ToonRP
                 int depthBits = GraphicsFormatUtility.GetDepthBits(DepthStencilFormat);
                 const TextureWrapMode wrapMode = TextureWrapMode.Clamp;
                 const FilterMode depthFilterMode = FilterMode.Point;
-                MSAASamples msaaSamples = MSAASamples.None;
-
-                if (!_useNativeRenderPasses && MsaaSamples > 1)
-                {
-                    msaaSamples = (MSAASamples) MsaaSamples;
-                }
 
                 rtHandleSystem.ReAllocateIfNeeded(ref additionalCameraData.IntermediateColorRt,
                     "_ToonRP_CameraColorBuffer", dimensions, arraySize, colorFormat: ColorFormat,
@@ -162,7 +166,6 @@ namespace DELTation.ToonRP
 
                 if (ForceStoreAttachments || !_useNativeRenderPasses)
                 {
-                    bool bindDepthTextureMs = msaaSamples != MSAASamples.None;
                     rtHandleSystem.ReAllocateIfNeeded(ref additionalCameraData.IntermediateDepthRt,
                         "_ToonRP_CameraDepthBuffer", dimensions, arraySize,
                         colorFormat: GraphicsFormat.None, depthBufferBits: depthBits,

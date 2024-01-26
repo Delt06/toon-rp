@@ -33,7 +33,8 @@ namespace DELTation.ToonRP
 
         public bool ForceStoreAttachments { get; set; } = true;
 
-        public int MsaaSamples { get; set; }
+        public int MsaaSamples { get; private set; }
+        public int EffectiveMsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
         private GraphicsFormat DepthStencilFormat { get; set; }
 
@@ -111,6 +112,7 @@ namespace DELTation.ToonRP
             PixelRect = pixelRect;
             ColorFormat = colorFormat;
             MsaaSamples = msaaSamples;
+            EffectiveMsaaSamples = msaaSamples;
             DepthStencilFormat = depthStencilFormat;
             _state = default;
         }
@@ -136,6 +138,8 @@ namespace DELTation.ToonRP
                 {
                     msaaSamples = (MSAASamples) MsaaSamples;
                 }
+
+                EffectiveMsaaSamples = (int) msaaSamples;
 
                 int arraySize = 1;
                 bool bindDepthTextureMs = false;
@@ -264,15 +268,18 @@ namespace DELTation.ToonRP
                         colorAttachment.ConfigureClear(clearValue.BackgroundColor);
                     }
 
+                    RenderTargetIdentifier colorAttachmentIdentifier =
+                        ToonRpUtils.FixupTextureArrayIdentifier(_state.ColorBufferId.Identifier);
+
                     if (colorAttachment.loadAction == RenderBufferLoadAction.Load ||
                         colorAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
-                        colorAttachment.loadStoreTarget = _state.ColorBufferId.Identifier;
+                        colorAttachment.loadStoreTarget = colorAttachmentIdentifier;
                     }
 
                     if (colorAttachment.storeAction == RenderBufferStoreAction.Resolve)
                     {
-                        colorAttachment.resolveTarget = _state.ColorBufferId.Identifier;
+                        colorAttachment.resolveTarget = colorAttachmentIdentifier;
                     }
                 }
 
@@ -287,15 +294,18 @@ namespace DELTation.ToonRP
                         depthAttachment.ConfigureClear(Color.black);
                     }
 
+                    RenderTargetIdentifier depthAttachmentIdentifier =
+                        ToonRpUtils.FixupTextureArrayIdentifier(_state.DepthBufferId.Identifier);
+
                     if (depthAttachment.loadAction == RenderBufferLoadAction.Load ||
                         depthAttachment.storeAction == RenderBufferStoreAction.Store)
                     {
-                        depthAttachment.loadStoreTarget = _state.DepthBufferId.Identifier;
+                        depthAttachment.loadStoreTarget = depthAttachmentIdentifier;
                     }
 
                     if (depthAttachment.storeAction == RenderBufferStoreAction.Resolve)
                     {
-                        depthAttachment.resolveTarget = _state.DepthBufferId.Identifier;
+                        depthAttachment.resolveTarget = depthAttachmentIdentifier;
                     }
 
                     // Even if we don't store/resolve depth, we have to set anyway to prevent flickering on orientation change
@@ -304,18 +314,20 @@ namespace DELTation.ToonRP
                         _state.DepthBufferId.Identifier == BuiltinRenderTextureType.CameraTarget
                        )
                     {
-                        depthAttachment.loadStoreTarget = _state.DepthBufferId.Identifier;
+                        depthAttachment.loadStoreTarget = depthAttachmentIdentifier;
                     }
 
                     Assert.IsTrue(depthAttachment.resolveTarget == BuiltinRenderTextureType.None ||
                                   ToonGraphicsApi.SupportsMultisampleDepthResolve()
                     );
-                    
+
                     // Specifying camera depth more precisely is required here.
                     // For correct comparison, when have to fixup everything here.
-                    RenderTargetIdentifier cameraTargetAllSlices = ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget);
-                    RenderTargetIdentifier cameraDepthAllSlices = ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.Depth);
-                    
+                    RenderTargetIdentifier cameraTargetAllSlices =
+                        ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget);
+                    RenderTargetIdentifier cameraDepthAllSlices =
+                        ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.Depth);
+
                     if (depthAttachment.loadStoreTarget == cameraTargetAllSlices)
                     {
                         depthAttachment.loadStoreTarget = cameraDepthAllSlices;

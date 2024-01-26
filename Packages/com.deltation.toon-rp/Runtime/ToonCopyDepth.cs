@@ -28,7 +28,7 @@ namespace DELTation.ToonRP
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.CopyDepth)))
             {
-                int msaaSamples = _renderTarget.MsaaSamples;
+                int msaaSamples = _renderTarget.EffectiveMsaaSamples;
                 Material material = _copyDepthMaterial.GetOrCreate();
                 Shader shader = _copyDepthMaterial.Shader;
 

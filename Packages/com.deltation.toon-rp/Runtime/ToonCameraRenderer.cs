@@ -182,18 +182,22 @@ namespace DELTation.ToonRP
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
 
+            bool useNativeRenderPasses = _settings.NativeRenderPasses;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             {
                 XRPass xrPass = _additionalCameraData.XrPass;
                 if (xrPass.enabled && xrPass.copyDepth)
                 {
                     _renderTarget.ForceStoreAttachments = true;
+
+                    // TODO: investigate native render pass support for XR
+                    useNativeRenderPasses = false;
                 }
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
 
-
-            _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
+            _renderTarget.ConfigureNativeRenderPasses(useNativeRenderPasses);
             _renderTarget.InitState(_additionalCameraData);
 
             ToonRpUtils.SetupCameraProperties(ref _context, cmd, _additionalCameraData, _camera.projectionMatrix, true);

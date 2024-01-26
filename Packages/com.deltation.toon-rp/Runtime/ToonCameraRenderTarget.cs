@@ -310,16 +310,20 @@ namespace DELTation.ToonRP
                     Assert.IsTrue(depthAttachment.resolveTarget == BuiltinRenderTextureType.None ||
                                   ToonGraphicsApi.SupportsMultisampleDepthResolve()
                     );
-
-                    // Specifying camera depth more precisely is required here
-                    if (depthAttachment.loadStoreTarget == BuiltinRenderTextureType.CameraTarget)
+                    
+                    // Specifying camera depth more precisely is required here.
+                    // For correct comparison, when have to fixup everything here.
+                    RenderTargetIdentifier cameraTargetAllSlices = ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget);
+                    RenderTargetIdentifier cameraDepthAllSlices = ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.Depth);
+                    
+                    if (depthAttachment.loadStoreTarget == cameraTargetAllSlices)
                     {
-                        depthAttachment.loadStoreTarget = BuiltinRenderTextureType.Depth;
+                        depthAttachment.loadStoreTarget = cameraDepthAllSlices;
                     }
 
-                    if (depthAttachment.resolveTarget == BuiltinRenderTextureType.CameraTarget)
+                    if (depthAttachment.resolveTarget == cameraTargetAllSlices)
                     {
-                        depthAttachment.resolveTarget = BuiltinRenderTextureType.Depth;
+                        depthAttachment.resolveTarget = cameraDepthAllSlices;
                     }
                 }
 

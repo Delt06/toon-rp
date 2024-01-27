@@ -1,5 +1,6 @@
 ﻿using System;
 using DELTation.ToonRP.Extensions;
+using DELTation.ToonRP.Xr;
 using JetBrains.Annotations;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
@@ -86,6 +87,8 @@ namespace DELTation.ToonRP.Lighting
             {
                 return;
             }
+
+            ToonXr.EmitErrorOnXr(toonContext.AdditionalCameraData.XrPass, "Tiled Lighting");
 
             EnsureComputeShadersAreValid();
 

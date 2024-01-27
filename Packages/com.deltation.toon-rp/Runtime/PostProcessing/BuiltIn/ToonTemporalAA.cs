@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DELTation.ToonRP.Xr;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
@@ -29,6 +30,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             EnsureHistoryIsAllocated(context, _persistentData);
 
             _settings = context.Settings.Find<ToonTemporalAASettings>();
+
+            ToonXr.EmitErrorOnXr(context.AdditionalCameraData.XrPass, "Temporal AA");
         }
 
         private static void EnsureHistoryIsAllocated(ToonPostProcessingContext context,

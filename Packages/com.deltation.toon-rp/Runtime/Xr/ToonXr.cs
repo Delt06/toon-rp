@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using Debug = UnityEngine.Debug;
 
 namespace DELTation.ToonRP.Xr
 {
@@ -60,6 +61,16 @@ namespace DELTation.ToonRP.Xr
                     camera.SetStereoProjectionMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetProjMatrix());
                     camera.SetStereoViewMatrix((Camera.StereoscopicEye) xr.multipassId, xr.GetViewMatrix());
                 }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+        }
+
+        public static void EmitErrorOnXr(XRPass xr, string passName)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled)
+            {
+                Debug.LogError($"{passName} is not supported in XR. Please remove {passName} from XR pipeline assets.");
             }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
         }

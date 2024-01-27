@@ -65,6 +65,7 @@ namespace DELTation.ToonRP.Shadows
         [ToonRpShowIf(nameof(IsBlurEnabled))]
         [Range(0.001f, 0.999f)]
         public float LightBleedingReduction;
+        [ToonRpShowIf(nameof(IsBlurEnabled))]
         [Range(0.0f, 0.1f)]
         public float PrecisionCompensation;
         public DirectionalShadows Directional;

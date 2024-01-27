@@ -18,6 +18,8 @@ struct appdata
     float2 uv : TEXCOORD0;
     #endif // _NOISE
 
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+
     EXTRA_APP_DATA
 };
 

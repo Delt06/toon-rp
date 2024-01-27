@@ -2,47 +2,27 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
+	    Cull Off ZWrite Off ZTest Always
+	    
         HLSLINCLUDE
 
         //#pragma enable_d3d11_debug_symbols
 
-	    #pragma vertex VS
-		#pragma fragment PS
+	    #pragma vertex Vert
+		#pragma fragment Frag
+        
+        #include "Packages/com.deltation.toon-rp/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.deltation.toon-rp/ShaderLibrary/Textures.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-        #include "../../ShaderLibrary/Common.hlsl"
-        #include "../../ShaderLibrary/Textures.hlsl"
+        float4 Frag(Varyings IN);
 
-        TEXTURE2D(_MainTex);
+        TEXTURE2D_X(_MainTex);
         SAMPLER(sampler_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
-
-        bool _ToonRP_Bloom_UseBicubicUpsampling;
-
-        struct appdata
-        {
-            float3 position : POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        struct v2f
-		{
-            float4 positionCs : SV_POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        v2f VS(const appdata IN)
-        {
-            v2f OUT;
-            OUT.uv = IN.uv;
-            OUT.positionCs = TransformObjectToHClip(IN.position);
-            return OUT;
-        }
-
-        
         
 	    ENDHLSL
 
@@ -66,14 +46,16 @@
 	            for (int i = 0; i < 9; i++)
 	            {
                     const float offset = offsets[i] * 2.0 * _MainTex_TexelSize.x;
-		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv + float2(offset, 0.0), 0).rgb * weights[i];
+		            color += SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv + float2(offset, 0.0), 0).rgb * weights[i];
 	            }
                 return color;
             }
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                return float4(BlurHorizontal(IN.uv), 1.0f); 
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                return float4(BlurHorizontal(uv), 1.0f); 
             }
 
 			ENDHLSL
@@ -99,14 +81,16 @@
 	            for (int i = 0; i < 5; i++)
 	            {
                     const float offset = offsets[i] * _MainTex_TexelSize.y;
-		            color += SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv + float2(0.0, offset), 0).rgb * weights[i];
+		            color += SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv + float2(0.0, offset), 0).rgb * weights[i];
 	            }
                 return color;
             }
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                return float4(BlurVertical(IN.uv), 1.0f); 
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                return float4(BlurVertical(uv), 1.0f); 
             }
 
 			ENDHLSL
@@ -120,14 +104,19 @@
 
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Ramp.hlsl"
 
-			TEXTURE2D(_MainTex2);
+			TEXTURE2D_X(_MainTex2);
 			float _ToonRP_Bloom_Intensity;
 			bool _ToonRP_Bloom_UsePattern;
 			float _ToonRP_Bloom_PatternScale;
 			float _ToonRP_Bloom_PatternPower;
 			float _ToonRP_Bloom_PatternMultiplier;
 			float _ToonRP_Bloom_PatternEdge;
+			float _ToonRP_Bloom_PatternLuminanceThreshold;
+			float _ToonRP_Bloom_PatternDotSizeLimit;
+			float _ToonRP_Bloom_PatternBlend;
+			float2 _ToonRP_Bloom_PatternFinalIntensityRamp;
 
 			float ComputePattern(const float2 uv)
 			{
@@ -137,38 +126,35 @@
                 const float2 gridUv = ceil(patternUv) / scale2;
                 patternUv %= 1;
 			
-                const float3 gridSample = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, gridUv, 0).rgb;
+                const float3 gridSample = SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, gridUv, 0).rgb;
                 const float luminance = Luminance(gridSample);
 
 			    // scale pattern based on how bright the bloom in that area is
                 float2 centeredPatternUv = patternUv * 2 - 1;
-                centeredPatternUv /= _ToonRP_Bloom_PatternMultiplier * min(pow(abs(luminance), _ToonRP_Bloom_PatternPower), 1);
+                centeredPatternUv /= min(_ToonRP_Bloom_PatternDotSizeLimit, _ToonRP_Bloom_PatternMultiplier * min(pow(abs(luminance), _ToonRP_Bloom_PatternPower), 1));
 
 			    // smooth circle in each grid cell
                 float patternIntensity = smoothstep(1, _ToonRP_Bloom_PatternEdge, length(centeredPatternUv));
 			    // avoid very small details
-                patternIntensity *= step(0.05, luminance);
+                patternIntensity *= step(_ToonRP_Bloom_PatternLuminanceThreshold, luminance);
 			    return patternIntensity;
 			}
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                float3 source1;
-                if (_ToonRP_Bloom_UseBicubicUpsampling)
-                {
-                    source1 = SampleTexture2DBicubic(TEXTURE2D_ARGS(_MainTex, sampler_MainTex), IN.uv, _MainTex_TexelSize.zwxy, 1.0, 0.0).rgb;
-                }
-                else
-                {
-                    source1 = SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, IN.uv, 0).rgb;    
-                }
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                
+                float3 source1 = SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;
 
                 if (_ToonRP_Bloom_UsePattern)
                 {
-                    source1 *= ComputePattern(IN.uv);
+                    source1 *= ComputeRamp(max(source1.r, max(source1.g, source1.b)), _ToonRP_Bloom_PatternFinalIntensityRamp);
+                    const float patternStrength = lerp(_ToonRP_Bloom_PatternBlend, 1, ComputePattern(uv));
+                    source1 *= patternStrength;
                 }
                  
-                const float3 source2 = SAMPLE_TEXTURE2D_LOD(_MainTex2, sampler_MainTex, IN.uv, 0).rgb;
+                const float3 source2 = SAMPLE_TEXTURE2D_X_LOD(_MainTex2, sampler_MainTex, uv, 0).rgb;
                 return float4(source1 * _ToonRP_Bloom_Intensity + source2, 1.0f);
             }
 
@@ -194,9 +180,11 @@
 	            return color * contribution;
             }
 			
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                float3 color = ApplyBloomThreshold(SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, IN.uv, 0).rgb);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                float3 color = ApplyBloomThreshold(SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv, 0).rgb);
                 return float4(color, 1.0f);
             }
 

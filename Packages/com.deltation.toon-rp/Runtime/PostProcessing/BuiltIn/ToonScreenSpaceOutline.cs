@@ -18,7 +18,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ScreenSpaceOutlines)))
             {
-                _impl.RenderViaBlit(cmd, _settings, source, destination);
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                const bool renderToTexture = true;
+                _impl.RenderViaBlit(cmd, _settings, renderToTexture, source);
             }
         }
 

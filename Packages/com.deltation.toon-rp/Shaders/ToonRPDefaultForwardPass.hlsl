@@ -43,6 +43,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     const float2 uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);
     OUT.uv = uv;
@@ -81,6 +82,8 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+    
     float4 albedo = SampleAlbedo(IN.uv);
     AlphaClip(albedo);
 

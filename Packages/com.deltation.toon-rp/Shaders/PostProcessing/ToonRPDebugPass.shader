@@ -2,14 +2,15 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
+	    Cull Off ZWrite Off ZTest Always
+	    
 	    HLSLINCLUDE
 
-	    #include "../../ShaderLibrary/Common.hlsl"
-	    #include "../../ShaderLibrary/Textures.hlsl"
+	    #include "Packages/com.deltation.toon-rp/ShaderLibrary/Common.hlsl"
+	    #include "Packages/com.deltation.toon-rp/ShaderLibrary/Textures.hlsl"
 
 	    TEXTURE2D(_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
@@ -19,37 +20,18 @@
 
 	    float3 SampleSource(const float2 uv)
         {
-            return SAMPLE_TEXTURE2D_LOD(_MainTex, LINEAR_SAMPLER, uv, 0).rgb;
+            return SAMPLE_TEXTURE2D_X_LOD(_MainTex, LINEAR_SAMPLER, uv, 0).rgb;
         }
 
 	    //#pragma enable_d3d11_debug_symbols
 
-	    #pragma vertex VS
-		#pragma fragment PS
+	    #pragma vertex Vert
+		#pragma fragment Frag
 		
-		#include "../../ShaderLibrary/TiledLighting.hlsl"
+		#include "Packages/com.deltation.toon-rp/ShaderLibrary/TiledLighting.hlsl"
+	    #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-		struct appdata
-        {
-            float3 position : POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        struct v2f
-        {
-            float4 positionCs : SV_POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        v2f VS(const appdata IN)
-        {
-            v2f OUT;
-            OUT.uv = IN.uv;
-            OUT.positionCs = TransformObjectToHClip(IN.position);
-            return OUT;
-        }
-
-	    float4 PS(v2f IN);
+	    float4 Frag(Varyings IN);
 	    
 	    ENDHLSL
 	    Pass
@@ -58,9 +40,12 @@
 
 			HLSLPROGRAM
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                const uint2 tileIndex = TiledLighting_ScreenPositionToTileIndex(IN.positionCs.xy);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                
+                const uint2 tileIndex = TiledLighting_ScreenPositionToTileIndex(IN.positionCS.xy);
                 const uint flatTileIndex = TiledLighting_GetFlatTileIndex(tileIndex.x, tileIndex.y);
 
                 float3 output = 0.0f;
@@ -86,7 +71,7 @@
                     }
                 }
                 
-                return float4(lerp(SampleSource(IN.uv), output, 0.75f), 1.0f);
+                return float4(lerp(SampleSource(uv), output, 0.75f), 1.0f);
             }
 
 			ENDHLSL
@@ -100,9 +85,11 @@
 
 			#include "../../ShaderLibrary/DepthNormals.hlsl"
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                const float depth = SampleDepthTexture(IN.uv);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                const float depth = SampleDepthTexture(uv);
                 return float4(depth, 0.0f, 0.0f, 1.0f);
             }
 
@@ -117,9 +104,11 @@
 
 			#include "../../ShaderLibrary/DepthNormals.hlsl"
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                const float3 normals = SampleNormalsTexture(IN.uv) * 0.5f + 0.5f;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                const float3 normals = SampleNormalsTexture(uv) * 0.5f + 0.5f;
                 return float4(normals, 1.0f);
             }
 
@@ -137,10 +126,12 @@
 			float _MotionVectors_Scale;
 			float _MotionVectors_SceneIntensity;
 
-			float4 PS(const v2f IN) : SV_TARGET
+			float4 Frag(const Varyings IN) : SV_TARGET
             {
-                const float2 motionVectorsSample = SAMPLE_TEXTURE2D_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, IN.uv, 0).rg;
-                const float3 result = SampleSource(IN.uv) * _MotionVectors_SceneIntensity + float3(abs(motionVectorsSample) * _MotionVectors_Scale, 0.0f);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
+                const float2 motionVectorsSample = SAMPLE_TEXTURE2D_X_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, uv, 0).rg;
+                const float3 result = SampleSource(uv) * _MotionVectors_SceneIntensity + float3(abs(motionVectorsSample) * _MotionVectors_Scale, 0.0f);
                 return float4(result, 1.0f);
             }
 

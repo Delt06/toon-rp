@@ -12,5 +12,6 @@ namespace DELTation.ToonRP.PostProcessing
         public Camera Camera;
         public ToonCameraRendererSettings CameraRendererSettings;
         public ToonAdditionalCameraData AdditionalCameraData;
+        public ToonCameraRenderTarget CameraRenderTarget;
     }
 }

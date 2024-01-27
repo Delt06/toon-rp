@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
@@ -28,10 +29,36 @@ namespace DELTation.ToonRP
             SetInverseViewAndProjectionMatrices(cmd, viewMatrix, gpuProjectionMatrix, viewAndProjectionMatrix);
         }
 
-        public static void SetupCameraProperties(ref ScriptableRenderContext context,
+        public static void SetupCameraProperties(ref ScriptableRenderContext context, CommandBuffer cmd,
             ToonAdditionalCameraData additionalCameraData,
-            Matrix4x4 overrideProjectionMatrix)
+            Matrix4x4 overrideProjectionMatrix,
+            bool renderIntoTexture)
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                cmd.SetViewProjectionMatrices(additionalCameraData.GetViewMatrix(),
+                    additionalCameraData.GetProjectionMatrix()
+                );
+                if (xrPass.singlePassEnabled)
+                {
+                    for (int viewId = 0; viewId < xrPass.viewCount; viewId++)
+                    {
+                        XRBuiltinShaderConstants.UpdateBuiltinShaderConstants(
+                            additionalCameraData.GetViewMatrix(viewId),
+                            additionalCameraData.GetProjectionMatrix(viewId),
+                            CorrectRenderIntoTexture(renderIntoTexture),
+                            viewId
+                        );
+                    }
+
+                    XRBuiltinShaderConstants.SetBuiltinShaderConstants(cmd);
+                }
+
+                context.ExecuteCommandBufferAndClear(cmd);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
             additionalCameraData.SetCustomProjectionMatrix(overrideProjectionMatrix);
             context.SetupCameraProperties(additionalCameraData.Camera);
         }
@@ -51,7 +78,10 @@ namespace DELTation.ToonRP
         }
 
         public static Matrix4x4 GetGPUProjectionMatrix(Matrix4x4 projectionMatrix, bool renderIntoTexture) =>
-            GL.GetGPUProjectionMatrix(projectionMatrix, SystemInfo.graphicsUVStartsAtTop && renderIntoTexture);
+            GL.GetGPUProjectionMatrix(projectionMatrix, CorrectRenderIntoTexture(renderIntoTexture));
+
+        private static bool CorrectRenderIntoTexture(bool renderIntoTexture) =>
+            SystemInfo.graphicsUVStartsAtTop && renderIntoTexture;
 
         public static Vector4 BuildRampVectorFromEdges(float edge1, float edge2) =>
             BuildRampVectorFromSmoothness(edge1, edge2 - edge1);
@@ -67,6 +97,10 @@ namespace DELTation.ToonRP
             // saturate(v * invBMinusA + (-a * invBMinusA)) 
             return new Vector4(invBMinusA, -threshold * invBMinusA);
         }
+
+        // Use all slices. The default uses only the first one.
+        public static RenderTargetIdentifier FixupTextureArrayIdentifier(RenderTargetIdentifier id) =>
+            new(id, 0, CubemapFace.Unknown, -1);
 
         public static class ShaderPropertyId
         {

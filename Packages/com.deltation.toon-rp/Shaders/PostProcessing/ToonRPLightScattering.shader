@@ -2,24 +2,27 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
+	    Cull Off ZWrite Off ZTest Always
+	    
 	    HLSLINCLUDE
 
 	    //#pragma enable_d3d11_debug_symbols
 
-	    #pragma vertex VS
-		#pragma fragment PS
+	    #pragma vertex Vert
+		#pragma fragment Frag
 
-		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
-        #include "../../ShaderLibrary/Common.hlsl"
+	    #include "../../ShaderLibrary/Common.hlsl"
         #include "../../ShaderLibrary/Textures.hlsl"
+
+		#include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+	    
         #include "../../ShaderLibrary/DepthNormals.hlsl"
 
-        TEXTURE2D(_MainTex);
+        TEXTURE2D_X(_MainTex);
 	    SAMPLER(sampler_MainTex);
         DECLARE_TEXEL_SIZE(_MainTex);
 
@@ -31,30 +34,12 @@
 	    int _NumSamples;
 		CBUFFER_END
 
-	    struct appdata
-        {
-            float3 position : POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        struct v2f
-        {
-            float4 positionCs : SV_POSITION;
-            float2 uv : TEXCOORD0;
-        };
-
-        v2f VS(const appdata IN)
-        {
-            v2f OUT;
-            OUT.uv = IN.uv;
-            OUT.positionCs = TransformObjectToHClip(IN.position);
-            return OUT;
-        }
-
         float3 SampleSource(const float2 uv)
         {
-            return SAMPLE_TEXTURE2D_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;
+            return SAMPLE_TEXTURE2D_X_LOD(_MainTex, sampler_MainTex, uv, 0).rgb;
         }
+
+	    float4 Frag(Varyings IN);
 	    
 	    ENDHLSL
 	    
@@ -75,10 +60,12 @@
                 return depth == skyboxDepthValue;
             }
 
-            float4 PS(const v2f IN) : SV_TARGET
+            float4 Frag(const Varyings IN) : SV_TARGET
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                
                 // Sample colors
-                const float2 uv = IN.uv;
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
                 const float2 ray = uv - _Center;
                 
                 float3 result = 0.0f;
@@ -104,18 +91,16 @@
 	    Pass
 		{
 		    Name "Toon RP Light Scattering (Combine)"
-		    
-		    Blend One One
 			
 			HLSLPROGRAM
 
-			TEXTURE2D(_ToonRP_ScatteringTexture);
+			TEXTURE2D_X(_ToonRP_ScatteringTexture);
 			SAMPLER(sampler_ToonRP_ScatteringTexture);
 			DECLARE_TEXEL_SIZE(_ToonRP_ScatteringTexture);
 
 			float3 SampleScattering(const float2 uv)
 			{
-			    return SAMPLE_TEXTURE2D(_ToonRP_ScatteringTexture, sampler_ToonRP_ScatteringTexture, uv).rgb;
+			    return SAMPLE_TEXTURE2D_X(_ToonRP_ScatteringTexture, sampler_ToonRP_ScatteringTexture, uv).rgb;
 			}
 
 			float3 SampleScatteringBlur(const float2 uv)
@@ -130,11 +115,14 @@
 			    return result * 0.25f;
 			}
 
-            float4 PS(const v2f IN) : SV_TARGET
+            float4 Frag(const Varyings IN) : SV_TARGET
             {
-                const float2 uv = IN.uv;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                
+                // Sample colors
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
                 const float3 scattering = SampleScatteringBlur(uv);
-                return float4(scattering, 1);
+                return float4(SampleSource(uv) + scattering, 1);
             }
 
 			ENDHLSL

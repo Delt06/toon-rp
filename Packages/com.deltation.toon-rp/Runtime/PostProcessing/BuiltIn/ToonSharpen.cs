@@ -30,15 +30,19 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Sharpen)))
             {
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                const bool renderToTexture = true;
+
                 if (_camera.cameraType == CameraType.Game)
                 {
                     Material material = _material.GetOrCreate();
                     material.SetFloat(AmountId, _settings.Amount);
-                    cmd.Blit(source, destination, material);
+                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                    ToonBlitter.Blit(cmd, material, renderToTexture, 0);
                 }
                 else
                 {
-                    cmd.Blit(source, destination);
+                    ToonBlitter.BlitDefault(cmd, source, renderToTexture);
                 }
             }
         }

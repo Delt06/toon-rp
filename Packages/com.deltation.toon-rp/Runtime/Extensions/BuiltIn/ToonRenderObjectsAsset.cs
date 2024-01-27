@@ -8,8 +8,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "Render Objects")]
     public class ToonRenderObjectsAsset : ToonRenderingExtensionAsset<ToonRenderObjectsSettings>
     {
-        public override ToonRenderingEvent Event => Settings.Event;
-
         private void Reset()
         {
             Settings.Event = ToonRenderingEvent.AfterOpaque;
@@ -31,7 +29,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override IToonRenderingExtension CreateExtension() => new ToonRenderObjects();
+        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => Settings.Event == renderingEvent;
+
+        public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
+            Settings.Event == renderingEvent ? new ToonRenderObjects() : null;
 
         protected override string[] ForceIncludedShaderNames() => Array.Empty<string>();
     }

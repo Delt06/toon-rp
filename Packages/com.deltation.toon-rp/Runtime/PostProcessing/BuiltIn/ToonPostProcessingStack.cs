@@ -74,7 +74,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
             {
-                cmd.Blit(source, destination, material);
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                ToonBlitter.Blit(cmd, material, true, 0);
             }
         }
 

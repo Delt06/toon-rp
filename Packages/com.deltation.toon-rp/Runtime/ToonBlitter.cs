@@ -5,23 +5,42 @@ namespace DELTation.ToonRP
 {
     public static class ToonBlitter
     {
-        public const string DefaultBlitShaderPath = "Hidden/Toon RP/Blit";
+        public const string DefaultBlitShaderName = "Hidden/Toon RP/Blit";
 
         private const int SubmeshIndex = 0;
         public static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+        public static readonly int MainTexMsId = Shader.PropertyToID("_MainTexMs");
+        private static readonly int BlitScaleBiasId = Shader.PropertyToID("_BlitScaleBias");
         private static Mesh _triangleMesh;
-        private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderPath, "Toon RP Blit");
+        private static readonly ToonPipelineMaterial DefaultBlitMaterial = new(DefaultBlitShaderName, "Toon RP Blit");
 
-        public static void Blit(CommandBuffer cmd, Material material, int shaderPass = 0)
+        public static void Blit(CommandBuffer cmd, Material material, bool renderToTexture, int shaderPass)
         {
             EnsureMeshIsInitialized();
+            SetBlitScaleBias(cmd, renderToTexture);
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, material, SubmeshIndex, shaderPass);
         }
 
-        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source)
+        private static void SetBlitScaleBias(CommandBuffer cmd, bool renderToTexture)
+        {
+            bool yFlip = !renderToTexture && SystemInfo.graphicsUVStartsAtTop;
+            Vector2 viewportScale = Vector2.one;
+            Vector4 scaleBias = yFlip
+                ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y)
+                : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+            SetBlitScaleBias(cmd, scaleBias);
+        }
+
+        private static void SetBlitScaleBias(CommandBuffer cmd, Vector4 scaleBias)
+        {
+            cmd.SetGlobalVector(BlitScaleBiasId, scaleBias);
+        }
+
+        public static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source, bool renderToTexture)
         {
             EnsureMeshIsInitialized();
             cmd.SetGlobalTexture(MainTexId, source);
+            SetBlitScaleBias(cmd, renderToTexture);
             cmd.DrawMesh(_triangleMesh, Matrix4x4.identity, DefaultBlitMaterial.GetOrCreate(), SubmeshIndex);
         }
 

@@ -55,21 +55,19 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             );
         }
 
-        public void RenderViaCustomBlit(CommandBuffer cmd, in ToonScreenSpaceOutlineSettings settings)
-        {
-            UpdateMaterial(settings);
-
-            Material material = _material.GetOrCreate();
-            ToonBlitter.Blit(cmd, material);
-        }
-
         public void RenderViaBlit(CommandBuffer cmd, in ToonScreenSpaceOutlineSettings settings,
-            in RenderTargetIdentifier source, in RenderTargetIdentifier destination)
+            bool renderToTexture, RenderTargetIdentifier? source = null)
         {
             UpdateMaterial(settings);
 
             Material material = _material.GetOrCreate();
-            cmd.Blit(source, destination, material);
+
+            if (source != null)
+            {
+                cmd.SetGlobalTexture(ToonBlitter.MainTexId, source.Value);
+            }
+
+            ToonBlitter.Blit(cmd, material, renderToTexture, 0);
         }
 
         private void UpdateMaterial(in ToonScreenSpaceOutlineSettings settings)

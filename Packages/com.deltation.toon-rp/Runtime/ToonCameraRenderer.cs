@@ -5,6 +5,7 @@ using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
 using DELTation.ToonRP.PostProcessing.BuiltIn;
 using DELTation.ToonRP.Shadows;
+using DELTation.ToonRP.Xr;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -22,12 +23,12 @@ namespace DELTation.ToonRP
             new("SRPDefaultUnlit"),
         };
         private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
-        private readonly DepthPrePass _depthPrePass = new();
+        private readonly ToonDepthPrePass _depthPrePass;
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
         private readonly CommandBuffer _finalBlitCmd = new() { name = "Final Blit" };
         private readonly ToonGlobalRamp _globalRamp = new();
         private readonly ToonLighting _lighting = new();
-        private readonly MotionVectorsPrePass _motionVectorsPrePass = new();
+        private readonly ToonMotionVectorsPrePass _motionVectorsPrePass;
         private readonly ToonOpaqueTexture _opaqueTexture;
         private readonly ToonPostProcessing _postProcessing = new();
 
@@ -51,10 +52,13 @@ namespace DELTation.ToonRP
         {
             _tiledLighting = new ToonTiledLighting(_lighting);
             _opaqueTexture = new ToonOpaqueTexture(_renderTarget);
+            _depthPrePass = new ToonDepthPrePass();
+            _motionVectorsPrePass = new ToonMotionVectorsPrePass(_depthPrePass);
         }
 
         public void Dispose()
         {
+            _renderTarget.Dispose();
             _shadows.Dispose();
             _tiledLighting?.Dispose();
             _extensionsCollection.Dispose();
@@ -165,9 +169,10 @@ namespace DELTation.ToonRP
             Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, msaaSamples);
 
             _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
-            _opaqueTexture.Setup(ref _context, settings);
+            _opaqueTexture.Setup(ref _context, additionalCameraData, settings);
             _extensionsCollection.Setup(_extensionContext);
-            _postProcessing.Setup(_context, postProcessingSettings, _settings, additionalCameraData,
+            _postProcessing.Setup(_context, postProcessingSettings, _settings,
+                additionalCameraData, _renderTarget,
                 _renderTarget.ColorFormat, _camera,
                 _renderTarget.Width,
                 _renderTarget.Height
@@ -176,19 +181,39 @@ namespace DELTation.ToonRP
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
                                                   _postProcessing.InterruptsGeometryRenderPass();
-            _renderTarget.ConfigureNativeRenderPasses(_settings.NativeRenderPasses);
-            _renderTarget.InitState();
 
-            ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData, _camera.projectionMatrix);
+            bool useNativeRenderPasses = _settings.NativeRenderPasses;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled && xrPass.copyDepth)
+                {
+                    _renderTarget.ForceStoreAttachments = true;
+
+                    // TODO: investigate native render pass support for XR
+                    useNativeRenderPasses = false;
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            _renderTarget.ConfigureNativeRenderPasses(useNativeRenderPasses);
+            _renderTarget.InitState(_additionalCameraData);
+
+            ToonRpUtils.SetupCameraProperties(ref _context, cmd, _additionalCameraData, _camera.projectionMatrix, true);
+            SetInverseProjectionMatrix(cmd, _camera.projectionMatrix);
+            _context.ExecuteCommandBufferAndClear(cmd);
+
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
 
             if (_prePassMode != PrePassMode.Off)
             {
-                _context.ExecuteCommandBufferAndClear(cmd);
+                BeginXrRendering(cmd);
 
                 if (_prePassMode.Includes(PrePassMode.Depth))
                 {
                     _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
+                        _additionalCameraData,
                         settings, _prePassMode,
                         _renderTarget.Width, _renderTarget.Height, _requireStencil
                     );
@@ -204,12 +229,14 @@ namespace DELTation.ToonRP
                     );
                     _motionVectorsPrePass.Render();
                 }
+
+                EndXrRendering(cmd);
             }
 
-            SetupProjectionMatricesForMainView(cmd, postProcessingSettings);
             _context.ExecuteCommandBufferAndClear(cmd);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPrepass);
 
+            SetupProjectionMatricesForMainView(cmd, postProcessingSettings);
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _tiledLighting.CullLights();
@@ -218,7 +245,9 @@ namespace DELTation.ToonRP
 
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
+                BeginXrRendering(cmd);
                 RenderPostProcessing(cmd);
+                EndXrRendering(cmd);
             }
             else
             {
@@ -251,7 +280,7 @@ namespace DELTation.ToonRP
 
         private bool Cull(in ToonShadowSettings toonShadowSettings)
         {
-            if (!_camera.TryGetCullingParameters(out ScriptableCullingParameters parameters))
+            if (!TryGetCullingParameters(_camera, _additionalCameraData, out ScriptableCullingParameters parameters))
             {
                 return false;
             }
@@ -272,6 +301,29 @@ namespace DELTation.ToonRP
 
             _cullingResults = _context.Cull(ref parameters);
             return true;
+        }
+
+        private static bool TryGetCullingParameters(Camera camera, ToonAdditionalCameraData additionalCameraData,
+            out ScriptableCullingParameters cullingParams)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                cullingParams = xrPass.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device
+                if (!camera.usePhysicalProperties && !XRGraphicsAutomatedTests.enabled)
+                {
+                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) *
+                                         2.0f;
+                }
+
+                return true;
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            return camera.TryGetCullingParameters(false, out cullingParams);
         }
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
@@ -301,6 +353,7 @@ namespace DELTation.ToonRP
             cameraRect.min = Vector2.Max(cameraRect.min, Vector2.zero);
             cameraRect.max = Vector2.Min(cameraRect.max, Vector2.one);
             _camera.rect = cameraRect;
+            Rect cameraPixelRect = _camera.pixelRect;
 
             int rtWidth = _camera.pixelWidth;
             int rtHeight = _camera.pixelHeight;
@@ -320,10 +373,24 @@ namespace DELTation.ToonRP
                 }
             );
 
+            // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
+            bool requireMsaaRenderToTexture = msaaSamples > 1;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            {
+                XRPass xrPass = _additionalCameraData.XrPass;
+                if (xrPass.enabled)
+                {
+                    rtWidth = xrPass.renderTargetDesc.width;
+                    rtHeight = xrPass.renderTargetDesc.height;
+                    cameraPixelRect = xrPass.GetViewport();
+                }
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
             bool renderToTexture =
                     _settings.ForceRenderToIntermediateBuffer ||
-                    msaaSamples >
-                    1 || // TODO: investigate whether it is necessary for MSAA: https://github.com/Delt06/toon-rp/issues/188
+                    requireMsaaRenderToTexture ||
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
@@ -382,10 +449,14 @@ namespace DELTation.ToonRP
                 depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
             }
 
-            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, _settings.RenderTextureFilterMode,
+            _renderTarget.Initialize(_camera, renderToTexture, rtWidth, rtHeight, cameraPixelRect,
+                _settings.RenderTextureFilterMode,
                 renderTextureColorFormat, depthStencilFormat,
                 msaaSamples
             );
+            (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) cameraTarget =
+                GetCameraTarget();
+            _renderTarget.SetCameraTarget(cameraTarget.colorBufferId, cameraTarget.depthBufferId);
 
             UpdateRtHandles(rtWidth, rtHeight);
 
@@ -414,19 +485,26 @@ namespace DELTation.ToonRP
             ToonMotionVectorsPersistentData motionVectorsPersistentData =
                 _additionalCameraData.GetPersistentData<ToonMotionVectorsPersistentData>();
             motionVectorsPersistentData.JitterMatrix = jitterMatrix;
+            _additionalCameraData.ViewMatrix = _camera.worldToCameraMatrix;
             _additionalCameraData.BaseProjectionMatrix = _camera.nonJitteredProjectionMatrix;
+            _additionalCameraData.JitterMatrix = jitterMatrix;
             _additionalCameraData.JitteredProjectionMatrix = jitterMatrix * _additionalCameraData.BaseProjectionMatrix;
             _additionalCameraData.JitteredGpuProjectionMatrix =
                 ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix,
                     _renderTarget.RenderToTexture
                 );
-            ToonRpUtils.SetupCameraProperties(ref _context, _additionalCameraData,
-                _additionalCameraData.JitteredProjectionMatrix
+            ToonRpUtils.SetupCameraProperties(ref _context, cmd,
+                _additionalCameraData, _additionalCameraData.JitteredProjectionMatrix, _renderTarget.RenderToTexture
             );
 
+            SetInverseProjectionMatrix(cmd, _additionalCameraData.JitteredProjectionMatrix);
+        }
+
+        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 projectionMatrix)
+        {
             var inverseProjectionMatrix =
                 Matrix4x4.Inverse(
-                    ToonRpUtils.GetGPUProjectionMatrix(_additionalCameraData.JitteredProjectionMatrix, true)
+                    ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix, true)
                 );
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
                 inverseProjectionMatrix
@@ -508,19 +586,34 @@ namespace DELTation.ToonRP
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeGeometryPasses);
 
+            BeginXrRendering(cmd);
+
             ToonClearValue clearValue = GetRenderTargetsClearValue();
             RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbuffer == 0
                 ? RenderBufferLoadAction.DontCare
                 : RenderBufferLoadAction.Load;
+
             _renderTarget.BeginRenderPass(ref _context, loadAction, clearValue);
 
+            DrawOcclusionMesh(cmd);
             DrawVisibleGeometry(cmd);
             DrawUnsupportedShaders();
             DrawGizmosPreImageEffects();
 
             _context.ExecuteCommandBufferAndClear(cmd);
+            EndXrRendering(cmd);
+
             _renderTarget.EndRenderPass(ref _context, cmd);
         }
+
+        private void BeginXrRendering(CommandBuffer cmd) =>
+            ToonXr.BeginXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
+
+        private void EndXrRendering(CommandBuffer cmd) =>
+            ToonXr.EndXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
+
+        private void DrawOcclusionMesh(CommandBuffer cmd) =>
+            ToonXr.DrawOcclusionMesh(ref _context, cmd, _additionalCameraData.XrPass);
 
         private ToonClearValue GetRenderTargetsClearValue()
         {
@@ -541,6 +634,18 @@ namespace DELTation.ToonRP
             {
                 clearColor = cameraClearFlags == CameraClearFlags.Color || _camera.cameraType != CameraType.Game;
                 backgroundColor = clearColor ? _camera.backgroundColor.linear : Color.clear;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (_camera.cameraType == CameraType.Game)
+                {
+                    XRPass xrPass = _additionalCameraData.XrPass;
+                    if (xrPass.enabled && !clearColor)
+                    {
+                        clearColor = true;
+                        backgroundColor = Color.black;
+                    }
+                }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
             }
 
             return new ToonClearValue(clearColor, clearDepth, backgroundColor);
@@ -553,18 +658,39 @@ namespace DELTation.ToonRP
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
+            RenderTargetIdentifier destination = _renderTarget.CameraTargetColorId;
             _postProcessing.RenderFullScreenEffects(
                 _renderTarget.Width, _renderTarget.Height, _renderTarget.ColorFormat,
-                sourceId, BuiltinRenderTextureType.CameraTarget
+                sourceId, destination
             );
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterPostProcessing);
+        }
+
+        private (RenderTargetIdentifier colorBufferId, RenderTargetIdentifier depthBufferId) GetCameraTarget()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                return (xrPass.renderTarget, xrPass.renderTarget);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            RenderTexture targetTexture = _camera.targetTexture;
+            return targetTexture != null
+                ? (targetTexture.colorBuffer, targetTexture.depthBuffer)
+                : (BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
         }
 
 
         private void BlitToCameraTarget()
         {
+            BeginXrRendering(_finalBlitCmd);
+
             _renderTarget.FinalBlit(_finalBlitCmd);
             _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
+
+            EndXrRendering(_finalBlitCmd);
         }
 
         private void Cleanup(CommandBuffer cmd)
@@ -623,7 +749,7 @@ namespace DELTation.ToonRP
             }
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeSkybox);
-            _context.DrawSkybox(_camera);
+            DrawSkybox(cmd);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
 
             _opaqueTexture.Capture();
@@ -704,6 +830,48 @@ namespace DELTation.ToonRP
                 context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings,
                     ref renderStateBlockValue
                 );
+            }
+        }
+
+        private void DrawSkybox(CommandBuffer cmd)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                // Setup Legacy XR buffer states
+                if (xrPass.singlePassEnabled)
+                {
+                    // Use legacy stereo instancing mode to have legacy XR code path configured
+                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview
+                        ? SinglePassStereoMode.Multiview
+                        : SinglePassStereoMode.Instancing
+                    );
+                    _context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    // Calling into built-in skybox pass
+                    _context.DrawSkybox(_camera);
+
+                    // Disable Legacy XR path
+                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
+                    _context.ExecuteCommandBuffer(cmd);
+                    // We do not need to submit here due to special handling of stereo matrices in core.
+                    // context.Submit();
+                    cmd.Clear();
+
+                    ToonXr.UpdateCameraStereoMatrices(_camera, xrPass);
+                }
+                else
+                {
+                    _context.DrawSkybox(_camera);
+                }
+            }
+            else
+#endif
+            {
+                _context.DrawSkybox(_camera);
             }
         }
 

@@ -5,15 +5,6 @@
     }
 	SubShader
 	{
-	    HLSLINCLUDE
-
-	    //#pragma enable_d3d11_debug_symbols
-
-		#pragma vertex VS
-		#pragma fragment PS
-
-	    ENDHLSL 
-	    
 	    Pass
 		{
 		    Name "Toon RP Depth Downsample"
@@ -26,9 +17,18 @@
 			HLSLPROGRAM
 
 			#pragma multi_compile_local_fragment _ _HIGH_QUALITY
-			
-			#include "../../ShaderLibrary/CustomBlit.hlsl"
+
+			//#pragma enable_d3d11_debug_symbols
+
+			#include "../../ShaderLibrary/Common.hlsl"
+		    #include "../../ShaderLibrary/Textures.hlsl"
+
+		    #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
 			#include "../../ShaderLibrary/DepthNormals.hlsl"
+
+		    #pragma vertex Vert
+		    #pragma fragment Frag
 
 			uint _ResolutionFactor;
 
@@ -66,9 +66,10 @@
 			    return accumulatedDepth;
 			}
 
-            float4 PS(const v2f IN, out float outDepth : SV_Depth) : SV_TARGET
+            float4 Frag(const Varyings IN, out float outDepth : SV_Depth) : SV_TARGET
             {
-                const float2 uv = IN.uv;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+                const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
                 #ifdef _HIGH_QUALITY
                 outDepth = SampleDepthTextureHighQuality(uv);
                 #else // !_HIGH_QUALITY

@@ -90,9 +90,16 @@ namespace DELTation.ToonRP.Extensions
                         continue;
                     }
 
-                    IToonRenderingExtension renderingExtension = extensionAsset.CreateExtension();
-                    AddExtension(extensionAsset.Event, renderingExtension);
-                    _sourceAssets[renderingExtension] = extensionAsset;
+                    foreach (ToonRenderingEvent renderingEvent in ToonRenderingEvents.All)
+                    {
+                        IToonRenderingExtension renderingExtension =
+                            extensionAsset.CreateExtensionOrDefault(renderingEvent);
+                        if (renderingExtension != null)
+                        {
+                            AddExtension(renderingEvent, renderingExtension);
+                            _sourceAssets[renderingExtension] = extensionAsset;
+                        }
+                    }
                 }
             }
 
@@ -129,7 +136,7 @@ namespace DELTation.ToonRP.Extensions
 
                 foreach (IToonRenderingExtension extension in extensions)
                 {
-                    if (_sourceAssets[extension].Event == @event)
+                    if (_sourceAssets[extension].IncludesEvent(@event))
                     {
                         continue;
                     }
@@ -153,6 +160,7 @@ namespace DELTation.ToonRP.Extensions
             {
                 return;
             }
+
 
             foreach (IToonRenderingExtension extension in extensions)
             {

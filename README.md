@@ -20,6 +20,7 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 - Windows (DirectX 11, Vulkan, OpenGL)
 - Android (OpenGL ES 3.0+, Vulkan)
 - WebGL 2.0
+- XR (see [XR](https://github.com/Delt06/toon-rp/wiki/XR) Wiki page for full info)
 
 > ⚠️ Other platforms may work but have not been tested yet.
 

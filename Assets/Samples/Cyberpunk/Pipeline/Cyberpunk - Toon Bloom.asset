@@ -15,16 +15,19 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
   Settings:
-    Intensity: 0.46
-    Threshold: 0.77
+    Intensity: 0.63
+    Threshold: 0.76
     ThresholdKnee: 0.5
     MaxIterations: 5
-    ResolutionFactor: 4
+    ResolutionFactor: 2
     DownsampleLimit: 2
-    BicubicUpsampling: 0
     Pattern:
       Enabled: 1
-      Scale: 250
-      Power: 2.02
+      Scale: 350
+      Power: 1.66
       Multiplier: 9.4
-      Smoothness: 0.185
+      Smoothness: 0.44
+      LuminanceThreshold: 0.196
+      DotSizeLimit: -0
+      Blend: 0.583
+      FinalIntensityThreshold: 0.1

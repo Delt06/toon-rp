@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using DELTation.ToonRP.Xr;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -36,6 +37,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private int _height;
         private Material _material;
         private Texture _noiseTexture;
+        private RenderTargetIdentifier _rtId;
+        private RenderTargetIdentifier _rtTempId;
         private ToonSsaoSettings _settings;
         private int _width;
 
@@ -51,13 +54,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _width = Mathf.Max(1, _width / _settings.ResolutionFactor);
             _height = Mathf.Max(1, _height / _settings.ResolutionFactor);
-
-            CommandBuffer cmd = CommandBufferPool.Get();
-            bool patternEnabled = _settings.Pattern != null;
-            cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
-            cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
-            _context.ExecuteCommandBufferAndClear(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         public override void Render()
@@ -78,26 +74,31 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 }
 
                 const FilterMode filterMode = FilterMode.Bilinear;
-                cmd.GetTemporaryRT(RtId, _width, _height, 0, filterMode, RtFormat);
-                cmd.GetTemporaryRT(RtTempId, _width, _height, 0, filterMode, RtFormat);
+                var renderTextureDescriptor = new RenderTextureDescriptor(_width, _height, RtFormat, 0);
+                _rtId = GetTemporaryRT(cmd, RtId, renderTextureDescriptor, filterMode);
+                _rtTempId = GetTemporaryRT(cmd, RtTempId, renderTextureDescriptor, filterMode);
+
+                _context.ExecuteCommandBufferAndClear(cmd);
+                ToonXr.BeginXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
 
                 {
-                    const string sampleName = "SSAO (Trace)";
-                    cmd.BeginSample(sampleName);
-                    cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    RenderMainPass(cmd);
-                    cmd.EndSample(sampleName);
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("SSAO (Trace)")))
+                    {
+                        cmd.SetRenderTarget(_rtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                        RenderMainPass(cmd);
+                    }
+
+                    using (new ProfilingScope(cmd, NamedProfilingSampler.Get("SSAO (Blur)")))
+                    {
+                        cmd.SetRenderTarget(_rtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                        RenderBlur(cmd, Vector2.right, _rtId);
+                        cmd.SetRenderTarget(_rtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                        RenderBlur(cmd, Vector2.up, _rtTempId);
+                    }
                 }
 
-                {
-                    const string sampleName = "SSAO (Blur)";
-                    cmd.BeginSample(sampleName);
-                    cmd.SetRenderTarget(RtTempId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                    RenderBlur(cmd, Vector2.right, RtId);
-                    cmd.SetRenderTarget(RtId);
-                    RenderBlur(cmd, Vector2.up, RtTempId);
-                    cmd.EndSample(sampleName);
-                }
+                _context.ExecuteCommandBufferAndClear(cmd);
+                ToonXr.EndXrRendering(ref _context, cmd, _additionalCameraData.XrPass);
 
                 {
                     float effectiveThreshold = 1 - _settings.Threshold;
@@ -106,6 +107,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     );
                 }
 
+                bool patternEnabled = _settings.Pattern != null;
+                cmd.SetKeyword(_ssaoKeyword, !patternEnabled);
+                cmd.SetKeyword(_ssaoPatternKeyword, patternEnabled);
+
                 Texture2D patternTexture = _settings.Pattern != null ? _settings.Pattern : Texture2D.blackTexture;
                 cmd.SetGlobalTexture(PatternId, patternTexture);
                 cmd.SetGlobalVector(PatternScaleId, _settings.PatternScale);
@@ -113,6 +118,25 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private RenderTargetIdentifier GetTemporaryRT(CommandBuffer cmd,
+            int identifier, RenderTextureDescriptor descriptor, FilterMode filterMode)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRPass xrPass = _additionalCameraData.XrPass;
+            if (xrPass.enabled)
+            {
+                int arraySize = xrPass.viewCount;
+                cmd.GetTemporaryRTArray(identifier, descriptor.width, descriptor.height, arraySize,
+                    descriptor.depthBufferBits, filterMode, descriptor.graphicsFormat
+                );
+                return ToonRpUtils.FixupTextureArrayIdentifier(identifier);
+            }
+#endif // ENABLE_VR && ENABLE_XR_MODULE
+
+            cmd.GetTemporaryRT(identifier, descriptor, filterMode);
+            return identifier;
         }
 
         public override void Cleanup()
@@ -193,12 +217,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private void RenderMainPass(CommandBuffer cmd)
         {
-            cmd.SetRenderTarget(RtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            cmd.SetRenderTarget(_rtId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
             cmd.SetGlobalTexture(NoiseTextureId, _noiseTexture);
 
             cmd.SetGlobalFloat(RadiusId, GetRadius());
             cmd.SetGlobalFloat(PowerId, _settings.Power);
+
             cmd.SetGlobalVector(NoiseScaleId,
                 new Vector4((float) _width / _noiseTexture.width, (float) _height / _noiseTexture.height)
             );
@@ -227,7 +252,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
         private void Draw(CommandBuffer cmd, int shaderPass)
         {
-            cmd.DrawProcedural(Matrix4x4.identity, _material, shaderPass, MeshTopology.Triangles, 3, 1);
+            const bool renderToTexture = true;
+            ToonBlitter.Blit(cmd, _material, renderToTexture, shaderPass);
         }
     }
 }

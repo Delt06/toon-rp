@@ -15,6 +15,7 @@
 #define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
 
 // Include order is important here, instancing should come after macro definitions
+#include "ToonInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
 CBUFFER_START(ToonRpScreenParams)
@@ -214,5 +215,20 @@ VertexNormalInputs GetVertexNormalInputs(const float3 normalOs, const float4 tan
     tbn.bitangentWS = real3(cross(tbn.normalWS, float3(tbn.tangentWS))) * sign;
     return tbn;
 }
+
+#if defined(UNITY_SINGLE_PASS_STEREO)
+float2 TransformStereoScreenSpaceTex(float2 uv, float w)
+{
+    float4 scaleOffset = unity_StereoScaleOffset[unity_StereoEyeIndex];
+    return uv.xy * scaleOffset.xy + scaleOffset.zw * w;
+}
+
+float2 UnityStereoTransformScreenSpaceTex(float2 uv)
+{
+    return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
+}
+#else
+#define UnityStereoTransformScreenSpaceTex(uv) uv
+#endif // defined(UNITY_SINGLE_PASS_STEREO)
 
 #endif // TOON_RP_COMMON

@@ -26,6 +26,8 @@ struct v2f
     #endif // REQUIRE_UV_INTERPOLANT
 
     float4 positionCs : SV_POSITION;
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 v2f VS(const appdata IN)
@@ -33,6 +35,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     #ifdef REQUIRE_UV_INTERPOLANT
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);

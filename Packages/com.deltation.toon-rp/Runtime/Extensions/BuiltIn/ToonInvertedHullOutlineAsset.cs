@@ -6,7 +6,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     public class
         ToonInvertedHullOutlineAsset : ToonRenderingExtensionAsset<ToonInvertedHullOutlineSettings>
     {
-        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterOpaque;
+        private const ToonRenderingEvent RenderingEvent = ToonRenderingEvent.AfterOpaque;
 
         private void Reset()
         {
@@ -28,7 +28,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override IToonRenderingExtension CreateExtension() => new ToonInvertedHullOutline();
+        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+
+        public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
+            renderingEvent == RenderingEvent ? new ToonInvertedHullOutline() : null;
+
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {

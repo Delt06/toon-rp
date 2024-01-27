@@ -23,8 +23,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         [Min(1)]
         public int DownsampleLimit;
 
-        public bool BicubicUpsampling;
-
         public PatternSettings Pattern;
 
         [Serializable]
@@ -39,6 +37,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             public float Multiplier;
             [Range(0.001f, 1.0f)]
             public float Smoothness;
+            [Range(0.05f, 1.0f)]
+            public float LuminanceThreshold;
+            [Min(0.0f)]
+            public float DotSizeLimit;
+            [Range(0.0f, 1.0f)]
+            public float Blend;
+            [Range(0.0f, 0.99f)]
+            public float FinalIntensityThreshold;
         }
     }
 }

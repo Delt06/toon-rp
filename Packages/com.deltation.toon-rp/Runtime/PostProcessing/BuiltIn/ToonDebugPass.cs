@@ -37,6 +37,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Debug)))
             {
+                cmd.SetRenderTarget(ToonRpUtils.FixupTextureArrayIdentifier(destination),
+                    RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store
+                );
+
+                const bool renderToTexture = true;
                 if (_camera.cameraType == CameraType.Game)
                 {
                     Material material = _material.GetOrCreate();
@@ -65,11 +71,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     }
 
                     int passIndex = (int) _settings.Mode - 1;
-                    cmd.Blit(source, destination, material, passIndex);
+                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, ToonRpUtils.FixupTextureArrayIdentifier(source));
+                    ToonBlitter.Blit(cmd, material, renderToTexture, passIndex);
                 }
                 else
                 {
-                    cmd.Blit(source, destination);
+                    ToonBlitter.BlitDefault(cmd, ToonRpUtils.FixupTextureArrayIdentifier(source), renderToTexture);
                 }
             }
         }

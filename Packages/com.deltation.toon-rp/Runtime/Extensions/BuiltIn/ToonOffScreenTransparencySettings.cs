@@ -25,6 +25,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Additive,
         }
 
+        public const string DefaultPassName = "Off-Screen Transparency";
+
         public string PassName;
         [Min(1)]
         public int ResolutionFactor;

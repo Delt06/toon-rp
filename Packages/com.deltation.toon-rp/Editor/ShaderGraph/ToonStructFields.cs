@@ -39,6 +39,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 preprocessor: "defined(_TOON_RP_VSM)",
                 subscriptOptions: StructFieldOptions.Optional
             );
+
+            public static FieldDescriptor stereoTargetEyeIndexAsRTArrayIdx = new(Name,
+                "stereoTargetEyeIndexAsRTArrayIdx", "", ShaderValueType.Uint,
+                "SV_RenderTargetArrayIndex", "(defined(UNITY_STEREO_INSTANCING_ENABLED))", StructFieldOptions.Generated
+            );
+            public static FieldDescriptor stereoTargetEyeIndexAsBlendIdx0 = new(Name, "stereoTargetEyeIndexAsBlendIdx0",
+                "", ShaderValueType.Uint,
+                "BLENDINDICES0",
+                "(defined(UNITY_STEREO_MULTIVIEW_ENABLED)) || (defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))"
+            );
         }
     }
 }

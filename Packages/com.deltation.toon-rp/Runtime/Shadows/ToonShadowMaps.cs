@@ -450,7 +450,7 @@ namespace DELTation.ToonRP.Shadows
                         );
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
-                        ToonBlitter.Blit(cmd, blurMaterial, boxBlurPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, true, boxBlurPass);
                     }
                 }
                 else
@@ -482,7 +482,7 @@ namespace DELTation.ToonRP.Shadows
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
                         // ReSharper disable once RedundantArgumentDefaultValue
-                        ToonBlitter.Blit(cmd, blurMaterial, gaussianHorizontalPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, true, gaussianHorizontalPass);
                     }
 
                     // Vertical
@@ -494,7 +494,7 @@ namespace DELTation.ToonRP.Shadows
                             RenderBufferLoadAction.Load,
                             RenderBufferStoreAction.DontCare
                         );
-                        ToonBlitter.Blit(cmd, blurMaterial, gaussianVerticalPass);
+                        ToonBlitter.Blit(cmd, blurMaterial, true, gaussianVerticalPass);
                     }
                 }
 

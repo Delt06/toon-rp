@@ -8,7 +8,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     public class
         ToonScreenSpaceOutlineAfterOpaqueAsset : ToonRenderingExtensionAsset<ToonScreenSpaceOutlineAfterOpaqueSettings>
     {
-        public override ToonRenderingEvent Event => ToonRenderingEvent.AfterOpaque;
+        private const ToonRenderingEvent RenderingEvent = ToonRenderingEvent.AfterOpaque;
 
         private void Reset()
         {
@@ -33,7 +33,10 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override IToonRenderingExtension CreateExtension() => new ToonScreenSpaceOutlineAfterOpaque();
+        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+
+        public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
+            RenderingEvent == renderingEvent ? new ToonScreenSpaceOutlineAfterOpaque() : null;
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {

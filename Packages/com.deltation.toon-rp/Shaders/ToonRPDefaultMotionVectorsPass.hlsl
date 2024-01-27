@@ -31,6 +31,8 @@ struct v2f
     float4 positionCs : SV_POSITION;
     float4 positionCsNoJitter : POSITION_CS_NO_JITTER;
     float4 previousPositionCsNoJitter : PREVIOUS_POSITION_CS_NO_JITTER;
+
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 v2f VS(const appdata IN)
@@ -38,6 +40,7 @@ v2f VS(const appdata IN)
     v2f OUT;
 
     UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     #ifdef REQUIRE_UV_INTERPOLANT
     OUT.uv = APPLY_TILING_OFFSET(IN.uv, _MainTexture);

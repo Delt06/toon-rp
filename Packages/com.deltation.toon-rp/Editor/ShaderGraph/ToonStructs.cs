@@ -45,6 +45,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 StructFields.Varyings.color,
                 StructFields.Varyings.screenPosition,
                 StructFields.Varyings.instanceID,
+                ToonStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                ToonStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
                 StructFields.Varyings.cullFace,
 
                 ToonStructFields.Varyings.positionCsNoJitter,

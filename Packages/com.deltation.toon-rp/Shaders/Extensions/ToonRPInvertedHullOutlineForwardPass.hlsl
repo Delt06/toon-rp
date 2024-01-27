@@ -8,11 +8,15 @@ struct v2f
 {
     float4 positionCs : SV_POSITION;
     TOON_RP_FOG_FACTOR_INTERPOLANT
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 v2f VS(const appdata IN)
 {
     v2f OUT;
+
+    UNITY_SETUP_INSTANCE_ID(IN);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
 
     // ReSharper disable once CppLocalVariableMayBeConst
     float3 positionWs = TransformObjectToWorld(IN.vertex);

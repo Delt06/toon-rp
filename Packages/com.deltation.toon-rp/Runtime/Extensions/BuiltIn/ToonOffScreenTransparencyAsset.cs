@@ -5,9 +5,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
     [CreateAssetMenu(menuName = Path + "Off-Screen Transparency")]
     public class ToonOffScreenTransparencyAsset : ToonRenderingExtensionAsset<ToonOffScreenTransparencySettings>
     {
-        public override ToonRenderingEvent Event => Settings.AfterTransparent
-            ? ToonRenderingEvent.AfterTransparent
-            : ToonRenderingEvent.BeforeTransparent;
+        private const ToonRenderingEvent MainRenderingEvent = ToonRenderingEvent.AfterPrepass;
 
         private void Reset()
         {
@@ -21,13 +19,34 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override IToonRenderingExtension CreateExtension() => new ToonOffScreenTransparency();
+        private ToonRenderingEvent GetComposeRenderingEvent() =>
+            Settings.AfterTransparent
+                ? ToonRenderingEvent.AfterTransparent
+                : ToonRenderingEvent.BeforeTransparent;
+
+        public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent)
+        {
+            if (renderingEvent == MainRenderingEvent)
+            {
+                return new ToonOffScreenTransparencyRender();
+            }
+
+            if (renderingEvent == GetComposeRenderingEvent())
+            {
+                return new ToonOffScreenTransparencyCompose();
+            }
+
+            return null;
+        }
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {
-            ToonOffScreenTransparency.ShaderName,
+            ToonOffScreenTransparencyCompose.ShaderName,
             ToonDepthDownsample.ShaderName,
         };
+
+        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) =>
+            renderingEvent == MainRenderingEvent || renderingEvent == GetComposeRenderingEvent();
 
         public override PrePassMode RequiredPrePassMode() =>
             Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample

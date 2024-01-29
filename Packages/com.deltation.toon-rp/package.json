@@ -2,7 +2,7 @@
     "name": "com.deltation.toon-rp",
     "displayName": "Toon RP",
     "description": "A Scriptable Render Pipeline (SRP) designed for toon/stylized visuals (WIP).",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "unity": "2022.3",
     "unityRelease": "0f1",
     "author": {

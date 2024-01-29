@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs_BillboardStylizedHighlight
+  m_Shader: {fileID: -6465566751694194690, guid: c94ae188fde9fdb4c8bd98a28a9077e9, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _VIEW_DIRECTION_FADE
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _BillboardCameraPull: 0.082
+    - _CircularMaskSmoothness: 1
+    - _CircularMaskThreshold: 0.011
+    - _ControlOutlinesStencilLayer: 0
+    - _DistanceFadeThreshold: 5
+    - _DistasnceFadeSmoothness: 1
+    - _PatternCircularSmoothness: 1.77
+    - _PatternCircularThreshold: -0.25
+    - _PatternIntensityFade: 1.48
+    - _PatternSmoothness: 0.397
+    - _PatternThreshold: 0.63
+    - _PatternTiling: 10
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RenderQueue: 3000
+    - _VIEW_DIRECTION_FADE: 1
+    - _ViewDirectionFadeAngleMax: 0.9
+    - _ViewDirectionFadeAngleMin: 0.73
+    m_Colors:
+    - _BackgroundColor: {r: 0.10298407, g: 1, b: 0, a: 1}
+    - _Color: {r: 0.9644316, g: 3.0672052, b: 0, a: 1}
+    - _PatternTiling: {r: 10, g: 10, b: 0, a: 0}
+  m_BuildTextureStacks: []

@@ -13,6 +13,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             Settings = new ToonPostProcessingStackSettings
             {
+                Order = ToonPostProcessingStackSettings.PassOrder.PostUpscale,
                 Fxaa = new ToonFxaaSettings
                 {
                     HighQuality = true,

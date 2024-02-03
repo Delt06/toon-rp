@@ -36,7 +36,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.LightScattering)))
             {
@@ -63,7 +63,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     EnsureTemporaryRT(cmd, ScatteringTextureId, descriptor, FilterMode.Bilinear);
 
                 bool useScissor = _lightScatteringSettings.ScissorRadius > 0.0f;
-                const bool renderToTexture = true;
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Compute")))
                 {
@@ -76,6 +75,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                         RenderBufferStoreAction.Store
                     );
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                    const bool renderToTexture = true;
                     ToonBlitter.Blit(cmd, material, renderToTexture, ComputePass);
                 }
 
@@ -88,7 +88,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
                     cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                    ToonBlitter.Blit(cmd, material, renderToTexture, CombinePass);
+                    ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, CombinePass);
                 }
 
                 if (useScissor)

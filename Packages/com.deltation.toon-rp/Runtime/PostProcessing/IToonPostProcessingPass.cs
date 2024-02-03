@@ -24,7 +24,7 @@ namespace DELTation.ToonRP.PostProcessing
         void Setup(CommandBuffer cmd, in ToonPostProcessingContext context);
 
         void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination);
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture);
 
         void Cleanup(CommandBuffer cmd);
         bool InterruptsGeometryRenderPass(in ToonPostProcessingContext context);

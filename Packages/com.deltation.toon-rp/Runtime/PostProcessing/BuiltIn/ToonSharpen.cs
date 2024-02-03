@@ -26,23 +26,22 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Sharpen)))
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                const bool renderToTexture = true;
 
                 if (_camera.cameraType == CameraType.Game)
                 {
                     Material material = _material.GetOrCreate();
                     material.SetFloat(AmountId, _settings.Amount);
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                    ToonBlitter.Blit(cmd, material, renderToTexture, 0);
+                    ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
                 }
                 else
                 {
-                    ToonBlitter.BlitDefault(cmd, source, renderToTexture);
+                    ToonBlitter.BlitDefault(cmd, source, destinationIsIntermediateTexture);
                 }
             }
         }

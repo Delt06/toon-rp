@@ -14,13 +14,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.ScreenSpaceOutlines)))
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                const bool renderToTexture = true;
-                _impl.RenderViaBlit(cmd, _settings, renderToTexture, source);
+                _impl.RenderViaBlit(cmd, _settings, destinationIsIntermediateTexture, source);
             }
         }
 

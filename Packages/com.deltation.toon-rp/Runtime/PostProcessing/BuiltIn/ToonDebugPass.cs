@@ -33,7 +33,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Debug)))
             {
@@ -42,7 +42,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     RenderBufferStoreAction.Store
                 );
 
-                const bool renderToTexture = true;
                 if (_camera.cameraType == CameraType.Game)
                 {
                     Material material = _material.GetOrCreate();
@@ -72,11 +71,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
                     int passIndex = (int) _settings.Mode - 1;
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, ToonRpUtils.FixupTextureArrayIdentifier(source));
-                    ToonBlitter.Blit(cmd, material, renderToTexture, passIndex);
+                    ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, passIndex);
                 }
                 else
                 {
-                    ToonBlitter.BlitDefault(cmd, ToonRpUtils.FixupTextureArrayIdentifier(source), renderToTexture);
+                    ToonBlitter.BlitDefault(cmd, ToonRpUtils.FixupTextureArrayIdentifier(source), destinationIsIntermediateTexture);
                 }
             }
         }

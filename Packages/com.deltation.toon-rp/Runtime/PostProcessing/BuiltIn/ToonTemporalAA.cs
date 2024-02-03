@@ -46,7 +46,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TemporalAA)))
             {

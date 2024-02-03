@@ -166,8 +166,9 @@ namespace DELTation.ToonRP.PostProcessing
 
                 bool native = false;
 
-                foreach (IToonPostProcessingPass pass in _enabledFullScreenPasses)
+                for (int passIndex = 0; passIndex < _enabledFullScreenPasses.Count; passIndex++)
                 {
+                    IToonPostProcessingPass pass = _enabledFullScreenPasses[passIndex];
                     bool switchedToNative = false;
 
                     if (pass.Order >= ToonPostProcessingPassOrders.SwitchToNativeResolution && !native)
@@ -190,7 +191,15 @@ namespace DELTation.ToonRP.PostProcessing
                     // Case 1: source and destination need to be distinct
                     if (switchedToNative || pass.NeedsDistinctSourceAndDestination() || currentSource == sourceId)
                     {
-                        pass.Render(cmd, currentSource, currentDestination);
+                        bool destinationIsIntermediateTexture = true;
+                        
+                        if (switchedToNative && passIndex == _enabledFullScreenPasses.Count - 1)
+                        {
+                            currentDestination = destination;
+                            destinationIsIntermediateTexture = false;
+                        }
+                        
+                        pass.Render(cmd, currentSource, currentDestination, destinationIsIntermediateTexture);
 
                         if (currentSource == sourceId)
                         {
@@ -212,7 +221,8 @@ namespace DELTation.ToonRP.PostProcessing
                     // Case 2: source and destination can be the same
                     else
                     {
-                        pass.Render(cmd, currentSource, currentSource);
+                        const bool destinationIsIntermediateTexture = true;
+                        pass.Render(cmd, currentSource, currentSource, destinationIsIntermediateTexture);
                     }
                 }
 

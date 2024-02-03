@@ -62,7 +62,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             Material material = _material.GetOrCreate();
 
@@ -76,7 +76,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                ToonBlitter.Blit(cmd, material, true, 0);
+                ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
             }
         }
 

@@ -69,7 +69,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination)
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
         {
             int rtWidth = Context.RtWidth;
             int rtHeight = Context.RtHeight;
@@ -96,7 +96,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 int fromId = PrefilterSourceId, toId = _bloomPyramidId + 1;
 
                 int i = Downsample(cmd, material, height, width, ref toId, ref fromId);
-                Combine(cmd, material, source, destination, i, fromId, toId);
+                Combine(cmd, material, source, destination, destinationIsIntermediateTexture, i, fromId, toId);
 
                 cmd.ReleaseTemporaryRT(PrefilterSourceId);
             }
@@ -152,13 +152,13 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         private static void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination,
-            Material material, int shaderPass)
+            Material material, int shaderPass, bool renderToTexture = true)
         {
             cmd.SetRenderTarget(FixupTextureArrayIdentifier(destination), RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.Store
             );
             cmd.SetGlobalTexture(ToonBlitter.MainTexId, FixupTextureArrayIdentifier(source));
-            ToonBlitter.Blit(cmd, material, true, shaderPass);
+            ToonBlitter.Blit(cmd, material, renderToTexture, shaderPass);
         }
 
         private static void BlitDefault(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -171,7 +171,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         private void Combine(CommandBuffer cmd, Material material,
-            RenderTargetIdentifier source, RenderTargetIdentifier destination,
+            RenderTargetIdentifier source, RenderTargetIdentifier destination, bool destinationIsIntermediateTexture,
             int i, int fromId,
             int toId)
         {
@@ -226,7 +226,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             }
 
             cmd.SetGlobalTexture(MainTex2Id, FixupTextureArrayIdentifier(source));
-            Blit(cmd, fromId, destination, material, CombinePass);
+            Blit(cmd, fromId, destination, material, CombinePass, destinationIsIntermediateTexture);
             cmd.ReleaseTemporaryRT(fromId);
 
             cmd.EndSample(CombineSampleName);

@@ -15,7 +15,7 @@ namespace DELTation.ToonRP.PostProcessing
         }
 
         public abstract void Render(CommandBuffer cmd, RenderTargetIdentifier source,
-            RenderTargetIdentifier destination);
+            RenderTargetIdentifier destination, bool destinationIsIntermediateTexture);
 
         public virtual void Cleanup(CommandBuffer cmd) { }
 

@@ -196,7 +196,7 @@ namespace DELTation.ToonRP.PostProcessing
                         if (switchedToNative && passIndex == _enabledFullScreenPasses.Count - 1)
                         {
                             currentDestination = destination;
-                            destinationIsIntermediateTexture = false;
+                            destinationIsIntermediateTexture = _postProcessingContext.Camera.targetTexture != null;
                         }
                         
                         pass.Render(cmd, currentSource, currentDestination, destinationIsIntermediateTexture);

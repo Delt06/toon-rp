@@ -104,5 +104,6 @@ MonoBehaviour:
   Extensions:
     Extensions: []
   PostProcessing:
-    Enabled: 0
-    Passes: []
+    Enabled: 1
+    Passes:
+    - {fileID: 11400000, guid: c45837edc44a3a34caf6a5d2ee4990c1, type: 2}

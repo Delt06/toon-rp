@@ -6,15 +6,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     [Serializable]
     public struct ToonPostProcessingStackSettings
     {
-        public enum PassOrder
-        {
-            PreUpscale,
-            PostUpscale,
-        }
-
         private const int HeaderSize = 12;
 
-        public PassOrder Order;
+        public ToonPostProcessingPassOrder Order;
 
         [ToonRpHeader("FXAA", Size = HeaderSize)]
         public ToonFxaaSettings Fxaa;

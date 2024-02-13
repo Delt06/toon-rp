@@ -43,6 +43,17 @@ namespace DELTation.ToonRP
             Camera = GetComponent<Camera>();
         }
 
+        private void Update()
+        {
+            foreach (object value in _persistentDataStorage.Values)
+            {
+                if (value is IToonPersistentCameraData persistentData)
+                {
+                    persistentData.Update();
+                }
+            }
+        }
+
         private void OnDestroy()
         {
             foreach (object data in _persistentDataStorage.Values)

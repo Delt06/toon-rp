@@ -13,7 +13,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             Settings = new ToonPostProcessingStackSettings
             {
-                Order = ToonPostProcessingStackSettings.PassOrder.PostUpscale,
+                Order = ToonPostProcessingPassOrder.PostUpscale,
                 Fxaa = new ToonFxaaSettings
                 {
                     HighQuality = true,
@@ -51,9 +51,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override int Order() => Settings.Order switch
         {
-            ToonPostProcessingStackSettings.PassOrder.PreUpscale =>
+            ToonPostProcessingPassOrder.PreUpscale =>
                 ToonPostProcessingPassOrders.PostProcessingStackPreUpscale,
-            ToonPostProcessingStackSettings.PassOrder.PostUpscale =>
+            ToonPostProcessingPassOrder.PostUpscale =>
                 ToonPostProcessingPassOrders.PostProcessingStackPostUpscale,
             _ => throw new ArgumentOutOfRangeException(),
         };

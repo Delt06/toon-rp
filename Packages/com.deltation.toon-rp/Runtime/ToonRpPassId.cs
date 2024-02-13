@@ -26,5 +26,6 @@
         public const string Debug = "Debug";
         public const string BlitPostProcessingResults = "Blit Post-Processing Results";
         public const string CopyDepth = "Copy Depth";
+        public const string ScreenSpaceShake = "Screen-Space Shake";
     }
 }

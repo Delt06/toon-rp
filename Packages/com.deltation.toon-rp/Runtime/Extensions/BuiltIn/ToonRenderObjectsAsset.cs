@@ -29,7 +29,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => Settings.Event == renderingEvent;
+        public override bool UsesRenderingEvent(ToonRenderingEvent renderingEvent) => Settings.Event == renderingEvent;
 
         public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
             Settings.Event == renderingEvent ? new ToonRenderObjects() : null;

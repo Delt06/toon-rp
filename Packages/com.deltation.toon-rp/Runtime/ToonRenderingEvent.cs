@@ -6,16 +6,20 @@ namespace DELTation.ToonRP
     {
         BeforePrepass = 0,
         AfterPrepass = 1,
-        BeforeOpaque = 2,
-        AfterOpaque = 3,
-        BeforeSkybox = 4,
-        AfterSkybox = 5,
-        BeforeTransparent = 6,
-        AfterTransparent = 7,
-        BeforePostProcessing = 8,
-        AfterPostProcessing = 9,
 
-        BeforeGeometryPasses = 10,
+        BeforeGeometryPasses = 9,
+        BeforeOpaque = 10,
+        AfterOpaque = 11,
+        BeforeSkybox = 12,
+        AfterSkybox = 13,
+
+        BeforeTransparent = 20,
+        AfterTransparent = 21,
+
+        BeforePostProcessing = 50,
+        AfterPostProcessing = 55,
+
+        InvalidLatest = int.MaxValue,
     }
 
     internal static class ToonRenderingEvents

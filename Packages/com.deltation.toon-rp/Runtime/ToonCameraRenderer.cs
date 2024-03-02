@@ -44,7 +44,7 @@ namespace DELTation.ToonRP
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonRenderingExtensionContext _extensionContext;
-        private PrePassMode _prePassMode;
+        private ToonPrePassRequirement _prePassRequirement;
         private bool _requireStencil;
         private ToonCameraRendererSettings _settings;
 
@@ -96,11 +96,16 @@ namespace DELTation.ToonRP
             return SystemInfo.GetCompatibleFormat(rawGraphicsFormat, formatUsage);
         }
 
-        public static PrePassMode GetOverridePrePassMode(in ToonCameraRendererSettings settings,
+        public static ToonPrePassRequirement GetOverridePrePassRequirement(in ToonCameraRendererSettings settings,
             in ToonPostProcessingSettings postProcessingSettings,
             in ToonRenderingExtensionSettings extensionSettings)
         {
-            PrePassMode mode = settings.PrePass;
+            ToonPrePassRequirement requirement;
+            requirement.Mode = settings.PrePass;
+            // assuming that if the pipeline settings ask for a pre-pass, it should be not earlier than AfterOpaque (e.g., soft particles)
+            requirement.Event = settings.PrePass != PrePassMode.Off
+                ? ToonRenderingEvent.AfterOpaque
+                : ToonRenderingEvent.InvalidLatest;
 
             if (postProcessingSettings.Passes != null)
             {
@@ -111,7 +116,13 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode |= pass.RequiredPrePassMode();
+                    PrePassMode requiredPrePassMode = pass.RequiredPrePassMode();
+                    if (requiredPrePassMode != PrePassMode.Off)
+                    {
+                        requirement = ToonPrePassRequirement.Combine(requirement,
+                            new ToonPrePassRequirement(requiredPrePassMode, ToonRenderingEvent.BeforePostProcessing)
+                        );
+                    }
                 }
             }
 
@@ -124,16 +135,18 @@ namespace DELTation.ToonRP
                         continue;
                     }
 
-                    mode |= extension.RequiredPrePassMode();
+                    requirement = ToonPrePassRequirement.Combine(requirement, extension.RequiredPrePassMode());
                 }
             }
 
             if (settings.IsTiledLightingEnabledAndSupported())
             {
-                mode |= PrePassMode.Depth;
+                requirement = ToonPrePassRequirement.Combine(requirement,
+                    new ToonPrePassRequirement(PrePassMode.Depth, ToonRenderingEvent.BeforeGeometryPasses)
+                );
             }
 
-            return mode;
+            return requirement;
         }
 
         public void Render(
@@ -168,7 +181,8 @@ namespace DELTation.ToonRP
             _extensionsCollection.PreSetup(extensionSettings);
             Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, msaaSamples);
 
-            _prePassMode = GetOverridePrePassMode(settings, postProcessingSettings, extensionSettings).Sanitize();
+            _prePassRequirement = GetOverridePrePassRequirement(settings, postProcessingSettings, extensionSettings)
+                .Sanitize();
             _opaqueTexture.Setup(ref _context, additionalCameraData, settings);
             _extensionsCollection.Setup(_extensionContext);
             _postProcessing.Setup(_context, postProcessingSettings, _settings,
@@ -206,21 +220,21 @@ namespace DELTation.ToonRP
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
 
-            if (_prePassMode != PrePassMode.Off)
+            if (_prePassRequirement.Mode != PrePassMode.Off)
             {
                 BeginXrRendering(cmd);
 
-                if (_prePassMode.Includes(PrePassMode.Depth))
+                if (_prePassRequirement.Mode.Includes(PrePassMode.Depth))
                 {
                     _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
                         _additionalCameraData,
-                        settings, _prePassMode,
+                        settings, _prePassRequirement.Mode,
                         _renderTarget.Width, _renderTarget.Height, _requireStencil
                     );
                     _depthPrePass.Render();
                 }
 
-                if (_prePassMode.Includes(PrePassMode.MotionVectors))
+                if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
                 {
                     _motionVectorsPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
                         additionalCameraData,
@@ -462,7 +476,7 @@ namespace DELTation.ToonRP
 
             _cameraData = new ToonCameraData(_camera);
 
-            if (_prePassMode.Includes(PrePassMode.MotionVectors))
+            if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
             {
                 SupportedRenderingFeatures.active.motionVectors = true;
                 _additionalCameraData.GetPersistentData<ToonMotionVectorsPersistentData>().Update(_cameraData);
@@ -699,12 +713,12 @@ namespace DELTation.ToonRP
 
             // Pre-Pass Cleanup
             {
-                if (_prePassMode.Includes(PrePassMode.Depth))
+                if (_prePassRequirement.Mode.Includes(PrePassMode.Depth))
                 {
                     _depthPrePass.Cleanup();
                 }
 
-                if (_prePassMode.Includes(PrePassMode.MotionVectors))
+                if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
                 {
                     _motionVectorsPrePass.Cleanup();
                 }

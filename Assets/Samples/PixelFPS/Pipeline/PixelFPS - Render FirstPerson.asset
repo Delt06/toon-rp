@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _forceIncludedShaders: []
   Settings:
-    Event: 2
+    Event: 10
     PassName: First-Person (Opaque)
+    ClearDepth: 0
+    ClearStencil: 0
     Filters:
       Queue: 0
       LayerMask:

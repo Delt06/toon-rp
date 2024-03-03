@@ -1,7 +1,6 @@
 ﻿using DELTation.ToonRP.Extensions;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -18,20 +17,9 @@ namespace DELTation.ToonRP
         private readonly int _depthTextureId;
         private readonly int _normalsTextureId;
 
-        private Camera _camera;
-        private ScriptableRenderContext _context;
-
         [CanBeNull]
         private ToonCopyDepth _copyDepth;
-
-        private CullingResults _cullingResults;
-        private GraphicsFormat _depthStencilFormat;
-        private ToonRenderingExtensionsCollection _extensionsCollection;
         private bool _normals;
-        private ToonCameraRenderTarget _renderTarget;
-        private int _rtHeight;
-        private int _rtWidth;
-        private ToonCameraRendererSettings _settings;
 
         public ToonDepthPrePass() : this(DepthTextureId, NormalsTextureId) { }
 
@@ -46,58 +34,30 @@ namespace DELTation.ToonRP
         public RenderTargetIdentifier DepthTexture { get; private set; }
         public RenderTargetIdentifier NormalsTexture { get; private set; }
 
-        public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults, Camera camera,
-            ToonRenderingExtensionsCollection extensionsCollection,
-            ToonAdditionalCameraData additionalCameraData,
-            in ToonCameraRendererSettings settings, PrePassMode mode, int rtWidth, int rtHeight,
-            bool stencil = false)
+        public void ConfigureCopyDepth(bool copyDepth)
         {
-            Assert.IsTrue(mode.Includes(PrePassMode.Depth), "mode.Includes(PrePassMode.Depth)");
-
-            Setup(additionalCameraData);
-
-            _context = context;
-            _cullingResults = cullingResults;
-            _camera = camera;
-            _extensionsCollection = extensionsCollection;
-            _settings = settings;
-            _rtWidth = rtWidth;
-            _rtHeight = rtHeight;
-            _normals = mode.Includes(PrePassMode.Normals);
-            _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(stencil);
-            UseCopyDepth = false;
+            UseCopyDepth = copyDepth;
         }
 
-        public void SetupDepthCopy(in ScriptableRenderContext context,
-            Camera camera,
-            ToonAdditionalCameraData additionalCameraData,
-            ToonCameraRenderTarget renderTarget)
+        public void Render(ref RenderContext context)
         {
-            Setup(additionalCameraData);
+            _normals = context.Mode.Includes(PrePassMode.Normals);
 
-            _camera = camera;
-            _renderTarget = renderTarget;
-            _context = context;
-            _rtWidth = renderTarget.Width;
-            _rtHeight = renderTarget.Height;
-            _normals = false;
-            _depthStencilFormat = renderTarget.DepthStencilFormat;
-            UseCopyDepth = true;
-        }
-
-        public void Render()
-        {
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            GraphicsFormat depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(context.Stencil);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.DepthPrePass)))
             {
-                GetDepthRT(cmd);
+                GetDepthRT(cmd, context.AdditionalCameraData, context.RtWidth, context.RtHeight, depthStencilFormat);
                 if (_normals)
                 {
-                    var normalsDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                    var normalsDesc = new RenderTextureDescriptor(context.RtWidth, context.RtHeight,
                         RenderTextureFormat.RGB565, 0
                     );
-                    NormalsTexture = GetTemporaryRT(cmd, _normalsTextureId, normalsDesc, FilterMode.Point);
+                    NormalsTexture = GetTemporaryRT(cmd, context.AdditionalCameraData, _normalsTextureId, normalsDesc,
+                        FilterMode.Point
+                    );
                     cmd.SetRenderTarget(
                         NormalsTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                         DepthTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
@@ -112,36 +72,41 @@ namespace DELTation.ToonRP
                     cmd.ClearRenderTarget(true, false, Color.clear);
                 }
 
-                _context.ExecuteCommandBufferAndClear(cmd);
+                context.Srp.ExecuteCommandBufferAndClear(cmd);
 
-                DrawRenderers(cmd);
+                DrawRenderers(cmd, ref context);
             }
 
-            _context.ExecuteCommandBufferAndClear(cmd);
+            context.Srp.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void GetDepthRT(CommandBuffer cmd)
+        private void GetDepthRT(CommandBuffer cmd, ToonAdditionalCameraData additionalCameraData, int width, int height,
+            GraphicsFormat format)
         {
-            var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
-                GraphicsFormat.None, _depthStencilFormat,
+            var depthDesc = new RenderTextureDescriptor(width, height,
+                GraphicsFormat.None, format,
                 0
             );
-            DepthTexture = GetTemporaryRT(cmd, _depthTextureId, depthDesc, FilterMode.Point);
+            DepthTexture = GetTemporaryRT(cmd, additionalCameraData, _depthTextureId, depthDesc, FilterMode.Point);
         }
 
-        public void CopyDepth(CommandBuffer cmd)
+        public void CopyDepth(CommandBuffer cmd, ref CopyContext context)
         {
-            GetDepthRT(cmd);
+            _normals = false;
+
+            ToonCameraRenderTarget renderTarget = context.RenderTarget;
+            GraphicsFormat format = renderTarget.DepthStencilFormat;
+            GetDepthRT(cmd, context.AdditionalCameraData, renderTarget.Width, renderTarget.Height, format);
 
             _copyDepth ??= new ToonCopyDepth();
-            _copyDepth.Setup(_camera, _renderTarget);
-            _copyDepth.Copy(cmd, _renderTarget.CurrentDepthBufferId(), DepthTexture);
+            _copyDepth.Setup(context.Camera, renderTarget);
+            _copyDepth.Copy(cmd, renderTarget.CurrentDepthBufferId(), DepthTexture);
 
-            _context.ExecuteCommandBufferAndClear(cmd);
+            context.Srp.ExecuteCommandBufferAndClear(cmd);
         }
 
-        public void Cleanup()
+        public void Cleanup(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             cmd.ReleaseTemporaryRT(_depthTextureId);
@@ -150,33 +115,85 @@ namespace DELTation.ToonRP
                 cmd.ReleaseTemporaryRT(_normalsTextureId);
             }
 
-            _context.ExecuteCommandBufferAndClear(cmd);
+            context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers(CommandBuffer cmd)
+        private void DrawRenderers(CommandBuffer cmd, ref RenderContext renderContext)
         {
-            var sortingSettings = new SortingSettings(_camera)
+            Camera camera = renderContext.Camera;
+
+            var sortingSettings = new SortingSettings(camera)
             {
                 criteria = SortingCriteria.CommonOpaque,
             };
             ShaderTagId shaderPassName = _normals ? DepthNormalsShaderTagId : DepthOnlyShaderTagId;
             var drawingSettings = new DrawingSettings(shaderPassName, sortingSettings)
             {
-                enableDynamicBatching = _settings.UseDynamicBatching,
+                enableDynamicBatching = renderContext.Settings.UseDynamicBatching,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, _camera.cullingMask);
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            _context.DrawRenderers(_cullingResults,
+            renderContext.Srp.DrawRenderers(renderContext.CullingResults,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
 
-            _extensionsCollection.OnPrePass(
+            renderContext.ExtensionsCollection.OnPrePass(
                 _normals ? PrePassMode.Normals | PrePassMode.Depth : PrePassMode.Depth,
-                ref _context, cmd,
+                ref renderContext.Srp, cmd,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
+        }
+
+        public struct RenderContext
+        {
+            public ScriptableRenderContext Srp;
+            public CullingResults CullingResults;
+
+            public readonly Camera Camera;
+            public readonly ToonAdditionalCameraData AdditionalCameraData;
+            public readonly ToonCameraRendererSettings Settings;
+            public readonly ToonRenderingExtensionsCollection ExtensionsCollection;
+
+            public readonly PrePassMode Mode;
+            public readonly int RtWidth;
+            public readonly int RtHeight;
+            public readonly bool Stencil;
+
+            public RenderContext(ScriptableRenderContext srp, CullingResults cullingResults, Camera camera,
+                ToonAdditionalCameraData additionalCameraData, ToonCameraRendererSettings settings,
+                ToonRenderingExtensionsCollection extensionsCollection, PrePassMode mode, int rtWidth, int rtHeight,
+                bool stencil = false)
+            {
+                Srp = srp;
+                CullingResults = cullingResults;
+                Camera = camera;
+                AdditionalCameraData = additionalCameraData;
+                Settings = settings;
+                ExtensionsCollection = extensionsCollection;
+                Mode = mode;
+                RtWidth = rtWidth;
+                RtHeight = rtHeight;
+                Stencil = stencil;
+            }
+        }
+
+        public struct CopyContext
+        {
+            public ScriptableRenderContext Srp;
+            public readonly Camera Camera;
+            public readonly ToonAdditionalCameraData AdditionalCameraData;
+            public readonly ToonCameraRenderTarget RenderTarget;
+
+            public CopyContext(ScriptableRenderContext srp, Camera camera,
+                ToonAdditionalCameraData additionalCameraData, ToonCameraRenderTarget renderTarget)
+            {
+                Srp = srp;
+                Camera = camera;
+                AdditionalCameraData = additionalCameraData;
+                RenderTarget = renderTarget;
+            }
         }
     }
 }

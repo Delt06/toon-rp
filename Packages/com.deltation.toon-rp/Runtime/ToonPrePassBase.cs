@@ -6,18 +6,12 @@ namespace DELTation.ToonRP
 {
     public abstract class ToonPrePassBase
     {
-        protected ToonAdditionalCameraData AdditionalCameraData { get; private set; }
-
-        protected void Setup(ToonAdditionalCameraData additionalCameraData)
-        {
-            AdditionalCameraData = additionalCameraData;
-        }
-
         protected RenderTargetIdentifier GetTemporaryRT(CommandBuffer cmd,
+            ToonAdditionalCameraData additionalCameraData,
             int identifier, RenderTextureDescriptor descriptor, FilterMode filterMode)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            XRPass xrPass = AdditionalCameraData.XrPass;
+            XRPass xrPass = additionalCameraData.XrPass;
             if (xrPass.enabled)
             {
                 int arraySize = xrPass.viewCount;

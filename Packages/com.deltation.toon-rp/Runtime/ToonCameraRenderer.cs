@@ -230,27 +230,27 @@ namespace DELTation.ToonRP
                 {
                     if (_prePassRequirement.UseDepthCopy())
                     {
-                        _depthPrePass.SetupDepthCopy(_context, _camera, _additionalCameraData, _renderTarget);
+                        _depthPrePass.ConfigureCopyDepth(true);
                     }
                     else
                     {
-                        _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
-                            _additionalCameraData,
-                            settings, _prePassRequirement.Mode,
+                        _depthPrePass.ConfigureCopyDepth(false);
+                        var renderContext = new ToonDepthPrePass.RenderContext(_context, _cullingResults,
+                            _camera, _additionalCameraData, _settings,
+                            _extensionsCollection, _prePassRequirement.Mode,
                             _renderTarget.Width, _renderTarget.Height, _requireStencil
                         );
-                        _depthPrePass.Render();
+                        _depthPrePass.Render(ref renderContext);
                     }
                 }
 
                 if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
                 {
-                    _motionVectorsPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
-                        additionalCameraData,
-                        settings,
-                        _renderTarget.Width, _renderTarget.Height
+                    var renderContext = new ToonMotionVectorsPrePass.RenderContext(_context, _cullingResults,
+                        _camera, _additionalCameraData, _settings,
+                        _extensionsCollection, _renderTarget.Width, _renderTarget.Height
                     );
-                    _motionVectorsPrePass.Render();
+                    _motionVectorsPrePass.Render(ref renderContext);
                 }
 
                 EndXrRendering(cmd);
@@ -726,12 +726,12 @@ namespace DELTation.ToonRP
             {
                 if (_prePassRequirement.Mode.Includes(PrePassMode.Depth))
                 {
-                    _depthPrePass.Cleanup();
+                    _depthPrePass.Cleanup(ref _context);
                 }
 
                 if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
                 {
-                    _motionVectorsPrePass.Cleanup();
+                    _motionVectorsPrePass.Cleanup(ref _context);
                 }
             }
 
@@ -779,7 +779,11 @@ namespace DELTation.ToonRP
             if (_depthPrePass.UseCopyDepth)
             {
                 _renderTarget.EndRenderPass(ref _context, cmd);
-                _depthPrePass.CopyDepth(cmd);
+
+                var copyContext =
+                    new ToonDepthPrePass.CopyContext(_context, _camera, _additionalCameraData, _renderTarget);
+                _depthPrePass.CopyDepth(cmd, ref copyContext);
+
                 _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
             }
 

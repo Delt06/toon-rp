@@ -102,7 +102,8 @@ namespace DELTation.ToonRP
                     XRPass xrPass = _additionalCameraData.XrPass;
                     if (xrPass.enabled && xrPass.copyDepth)
                     {
-                        _copyDepth.Copy(cmd, _state.DepthBufferId.Identifier, CameraTargetDepthId);
+                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this);
+                        _copyDepth.Copy(cmd, copyContext, _state.DepthBufferId.Identifier, CameraTargetDepthId);
                     }
                 }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
@@ -137,10 +138,6 @@ namespace DELTation.ToonRP
         {
             _additionalCameraData = additionalCameraData;
             RTHandleSystem rtHandleSystem = additionalCameraData.RTHandleSystem;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            _copyDepth.Setup(_camera, this);
-#endif // ENABLE_VR && ENABLE_XR_MODULE
 
             if (RenderToTexture)
             {

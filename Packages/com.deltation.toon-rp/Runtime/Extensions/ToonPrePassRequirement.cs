@@ -44,5 +44,8 @@ namespace DELTation.ToonRP.Extensions
 
             return requirement;
         }
+
+        public static bool UseDepthCopy(this in ToonPrePassRequirement requirement) =>
+            requirement is { Mode: PrePassMode.Depth, Event: >= ToonRenderingEvent.AfterOpaque };
     }
 }

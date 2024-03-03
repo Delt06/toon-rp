@@ -102,9 +102,9 @@ namespace DELTation.ToonRP
         {
             ToonPrePassRequirement requirement;
             requirement.Mode = settings.PrePass;
-            // assuming that if the pipeline settings ask for a pre-pass, it should be not earlier than AfterOpaque (e.g., soft particles)
+            // assuming that if the pipeline settings ask for a pre-pass, it should be not earlier than BeforeTransparent (e.g., soft particles)
             requirement.Event = settings.PrePass != PrePassMode.Off
-                ? ToonRenderingEvent.AfterOpaque
+                ? ToonRenderingEvent.BeforeTransparent
                 : ToonRenderingEvent.InvalidLatest;
 
             if (postProcessingSettings.Passes != null)
@@ -194,7 +194,9 @@ namespace DELTation.ToonRP
             _renderTarget.ForceStoreAttachments = _settings.ForceStoreCameraDepth ||
                                                   _opaqueTexture.Enabled ||
                                                   _extensionsCollection.InterruptsGeometryRenderPass() ||
-                                                  _postProcessing.InterruptsGeometryRenderPass();
+                                                  _postProcessing.InterruptsGeometryRenderPass() ||
+                                                  _prePassRequirement.UseDepthCopy()
+                ;
 
             bool useNativeRenderPasses = _settings.NativeRenderPasses;
 
@@ -226,12 +228,19 @@ namespace DELTation.ToonRP
 
                 if (_prePassRequirement.Mode.Includes(PrePassMode.Depth))
                 {
-                    _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
-                        _additionalCameraData,
-                        settings, _prePassRequirement.Mode,
-                        _renderTarget.Width, _renderTarget.Height, _requireStencil
-                    );
-                    _depthPrePass.Render();
+                    if (_prePassRequirement.UseDepthCopy())
+                    {
+                        _depthPrePass.SetupDepthCopy(_context, _camera, _additionalCameraData, _renderTarget);
+                    }
+                    else
+                    {
+                        _depthPrePass.Setup(_context, _cullingResults, _camera, _extensionsCollection,
+                            _additionalCameraData,
+                            settings, _prePassRequirement.Mode,
+                            _renderTarget.Width, _renderTarget.Height, _requireStencil
+                        );
+                        _depthPrePass.Render();
+                    }
                 }
 
                 if (_prePassRequirement.Mode.Includes(PrePassMode.MotionVectors))
@@ -275,7 +284,7 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
-            if (_renderTarget.CurrentColorBufferId(false) == 
+            if (_renderTarget.CurrentColorBufferId(false) ==
                 ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget))
             {
                 sharedContext.NumberOfCamerasUsingBackbuffer++;
@@ -409,6 +418,7 @@ namespace DELTation.ToonRP
                     renderTextureColorFormat != GetDefaultGraphicsFormat() ||
                     _postProcessing.AnyFullScreenEffectsEnabled ||
                     _opaqueTexture.Enabled ||
+                    _prePassRequirement.UseDepthCopy() ||
                     !Mathf.Approximately(renderScale, 1.0f) ||
                     rtWidth > maxRtWidth ||
                     rtHeight > maxRtHeight
@@ -759,13 +769,19 @@ namespace DELTation.ToonRP
                 }
 
                 _context.ExecuteCommandBufferAndClear(cmd);
-
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforeSkybox);
             DrawSkybox(cmd);
             _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterSkybox);
+
+            if (_depthPrePass.UseCopyDepth)
+            {
+                _renderTarget.EndRenderPass(ref _context, cmd);
+                _depthPrePass.CopyDepth(cmd);
+                _renderTarget.BeginRenderPass(ref _context, RenderBufferLoadAction.Load);
+            }
 
             _opaqueTexture.Capture();
 

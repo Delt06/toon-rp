@@ -1,4 +1,5 @@
 ﻿using DELTation.ToonRP.Extensions;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
@@ -20,13 +21,17 @@ namespace DELTation.ToonRP
         private Camera _camera;
         private ScriptableRenderContext _context;
 
+        [CanBeNull]
+        private ToonCopyDepth _copyDepth;
+
         private CullingResults _cullingResults;
+        private GraphicsFormat _depthStencilFormat;
         private ToonRenderingExtensionsCollection _extensionsCollection;
         private bool _normals;
+        private ToonCameraRenderTarget _renderTarget;
         private int _rtHeight;
         private int _rtWidth;
         private ToonCameraRendererSettings _settings;
-        private bool _stencil;
 
         public ToonDepthPrePass() : this(DepthTextureId, NormalsTextureId) { }
 
@@ -35,6 +40,8 @@ namespace DELTation.ToonRP
             _depthTextureId = depthTextureId;
             _normalsTextureId = normalsTextureId;
         }
+
+        public bool UseCopyDepth { get; private set; }
 
         public RenderTargetIdentifier DepthTexture { get; private set; }
         public RenderTargetIdentifier NormalsTexture { get; private set; }
@@ -57,7 +64,25 @@ namespace DELTation.ToonRP
             _rtWidth = rtWidth;
             _rtHeight = rtHeight;
             _normals = mode.Includes(PrePassMode.Normals);
-            _stencil = stencil;
+            _depthStencilFormat = ToonFormatUtils.GetDefaultDepthFormat(stencil);
+            UseCopyDepth = false;
+        }
+
+        public void SetupDepthCopy(in ScriptableRenderContext context,
+            Camera camera,
+            ToonAdditionalCameraData additionalCameraData,
+            ToonCameraRenderTarget renderTarget)
+        {
+            Setup(additionalCameraData);
+
+            _camera = camera;
+            _renderTarget = renderTarget;
+            _context = context;
+            _rtWidth = renderTarget.Width;
+            _rtHeight = renderTarget.Height;
+            _normals = false;
+            _depthStencilFormat = renderTarget.DepthStencilFormat;
+            UseCopyDepth = true;
         }
 
         public void Render()
@@ -66,11 +91,7 @@ namespace DELTation.ToonRP
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.DepthPrePass)))
             {
-                var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
-                    GraphicsFormat.None, ToonFormatUtils.GetDefaultDepthFormat(_stencil),
-                    0
-                );
-                DepthTexture = GetTemporaryRT(cmd, _depthTextureId, depthDesc, FilterMode.Point);
+                GetDepthRT(cmd);
                 if (_normals)
                 {
                     var normalsDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
@@ -91,7 +112,6 @@ namespace DELTation.ToonRP
                     cmd.ClearRenderTarget(true, false, Color.clear);
                 }
 
-
                 _context.ExecuteCommandBufferAndClear(cmd);
 
                 DrawRenderers(cmd);
@@ -99,6 +119,26 @@ namespace DELTation.ToonRP
 
             _context.ExecuteCommandBufferAndClear(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private void GetDepthRT(CommandBuffer cmd)
+        {
+            var depthDesc = new RenderTextureDescriptor(_rtWidth, _rtHeight,
+                GraphicsFormat.None, _depthStencilFormat,
+                0
+            );
+            DepthTexture = GetTemporaryRT(cmd, _depthTextureId, depthDesc, FilterMode.Point);
+        }
+
+        public void CopyDepth(CommandBuffer cmd)
+        {
+            GetDepthRT(cmd);
+
+            _copyDepth ??= new ToonCopyDepth();
+            _copyDepth.Setup(_camera, _renderTarget);
+            _copyDepth.Copy(cmd, _renderTarget.CurrentDepthBufferId(), DepthTexture);
+
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         public void Cleanup()

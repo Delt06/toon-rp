@@ -67,7 +67,7 @@ namespace DELTation.ToonRP
                 cmd.SetViewport(_renderTarget.PixelRect);
 
                 bool renderToTexture = _camera.targetTexture != null;
-                if (_renderTarget.MsaaSamples > 1)
+                if (msaaSamples > 1)
                 {
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, (RenderTexture) null);
                     cmd.SetGlobalTexture(ToonBlitter.MainTexMsId, source);

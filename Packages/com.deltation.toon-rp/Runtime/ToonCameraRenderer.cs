@@ -275,7 +275,8 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
-            if (_renderTarget.CurrentColorBufferId(false) == BuiltinRenderTextureType.CameraTarget)
+            if (_renderTarget.CurrentColorBufferId(false) == 
+                ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget))
             {
                 sharedContext.NumberOfCamerasUsingBackbuffer++;
             }

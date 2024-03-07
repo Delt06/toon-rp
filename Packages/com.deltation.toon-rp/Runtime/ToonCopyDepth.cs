@@ -55,7 +55,11 @@ namespace DELTation.ToonRP
                 }
 
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                cmd.SetViewport(context.RenderTarget.PixelRect);
+
+                if (context.SetupViewport)
+                {
+                    cmd.SetViewport(context.RenderTarget.PixelRect);
+                }
 
                 if (msaaSamples > 1)
                 {
@@ -77,12 +81,15 @@ namespace DELTation.ToonRP
             public readonly Camera Camera;
             public readonly ToonCameraRenderTarget RenderTarget;
             public readonly bool RenderToTexture;
+            public readonly bool SetupViewport;
 
-            public CopyContext(Camera camera, ToonCameraRenderTarget renderTarget, bool renderToTexture)
+            public CopyContext(Camera camera, ToonCameraRenderTarget renderTarget, bool renderToTexture,
+                bool setupViewport)
             {
                 Camera = camera;
                 RenderTarget = renderTarget;
                 RenderToTexture = renderToTexture;
+                SetupViewport = setupViewport;
             }
         }
 

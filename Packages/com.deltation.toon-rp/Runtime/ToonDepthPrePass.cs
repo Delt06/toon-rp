@@ -102,7 +102,9 @@ namespace DELTation.ToonRP
             _copyDepth ??= new ToonCopyDepth();
 
             const bool renderToTexture = true;
-            var copyContext = new ToonCopyDepth.CopyContext(context.Camera, renderTarget, renderToTexture);
+            const bool setupViewport = false;
+            var copyContext =
+                new ToonCopyDepth.CopyContext(context.Camera, renderTarget, renderToTexture, setupViewport);
             _copyDepth.Copy(cmd, copyContext, renderTarget.CurrentDepthBufferId(), DepthTexture);
 
             context.Srp.ExecuteCommandBufferAndClear(cmd);

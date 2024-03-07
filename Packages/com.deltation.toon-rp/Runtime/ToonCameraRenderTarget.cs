@@ -105,7 +105,8 @@ namespace DELTation.ToonRP
                     XRPass xrPass = _additionalCameraData.XrPass;
                     if (xrPass.enabled && xrPass.copyDepth)
                     {
-                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this, renderToTexture);
+                        const bool setupViewport = true;
+                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this, renderToTexture, setupViewport);
                         _copyDepth.Copy(cmd, copyContext, _state.DepthBufferId.Identifier, CameraTargetDepthId);
                     }
                 }

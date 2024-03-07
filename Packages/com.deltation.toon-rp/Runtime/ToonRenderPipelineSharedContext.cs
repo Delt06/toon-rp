@@ -2,6 +2,7 @@
 {
     public struct ToonRenderPipelineSharedContext
     {
-        public int NumberOfCamerasUsingBackbuffer;
+        public int NumberOfCamerasUsingBackbufferAsFinalTarget;
+        public int NumberOfCamerasUsingBackbufferForRendering;
     }
 }

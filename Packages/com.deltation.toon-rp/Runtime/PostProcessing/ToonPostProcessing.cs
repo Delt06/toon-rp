@@ -143,7 +143,8 @@ namespace DELTation.ToonRP.PostProcessing
             cmd.Clear();
         }
 
-        public void RenderFullScreenEffects(int width, int height, GraphicsFormat format,
+        public void RenderFullScreenEffects(in ToonRenderPipelineSharedContext sharedContext,
+            int width, int height, GraphicsFormat format,
             RenderTargetIdentifier sourceId,
             RenderTargetIdentifier destination)
         {
@@ -192,13 +193,13 @@ namespace DELTation.ToonRP.PostProcessing
                     if (switchedToNative || pass.NeedsDistinctSourceAndDestination() || currentSource == sourceId)
                     {
                         bool destinationIsIntermediateTexture = true;
-                        
+
                         if (switchedToNative && passIndex == _enabledFullScreenPasses.Count - 1)
                         {
                             currentDestination = destination;
                             destinationIsIntermediateTexture = _postProcessingContext.Camera.targetTexture != null;
                         }
-                        
+
                         pass.Render(cmd, currentSource, currentDestination, destinationIsIntermediateTexture);
 
                         if (currentSource == sourceId)
@@ -231,7 +232,7 @@ namespace DELTation.ToonRP.PostProcessing
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.BlitPostProcessingResults)
                            ))
                     {
-                        _postProcessingContext.CameraRenderTarget.FinalBlit(cmd, currentSource);
+                        _postProcessingContext.CameraRenderTarget.FinalBlit(cmd, sharedContext, currentSource);
                     }
                 }
 

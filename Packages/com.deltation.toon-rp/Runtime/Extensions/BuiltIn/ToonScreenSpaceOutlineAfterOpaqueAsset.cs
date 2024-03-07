@@ -33,7 +33,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+        public override bool UsesRenderingEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
 
         public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
             RenderingEvent == renderingEvent ? new ToonScreenSpaceOutlineAfterOpaque() : null;
@@ -43,7 +43,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             ToonScreenSpaceOutlineImpl.ShaderName,
         };
 
-        public override PrePassMode RequiredPrePassMode() =>
-            ToonScreenSpaceOutline.RequiredPrePassMode(ConvertToCommonSettings(Settings));
+        public override ToonPrePassRequirement RequiredPrePassMode() =>
+            new(ToonScreenSpaceOutline.RequiredPrePassMode(ConvertToCommonSettings(Settings)), RenderingEvent);
     }
 }

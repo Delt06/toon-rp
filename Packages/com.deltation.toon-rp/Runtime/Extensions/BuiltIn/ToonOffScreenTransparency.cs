@@ -71,14 +71,11 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 {
                     const bool stencil = true;
 
-                    _depthPrePass.Setup(_srpContext, _cullingResults,
-                        _camera, _extensionsCollection, _additionalCameraData, _cameraRendererSettings,
-                        PrePassMode.Depth,
-                        _width, _height,
-                        stencil
+                    var renderContext = new ToonDepthPrePass.RenderContext(_srpContext, _cullingResults, _camera,
+                        _additionalCameraData, _cameraRendererSettings, _extensionsCollection, PrePassMode.Depth,
+                        _width, _height, stencil
                     );
-
-                    _depthPrePass.Render();
+                    _depthPrePass.Render(ref renderContext);
                 }
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Render Transparent Geometry")))
@@ -171,7 +168,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     cmd.ReleaseTemporaryRT(DepthId);
                     break;
                 case DepthRenderMode.PrePass:
-                    _depthPrePass.Cleanup();
+                    _depthPrePass.Cleanup(ref _srpContext);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -21,13 +21,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             };
         }
 
-        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+        public override bool UsesRenderingEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
 
         public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
             renderingEvent == RenderingEvent ? new ToonSsao() : null;
 
-        public override PrePassMode RequiredPrePassMode() =>
-            PrePassMode.Depth | PrePassMode.Normals;
+        public override ToonPrePassRequirement RequiredPrePassMode() =>
+            new(PrePassMode.Depth | PrePassMode.Normals, RenderingEvent);
 
         protected override string[] ForceIncludedShaderNames() => new[]
         {

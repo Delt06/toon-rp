@@ -24,7 +24,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             Settings.HeightFade = 1.0f;
         }
 
-        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
+        public override bool UsesRenderingEvent(ToonRenderingEvent renderingEvent) => renderingEvent == RenderingEvent;
 
         public override IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent) =>
             renderingEvent == RenderingEvent ? new ToonFakeAdditionalLights() : null;

@@ -11,17 +11,12 @@ namespace DELTation.ToonRP.Extensions
         public delegate bool ExtensionPredicate([NotNull] IToonRenderingExtension extension,
             in ToonRenderingExtensionContext context);
 
-        private static readonly int EventsCount;
-        [ItemCanBeNull]
-        private readonly List<IToonRenderingExtension>[] _extensions = new List<IToonRenderingExtension>[EventsCount];
-        private readonly List<IToonRenderingExtension>[] _filteredExtensions =
-            new List<IToonRenderingExtension>[EventsCount];
+        private readonly List<EventExtensionsList> _extensions = new();
+        private readonly List<EventExtensionsList> _filteredExtensions = new();
         private readonly Dictionary<IToonRenderingExtension, ToonRenderingExtensionAsset> _sourceAssets = new();
         private ToonRenderingExtensionContext _context;
 
         private bool _initialized;
-
-        static ToonRenderingExtensionsCollection() => EventsCount = Enum.GetValues(typeof(ToonRenderingEvent)).Length;
 
         public TSettings GetSettings<TSettings>(IToonRenderingExtension extension)
         {
@@ -51,14 +46,14 @@ namespace DELTation.ToonRP.Extensions
 
         public void Dispose()
         {
-            foreach (List<IToonRenderingExtension> extensions in _extensions)
+            foreach (EventExtensionsList extensionList in _extensions)
             {
-                if (extensions == null)
+                if (extensionList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionList.Extensions)
                 {
                     extension?.Dispose();
                 }
@@ -76,9 +71,9 @@ namespace DELTation.ToonRP.Extensions
 
             _sourceAssets.Clear();
 
-            foreach (List<IToonRenderingExtension> extensions in _extensions)
+            foreach (EventExtensionsList extensionsList in _extensions)
             {
-                extensions?.Clear();
+                extensionsList.Extensions?.Clear();
             }
 
             if (settings.Extensions != null)
@@ -125,18 +120,18 @@ namespace DELTation.ToonRP.Extensions
                 return;
             }
 
-            for (int index = 0; index < _extensions.Length; index++)
+            for (int index = 0; index < _extensions.Count; index++)
             {
                 var @event = (ToonRenderingEvent) index;
-                List<IToonRenderingExtension> extensions = _extensions[index];
-                if (extensions == null)
+                EventExtensionsList extensionsList = _extensions[index];
+                if (extensionsList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
                 {
-                    if (_sourceAssets[extension].IncludesEvent(@event))
+                    if (_sourceAssets[extension].UsesRenderingEvent(@event))
                     {
                         continue;
                     }
@@ -149,22 +144,18 @@ namespace DELTation.ToonRP.Extensions
 
         private void AddExtension(ToonRenderingEvent @event, IToonRenderingExtension extension)
         {
-            List<IToonRenderingExtension> extensions = GetOrCreateExtensionList(@event);
-            extensions.Add(extension);
+            EventExtensionsList extensionsList = GetOrCreateExtensionList(@event);
+            extensionsList.Extensions.Add(extension);
         }
 
         public void RenderEvent(ToonRenderingEvent @event)
         {
-            List<IToonRenderingExtension> extensions = _filteredExtensions[(int) @event];
-            if (extensions == null)
+            if (TryGetFilteredExtensionsList(@event, out EventExtensionsList extensionsList))
             {
-                return;
-            }
-
-
-            foreach (IToonRenderingExtension extension in extensions)
-            {
-                extension.Render();
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
+                {
+                    extension.Render();
+                }
             }
         }
 
@@ -172,20 +163,19 @@ namespace DELTation.ToonRP.Extensions
         {
             _context = context;
 
-            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            foreach (EventExtensionsList extensionsList in _filteredExtensions)
             {
-                extensions?.Clear();
+                extensionsList.Extensions?.Clear();
             }
 
-            for (int index = 0; index < _extensions.Length; index++)
+            foreach (EventExtensionsList extensionsList in _extensions)
             {
-                List<IToonRenderingExtension> extensions = _extensions[index];
-                if (extensions == null)
+                if (extensionsList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
                 {
                     if (!extension.ShouldRender(_context))
                     {
@@ -193,22 +183,54 @@ namespace DELTation.ToonRP.Extensions
                     }
 
                     extension.Setup(_context, this);
-                    _filteredExtensions[index] ??= new List<IToonRenderingExtension>();
-                    _filteredExtensions[index].Add(extension);
+                    AddToFilteredExtensionsList(extensionsList.Event, extension);
                 }
             }
         }
 
+        private void AddToFilteredExtensionsList(ToonRenderingEvent renderingEvent, IToonRenderingExtension extension)
+        {
+            if (TryGetFilteredExtensionsList(renderingEvent, out EventExtensionsList extensionsList))
+            {
+                extensionsList.Extensions.Add(extension);
+            }
+            else
+            {
+                _filteredExtensions.Add(new EventExtensionsList
+                    {
+                        Event = renderingEvent,
+                        Extensions = new List<IToonRenderingExtension> { extension },
+                    }
+                );
+            }
+        }
+
+        private bool TryGetFilteredExtensionsList(ToonRenderingEvent renderingEvent,
+            out EventExtensionsList extensionsList)
+        {
+            foreach (EventExtensionsList list in _filteredExtensions)
+            {
+                if (list.Event == renderingEvent)
+                {
+                    extensionsList = list;
+                    return true;
+                }
+            }
+
+            extensionsList = default;
+            return false;
+        }
+
         public void Cleanup()
         {
-            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            foreach (EventExtensionsList extensionsList in _filteredExtensions)
             {
-                if (extensions == null)
+                if (extensionsList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
                 {
                     extension.Cleanup();
                 }
@@ -220,14 +242,14 @@ namespace DELTation.ToonRP.Extensions
             ref DrawingSettings drawingSettings, ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
-            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            foreach (EventExtensionsList extensionsList in _filteredExtensions)
             {
-                if (extensions == null)
+                if (extensionsList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
                 {
                     extension.OnPrePass(prePassMode,
                         ref context, cmd,
@@ -239,14 +261,14 @@ namespace DELTation.ToonRP.Extensions
 
         public bool TrueForAny(ExtensionPredicate predicate)
         {
-            foreach (List<IToonRenderingExtension> extensions in _filteredExtensions)
+            foreach (EventExtensionsList extensionsList in _filteredExtensions)
             {
-                if (extensions == null)
+                if (extensionsList.Extensions == null)
                 {
                     continue;
                 }
 
-                foreach (IToonRenderingExtension extension in extensions)
+                foreach (IToonRenderingExtension extension in extensionsList.Extensions)
                 {
                     if (predicate(extension, _context))
                     {
@@ -258,13 +280,35 @@ namespace DELTation.ToonRP.Extensions
             return false;
         }
 
-        [NotNull]
-        private List<IToonRenderingExtension> GetOrCreateExtensionList(ToonRenderingEvent @event) =>
-            _extensions[(int) @event] ??= new List<IToonRenderingExtension>();
+        private EventExtensionsList GetOrCreateExtensionList(ToonRenderingEvent @event)
+        {
+            foreach (EventExtensionsList extensionsList in _extensions)
+            {
+                if (extensionsList.Event == @event)
+                {
+                    return extensionsList;
+                }
+            }
+
+            var newExtensionsList = new EventExtensionsList
+            {
+                Event = @event,
+                Extensions = new List<IToonRenderingExtension>(),
+            };
+            _extensions.Add(newExtensionsList);
+            return newExtensionsList;
+        }
 
         public void Invalidate()
         {
             _initialized = false;
+        }
+
+        private struct EventExtensionsList
+        {
+            [CanBeNull]
+            public List<IToonRenderingExtension> Extensions;
+            public ToonRenderingEvent Event;
         }
     }
 }

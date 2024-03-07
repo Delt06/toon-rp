@@ -19,12 +19,11 @@ namespace DELTation.ToonRP.Extensions
             }
         }
 
-        public abstract bool IncludesEvent(ToonRenderingEvent renderingEvent);
+        public abstract bool UsesRenderingEvent(ToonRenderingEvent renderingEvent);
 
         public virtual bool RequiresStencil() => false;
 
-        public virtual PrePassMode RequiredPrePassMode() =>
-            PrePassMode.Off;
+        public virtual ToonPrePassRequirement RequiredPrePassMode() => ToonPrePassRequirement.Off;
 
         [CanBeNull]
         public abstract IToonRenderingExtension CreateExtensionOrDefault(ToonRenderingEvent renderingEvent);

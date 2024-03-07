@@ -36,9 +36,9 @@ namespace DELTation.ToonRP
         public int MsaaSamples { get; private set; }
         public int EffectiveMsaaSamples { get; private set; }
         public bool RenderToTexture { get; private set; }
-        private GraphicsFormat DepthStencilFormat { get; set; }
 
         public GraphicsFormat ColorFormat { get; private set; }
+        public GraphicsFormat DepthStencilFormat { get; private set; }
         public int Height { get; private set; }
         public int Width { get; private set; }
         public Rect PixelRect { get; private set; }
@@ -66,13 +66,26 @@ namespace DELTation.ToonRP
             return _state.ColorBufferId.Identifier;
         }
 
-        public void FinalBlit(CommandBuffer cmd, RenderTargetIdentifier? sourceOverride = default)
+        public RenderTargetIdentifier CurrentDepthBufferId(bool shouldBeAllocated = true)
+        {
+            if (shouldBeAllocated)
+            {
+                Assert.IsTrue(_state.DepthBufferId.IsAllocated);
+            }
+
+            return _state.DepthBufferId.Identifier;
+        }
+
+        public void FinalBlit(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext,
+            RenderTargetIdentifier? sourceOverride = default)
         {
             if (RenderToTexture)
             {
-                cmd.SetRenderTarget(CameraTargetColorId,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
+                bool colorLoad = CameraTargetColorId == BuiltinRenderTextureType.CameraTarget &&
+                                 sharedContext.NumberOfCamerasUsingBackbufferAsFinalTarget > 0;
+                RenderBufferLoadAction colorLoadAction =
+                    colorLoad ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
+                cmd.SetRenderTarget(CameraTargetColorId, colorLoadAction, RenderBufferStoreAction.Store);
 
                 var screenParams = new ScreenParams(_camera.pixelWidth, _camera.pixelHeight)
                 {
@@ -92,7 +105,9 @@ namespace DELTation.ToonRP
                     XRPass xrPass = _additionalCameraData.XrPass;
                     if (xrPass.enabled && xrPass.copyDepth)
                     {
-                        _copyDepth.Copy(cmd, _state.DepthBufferId.Identifier, CameraTargetDepthId);
+                        const bool setupViewport = true;
+                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this, renderToTexture, setupViewport);
+                        _copyDepth.Copy(cmd, copyContext, _state.DepthBufferId.Identifier, CameraTargetDepthId);
                     }
                 }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
@@ -128,10 +143,6 @@ namespace DELTation.ToonRP
             _additionalCameraData = additionalCameraData;
             RTHandleSystem rtHandleSystem = additionalCameraData.RTHandleSystem;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
-            _copyDepth.Setup(_camera, this);
-#endif // ENABLE_VR && ENABLE_XR_MODULE
-
             if (RenderToTexture)
             {
                 MSAASamples msaaSamples = MSAASamples.None;
@@ -144,7 +155,6 @@ namespace DELTation.ToonRP
                 EffectiveMsaaSamples = (int) msaaSamples;
 
                 int arraySize = 1;
-                bool bindDepthTextureMs = false;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 {
@@ -152,14 +162,13 @@ namespace DELTation.ToonRP
                     if (xrPass.enabled)
                     {
                         arraySize = xrPass.viewCount;
-                        // Only need to bind depth texture as multi-sampled for copy depth pass
-                        bindDepthTextureMs = msaaSamples != MSAASamples.None;
                     }
                 }
 #endif // ENABLE_VR && ENABLE_XR_MODULE
 
                 var dimensions = new Vector2Int(Width, Height);
                 int depthBits = GraphicsFormatUtility.GetDepthBits(DepthStencilFormat);
+                bool bindDepthTextureMs = msaaSamples != MSAASamples.None;
                 const TextureWrapMode wrapMode = TextureWrapMode.Clamp;
                 const FilterMode depthFilterMode = FilterMode.Point;
 

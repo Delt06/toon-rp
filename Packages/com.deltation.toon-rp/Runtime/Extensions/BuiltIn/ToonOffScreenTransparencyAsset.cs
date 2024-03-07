@@ -45,12 +45,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             ToonDepthDownsample.ShaderName,
         };
 
-        public override bool IncludesEvent(ToonRenderingEvent renderingEvent) =>
+        public override bool UsesRenderingEvent(ToonRenderingEvent renderingEvent) =>
             renderingEvent == MainRenderingEvent || renderingEvent == GetComposeRenderingEvent();
 
-        public override PrePassMode RequiredPrePassMode() =>
-            Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample
-                ? PrePassMode.Depth
-                : PrePassMode.Off;
+        public override ToonPrePassRequirement RequiredPrePassMode() =>
+            new(Settings.DepthMode == ToonOffScreenTransparencySettings.DepthRenderMode.Downsample
+                    ? PrePassMode.Depth
+                    : PrePassMode.Off, MainRenderingEvent
+            );
     }
 }

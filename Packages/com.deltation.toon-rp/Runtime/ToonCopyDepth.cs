@@ -9,26 +9,17 @@ namespace DELTation.ToonRP
         public const string ShaderName = "Hidden/Toon RP/CopyDepth";
         private readonly ToonPipelineMaterial _copyDepthMaterial = new(ShaderName, "Toon RP Copy Depth");
 
-        private Camera _camera;
-
-        private ToonCameraRenderTarget _renderTarget;
-
         public void Dispose()
         {
             _copyDepthMaterial.Dispose();
         }
 
-        public void Setup(Camera camera, ToonCameraRenderTarget renderTarget)
-        {
-            _camera = camera;
-            _renderTarget = renderTarget;
-        }
-
-        public void Copy(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        public void Copy(CommandBuffer cmd, in CopyContext context,
+            RenderTargetIdentifier source, RenderTargetIdentifier destination)
         {
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.CopyDepth)))
             {
-                int msaaSamples = _renderTarget.EffectiveMsaaSamples;
+                int msaaSamples = context.RenderTarget.EffectiveMsaaSamples;
                 Material material = _copyDepthMaterial.GetOrCreate();
                 Shader shader = _copyDepthMaterial.Shader;
 
@@ -64,10 +55,13 @@ namespace DELTation.ToonRP
                 }
 
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                cmd.SetViewport(_renderTarget.PixelRect);
 
-                bool renderToTexture = _camera.targetTexture != null;
-                if (_renderTarget.MsaaSamples > 1)
+                if (context.SetupViewport)
+                {
+                    cmd.SetViewport(context.RenderTarget.PixelRect);
+                }
+
+                if (msaaSamples > 1)
                 {
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, (RenderTexture) null);
                     cmd.SetGlobalTexture(ToonBlitter.MainTexMsId, source);
@@ -78,7 +72,24 @@ namespace DELTation.ToonRP
                     cmd.SetGlobalTexture(ToonBlitter.MainTexMsId, (RenderTexture) null);
                 }
 
-                ToonBlitter.Blit(cmd, material, renderToTexture, 0);
+                ToonBlitter.Blit(cmd, material, context.RenderToTexture, 0);
+            }
+        }
+
+        public readonly struct CopyContext
+        {
+            public readonly Camera Camera;
+            public readonly ToonCameraRenderTarget RenderTarget;
+            public readonly bool RenderToTexture;
+            public readonly bool SetupViewport;
+
+            public CopyContext(Camera camera, ToonCameraRenderTarget renderTarget, bool renderToTexture,
+                bool setupViewport)
+            {
+                Camera = camera;
+                RenderTarget = renderTarget;
+                RenderToTexture = renderToTexture;
+                SetupViewport = setupViewport;
             }
         }
 

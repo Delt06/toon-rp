@@ -57,7 +57,6 @@ namespace DELTation.ToonRP
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.SetViewport(context.RenderTarget.PixelRect);
 
-                bool renderToTexture = context.Camera.targetTexture != null;
                 if (msaaSamples > 1)
                 {
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, (RenderTexture) null);
@@ -69,7 +68,7 @@ namespace DELTation.ToonRP
                     cmd.SetGlobalTexture(ToonBlitter.MainTexMsId, (RenderTexture) null);
                 }
 
-                ToonBlitter.Blit(cmd, material, renderToTexture, 0);
+                ToonBlitter.Blit(cmd, material, context.RenderToTexture, 0);
             }
         }
 
@@ -77,11 +76,13 @@ namespace DELTation.ToonRP
         {
             public readonly Camera Camera;
             public readonly ToonCameraRenderTarget RenderTarget;
+            public readonly bool RenderToTexture;
 
-            public CopyContext(Camera camera, ToonCameraRenderTarget renderTarget)
+            public CopyContext(Camera camera, ToonCameraRenderTarget renderTarget, bool renderToTexture)
             {
                 Camera = camera;
                 RenderTarget = renderTarget;
+                RenderToTexture = renderToTexture;
             }
         }
 

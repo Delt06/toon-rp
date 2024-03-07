@@ -76,13 +76,16 @@ namespace DELTation.ToonRP
             return _state.DepthBufferId.Identifier;
         }
 
-        public void FinalBlit(CommandBuffer cmd, RenderTargetIdentifier? sourceOverride = default)
+        public void FinalBlit(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext,
+            RenderTargetIdentifier? sourceOverride = default)
         {
             if (RenderToTexture)
             {
-                cmd.SetRenderTarget(CameraTargetColorId,
-                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-                );
+                bool colorLoad = CameraTargetColorId == BuiltinRenderTextureType.CameraTarget &&
+                                 sharedContext.NumberOfCamerasUsingBackbufferAsFinalTarget > 0;
+                RenderBufferLoadAction colorLoadAction =
+                    colorLoad ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
+                cmd.SetRenderTarget(CameraTargetColorId, colorLoadAction, RenderBufferStoreAction.Store);
 
                 var screenParams = new ScreenParams(_camera.pixelWidth, _camera.pixelHeight)
                 {
@@ -102,7 +105,7 @@ namespace DELTation.ToonRP
                     XRPass xrPass = _additionalCameraData.XrPass;
                     if (xrPass.enabled && xrPass.copyDepth)
                     {
-                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this);
+                        var copyContext = new ToonCopyDepth.CopyContext(_camera, this, renderToTexture);
                         _copyDepth.Copy(cmd, copyContext, _state.DepthBufferId.Identifier, CameraTargetDepthId);
                     }
                 }

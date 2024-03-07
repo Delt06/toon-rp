@@ -269,12 +269,12 @@ namespace DELTation.ToonRP
             if (_postProcessing.AnyFullScreenEffectsEnabled)
             {
                 BeginXrRendering(cmd);
-                RenderPostProcessing(cmd);
+                RenderPostProcessing(cmd, sharedContext);
                 EndXrRendering(cmd);
             }
             else
             {
-                BlitToCameraTarget();
+                BlitToCameraTarget(sharedContext);
             }
 
             DrawGizmosPostImageEffects();
@@ -284,10 +284,15 @@ namespace DELTation.ToonRP
             _additionalCameraData.RestoreProjection();
             CommandBufferPool.Release(cmd);
 
+            if (_camera.targetTexture == null)
+            {
+                ++sharedContext.NumberOfCamerasUsingBackbufferAsFinalTarget;
+            }
+
             if (_renderTarget.CurrentColorBufferId(false) ==
                 ToonRpUtils.FixupTextureArrayIdentifier(BuiltinRenderTextureType.CameraTarget))
             {
-                sharedContext.NumberOfCamerasUsingBackbuffer++;
+                ++sharedContext.NumberOfCamerasUsingBackbufferForRendering;
             }
         }
 
@@ -614,7 +619,7 @@ namespace DELTation.ToonRP
             BeginXrRendering(cmd);
 
             ToonClearValue clearValue = GetRenderTargetsClearValue();
-            RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbuffer == 0
+            RenderBufferLoadAction loadAction = sharedContext.NumberOfCamerasUsingBackbufferForRendering == 0
                 ? RenderBufferLoadAction.DontCare
                 : RenderBufferLoadAction.Load;
 
@@ -676,7 +681,7 @@ namespace DELTation.ToonRP
             return new ToonClearValue(clearColor, clearDepth, backgroundColor);
         }
 
-        private void RenderPostProcessing(CommandBuffer cmd)
+        private void RenderPostProcessing(CommandBuffer cmd, in ToonRenderPipelineSharedContext sharedContext)
         {
             RenderTargetIdentifier sourceId = _renderTarget.CurrentColorBufferId();
 
@@ -684,7 +689,7 @@ namespace DELTation.ToonRP
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePostProcessing);
             RenderTargetIdentifier destination = _renderTarget.CameraTargetColorId;
-            _postProcessing.RenderFullScreenEffects(
+            _postProcessing.RenderFullScreenEffects(sharedContext,
                 _renderTarget.Width, _renderTarget.Height, _renderTarget.ColorFormat,
                 sourceId, destination
             );
@@ -708,11 +713,11 @@ namespace DELTation.ToonRP
         }
 
 
-        private void BlitToCameraTarget()
+        private void BlitToCameraTarget(in ToonRenderPipelineSharedContext sharedContext)
         {
             BeginXrRendering(_finalBlitCmd);
 
-            _renderTarget.FinalBlit(_finalBlitCmd);
+            _renderTarget.FinalBlit(_finalBlitCmd, sharedContext);
             _context.ExecuteCommandBufferAndClear(_finalBlitCmd);
 
             EndXrRendering(_finalBlitCmd);

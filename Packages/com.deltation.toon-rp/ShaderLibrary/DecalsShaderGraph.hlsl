@@ -3,24 +3,24 @@
 
 #include "Decals.hlsl"
 
-void ComputeDecalSpaceUv_float(const float2 screenUv, out float2 decalSpaceUv, out half clipValue)
+void ComputeDecalSpaceUv_float(const float sceneRawDepth, const float2 screenUv, out float2 decalSpaceUv, out half clipValue)
 {
 #ifdef SHADERGRAPH_PREVIEW
     decalSpaceUv = screenUv;
     clipValue = 0.5h;
 #else // !SHADERGRAPH_PREVIEW
     half3 clipValue3;
-    decalSpaceUv = ComputeDecalSpaceUv(screenUv, clipValue3);
+    decalSpaceUv = ComputeDecalSpaceUv(sceneRawDepth, screenUv, clipValue3);
     clipValue = min(clipValue3.x, min(clipValue3.y, clipValue3.z));
 #endif // SHADERGRAPH_PREVIEW 
 }
 
-void ComputeDecalAngleClipValue_float(const float2 screenUv, const half angleThreshold, out half clipValue)
+void ComputeDecalAngleClipValue_float(const float3 sceneNormalsWs, const half angleThreshold, out half clipValue)
 {
     #ifdef SHADERGRAPH_PREVIEW
     clipValue = 0.0h;
     #else // !SHADERGRAPH_PREVIEW
-    clipValue = ComputeDecalAngleClipValue(screenUv, angleThreshold);
+    clipValue = ComputeDecalAngleClipValue(sceneNormalsWs, angleThreshold);
     #endif // SHADERGRAPH_PREVIEW 
 }
 

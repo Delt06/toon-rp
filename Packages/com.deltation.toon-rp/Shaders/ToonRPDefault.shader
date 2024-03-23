@@ -27,8 +27,8 @@
 	    [Toggle(_RECEIVE_BLOB_SHADOWS)]
 	    _ReceiveBlobShadows ("Receive Blob Shadows", Float) = 0
 	    
-	    [Enum(DELTation.ToonRP.StencilLayer)]
-	    _OutlinesStencilLayer ("Outlines Stencil Layer", Float) = 0
+	    [Enum(DELTation.ToonRP.StencilPreset)]
+	    _OutlinesStencilLayer ("Stencil Preset", Float) = 0
 	    
 	    [Toggle(_OVERRIDE_RAMP)]
 	    _OverrideRamp ("Override Ramp", Float) = 0
@@ -52,10 +52,13 @@
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
-	    _ForwardStencilRef ("Stencil Ref", Float) = 0
-	    _ForwardStencilWriteMask ("Stencil Write Mask", Float) = 0
-	    _ForwardStencilComp ("Stencil Comp", Float) = 0
-	    _ForwardStencilPass ("Stencil Pass", Float) = 0
+	    _ForwardStencilRef ("Ref", Integer) = 0
+	    _ForwardStencilReadMask ("Read Mask", Integer) = 255
+	    _ForwardStencilWriteMask ("Write Mask", Integer) = 255
+	    [Enum(UnityEngine.Rendering.CompareFunction)]
+	    _ForwardStencilComp ("Comp", Float) = 0
+	    [Enum(UnityEngine.Rendering.StencilOp)]
+	    _ForwardStencilPass ("Pass", Float) = 0
 	}
 	SubShader
 	{
@@ -86,6 +89,7 @@
 		    Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -131,6 +135,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -157,6 +162,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -184,6 +190,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]

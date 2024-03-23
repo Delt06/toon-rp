@@ -31,7 +31,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             target.SurfaceType = SurfaceType.Opaque;
             target.AlphaClip = false;
-            target.ControlOutlinesStencilLayer = false;
+            target.ControlStencil = false;
 
             // Process SubShaders
             context.AddSubShader(

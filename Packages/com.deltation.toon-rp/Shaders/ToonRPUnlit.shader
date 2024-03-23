@@ -11,8 +11,8 @@
 	    _AlphaClipping ("Alpha Clipping", Float) = 0
 	    _AlphaClipThreshold ("Alpha Clip Threshold", Range(0, 1)) = 0.5
 	    
-	    [Enum(DELTation.ToonRP.StencilLayer)]
-	    _OutlinesStencilLayer ("Outlines Stencil Layer", Float) = 0
+	    [Enum(DELTation.ToonRP.StencilPreset)]
+	    _OutlinesStencilLayer ("Stencil Preset", Float) = 0
 	    
 	    [Enum(DELTation.ToonRP.Editor.ShaderGUI.ShaderEnums.SurfaceType)]
         _SurfaceType ("Surface Type", Float) = 0
@@ -26,10 +26,13 @@
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
-	    _ForwardStencilRef ("Stencil Ref", Float) = 0
-	    _ForwardStencilWriteMask ("Stencil Write Mask", Float) = 0
-	    _ForwardStencilComp ("Stencil Comp", Float) = 0
-	    _ForwardStencilPass ("Stencil Pass", Float) = 0
+	    _ForwardStencilRef ("Ref", Integer) = 0
+	    _ForwardStencilReadMask ("Read Mask", Integer) = 255
+	    _ForwardStencilWriteMask ("Write Mask", Integer) = 255
+	    [Enum(UnityEngine.Rendering.CompareFunction)]
+	    _ForwardStencilComp ("Comp", Float) = 0
+	    [Enum(UnityEngine.Rendering.StencilOp)]
+	    _ForwardStencilPass ("Pass", Float) = 0
 	}
 	SubShader
 	{
@@ -57,6 +60,7 @@
 		    Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -72,7 +76,7 @@
 			#pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
 			// Bug workaround: stencil might not be set if don't create a separate shader variant for outlines
-			#pragma shader_feature_local_vertex _HAS_OUTLINES_STENCIL_LAYER
+			#pragma shader_feature_local_vertex _STENCIL_OVERRIDE
 
 			#define UNLIT
 			#include "ToonRPDefaultForwardPass.hlsl"
@@ -111,6 +115,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -139,6 +144,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]
@@ -167,6 +173,7 @@
 			Stencil
             {
                 Ref [_ForwardStencilRef]
+                ReadMask [_ForwardStencilReadMask]
                 WriteMask [_ForwardStencilWriteMask]
                 Comp [_ForwardStencilComp]
                 Pass [_ForwardStencilPass]

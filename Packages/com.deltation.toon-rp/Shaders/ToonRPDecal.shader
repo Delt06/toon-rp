@@ -36,7 +36,7 @@
 			#pragma multi_compile_instancing
 
 			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Common.hlsl"
-			#include "Packages/com.deltation.toon-rp/ShaderLibrary/DepthNormals.hlsl"
+			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Decals.hlsl"
 			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Fog.hlsl"
 			#include "Packages/com.deltation.toon-rp/ShaderLibrary/Textures.hlsl"
 
@@ -101,16 +101,11 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 
                 const float2 screenUv = UnityStereoTransformScreenSpaceTex(PositionHClipToScreenUv(IN.positionCs));
-                const float ndcDepth = RawToNdcDepth(SampleDepthTexture(screenUv));
-
-                const float3 reconstructedPositionWs = ComputeWorldSpacePosition(screenUv, ndcDepth, UNITY_MATRIX_I_VP);
-                const half3 reconstructedPositionOs = TransformWorldToObject(reconstructedPositionWs);
-
-                const half3 sceneNormalOs = TransformWorldToObjectNormal(SampleNormalsTexture(screenUv));
-                const half clipAngle = step(_AngleDiscardThreshold, sceneNormalOs.z);
-                clip(0.5h - reconstructedPositionOs - clipAngle);
-
-                const float2 decalUv = reconstructedPositionOs.xy + 0.5h; // [-0.5, 0.5] -> [0.0, 1.0]
+                half3 clipValue;
+                const float2 decalUv = ComputeDecalSpaceUv(screenUv, clipValue);
+                clipValue += ComputeDecalAngleClipValue(screenUv, _AngleDiscardThreshold);
+                DecalClip(clipValue);
+                
                 float4 albedo = _MainColor * SAMPLE_TEXTURE2D(_MainTexture, sampler_MainTexture, decalUv);
                 
                 float3 outputColor = albedo.rgb;

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
@@ -21,6 +22,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             public string Name;
             public LayerMask LayerMask;
             public StencilLayer StencilLayer;
+            public StencilOp StencilPassOp;
             [ColorUsage(false, true)]
             public Color Color;
             [Min(0f)]

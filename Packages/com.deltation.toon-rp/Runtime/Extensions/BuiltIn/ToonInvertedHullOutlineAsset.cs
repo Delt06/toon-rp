@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.Extensions.BuiltIn
 {
@@ -20,6 +21,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         Color = Color.black,
                         Thickness = 0.02f,
                         LayerMask = int.MaxValue,
+                        StencilPassOp = StencilOp.Keep,
                         MaxDistance = 0.0f,
                         DistanceFade = 0.1f,
                         CameraOverrides = ToonCameraOverrideSettings.Default,

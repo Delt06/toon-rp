@@ -28,6 +28,16 @@ float SampleDepthTexture(const float2 uv)
     return SAMPLE_TEXTURE2D_X_LOD(_ToonRP_DepthTexture, DEPTH_NORMALS_SAMPLER, uv, 0).r;
 }
 
+float RawToNdcDepth(float depth)
+{
+    // GL/GLES are the only APIs, which have NDC depth in the range [-1, 1]
+    #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+    depth = depth * 2.0 - 1.0;
+    #endif
+
+    return depth;
+}
+
 float3 SampleNormalsTexture(const float2 uv)
 {
     const float3 packedNormal = SAMPLE_TEXTURE2D_X_LOD(_ToonRP_NormalsTexture, DEPTH_NORMALS_SAMPLER, uv, 0).xyz;

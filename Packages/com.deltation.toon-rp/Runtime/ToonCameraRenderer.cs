@@ -217,7 +217,7 @@ namespace DELTation.ToonRP
             _renderTarget.InitState(_additionalCameraData);
 
             ToonRpUtils.SetupCameraProperties(ref _context, cmd, _additionalCameraData, _camera.projectionMatrix, true);
-            SetInverseProjectionMatrix(cmd, _camera.projectionMatrix);
+            SetInverseProjectionMatrix(cmd, _camera.cameraToWorldMatrix, _camera.projectionMatrix);
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _extensionsCollection.RenderEvent(ToonRenderingEvent.BeforePrepass);
@@ -527,18 +527,22 @@ namespace DELTation.ToonRP
                 _additionalCameraData, _additionalCameraData.JitteredProjectionMatrix, _renderTarget.RenderToTexture
             );
 
-            SetInverseProjectionMatrix(cmd, _additionalCameraData.JitteredProjectionMatrix);
+            SetInverseProjectionMatrix(cmd, _additionalCameraData.ViewMatrix, _additionalCameraData.JitteredProjectionMatrix);
         }
 
-        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 projectionMatrix)
+        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
         {
+            const bool renderIntoTexture = true;
             var inverseProjectionMatrix =
                 Matrix4x4.Inverse(
-                    ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix, true)
+                    ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix, renderIntoTexture)
                 );
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseProjectionMatrix,
                 inverseProjectionMatrix
             );
+            var inverseViewProjectionMatrix =
+                Matrix4x4.Inverse(ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix * viewMatrix, renderIntoTexture));
+            cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjectionMatrix);
         }
 
         private void UpdateRtHandles(int rtWidth, int rtHeight)

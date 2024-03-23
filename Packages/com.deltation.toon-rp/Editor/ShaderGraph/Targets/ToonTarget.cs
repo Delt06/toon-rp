@@ -288,7 +288,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             // Core fields
             context.AddField(Fields.GraphVertex, descs.Contains(ToonBlockFields.VertexDescription.Position) ||
                                                  descs.Contains(ToonBlockFields.VertexDescription.Normal) ||
-                                                 descs.Contains(ToonBlockFields.VertexDescription.Tangent)
+                                                 descs.Contains(ToonBlockFields.VertexDescription.Tangent) ||
+                                                 descs.Contains(ToonBlockFields.VertexDescription.DepthBias)
             );
             context.AddField(Fields.GraphPixel);
 
@@ -302,6 +303,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.VertexDescription.Position);
             context.AddBlock(ToonBlockFields.VertexDescription.Normal);
             context.AddBlock(ToonBlockFields.VertexDescription.Tangent);
+            context.AddBlock(ToonBlockFields.VertexDescription.DepthBias);
+
             context.AddBlock(ToonBlockFields.SurfaceDescription.Albedo);
             context.AddBlock(ToonBlockFields.SurfaceDescription.Emission);
 
@@ -956,6 +959,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.VertexDescription.Position,
             ToonBlockFields.VertexDescription.Normal,
             ToonBlockFields.VertexDescription.Tangent,
+            ToonBlockFields.VertexDescription.DepthBias,
         };
 
         public static readonly BlockFieldDescriptor[] FragmentAlphaOnly =

@@ -396,6 +396,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
                 ToonBlockFields.VertexDescription.Tangent,
+                ToonBlockFields.VertexDescription.DepthBias,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentDefault =

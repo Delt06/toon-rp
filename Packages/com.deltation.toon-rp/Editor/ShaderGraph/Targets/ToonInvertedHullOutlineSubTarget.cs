@@ -251,6 +251,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
                 ToonBlockFields.VertexDescription.OutlineThickness,
+                ToonBlockFields.VertexDescription.DepthBias,
             };
         }
 

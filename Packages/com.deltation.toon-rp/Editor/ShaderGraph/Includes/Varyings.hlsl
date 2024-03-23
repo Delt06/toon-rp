@@ -128,9 +128,16 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     output.vsmDepth = GetPackedVsmDepth(positionWS);
     #endif // _TOON_RP_VSM
     
-    #else
+    #else // (SHADERPASS != SHADERPASS_SHADOWCASTER)
     output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input, vertexDescription);
+
+    #if UNITY_REVERSED_Z
+    output.positionCS.z -= vertexDescription.DepthBias * output.positionCS.w;
+    #else
+    output.positionCS.z += vertexDescription.DepthBias * output.positionCS.w;
     #endif
+    
+    #endif // (SHADERPASS == SHADERPASS_SHADOWCASTER)
 
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
     output.texCoord0 = input.uv0;

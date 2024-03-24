@@ -46,6 +46,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 new ColorControl(Color.grey, false), ShaderStage.Fragment
             );
 
+            public static readonly BlockFieldDescriptor PositionWs = new(Name, "PositionWS", "Position (World Space)",
+                "SURFACEDESCRIPTION_POSITIONWS",
+                new PositionControl(CoordinateSpace.World), ShaderStage.Fragment
+            );
             public static readonly BlockFieldDescriptor NormalTs = new(Name, "NormalTS", "Normal (Tangent Space)",
                 "SURFACEDESCRIPTION_NORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment

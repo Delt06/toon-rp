@@ -985,6 +985,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] FragmentDepthNormals =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.NormalOs,
             ToonBlockFields.SurfaceDescription.NormalTs,
             ToonBlockFields.SurfaceDescription.NormalWs,
@@ -994,6 +995,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
         {
+            
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.NormalOs,
             ToonBlockFields.SurfaceDescription.NormalTs,
             ToonBlockFields.SurfaceDescription.NormalWs,

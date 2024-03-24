@@ -255,6 +255,25 @@ float3 GetNormalWsFromVaryings(SurfaceDescription surfaceDescription, Varyings v
     return normalWS;
 }
 
+float3 GetPositionWsFromVaryings(SurfaceDescription surfaceDescription, Varyings varyings)
+{
+    #ifdef VARYINGS_NEED_POSITION_WS
+
+    #if _POSITION_DROPOFF_WS
+    float3 positionWS = surfaceDescription.PositionWS;
+    #else
+    float3 positionWS = varyings.positionWS;
+    #endif
+    
+    #else
+
+    float3 positionWS = 0;
+
+    #endif // VARYINGS_NEED_POSITION_WS
+
+    return positionWS;
+}
+
 void ApplyCustomFog(inout float3 outputColor, const SurfaceDescription surfaceDescription)
 {
     #if _CUSTOM_FOG

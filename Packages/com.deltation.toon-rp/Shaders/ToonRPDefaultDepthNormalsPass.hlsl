@@ -65,7 +65,7 @@ v2f VS(const appdata IN)
     return OUT;
 }
 
-float3 PS(const v2f IN) : SV_TARGET
+float2 PS(const v2f IN) : SV_TARGET
 {
     #ifdef _ALPHATEST_ON
     const float alpha = SampleAlbedo(IN.uv).a;

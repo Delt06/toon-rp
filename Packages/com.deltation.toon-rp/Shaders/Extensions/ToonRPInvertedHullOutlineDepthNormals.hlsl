@@ -32,11 +32,11 @@ v2f VS(const appdata IN)
     return OUT;
 }
 
-float4 PS(const v2f IN) : SV_TARGET
+float2 PS(const v2f IN) : SV_TARGET
 {
     float3 normalWs = IN.normalWs;
     normalWs = normalize(normalWs);
-    return float4(PackNormal(normalWs), 0);
+    return PackNormal(normalWs);
 }
 
 #endif // TOON_RP_INVERTED_HULL_OUTLINE_DEPTH_NORMALS

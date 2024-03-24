@@ -3,11 +3,11 @@
 
 #include "Packages/com.deltation.toon-rp/ShaderLibrary/DepthNormals.hlsl"
 
-float2 ComputeDecalSpaceUv(const float sceneRawDepth, const float2 screenUv, out half3 clipValue)
+float2 ComputeDecalSpaceUv(const float sceneRawDepth, const float2 screenUv, out float3 reconstructedPositionWs, out half3 clipValue)
 {
     const float ndcDepth = RawToNdcDepth(sceneRawDepth);
 
-    const float3 reconstructedPositionWs = ComputeWorldSpacePosition(screenUv, ndcDepth, UNITY_MATRIX_I_VP);
+    reconstructedPositionWs = ComputeWorldSpacePosition(screenUv, ndcDepth, UNITY_MATRIX_I_VP);
     const half3 reconstructedPositionOs = TransformWorldToObject(reconstructedPositionWs);
 
     clipValue = 0.5h - reconstructedPositionOs;

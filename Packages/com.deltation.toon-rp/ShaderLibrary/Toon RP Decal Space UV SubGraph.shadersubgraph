@@ -77,6 +77,20 @@
         {
             "m_OutputSlot": {
                 "m_Node": {
+                    "m_Id": "02428a2084be45f99e2a3b941997961f"
+                },
+                "m_SlotId": 4
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "3261ddbb347046e1b09227e6c2767d06"
+                },
+                "m_SlotId": 3
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
                     "m_Id": "577f0d4cd06045e989395f5e0128859b"
                 },
                 "m_SlotId": 1
@@ -218,6 +232,9 @@
             "m_Id": "a85d2f18dc4349d88a813be019966341"
         },
         {
+            "m_Id": "409447ab175843f388e3f14e196433f1"
+        },
+        {
             "m_Id": "9ab65fff60ac4e888bb7f6b772556381"
         }
     ],
@@ -282,6 +299,9 @@
             "m_Id": "782a497afc3b4276b7d454c2c26977e3"
         },
         {
+            "m_Id": "8958a2fbdca54d5ba708985170e81042"
+        },
+        {
             "m_Id": "809f4ae37e5f49ba9599a0afe9377350"
         }
     ],
@@ -318,6 +338,29 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "409447ab175843f388e3f14e196433f1",
+    "m_Id": 4,
+    "m_DisplayName": "positionWS",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "positionWS",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {
@@ -557,6 +600,29 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "Input",
     "m_StageCapability": 3
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "8958a2fbdca54d5ba708985170e81042",
+    "m_Id": 3,
+    "m_DisplayName": "PositionWS",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "PositionWS",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {

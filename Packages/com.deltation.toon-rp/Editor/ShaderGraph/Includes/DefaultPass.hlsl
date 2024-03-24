@@ -42,7 +42,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
 
     const float3 normalWs = GetNormalWsFromVaryings(surfaceDescription, unpacked);
     const float3 positionWs = GetPositionWsFromVaryings(surfaceDescription, unpacked);
-    const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(unpacked.positionWS));
+    const float3 viewDirectionWs = normalize(GetWorldSpaceViewDir(positionWs));
 
     LightComputationParameters lightComputationParameters = (LightComputationParameters) 0;
     lightComputationParameters.positionWs = positionWs;

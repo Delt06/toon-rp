@@ -247,7 +247,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "caebfe030c564f46a72300c1372771e8",
     "m_Id": 0,
-    "m_DisplayName": "ClipValue",
+    "m_DisplayName": "Clip Value",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -264,10 +264,10 @@
     "m_Guid": {
         "m_GuidSerialized": "11d652f7-fcba-4a81-b3a8-d2b079cda7ca"
     },
-    "m_Name": "ClipValue",
+    "m_Name": "Clip Value",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "ClipValue",
-    "m_DefaultReferenceName": "_ClipValue",
+    "m_RefNameGeneratedByDisplayName": "Clip Value",
+    "m_DefaultReferenceName": "_Clip_Value",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,

@@ -12,6 +12,7 @@ namespace DELTation.ToonRP.Lighting
         private const string CmdName = "Lighting";
 
         private const int MaxAdditionalLightCount = 64;
+
         // Mirrored with TiledLighting_Shared.hlsl
         public const int MaxAdditionalLightCountTiled = 1024;
 
@@ -22,12 +23,12 @@ namespace DELTation.ToonRP.Lighting
         private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
         private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
         private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
-        private static readonly int AdditionalLightPositionsVsId = Shader.PropertyToID("_AdditionalLightPositionsVS");
+        private static readonly int AdditionalLightSpotDirId = Shader.PropertyToID("_AdditionalLightSpotDir");
         private static GlobalKeyword _additionalLightsGlobalKeyword;
         private static GlobalKeyword _additionalLightsVertexGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
-        private readonly Vector4[] _additionalLightPositionsVs = new Vector4[MaxAdditionalLightCount];
+        private readonly Vector4[] _additionalLightSpotDir = new Vector4[MaxAdditionalLightCount];
 
         private readonly CommandBuffer _buffer = new() { name = CmdName };
         private int _additionalLightsCount;
@@ -35,6 +36,7 @@ namespace DELTation.ToonRP.Lighting
         private Vector4[] _additionalTiledLightsColors;
         private Vector4[] _additionalTiledLightsPositionWsAttenuations;
         private Camera _camera;
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private int _currentMaxAdditionalLights;
 
         public ToonLighting()
@@ -50,11 +52,12 @@ namespace DELTation.ToonRP.Lighting
         {
             _camera = camera;
 
-            _currentMaxAdditionalLights = settings.IsTiledLightingEnabledAndSupported()
+            _cameraRendererSettings = settings;
+            _currentMaxAdditionalLights = _cameraRendererSettings.IsTiledLightingEnabledAndSupported()
                 ? MaxAdditionalLightCountTiled
                 : MaxAdditionalLightCount;
 
-            if (settings.IsTiledLightingEnabledAndSupported())
+            if (_cameraRendererSettings.IsTiledLightingEnabledAndSupported())
             {
                 _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
                 _additionalTiledLightsColors ??= new Vector4[MaxAdditionalLightCountTiled];
@@ -64,7 +67,7 @@ namespace DELTation.ToonRP.Lighting
             _buffer.BeginSample(CmdName);
             SetupDirectionalLight(mainLight);
 
-            AdditionalLightsMode additionalLightsMode = settings.AdditionalLights;
+            AdditionalLightsMode additionalLightsMode = _cameraRendererSettings.AdditionalLights;
             if (additionalLightsMode != AdditionalLightsMode.Off)
             {
                 NativeArray<int> indexMap = cullingResults.GetLightIndexMap(Allocator.Temp);
@@ -125,16 +128,26 @@ namespace DELTation.ToonRP.Lighting
                 switch (visibleLight.lightType)
                 {
                     case LightType.Point:
+                    case LightType.Spot:
+                    {
+                        // Currently, Tiled Lighting only supports Point lights
+                        // https://github.com/Delt06/toon-rp/issues/229
+                        if (visibleLight.lightType != LightType.Point &&
+                            _cameraRendererSettings.IsTiledLightingEnabledAndSupported())
+                        {
+                            break;
+                        }
+
                         if (_additionalLightsCount < _currentMaxAdditionalLights)
                         {
                             newIndex = _additionalLightsCount;
-                            SetupPointLight(_additionalLightsCount, visibleLight);
+                            SetupAdditionalLight(_additionalLightsCount, visibleLight);
                             _additionalLightsCount++;
                         }
 
                         break;
+                    }
 
-                    case LightType.Spot:
                     case LightType.Directional:
                     case LightType.Area:
                     case LightType.Disc:
@@ -158,7 +171,7 @@ namespace DELTation.ToonRP.Lighting
             {
                 _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);
                 _buffer.SetGlobalVectorArray(AdditionalLightPositionsId, _additionalLightPositions);
-                _buffer.SetGlobalVectorArray(AdditionalLightPositionsVsId, _additionalLightPositionsVs);
+                _buffer.SetGlobalVectorArray(AdditionalLightSpotDirId, _additionalLightSpotDir);
             }
         }
 
@@ -173,26 +186,40 @@ namespace DELTation.ToonRP.Lighting
             count = _additionalLightsCount;
         }
 
-        private void SetupPointLight(int index, in VisibleLight visibleLight)
+        private void SetupAdditionalLight(int index, in VisibleLight visibleLight)
         {
             Vector4 color = visibleLight.finalColor;
+            Matrix4x4 lightLocalToWorld = visibleLight.localToWorldMatrix;
+            Vector3 positionWs = lightLocalToWorld.GetColumn(3);
 
-            Vector4 positionWsAttenuation = visibleLight.localToWorldMatrix.GetColumn(3);
-            positionWsAttenuation.w = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
+            float distanceAttenuation = 1.0f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
 
-            Vector4 positionVsRange =
-                _camera.worldToCameraMatrix.MultiplyPoint(visibleLight.localToWorldMatrix.GetColumn(3));
-            positionVsRange.w = visibleLight.range;
+            var spotAttenuation = new Vector2(0.0f, 1.0f);
+            Vector3 spotDir = default;
+
+            if (visibleLight.lightType == LightType.Spot)
+            {
+                float? innerSpotAngle = visibleLight.light ? visibleLight.light.innerSpotAngle : null;
+                GetSpotAngleAttenuation(visibleLight.spotAngle, innerSpotAngle, out spotAttenuation);
+                GetSpotDirection(ref lightLocalToWorld, out spotDir);
+            }
 
             if (index < MaxAdditionalLightCount)
             {
-                _additionalLightColors[index] = color;
-                _additionalLightPositions[index] = positionWsAttenuation;
-                _additionalLightPositionsVs[index] = positionVsRange;
+                _additionalLightColors[index] = new Vector4(color.x, color.y, color.z, distanceAttenuation);
+                _additionalLightPositions[index] =
+                    new Vector4(positionWs.x, positionWs.y, positionWs.z, spotAttenuation.x);
+                _additionalLightSpotDir[index] = new Vector4(spotDir.x, spotDir.y, spotDir.z, spotAttenuation.y);
             }
+
+            var positionWsAttenuation = new Vector4(positionWs.x, positionWs.y, positionWs.z, distanceAttenuation);
 
             if (_additionalTiledLights != null)
             {
+                Vector4 positionVsRange =
+                    _camera.worldToCameraMatrix.MultiplyPoint(lightLocalToWorld.GetColumn(3));
+                positionVsRange.w = visibleLight.range;
+
                 ref TiledLight tiledLight = ref _additionalTiledLights[index];
                 tiledLight.Color = color;
                 tiledLight.PositionVsRange = positionVsRange;
@@ -208,6 +235,48 @@ namespace DELTation.ToonRP.Lighting
             {
                 _additionalTiledLightsPositionWsAttenuations[index] = positionWsAttenuation;
             }
+        }
+
+        private static void GetSpotAngleAttenuation(
+            float spotAngle, float? innerSpotAngle,
+            out Vector2 spotAttenuation)
+        {
+            // Spot Attenuation with a linear falloff can be defined as
+            // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+            // This can be rewritten as
+            // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+            // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+            // If we precompute the terms in a MAD instruction
+            float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
+            // We need to do a null check for particle lights
+            // This should be changed in the future
+            // Particle lights will use an inline function
+            float cosInnerAngle;
+            if (innerSpotAngle.HasValue)
+            {
+                cosInnerAngle = Mathf.Cos(innerSpotAngle.Value * Mathf.Deg2Rad * 0.5f);
+            }
+            else
+            {
+                cosInnerAngle = Mathf.Cos(2.0f *
+                                          Mathf.Atan(Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) /
+                                                     64.0f
+                                          ) * 0.5f
+                );
+            }
+
+            float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
+            float invAngleRange = 1.0f / smoothAngleRange;
+            float add = -cosOuterAngle * invAngleRange;
+
+            spotAttenuation.x = invAngleRange;
+            spotAttenuation.y = add;
+        }
+
+        private static void GetSpotDirection(ref Matrix4x4 lightLocalToWorldMatrix, out Vector3 spotDir)
+        {
+            Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
+            spotDir = new Vector4(-dir.x, -dir.y, -dir.z);
         }
     }
 }

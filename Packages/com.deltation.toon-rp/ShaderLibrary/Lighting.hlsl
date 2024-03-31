@@ -16,9 +16,9 @@ CBUFFER_START(_ToonRPLight)
     float3 _DirectionalLightDirection;
 
     uint _AdditionalLightCount;
-    float4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color
-    float4 _AdditionalLightPositionsVS[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position VS, w = range
-    float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = 1/range^2
+    float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = spotAttenuation.x
+    half4 _AdditionalLightColors[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = color, w = 1/range^2
+    half4 _AdditionalLightSpotDir[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz - spot dir, w = spotAttenuation.y
 
     float3 _AdditionalLightRampOffset; // x - diffuse, y - specular, z - attenuation factor
 CBUFFER_END
@@ -67,15 +67,65 @@ uint ToGlobalLightIndex(const uint perObjectIndex)
 struct LightEntry
 {
     float3 color;
-    float4 positionWs_attenuation;
+    float3 positionWs;
+    float distanceAttenuation;
+    half3 spotDir;
+    half2 spotAttenuation;
 };
 
 LightEntry GetUniformLightEntry(const uint globalLightIndex)
 {
     LightEntry lightEntry;
-    lightEntry.color = _AdditionalLightColors[globalLightIndex].rgb;
-    lightEntry.positionWs_attenuation = _AdditionalLightPositions[globalLightIndex];
+
+    {
+        const half4 color_distanceAttenuation = _AdditionalLightColors[globalLightIndex];
+        lightEntry.color = color_distanceAttenuation.xyz;
+        lightEntry.distanceAttenuation = color_distanceAttenuation.w;
+    }
+
+    {
+        const float4 positionWs_spotAttenuation = _AdditionalLightPositions[globalLightIndex];
+        lightEntry.positionWs = positionWs_spotAttenuation.xyz;
+        lightEntry.spotAttenuation.x = positionWs_spotAttenuation.w;    
+    }
+
+    {
+        const half4 spotDir_spotAttenuation = _AdditionalLightSpotDir[globalLightIndex];
+        lightEntry.spotDir = spotDir_spotAttenuation.xyz;
+        lightEntry.spotAttenuation.y = spotDir_spotAttenuation.w;
+    }
+    
     return lightEntry;
+}
+
+
+float DistanceAttenuation(const float3 offset, const float distanceAttenuationParam)
+{
+    const float distanceSqr = max(dot(offset, offset), 0.00001);
+    const float distanceAttenuation = Sq(
+        saturate(1.0f - Sq(distanceSqr * distanceAttenuationParam))
+    );
+    return distanceAttenuation * rcp(distanceSqr);
+}
+
+half AngleAttenuation(const half3 spotDirection, const half3 lightDirection, const half2 spotAttenuationParams)
+{
+    // From URP's RealtimeLights.hlsl
+    
+    // Spot Attenuation with a linear falloff can be defined as
+    // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
+    // This can be rewritten as
+    // invAngleRange = 1.0 / (cosInnerAngle - cosOuterAngle)
+    // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
+    // SdotL * spotAttenuation.x + spotAttenuation.y
+
+    // if (spotAttenuationParams.x == 0.0h)
+    //     return 1.0h;
+
+    // If we precompute the terms in a MAD instruction
+    const half SdotL = dot(spotDirection, lightDirection);
+    const half atten = saturate(SdotL * spotAttenuationParams.x + spotAttenuationParams.y);
+    return atten * atten;
 }
 
 Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
@@ -83,16 +133,12 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
     Light light;
 
     light.color = lightEntry.color;
-    const float4 positionWs_attenuation = lightEntry.positionWs_attenuation;
-    const float3 offset = positionWs_attenuation.xyz - positionWs;
+    const float3 offset = lightEntry.positionWs - positionWs;
     light.direction = normalize(offset);
     light.shadowAttenuation = 1.0f;
 
-    const float distanceSqr = max(dot(offset, offset), 0.00001);
-    const float distanceAttenuation = Sq(
-        saturate(1.0f - Sq(distanceSqr * positionWs_attenuation.w))
-    );
-    light.distanceAttenuation = distanceAttenuation / distanceSqr;
+    light.distanceAttenuation = DistanceAttenuation(offset, lightEntry.distanceAttenuation) *
+        AngleAttenuation(lightEntry.spotDir, light.direction, lightEntry.spotAttenuation);
     light.distanceAttenuation = saturate(light.distanceAttenuation * _AdditionalLightRampOffset.z);
 
     return light;

@@ -43,7 +43,13 @@ LightEntry GetTiledLightEntry(const uint globalLightIndex)
 {
     LightEntry lightEntry;
     lightEntry.color = _TiledLighting_Light_Color[globalLightIndex].rgb;
-    lightEntry.positionWs_attenuation = _TiledLighting_Light_PositionsWs_Attenuation[globalLightIndex];
+
+    const float4 positionWs_attenuation = _TiledLighting_Light_PositionsWs_Attenuation[globalLightIndex]; 
+    lightEntry.positionWs = positionWs_attenuation.xyz;
+    lightEntry.distanceAttenuation = positionWs_attenuation.w;
+    lightEntry.spotAttenuation = float2(0, 1);
+    lightEntry.spotDir = float3(0, 0, 0);
+    
     return lightEntry;
 }
 

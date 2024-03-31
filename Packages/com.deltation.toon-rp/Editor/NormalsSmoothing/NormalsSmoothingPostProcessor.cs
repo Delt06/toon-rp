@@ -13,6 +13,8 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
 {
     public class NormalsSmoothingPostProcessor : AssetPostprocessor
     {
+        private const uint Version = 1;
+
         private const string Tag = "=SmoothedNormals=";
         private const string UvTag = "=UV=";
         private const string TangentsTag = "=Tangents=";
@@ -48,6 +50,8 @@ namespace DELTation.ToonRP.Editor.NormalsSmoothing
                 Apply(gameObject, toUv);
             }
         }
+
+        public override uint GetVersion() => Version;
 
         public override int GetPostprocessOrder() => 100;
 

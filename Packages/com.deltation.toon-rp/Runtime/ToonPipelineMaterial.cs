@@ -13,21 +13,20 @@ namespace DELTation.ToonRP
     public class ToonPipelineMaterial : IDisposable
     {
         private readonly Func<Material> _materialFactory;
+        [CanBeNull] private Material _material;
 
-        [CanBeNull]
-        private Material _material;
-
-        private ToonPipelineMaterial(Func<Material> materialFactory, Shader shader)
+        private ToonPipelineMaterial(Func<Material> materialFactory, Shader shader,
+            [CanBeNull] string shaderName = null)
         {
             _materialFactory = materialFactory;
             Shader = shader;
-            ShaderName = shader.name;
+            ShaderName = shaderName ?? shader.name;
         }
 
         public ToonPipelineMaterial(string shaderPath, string materialName)
             : this(
                 () => CreateEngineMaterial(shaderPath, materialName),
-                Shader.Find(shaderPath)
+                Shader.Find(shaderPath), shaderPath
             ) { }
 
         public ToonPipelineMaterial(Shader shader, string materialName)

@@ -30,4 +30,4 @@ void GetDecalAlphaClip_half(const half clipValue, out half alphaClip)
     alphaClip = step(0.0, clipValue);
 }
 
-#endif // TOON_RP_DECALS
+#endif // TOON_RP_DECALS_SHADER_GRAPH

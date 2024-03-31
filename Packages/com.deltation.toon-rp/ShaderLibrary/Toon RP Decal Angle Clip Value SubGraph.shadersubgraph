@@ -297,7 +297,7 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
-    "m_Value": 0.5,
+    "m_Value": 0.0,
     "m_FloatType": 0,
     "m_RangeValues": {
         "x": 0.0,
@@ -876,10 +876,10 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "d5d2b92a1a6c4c8eb9d7122b020f7a05",
     "m_Id": -1966808630,
-    "m_DisplayName": "ScreenUV",
+    "m_DisplayName": "Screen UV",
     "m_SlotType": 0,
     "m_Hidden": false,
-    "m_ShaderOutputName": "_ScreenUV",
+    "m_ShaderOutputName": "_Screen_UV",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,

@@ -16,9 +16,10 @@
         public const string RenderFace = "_RenderFace";
         public const string EmissionColor = "_EmissionColor";
 
-        public const string ControlOutlinesStencilLayer = "_ControlOutlinesStencilLayer";
-        public const string OutlinesStencilLayer = "_OutlinesStencilLayer";
+        public const string ControlStencil = "_ControlStencil";
+        public const string StencilPreset = "_OutlinesStencilLayer";
         public const string ForwardStencilRef = "_ForwardStencilRef";
+        public const string ForwardStencilReadMask = "_ForwardStencilReadMask";
         public const string ForwardStencilWriteMask = "_ForwardStencilWriteMask";
         public const string ForwardStencilComp = "_ForwardStencilComp";
         public const string ForwardStencilPass = "_ForwardStencilPass";

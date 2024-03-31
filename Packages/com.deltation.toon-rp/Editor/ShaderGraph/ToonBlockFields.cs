@@ -20,6 +20,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             public static readonly BlockFieldDescriptor Tangent = new(Name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex
             );
+            public static readonly BlockFieldDescriptor DepthBias = new(Name, "DepthBias", "Depth Bias",
+                "VERTEXDESCRIPTION_DEPTHBIAS",
+                new FloatControl(0.0f), ShaderStage.Vertex
+            );
 
             public static readonly BlockFieldDescriptor BillboardCameraPull = new(Name, "BillboardCameraPull",
                 "Billboard Camera Pull",
@@ -42,6 +46,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 new ColorControl(Color.grey, false), ShaderStage.Fragment
             );
 
+            public static readonly BlockFieldDescriptor PositionWs = new(Name, "PositionWS", "Position (World Space)",
+                "SURFACEDESCRIPTION_POSITIONWS",
+                new PositionControl(CoordinateSpace.World), ShaderStage.Fragment
+            );
             public static readonly BlockFieldDescriptor NormalTs = new(Name, "NormalTS", "Normal (Tangent Space)",
                 "SURFACEDESCRIPTION_NORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment
@@ -108,13 +116,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_DIFFUSEOFFSET",
                 new FloatControl(0.0f), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor MainLightOcclusion = new(Name, "MainLightOcclusion",
                 "Main Light Occlusion",
                 "SURFACEDESCRIPTION_MAINLIGHTOCCLUSION",
                 new FloatControl(1.0f), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor ShadowReceivePositionOffset = new(Name,
                 "ShadowReceivePositionOffset",
                 "Shadow Receive Position Offset",
@@ -162,7 +170,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 "SURFACEDESCRIPTION_OVERRIDERAMPRIMSMOOTHNESS",
                 new FloatControl(0.1f), ShaderStage.Fragment
             );
-            
+
             public static readonly BlockFieldDescriptor SoftParticlesDistance = new(Name, "SoftParticlesDistance",
                 "Soft Particles Distance",
                 "SURFACEDESCRIPTION_SOFTPARTICLESDISTANCE",

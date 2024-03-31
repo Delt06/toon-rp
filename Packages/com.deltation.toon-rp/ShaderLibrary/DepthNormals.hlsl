@@ -13,14 +13,14 @@ DECLARE_TEXEL_SIZE(_ToonRP_NormalsTexture);
 #define DEPTH_NORMALS_SAMPLER sampler_point_clamp_DepthNormalsSampler
 SAMPLER(DEPTH_NORMALS_SAMPLER);
 
-float3 PackNormal(const float3 normal)
+float2 PackNormal(const float3 normal)
 {
-    return normal * 0.5 + 0.5;
+    return PackNormalOctQuadEncode(normal) * 0.5 + 0.5;
 }
 
-float3 UnpackNormal(const float3 packedNormal)
+float3 UnpackNormal(const float2 packedNormal)
 {
-    return packedNormal * 2 - 1;
+    return UnpackNormalOctQuadEncode(packedNormal.xy * 2.0 - 1.0);
 }
 
 float SampleDepthTexture(const float2 uv)
@@ -28,9 +28,19 @@ float SampleDepthTexture(const float2 uv)
     return SAMPLE_TEXTURE2D_X_LOD(_ToonRP_DepthTexture, DEPTH_NORMALS_SAMPLER, uv, 0).r;
 }
 
+float RawToNdcDepth(float depth)
+{
+    // GL/GLES are the only APIs, which have NDC depth in the range [-1, 1]
+    #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+    depth = depth * 2.0 - 1.0;
+    #endif
+
+    return depth;
+}
+
 float3 SampleNormalsTexture(const float2 uv)
 {
-    const float3 packedNormal = SAMPLE_TEXTURE2D_X_LOD(_ToonRP_NormalsTexture, DEPTH_NORMALS_SAMPLER, uv, 0).xyz;
+    const float2 packedNormal = SAMPLE_TEXTURE2D_X_LOD(_ToonRP_NormalsTexture, DEPTH_NORMALS_SAMPLER, uv, 0).xy;
     return normalize(UnpackNormal(packedNormal));
 }
 

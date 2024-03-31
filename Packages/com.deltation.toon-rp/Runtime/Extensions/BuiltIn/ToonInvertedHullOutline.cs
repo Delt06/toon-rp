@@ -188,7 +188,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             byte reference = pass.StencilLayer.ToReference();
                             renderStateBlock.stencilReference = reference;
                             renderStateBlock.stencilState =
-                                new StencilState(true, reference, 0, CompareFunction.NotEqual);
+                                new StencilState(true, reference, 255, CompareFunction.NotEqual, pass.StencilPassOp);
+                        }
+                        else if (pass.StencilPassOp != StencilOp.Keep)
+                        {
+                            renderStateBlock.stencilState = new StencilState(true, 0, 255, CompareFunction.Always,
+                                pass.StencilPassOp
+                            );
                         }
                         else
                         {

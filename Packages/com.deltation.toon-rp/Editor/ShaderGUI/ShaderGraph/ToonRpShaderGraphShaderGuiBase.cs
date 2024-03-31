@@ -12,8 +12,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph
 
     public abstract class ToonRpShaderGraphShaderGuiBase : ToonRpShaderGuiBase
     {
-        private static readonly int ControlOutlinesStencilLayerId =
-            Shader.PropertyToID(PropertyNames.ControlOutlinesStencilLayer);
+        private static readonly int ControlStencilId = Shader.PropertyToID(PropertyNames.ControlStencil);
         private static readonly int RenderQueueId = Shader.PropertyToID(PropertyNames.RenderQueue);
         private static readonly int QueueControlId = Shader.PropertyToID(PropertyNames.QueueControl);
 
@@ -23,19 +22,19 @@ namespace DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph
 
             if (DrawFoldout("Built-In"))
             {
-                if (IsControlOutlinesStencilLayerEnabled())
+                if (IsControlStencilEnabled())
                 {
-                    DrawOutlinesStencilLayer();
+                    DrawStencilProperties();
                 }
 
                 DrawExtraBuiltInProperties();
             }
         }
 
-        private bool IsControlOutlinesStencilLayerEnabled()
+        private bool IsControlStencilEnabled()
         {
             Shader shader = GetFirstMaterial().shader;
-            return shader.GetPropertyDefaultFloatValueById(ControlOutlinesStencilLayerId) > 0.5f;
+            return shader.GetPropertyDefaultFloatValueById(ControlStencilId) > 0.5f;
         }
 
         protected virtual void DrawExtraBuiltInProperties() { }
@@ -53,7 +52,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI.ShaderGraph
             return (RenderQueue) m.GetFloat(RenderQueueId);
         }
 
-        protected override bool CanUseOutlinesStencilLayer(Material m) => true;
+        protected override bool CanControlStencil(Material m) => true;
 
         protected override void DrawQueue()
         {

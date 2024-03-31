@@ -68,6 +68,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             BlockFieldDescriptor[] descs = context.blocks.Select(x => x.descriptor).ToArray();
 
             // Default -- always controlled by subtarget
+            context.AddField(ToonFields.PositionDropOffWs);
             context.AddField(ToonFields.NormalDropOffOS, NormalDropOffSpace == NormalDropOffSpace.Object);
             context.AddField(ToonFields.NormalDropOffTs, NormalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(ToonFields.NormalDropOffWs, NormalDropOffSpace == NormalDropOffSpace.World);
@@ -83,6 +84,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
             context.AddBlock(ToonBlockFields.SurfaceDescription.EmissionShadowBlend);
 
+            context.AddBlock(ToonBlockFields.SurfaceDescription.PositionWs);
             context.AddBlock(ToonBlockFields.SurfaceDescription.NormalOs,
                 NormalDropOffSpace == NormalDropOffSpace.Object
             );
@@ -396,10 +398,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ToonBlockFields.VertexDescription.Position,
                 ToonBlockFields.VertexDescription.Normal,
                 ToonBlockFields.VertexDescription.Tangent,
+                ToonBlockFields.VertexDescription.DepthBias,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentDefault =
             {
+                ToonBlockFields.SurfaceDescription.PositionWs,
                 ToonBlockFields.SurfaceDescription.NormalTs,
                 ToonBlockFields.SurfaceDescription.NormalOs,
                 ToonBlockFields.SurfaceDescription.NormalWs,

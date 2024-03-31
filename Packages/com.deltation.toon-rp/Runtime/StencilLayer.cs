@@ -14,6 +14,20 @@ namespace DELTation.ToonRP
         _6,
         _7,
     }
+    
+    public enum StencilPreset
+    {
+        None,
+        _0,
+        _1,
+        _2,
+        _3,
+        _4,
+        _5,
+        _6,
+        _7,
+        Custom,
+    }
 
     public static class StencilLayerExt
     {

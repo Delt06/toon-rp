@@ -18,11 +18,13 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         private static readonly Dictionary<string, bool> Foldouts = new();
         private static readonly int ForwardStencilRefId = Shader.PropertyToID(PropertyNames.ForwardStencilRef);
+        private static readonly int ForwardStencilReadMaskId =
+            Shader.PropertyToID(PropertyNames.ForwardStencilReadMask);
         private static readonly int ForwardStencilWriteMaskId =
             Shader.PropertyToID(PropertyNames.ForwardStencilWriteMask);
         private static readonly int ForwardStencilCompId = Shader.PropertyToID(PropertyNames.ForwardStencilComp);
         private static readonly int ForwardStencilPassId = Shader.PropertyToID(PropertyNames.ForwardStencilPass);
-        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(PropertyNames.OutlinesStencilLayer);
+        private static readonly int OutlinesStencilLayerId = Shader.PropertyToID(PropertyNames.StencilPreset);
         private GUIStyle _headerStyle;
         protected MaterialEditor MaterialEditor { get; private set; }
 
@@ -236,7 +238,7 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
                 if (OutlinesStencilLayer && !IsCanUseOutlinesStencilLayerMixed())
                 {
-                    DrawOutlinesStencilLayer();
+                    DrawStencilProperties();
                 }
 
                 onFoldoutOpen?.Invoke();
@@ -288,13 +290,26 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
             };
         }
 
-        protected void DrawOutlinesStencilLayer()
+        protected void DrawStencilProperties()
         {
-            EditorGUI.BeginDisabledGroup(!CanUseOutlinesStencilLayer(GetFirstMaterial()));
+            EditorGUI.BeginDisabledGroup(!CanControlStencil(GetFirstMaterial()));
 
-            if (DrawProperty(PropertyNames.OutlinesStencilLayer))
+            if (DrawProperty(PropertyNames.StencilPreset, out MaterialProperty presetProperty))
             {
                 ForEachMaterial(UpdateStencil);
+            }
+
+            if (!presetProperty.hasMixedValue)
+            {
+                ++EditorGUI.indentLevel;
+                EditorGUI.BeginDisabledGroup((StencilPreset) presetProperty.floatValue != StencilPreset.Custom);
+                DrawProperty(PropertyNames.ForwardStencilRef);
+                DrawProperty(PropertyNames.ForwardStencilReadMask);
+                DrawProperty(PropertyNames.ForwardStencilWriteMask);
+                DrawProperty(PropertyNames.ForwardStencilComp);
+                DrawProperty(PropertyNames.ForwardStencilPass);
+                EditorGUI.EndDisabledGroup();
+                --EditorGUI.indentLevel;
             }
 
             EditorGUI.EndDisabledGroup();
@@ -302,29 +317,35 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
 
         protected void UpdateStencil(Material m)
         {
-            var stencilLayer = (StencilLayer) m.GetFloat(OutlinesStencilLayerId);
+            var stencilPreset = (StencilPreset) m.GetFloat(OutlinesStencilLayerId);
 
-            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, ShaderKeywords.HasOutlinesStencilLayer);
-            if (stencilLayer != StencilLayer.None && CanUseOutlinesStencilLayer(GetFirstMaterial()))
+            var hasOutlinesStencilLayerKeyword = new LocalKeyword(m.shader, ShaderKeywords.StencilOverride);
+            bool enableStencil = stencilPreset != StencilPreset.None && CanControlStencil(GetFirstMaterial());
+            if (stencilPreset != StencilPreset.Custom)
             {
-                byte reference = stencilLayer.ToReference();
-                m.SetFloat(ForwardStencilRefId, reference);
-                m.SetFloat(ForwardStencilWriteMaskId, reference);
-                m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
-                m.SetFloat(ForwardStencilPassId, (int) StencilOp.Replace);
-                m.EnableKeyword(hasOutlinesStencilLayerKeyword);
+                if (enableStencil)
+                {
+                    byte reference = ((StencilLayer) stencilPreset).ToReference();
+                    m.SetFloat(ForwardStencilRefId, reference);
+                    m.SetFloat(ForwardStencilReadMaskId, 255);
+                    m.SetFloat(ForwardStencilWriteMaskId, reference);
+                    m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
+                    m.SetFloat(ForwardStencilPassId, (int) StencilOp.Replace);
+                }
+                else
+                {
+                    m.SetFloat(ForwardStencilRefId, 0);
+                    m.SetFloat(ForwardStencilReadMaskId, 255);
+                    m.SetFloat(ForwardStencilWriteMaskId, 255);
+                    m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
+                    m.SetFloat(ForwardStencilPassId, (int) StencilOp.Keep);
+                }
             }
-            else
-            {
-                m.SetFloat(ForwardStencilRefId, 0);
-                m.SetFloat(ForwardStencilWriteMaskId, 0);
-                m.SetFloat(ForwardStencilCompId, 0);
-                m.SetFloat(ForwardStencilPassId, 0);
-                m.DisableKeyword(hasOutlinesStencilLayerKeyword);
-            }
+
+            m.SetKeyword(hasOutlinesStencilLayerKeyword, enableStencil);
         }
 
-        protected virtual bool CanUseOutlinesStencilLayer(Material m) => IsZWriteOn(m);
+        protected virtual bool CanControlStencil(Material m) => true;
 
         private bool IsCanUseOutlinesStencilLayerMixed() => FindProperty(PropertyNames.ZWrite).hasMixedValue;
 

@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static DELTation.ToonRP.Editor.ToonShaderUtils;
 using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
@@ -81,17 +82,18 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 material.SetFloat(PropertyNames.ZTest, (float) target.ZTestMode);
             }
 
-            material.SetFloat(PropertyNames.ControlOutlinesStencilLayer,
-                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
+            material.SetFloat(PropertyNames.ControlStencil,
+                target.ControlStencilEffectivelyEnabled ? 1.0f : 0.0f
             );
 
-            if (target.ControlOutlinesStencilLayerEffectivelyEnabled || target.AllowMaterialOverride)
+            if (target.ControlStencilEffectivelyEnabled || target.AllowMaterialOverride)
             {
-                material.SetFloat(PropertyNames.OutlinesStencilLayer, 0.0f);
-                material.SetFloat(PropertyNames.ForwardStencilRef, 0.0f);
-                material.SetFloat(PropertyNames.ForwardStencilWriteMask, 0.0f);
-                material.SetFloat(PropertyNames.ForwardStencilComp, 0.0f);
-                material.SetFloat(PropertyNames.ForwardStencilPass, 0.0f);
+                material.SetFloat(PropertyNames.StencilPreset, (float) StencilPreset.None);
+                material.SetFloat(PropertyNames.ForwardStencilRef, 0);
+                material.SetFloat(PropertyNames.ForwardStencilReadMask, 255);
+                material.SetFloat(PropertyNames.ForwardStencilWriteMask, 255);
+                material.SetFloat(PropertyNames.ForwardStencilComp, (float) CompareFunction.Disabled);
+                material.SetFloat(PropertyNames.ForwardStencilPass, (float) StencilOp.Keep);
             }
         }
 
@@ -130,19 +132,24 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 ); // render face enum is designed to directly pass as a cull mode
             }
 
-            collector.AddFloatProperty(PropertyNames.ControlOutlinesStencilLayer,
-                target.ControlOutlinesStencilLayerEffectivelyEnabled ? 1.0f : 0.0f
+            collector.AddFloatProperty(PropertyNames.ControlStencil,
+                target.ControlStencilEffectivelyEnabled ? 1.0f : 0.0f
             );
 
-            if (target.ControlOutlinesStencilLayerEffectivelyEnabled || target.AllowMaterialOverride)
+            if (target.ControlStencilEffectivelyEnabled || target.AllowMaterialOverride)
             {
-                collector.AddEnumProperty(PropertyNames.OutlinesStencilLayer, 0.0f, typeof(StencilLayer),
-                    "Outlines Stencil Layer"
+                collector.AddEnumProperty(PropertyNames.StencilPreset, 0.0f, typeof(StencilPreset),
+                    "Stencil Preset"
                 );
-                collector.AddFloatProperty(PropertyNames.ForwardStencilRef, 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForwardStencilWriteMask, 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForwardStencilComp, 0.0f);
-                collector.AddFloatProperty(PropertyNames.ForwardStencilPass, 0.0f);
+                collector.AddIntProperty(PropertyNames.ForwardStencilRef, 0, "Ref");
+                collector.AddIntProperty(PropertyNames.ForwardStencilReadMask, 255, "Read Mask");
+                collector.AddIntProperty(PropertyNames.ForwardStencilWriteMask, 255, "Write Mask");
+                collector.AddEnumProperty(PropertyNames.ForwardStencilComp, (float) CompareFunction.Disabled,
+                    typeof(CompareFunction), "Comp"
+                );
+                collector.AddEnumProperty(PropertyNames.ForwardStencilPass, (float) StencilOp.Keep, typeof(StencilOp),
+                    "Pass"
+                );
             }
         }
 
@@ -163,6 +170,23 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     hlslDeclarationOverride = declarationType,
                     value = defaultValue,
                     displayName = referenceName,
+                    overrideReferenceName = referenceName,
+                }
+            );
+        }
+
+        internal static void AddIntProperty(this PropertyCollector collector, string referenceName,
+            float defaultValue, string displayName = null,
+            HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
+        {
+            collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    floatType = FloatType.Integer,
+                    hidden = true,
+                    overrideHLSLDeclaration = true,
+                    hlslDeclarationOverride = declarationType,
+                    value = defaultValue,
+                    displayName = displayName ?? referenceName,
                     overrideReferenceName = referenceName,
                 }
             );

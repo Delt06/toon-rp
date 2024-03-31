@@ -169,18 +169,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             private set => _alphaToCoverage = value;
         }
 
-        public bool ControlOutlinesStencilLayer
+        public bool ControlStencil
         {
-            get => _controlOutlinesStencilLayer;
-            set => _controlOutlinesStencilLayer = value;
+            get => _controlStencil;
+            set => _controlStencil = value;
         }
 
-        public bool ControlOutlinesStencilLayerEffectivelyEnabled =>
-            ControlOutlinesStencilLayer && ControlOutlinesStencilLayerCanBeEnabled;
+        public bool ControlStencilEffectivelyEnabled => ControlStencil && ControlStencilCanBeEnabled;
 
-        private bool ControlOutlinesStencilLayerCanBeEnabled => SurfaceType == SurfaceType.Opaque &&
-                                                                ZWriteControl is ZWriteControl.Auto
-                                                                    or ZWriteControl.ForceEnabled;
+        private bool ControlStencilCanBeEnabled => true;
 
         public bool CastShadows
         {
@@ -288,7 +285,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             // Core fields
             context.AddField(Fields.GraphVertex, descs.Contains(ToonBlockFields.VertexDescription.Position) ||
                                                  descs.Contains(ToonBlockFields.VertexDescription.Normal) ||
-                                                 descs.Contains(ToonBlockFields.VertexDescription.Tangent)
+                                                 descs.Contains(ToonBlockFields.VertexDescription.Tangent) ||
+                                                 descs.Contains(ToonBlockFields.VertexDescription.DepthBias)
             );
             context.AddField(Fields.GraphPixel);
 
@@ -302,6 +300,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.VertexDescription.Position);
             context.AddBlock(ToonBlockFields.VertexDescription.Normal);
             context.AddBlock(ToonBlockFields.VertexDescription.Tangent);
+            context.AddBlock(ToonBlockFields.VertexDescription.DepthBias);
+
             context.AddBlock(ToonBlockFields.SurfaceDescription.Albedo);
             context.AddBlock(ToonBlockFields.SurfaceDescription.Emission);
 
@@ -478,19 +478,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 );
             }
 
-            if (ControlOutlinesStencilLayerCanBeEnabled)
+            if (ControlStencilCanBeEnabled)
             {
-                context.AddProperty("Control Outlines Stencil Layer",
-                    new Toggle { value = ControlOutlinesStencilLayer },
+                context.AddProperty("Control Stencil",
+                    new Toggle { value = ControlStencil },
                     evt =>
                     {
-                        if (Equals(ControlOutlinesStencilLayer, evt.newValue))
+                        if (Equals(ControlStencil, evt.newValue))
                         {
                             return;
                         }
 
-                        registerUndo("Change Control Outlines Stencil Layer");
-                        ControlOutlinesStencilLayer = evt.newValue;
+                        registerUndo("Change Control Stencil");
+                        ControlStencil = evt.newValue;
                         onChange();
                     }
                 );
@@ -630,7 +630,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private RenderFace _renderFace = RenderFace.Front;
         [SerializeField] private bool _alphaClip;
         [SerializeField] private bool _alphaToCoverage;
-        [SerializeField] private bool _controlOutlinesStencilLayer = true;
+        [SerializeField] private bool _controlStencil = true;
         [SerializeField] private bool _castShadows = true;
         [SerializeField] private bool _receiveShadows = true;
         [SerializeField] private PrePassMode _ignoredPrePasses = PrePassMode.Off;
@@ -713,9 +713,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         private static void AddOutlinesControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
-            if (target.ControlOutlinesStencilLayerEffectivelyEnabled || target.AllowMaterialOverride)
+            if (target.ControlStencilEffectivelyEnabled || target.AllowMaterialOverride)
             {
-                pass.keywords.Add(CoreKeywordDescriptors.HasOutlinesStencilLayer);
+                pass.keywords.Add(CoreKeywordDescriptors.StencilOverride);
             }
         }
 
@@ -956,6 +956,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.VertexDescription.Position,
             ToonBlockFields.VertexDescription.Normal,
             ToonBlockFields.VertexDescription.Tangent,
+            ToonBlockFields.VertexDescription.DepthBias,
         };
 
         public static readonly BlockFieldDescriptor[] FragmentAlphaOnly =
@@ -984,6 +985,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] FragmentDepthNormals =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.NormalOs,
             ToonBlockFields.SurfaceDescription.NormalTs,
             ToonBlockFields.SurfaceDescription.NormalWs,
@@ -993,6 +995,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
         {
+            
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.NormalOs,
             ToonBlockFields.SurfaceDescription.NormalTs,
             ToonBlockFields.SurfaceDescription.NormalWs,
@@ -1168,11 +1172,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static void StencilControlRenderState(ToonTarget target, RenderStateCollection renderStateCollection)
         {
-            if (target.ControlOutlinesStencilLayerEffectivelyEnabled)
+            if (target.ControlStencilEffectivelyEnabled)
             {
                 renderStateCollection.Add(RenderState.Stencil(new StencilDescriptor
                         {
                             Ref = Uniforms.ForwardStencilRef,
+                            ReadMask = Uniforms.ForwardStencilReadMask,
                             WriteMask = Uniforms.ForwardStencilWriteMask,
                             Comp = Uniforms.ForwardStencilComp,
                             Pass = Uniforms.ForwardStencilPass,
@@ -1262,6 +1267,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             public const string ZTest = "[" + PropertyNames.ZTest + "]";
 
             public const string ForwardStencilRef = "[" + PropertyNames.ForwardStencilRef + "]";
+            public const string ForwardStencilReadMask = "[" + PropertyNames.ForwardStencilReadMask + "]";
             public const string ForwardStencilWriteMask = "[" + PropertyNames.ForwardStencilWriteMask + "]";
             public const string ForwardStencilComp = "[" + PropertyNames.ForwardStencilComp + "]";
             public const string ForwardStencilPass = "[" + PropertyNames.ForwardStencilPass + "]";
@@ -1510,10 +1516,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor HasOutlinesStencilLayer = new()
+        public static readonly KeywordDescriptor StencilOverride = new()
         {
-            displayName = ShaderKeywords.HasOutlinesStencilLayer,
-            referenceName = ShaderKeywords.HasOutlinesStencilLayer,
+            displayName = ShaderKeywords.StencilOverride,
+            referenceName = ShaderKeywords.StencilOverride,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

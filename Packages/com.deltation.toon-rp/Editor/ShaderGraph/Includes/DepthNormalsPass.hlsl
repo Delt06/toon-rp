@@ -14,7 +14,7 @@ PackedVaryings VS(Attributes input)
     return packedOutput;
 }
 
-float3 PS(PackedVaryings packedInput) : SV_TARGET
+float2 PS(PackedVaryings packedInput) : SV_TARGET
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);

@@ -23,6 +23,7 @@
 #define unity_MatrixV                 unity_StereoMatrixV[unity_StereoEyeIndex]
 #define unity_MatrixInvV              unity_StereoMatrixInvV[unity_StereoEyeIndex]
 #define unity_MatrixInvP              unity_StereoMatrixInvP[unity_StereoEyeIndex]
+#define unity_MatrixInvVP              unity_StereoMatrixInvVP[unity_StereoEyeIndex]
 #define unity_MatrixVP                unity_StereoMatrixVP[unity_StereoEyeIndex]
 
 // Camera transform (but the same as pass transform for XR).
@@ -64,6 +65,7 @@ float4x4 unity_MatrixVP;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixInvP;
+float4x4 unity_MatrixInvVP;
 float4x4 glstate_matrix_projection;
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;

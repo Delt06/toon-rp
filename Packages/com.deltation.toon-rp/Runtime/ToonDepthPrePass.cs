@@ -53,7 +53,7 @@ namespace DELTation.ToonRP
                 if (_normals)
                 {
                     var normalsDesc = new RenderTextureDescriptor(context.RtWidth, context.RtHeight,
-                        RenderTextureFormat.RGB565, 0
+                        RenderTextureFormat.RG16, 0
                     );
                     NormalsTexture = GetTemporaryRT(cmd, context.AdditionalCameraData, _normalsTextureId, normalsDesc,
                         FilterMode.Point

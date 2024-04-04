@@ -837,7 +837,7 @@ namespace DELTation.ToonRP
             IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
         {
-            PerObjectData perObjectData = PerObjectData.LightProbe;
+            PerObjectData perObjectData = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.Lightmaps;
 
             bool perObjectLightData =
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;

@@ -84,6 +84,8 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (DrawFoldout(HeaderNames.Misc))
                 {
                     materialEditor.EnableInstancingField();
+                    materialEditor.LightmapEmissionProperty();
+                    
                     DrawQueue();
                 }
 

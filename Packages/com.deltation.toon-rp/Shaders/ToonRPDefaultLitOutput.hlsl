@@ -50,7 +50,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     #ifdef _FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = 0;
     #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
-    const float3 ambient = SampleSH(normalWs) * albedo.rgb;
+    const float3 ambient = ComputeGI(TOON_RP_GI_FRAGMENT_DATA(IN), normalWs) * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
     #ifdef EMISSION

@@ -166,4 +166,58 @@ float3 SampleSH(const float3 normalWs)
     return max(float3(0, 0, 0), SampleSH9(shCoefficients, normalWs));
 }
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
+TEXTURE2D(unity_Lightmap);
+SAMPLER(samplerunity_Lightmap);
+
+#if defined(LIGHTMAP_ON)
+#define TOON_RP_GI_ATTRIBUTE float2 lightmapUv : TEXCOORD1;
+#define TOON_RP_GI_INTERPOLANT float2 lightmapUv : TOON_RP_LIGHTMAP_UV;
+#define TOON_RP_GI_TRANSFER(input, output) \
+    output.lightmapUv = input.lightmapUv * \
+    unity_LightmapST.xy + unity_LightmapST.zw;
+#define TOON_RP_GI_FRAGMENT_DATA(input) input.lightmapUv
+#else // !LIGHTMAP_ON
+#define TOON_RP_GI_ATTRIBUTE
+#define TOON_RP_GI_INTERPOLANT
+#define TOON_RP_GI_TRANSFER(input, output)
+#define TOON_RP_GI_FRAGMENT_DATA(input) 0.0
+#endif // LIGHTMAP_ON
+
+float3 SampleLightmap(const float2 lightmapUv)
+{
+#if defined(LIGHTMAP_ON)
+    // actual UV transform happens in VS during TOON_RP_GI_TRANSFER, so we use the identity transform here
+    const float4 transform = float4(1.0, 1.0, 0.0, 0.0);
+    return SampleSingleLightmap(
+        TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+        lightmapUv,
+        transform,
+        #if defined(UNITY_LIGHTMAP_FULL_HDR)
+                false,
+        #else
+                true,
+        #endif
+        float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0)
+        );
+#else // !LIGHTMAP_ON
+    return 0.0;
+#endif // LIGHTMAP_ON
+}
+
+float3 SampleLightProbe(const float3 normalWs)
+{
+#if defined(LIGHTMAP_ON)
+    return 0.0;
+#else // !LIGHTMAP_ON
+    return SampleSH(normalWs);
+#endif // LIGHTMAP_ON
+}
+
+float3 ComputeGI(const float2 lightmapUv, const float3 normalWs)
+{
+    return SampleLightmap(lightmapUv) + SampleLightProbe(normalWs);
+}
+
 #endif // TOON_RP_LIGHTING

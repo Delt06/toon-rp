@@ -70,20 +70,20 @@ MonoBehaviour:
     PatternScale: {x: 1, y: 0, z: 1}
     ShadowMaps:
       DepthBits: 16
-      Blur: 1
+      Blur: 0
       BlurEarlyBail: 1
       BlurEarlyBailThreshold: 0.01
       BlurScatter: 1
       VsmPrecision: 0
       SoftShadows:
-        Enabled: 0
-        Quality: 0
+        Enabled: 1
+        Quality: 1
         Mode: 0
         EarlyBail: 0
-        Spread: 0.8
+        Spread: 2
         RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
       LightBleedingReduction: 0.4
-      PrecisionCompensation: 0
+      PrecisionCompensation: 0.0034
       Directional:
         Enabled: 1
         AtlasSize: 1024
@@ -91,7 +91,7 @@ MonoBehaviour:
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
-        DepthBias: 0
+        DepthBias: 0.15
         NormalBias: 0
         SlopeBias: 0
     Blobs:

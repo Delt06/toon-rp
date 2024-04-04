@@ -35,6 +35,7 @@ struct appdata
     half4 tangent : TANGENT;
     #endif // REQUIRE_TANGENT_INTERPOLANT
 
+    TOON_RP_GI_ATTRIBUTE
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -75,6 +76,7 @@ v2f VS(const appdata IN)
     ComputeAdditionalLightsDiffuseSpecular(lightComputationParameters, 1, OUT.additionalLights, additionalLightsSpecularUnused);
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
+    TOON_RP_GI_TRANSFER(IN, OUT);
     TOON_RP_FOG_FACTOR_TRANSFER(OUT, positionCs);
 
     return OUT;

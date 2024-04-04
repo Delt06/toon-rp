@@ -958,15 +958,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.VertexDescription.Tangent,
             ToonBlockFields.VertexDescription.DepthBias,
         };
-
         public static readonly BlockFieldDescriptor[] FragmentAlphaOnly =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
 
         public static readonly BlockFieldDescriptor[] FragmentColor =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.Albedo,
             ToonBlockFields.SurfaceDescription.Emission,
             ToonBlockFields.SurfaceDescription.CustomFogFactor,
@@ -975,6 +976,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.Albedo,
             ToonBlockFields.SurfaceDescription.Emission,
             ToonBlockFields.SurfaceDescription.CustomFogFactor,
@@ -1004,6 +1006,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         public static readonly BlockFieldDescriptor[] MotionVectors =
         {
+            ToonBlockFields.SurfaceDescription.PositionWs,
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };

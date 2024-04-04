@@ -30,11 +30,11 @@ MonoBehaviour:
     RimSmoothness: 0.1
     RampTexture: {fileID: 0}
     AdditionalLights:
-      DiffuseOffset: 0
+      DiffuseOffset: 0.22
       SpecularOffset: 0
       DistanceAttenuationFactor: 1
   CameraRendererSettings:
-    AdditionalLights: 0
+    AdditionalLights: 1
     TiledLighting: 0
     MaxLightsPerTile: 32
     OverrideRenderTextureFormat: 0

@@ -17,6 +17,8 @@
 #pragma multi_compile _ _TOON_RP_TILED_LIGHTING _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
 // GI
+#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+#pragma multi_compile _ DIRLIGHTMAP_COMBINED
 #pragma multi_compile _ LIGHTMAP_ON
 
 // SSAO

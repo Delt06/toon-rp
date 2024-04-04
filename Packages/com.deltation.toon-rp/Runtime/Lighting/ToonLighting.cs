@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Shadows;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -7,6 +8,13 @@ using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP.Lighting
 {
+    public enum ToonMixedLightingSetup
+    {
+        None,
+        Subtractive,
+        ShadowMask,
+    }
+
     public sealed class ToonLighting
     {
         private const string CmdName = "Lighting";
@@ -16,21 +24,13 @@ namespace DELTation.ToonRP.Lighting
         // Mirrored with TiledLighting_Shared.hlsl
         public const int MaxAdditionalLightCountTiled = 1024;
 
-        public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
-        public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
-        private static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
-        private static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");
-        private static readonly int AdditionalLightCountId = Shader.PropertyToID("_AdditionalLightCount");
-        private static readonly int AdditionalLightColorsId = Shader.PropertyToID("_AdditionalLightColors");
-        private static readonly int AdditionalLightPositionsId = Shader.PropertyToID("_AdditionalLightPositions");
-        private static readonly int AdditionalLightSpotDirId = Shader.PropertyToID("_AdditionalLightSpotDir");
         private static GlobalKeyword _additionalLightsGlobalKeyword;
         private static GlobalKeyword _additionalLightsVertexGlobalKeyword;
         private readonly Vector4[] _additionalLightColors = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightPositions = new Vector4[MaxAdditionalLightCount];
         private readonly Vector4[] _additionalLightSpotDir = new Vector4[MaxAdditionalLightCount];
 
-        private readonly CommandBuffer _buffer = new() { name = CmdName };
+        private readonly CommandBuffer _cmd = new() { name = CmdName };
         private int _additionalLightsCount;
         private TiledLight[] _additionalTiledLights;
         private Vector4[] _additionalTiledLightsColors;
@@ -38,15 +38,16 @@ namespace DELTation.ToonRP.Lighting
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private int _currentMaxAdditionalLights;
+        private ToonMixedLightingSetup _mixedLightingSetup;
 
         public ToonLighting()
         {
-            _additionalLightsGlobalKeyword = GlobalKeyword.Create(AdditionalLightsGlobalKeyword);
-            _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(AdditionalLightsVertexGlobalKeyword);
+            _additionalLightsGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLightsGlobalKeyword);
+            _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLightsVertexGlobalKeyword);
         }
 
         public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
-            in ToonCameraRendererSettings settings,
+            in ToonCameraRendererSettings settings, in ToonShadowSettings shadowSettings,
             in VisibleLight? mainLight
         )
         {
@@ -56,6 +57,7 @@ namespace DELTation.ToonRP.Lighting
             _currentMaxAdditionalLights = _cameraRendererSettings.IsTiledLightingEnabledAndSupported()
                 ? MaxAdditionalLightCountTiled
                 : MaxAdditionalLightCount;
+            _mixedLightingSetup = ToonMixedLightingSetup.None;
 
             if (_cameraRendererSettings.IsTiledLightingEnabledAndSupported())
             {
@@ -64,39 +66,81 @@ namespace DELTation.ToonRP.Lighting
                 _additionalTiledLightsPositionWsAttenuations ??= new Vector4[MaxAdditionalLightCountTiled];
             }
 
-            _buffer.BeginSample(CmdName);
-            SetupDirectionalLight(mainLight);
+            _cmd.BeginSample(CmdName);
+            SetupDirectionalLight(mainLight, shadowSettings);
 
             AdditionalLightsMode additionalLightsMode = _cameraRendererSettings.AdditionalLights;
             if (additionalLightsMode != AdditionalLightsMode.Off)
             {
                 NativeArray<int> indexMap = cullingResults.GetLightIndexMap(Allocator.Temp);
-                SetupAdditionalLights(indexMap, cullingResults.visibleLights);
+                SetupAdditionalLights(indexMap, cullingResults.visibleLights, shadowSettings);
                 cullingResults.SetLightIndexMap(indexMap);
                 indexMap.Dispose();
             }
 
+            SetMixedLightingKeywordsAndProperties();
             SetAdditionalLightsKeywords(additionalLightsMode);
 
-            _buffer.EndSample(CmdName);
-            context.ExecuteCommandBufferAndClear(_buffer);
+            _cmd.EndSample(CmdName);
+            context.ExecuteCommandBufferAndClear(_cmd);
         }
 
-        private void SetupDirectionalLight(in VisibleLight? light)
+        private void SetupDirectionalLight(in VisibleLight? light, in ToonShadowSettings shadowSettings)
         {
             if (light != null)
             {
                 VisibleLight visibleLight = light.Value;
-                _buffer.SetGlobalVector(DirectionalLightColorId, visibleLight.finalColor);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightColorId, visibleLight.finalColor);
 
                 Vector4 direction = (visibleLight.localToWorldMatrix * Vector3.back).normalized;
-                _buffer.SetGlobalVector(DirectionalLightDirectionId, direction);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirection, direction);
+
+                InitializeLightCommon(visibleLight, shadowSettings);
+                LightBakingOutput lightBakingOutput = visibleLight.light.bakingOutput;
             }
             else
             {
-                _buffer.SetGlobalVector(DirectionalLightColorId, Vector4.zero);
-                _buffer.SetGlobalVector(DirectionalLightDirectionId, Vector4.zero);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightColorId, Vector4.zero);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirection, Vector4.zero);
             }
+        }
+
+        private void InitializeLightCommon(in VisibleLight visibleLight, in ToonShadowSettings shadowSettings)
+        {
+            LightBakingOutput lightBakingOutput = visibleLight.light.bakingOutput;
+
+            if (_mixedLightingSetup == ToonMixedLightingSetup.None)
+            {
+                if (lightBakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
+                    shadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
+                    visibleLight.light.shadows != LightShadows.None)
+                {
+                    switch (lightBakingOutput.mixedLightingMode)
+                    {
+                        case MixedLightingMode.Subtractive:
+                            _mixedLightingSetup = ToonMixedLightingSetup.Subtractive;
+                            break;
+                        case MixedLightingMode.Shadowmask:
+                            _mixedLightingSetup = ToonMixedLightingSetup.ShadowMask;
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void SetMixedLightingKeywordsAndProperties()
+        {
+            // TODO: check if enabled in the pipeline settings
+            const bool supportsMixedLighting = true;
+            bool isShadowMask = supportsMixedLighting && _mixedLightingSetup == ToonMixedLightingSetup.ShadowMask;
+            bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
+            bool isSubtractive = supportsMixedLighting && _mixedLightingSetup == ToonMixedLightingSetup.Subtractive;
+            CoreUtils.SetKeyword(_cmd, Keywords.LightmapShadowMixingGlobalKeyword, isSubtractive || isShadowMaskAlways);
+            CoreUtils.SetKeyword(_cmd, Keywords.ShadowsShadowMaskGlobalKeyword, isShadowMask);
+
+            _cmd.SetGlobalVector(ShaderPropertyId.SubtractiveShadowColor,
+                CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor)
+            );
         }
 
         private void SetAdditionalLightsKeywords(AdditionalLightsMode lightsMode)
@@ -110,11 +154,12 @@ namespace DELTation.ToonRP.Lighting
                 (true, AdditionalLightsMode.PerVertex) => (false, true),
                 _ => throw new ArgumentOutOfRangeException(),
             };
-            _buffer.SetKeyword(_additionalLightsGlobalKeyword, enablePerPixel);
-            _buffer.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
+            _cmd.SetKeyword(_additionalLightsGlobalKeyword, enablePerPixel);
+            _cmd.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
         }
 
-        private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights)
+        private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights,
+            in ToonShadowSettings shadowSettings)
         {
             const int lightSkipIndex = -1;
             _additionalLightsCount = 0;
@@ -141,7 +186,7 @@ namespace DELTation.ToonRP.Lighting
                         if (_additionalLightsCount < _currentMaxAdditionalLights)
                         {
                             newIndex = _additionalLightsCount;
-                            SetupAdditionalLight(_additionalLightsCount, visibleLight);
+                            SetupAdditionalLight(_additionalLightsCount, visibleLight, shadowSettings);
                             _additionalLightsCount++;
                         }
 
@@ -165,13 +210,13 @@ namespace DELTation.ToonRP.Lighting
                 indexMap[i] = lightSkipIndex;
             }
 
-            _buffer.SetGlobalInt(AdditionalLightCountId, _additionalLightsCount);
+            _cmd.SetGlobalInt(ShaderPropertyId.AdditionalLightCount, _additionalLightsCount);
 
             if (_additionalLightsCount > 0)
             {
-                _buffer.SetGlobalVectorArray(AdditionalLightColorsId, _additionalLightColors);
-                _buffer.SetGlobalVectorArray(AdditionalLightPositionsId, _additionalLightPositions);
-                _buffer.SetGlobalVectorArray(AdditionalLightSpotDirId, _additionalLightSpotDir);
+                _cmd.SetGlobalVectorArray(ShaderPropertyId.AdditionalLightColors, _additionalLightColors);
+                _cmd.SetGlobalVectorArray(ShaderPropertyId.AdditionalLightPositions, _additionalLightPositions);
+                _cmd.SetGlobalVectorArray(ShaderPropertyId.AdditionalLightSpotDir, _additionalLightSpotDir);
             }
         }
 
@@ -186,8 +231,10 @@ namespace DELTation.ToonRP.Lighting
             count = _additionalLightsCount;
         }
 
-        private void SetupAdditionalLight(int index, in VisibleLight visibleLight)
+        private void SetupAdditionalLight(int index, in VisibleLight visibleLight, in ToonShadowSettings shadowSettings)
         {
+            InitializeLightCommon(visibleLight, shadowSettings);
+
             Vector4 color = visibleLight.finalColor;
             Matrix4x4 lightLocalToWorld = visibleLight.localToWorldMatrix;
             Vector3 positionWs = lightLocalToWorld.GetColumn(3);
@@ -277,6 +324,26 @@ namespace DELTation.ToonRP.Lighting
         {
             Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
             spotDir = new Vector4(-dir.x, -dir.y, -dir.z);
+        }
+
+        private static class ShaderPropertyId
+        {
+            public static readonly int SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
+            public static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
+
+            public static readonly int DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
+            public static readonly int AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
+            public static readonly int AdditionalLightColors = Shader.PropertyToID("_AdditionalLightColors");
+            public static readonly int AdditionalLightPositions = Shader.PropertyToID("_AdditionalLightPositions");
+            public static readonly int AdditionalLightSpotDir = Shader.PropertyToID("_AdditionalLightSpotDir");
+        }
+
+        public static class Keywords
+        {
+            public const string LightmapShadowMixingGlobalKeyword = "LIGHTMAP_SHADOW_MIXING";
+            public const string ShadowsShadowMaskGlobalKeyword = "SHADOWS_SHADOWMASK";
+            public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
+            public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
         }
     }
 }

@@ -17,11 +17,13 @@ namespace DELTation.ToonRP
     public sealed partial class ToonCameraRenderer : IDisposable
     {
         private const string DefaultCmdName = "Render Camera";
+
         public static readonly ShaderTagId[] ShaderTagIds =
         {
             new(ToonPasses.Forward.LightMode),
             new("SRPDefaultUnlit"),
         };
+
         private static readonly int TimeParametersId = Shader.PropertyToID("_TimeParameters");
         private readonly ToonDepthPrePass _depthPrePass;
         private readonly ToonRenderingExtensionsCollection _extensionsCollection = new();
@@ -527,10 +529,13 @@ namespace DELTation.ToonRP
                 _additionalCameraData, _additionalCameraData.JitteredProjectionMatrix, _renderTarget.RenderToTexture
             );
 
-            SetInverseProjectionMatrix(cmd, _additionalCameraData.ViewMatrix, _additionalCameraData.JitteredProjectionMatrix);
+            SetInverseProjectionMatrix(cmd, _additionalCameraData.ViewMatrix,
+                _additionalCameraData.JitteredProjectionMatrix
+            );
         }
 
-        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix)
+        private static void SetInverseProjectionMatrix(CommandBuffer cmd, Matrix4x4 viewMatrix,
+            Matrix4x4 projectionMatrix)
         {
             const bool renderIntoTexture = true;
             var inverseProjectionMatrix =
@@ -542,7 +547,8 @@ namespace DELTation.ToonRP
             );
             var inverseViewProjectionMatrix =
                 Matrix4x4.Inverse(ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix * viewMatrix, renderIntoTexture));
-            cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjectionMatrix);
+            cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjectionMatrix
+            );
         }
 
         private void UpdateRtHandles(int rtWidth, int rtHeight)
@@ -585,15 +591,17 @@ namespace DELTation.ToonRP
             return false;
         }
 
-        private void SetupLighting(CommandBuffer cmd, ToonRampSettings globalRampSettings,
-            ToonShadowSettings shadowSettings)
+        private void SetupLighting(CommandBuffer cmd,
+            in ToonRampSettings globalRampSettings,
+            in ToonShadowSettings shadowSettings
+        )
         {
             _context.ExecuteCommandBufferAndClear(cmd);
 
             _globalRamp.Setup(_context, globalRampSettings);
 
             VisibleLight? mainLight = FindMainLightOrDefault();
-            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, mainLight);
+            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, shadowSettings, mainLight);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
@@ -837,7 +845,8 @@ namespace DELTation.ToonRP
             IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
         {
-            PerObjectData perObjectData = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.Lightmaps;
+            PerObjectData perObjectData = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume |
+                                          PerObjectData.Lightmaps;
 
             bool perObjectLightData =
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;

@@ -56,7 +56,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonCameraRendererSettings.AdditionalLightsMode.PerPixel
                     ))
                 {
-                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsGlobalKeyword));
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLightsGlobalKeyword));
                 }
 
                 if (_allToonRenderPipelineAssets.All(a =>
@@ -64,7 +64,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonCameraRendererSettings.AdditionalLightsMode.PerVertex
                     ))
                 {
-                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.AdditionalLightsVertexGlobalKeyword));
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLightsVertexGlobalKeyword));
                 }
             }
 

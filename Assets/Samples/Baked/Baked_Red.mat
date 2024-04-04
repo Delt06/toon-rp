@@ -63,6 +63,6 @@ Material:
     - _EmissionColor: {r: 1.7207952, g: 0, b: 0, a: 0}
     - _MainColor: {r: 1, g: 0, b: 0, a: 1}
     - _RimColor: {r: 0, g: 0, b: 0, a: 0}
-    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.75}
+    - _ShadowColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

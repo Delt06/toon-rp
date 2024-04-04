@@ -135,26 +135,26 @@ Light GetMainLight(const LightComputationParameters parameters)
 }
 
 float3 ComputeMainLightComponent(const in LightComputationParameters parameters, const float ssao,
-                                 out float shadowAttenuation)
+                                 out float outShadowAttenuation, out float outDiffuseRamp)
 {
     const float3 mixedShadowColor = MixShadowColor(parameters.albedo.rgb, parameters.shadowColor);
     const Light light = GetMainLight(parameters);
     const float nDotL = dot(parameters.normalWs, light.direction);
-    float diffuseRamp = ComputeRampDiffuse(parameters, nDotL);
+    outDiffuseRamp = ComputeRampDiffuse(parameters, nDotL);
     #if _RECEIVE_SHADOWS_OFF
-    shadowAttenuation = 1.0f;
+    outShadowAttenuation = 1.0f;
     #else // !_RECEIVE_SHADOWS_OFF
-    shadowAttenuation = GetShadowAttenuation(parameters, light);
+    outShadowAttenuation = GetShadowAttenuation(parameters, light);
     #endif // _RECEIVE_SHADOWS_OFF
-    shadowAttenuation *= ssao;
+    outShadowAttenuation *= ssao;
 
-    diffuseRamp = min(diffuseRamp * shadowAttenuation, shadowAttenuation);
-    const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, diffuseRamp);
+    const float finalDiffuseRamp = min(outDiffuseRamp * outShadowAttenuation, outShadowAttenuation);
+    const float3 diffuse = ApplyRamp(parameters.albedo.rgb, mixedShadowColor, finalDiffuseRamp);
 
     #ifdef _TOON_LIGHTING_SPECULAR
     const float nDotH = ComputeNDotH(parameters.viewDirectionWs, parameters.normalWs, light.direction);
     float specularRamp = ComputeRampSpecular(parameters, nDotH);
-    specularRamp = min(specularRamp * shadowAttenuation, shadowAttenuation);
+    specularRamp = min(specularRamp * outShadowAttenuation, outShadowAttenuation);
     const float3 specular = parameters.specularColor * specularRamp;
     #else // !_TOON_LIGHTING_SPECULAR
     const float3 specular = 0;
@@ -222,10 +222,10 @@ float3 ComputeAdditionalLightComponentPerVertex(const in LightComputationParamet
     return rawDiffuse * parameters.albedo.rgb;
 }
 
-float3 ComputeLights(const in LightComputationParameters parameters, out float outShadowAttenuation)
+float3 ComputeLights(const in LightComputationParameters parameters, out float outShadowAttenuation, out float outMainLightDiffuseRamp)
 {
     const float ssao = GetSsao(parameters);
-    float3 lights = ComputeMainLightComponent(parameters, ssao, outShadowAttenuation);
+    float3 lights = ComputeMainLightComponent(parameters, ssao, outShadowAttenuation, outMainLightDiffuseRamp);
 
     #if defined(TOON_RP_ADDITIONAL_LIGHTS_ANY_PER_PIXEL)
     lights += ComputeAdditionalLightComponent(parameters, ssao);

@@ -51,6 +51,12 @@ Light GetMainLight(const float3 shadowCoords, const float3 positionWs)
     return light;
 }
 
+half GetMainLightShadowStrength()
+{
+    // TODO: https://github.com/Delt06/toon-rp/issues/230
+    return 1.h;
+}
+
 uint GetPerObjectAdditionalLightCount()
 {
     return min((uint)unity_LightData.y, MAX_ADDITIONAL_LIGHTS_PER_OBJECT);
@@ -171,6 +177,15 @@ float3 SampleSH(const float3 normalWs)
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
 
+TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
+
+float4 _SubtractiveShadowColor;
+
+#if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+#define _MIXED_LIGHTING_SUBTRACTIVE
+#endif
+
 #if defined(LIGHTMAP_ON)
 #define TOON_RP_GI_ATTRIBUTE float2 lightmapUv : TEXCOORD1;
 #define TOON_RP_GI_INTERPOLANT float2 lightmapUv : TOON_RP_LIGHTMAP_UV;
@@ -185,28 +200,42 @@ SAMPLER(samplerunity_Lightmap);
 #define TOON_RP_GI_FRAGMENT_DATA(input) 0.0
 #endif // LIGHTMAP_ON
 
-float3 SampleLightmap(const float2 lightmapUv)
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+
+float3 SampleLightmap(const float2 lightmapUv, const half3 normalWs)
 {
 #if defined(LIGHTMAP_ON)
-    // actual UV transform happens in VS during TOON_RP_GI_TRANSFER, so we use the identity transform here
-    const float4 transform = float4(1.0, 1.0, 0.0, 0.0);
-    return SampleSingleLightmap(
-        TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
-        lightmapUv,
-        transform,
-        #if defined(UNITY_LIGHTMAP_FULL_HDR)
-                false,
-        #else
-                true,
-        #endif
-        float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0)
-        );
+    #ifdef UNITY_LIGHTMAP_FULL_HDR
+    bool encodedLightmap = false;
+    #else
+    bool encodedLightmap = true;
+    #endif
+
+    half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
+
+    // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
+    // However, universal pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
+    // the compiler will optimize the transform away.
+    half4 transformCoords = half4(1, 1, 0, 0);
+
+    float3 diffuseLighting = 0;
+
+    #if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+    diffuseLighting = SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+        lightmapUv, transformCoords, normalWs, encodedLightmap, decodeInstructions);
+    #elif defined(LIGHTMAP_ON)
+    diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), lightmapUv, transformCoords, encodedLightmap, decodeInstructions);
+    #endif
+    return diffuseLighting;
 #else // !LIGHTMAP_ON
     return 0.0;
 #endif // LIGHTMAP_ON
 }
 
-float3 SampleLightProbe(const float3 normalWs)
+float3 SampleLightProbe(const half3 normalWs)
 {
 #if defined(LIGHTMAP_ON)
     return 0.0;
@@ -215,9 +244,44 @@ float3 SampleLightProbe(const float3 normalWs)
 #endif // LIGHTMAP_ON
 }
 
-float3 ComputeGI(const float2 lightmapUv, const float3 normalWs)
+float3 ComputeBakedGi(const float2 lightmapUv, const half3 normalWs)
 {
-    return SampleLightmap(lightmapUv) + SampleLightProbe(normalWs);
+    return SampleLightmap(lightmapUv, normalWs) + SampleLightProbe(normalWs);
 }
+
+float3 SubtractDirectMainLightFromLightmap(const float3 bakedGi, const float mainLightDiffuseRamp, const float mainLightShadowAttenuation)
+{
+    // Let's try to make realtime shadows work on a surface, which already contains
+    // baked lighting and shadowing from the main sun light.
+    // Summary:
+    // 1) Calculate possible value in the shadow by subtracting estimated light contribution from the places occluded by realtime shadow:
+    //      a) preserves other baked lights and light bounces
+    //      b) eliminates shadows on the geometry facing away from the light
+    // 2) Clamp against user defined ShadowColor.
+    // 3) Pick original lightmap value, if it is the darkest one.
+
+
+    // 1) Gives good estimate of illumination as if light would've been shadowed during the bake.
+    // We only subtract the main direction light. This is accounted in the contribution term below.
+    const half shadowStrength = GetMainLightShadowStrength();
+    const float3 lambert = GetMainLight().color * mainLightDiffuseRamp;
+    const float3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1 - mainLightShadowAttenuation);
+    const float3 subtractedLightmap = bakedGi - estimatedLightContributionMaskedByInverseOfShadow;
+
+    // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
+    float3 realtimeShadow = max(subtractedLightmap, _SubtractiveShadowColor.xyz);
+    realtimeShadow = lerp(bakedGi, realtimeShadow, shadowStrength);
+
+    // 3) Pick darkest color
+    return min(bakedGi, realtimeShadow);
+}
+
+void MixRealtimeAndBakedGi(inout float3 inoutBakedGi, const float mainLightDiffuseRamp, const float mainLightShadowAttenuation)
+{
+    #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
+    inoutBakedGi = SubtractDirectMainLightFromLightmap(inoutBakedGi, mainLightDiffuseRamp, mainLightShadowAttenuation);
+    #endif
+}
+
 
 #endif // TOON_RP_LIGHTING

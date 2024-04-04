@@ -16,7 +16,7 @@ half4 PS(const v2f IN) : SV_Target
     const float4 albedo = SampleAlbedo(IN.uv);
 
     #ifdef _ALPHATEST_ON
-    AlphaClip(albodo.a);
+    AlphaClip(albedo.a);
     #endif // _ALPHATEST_ON
 
     #ifdef EMISSION

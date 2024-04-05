@@ -14,6 +14,7 @@
 CBUFFER_START(_ToonRPLight)
     float3 _DirectionalLightColor;
     float3 _DirectionalLightDirection;
+    half4 _DirectionalLightOcclusionProbes;
 
     uint _AdditionalLightCount;
     float4 _AdditionalLightPositions[MAX_ADDITIONAL_LIGHT_COUNT]; // xyz = position, w = spotAttenuation.x
@@ -46,7 +47,13 @@ Light GetMainLight(const float3 shadowCoords, const float3 positionWs)
     Light light;
     light.color = _DirectionalLightColor;
     light.direction = _DirectionalLightDirection;
+    
+    #ifdef _TOON_RP_SHADOW_MAPS
     light.shadowAttenuation = SampleShadowAttenuation(shadowCoords, positionWs);
+    #else // !_TOON_RP_SHADOW_MAPS
+    light.shadowAttenuation = 1.0f;
+    #endif // _TOON_RP_SHADOW_MAPS
+    
     light.distanceAttenuation = 1.0f;
     return light;
 }
@@ -180,10 +187,17 @@ SAMPLER(samplerunity_Lightmap);
 TEXTURE2D(unity_LightmapInd);
 TEXTURE2D_ARRAY(unity_LightmapsInd);
 
+TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
+
 float4 _SubtractiveShadowColor;
 
 #if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
 #define _MIXED_LIGHTING_SUBTRACTIVE
+#endif
+
+#if defined(LIGHTMAP_ON) || defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK)
+#define CALCULATE_BAKED_SHADOWS
 #endif
 
 #if defined(LIGHTMAP_ON)
@@ -203,6 +217,18 @@ float4 _SubtractiveShadowColor;
 #define LIGHTMAP_NAME unity_Lightmap
 #define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
 #define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+
+#define SHADOWMASK_NAME unity_ShadowMask
+#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
+#define SHADOWMASK_SAMPLE_EXTRA_ARGS
+
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+#define SAMPLE_SHADOWMASK(uv) (SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS))
+#elif !defined (LIGHTMAP_ON)
+#define SAMPLE_SHADOWMASK(uv) (unity_ProbesOcclusion)
+#else
+#define SAMPLE_SHADOWMASK(uv) (half4(1, 1, 1, 1))
+#endif
 
 float3 SampleLightmap(const float2 lightmapUv, const half3 normalWs)
 {
@@ -283,5 +309,41 @@ void MixRealtimeAndBakedGi(inout float3 inoutBakedGi, const float mainLightDiffu
     #endif
 }
 
+half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
+{
+    #if defined(LIGHTMAP_SHADOW_MIXING)
+    return min(lerp(realtimeShadow, 1, shadowFade), bakedShadow);
+    #else // !LIGHTMAP_SHADOW_MIXING
+    return lerp(realtimeShadow, bakedShadow, shadowFade);
+    #endif // LIGHTMAP_SHADOW_MIXING
+}
+
+half BakedShadow(const half4 shadowMask, const half4 occlusionProbeChannels)
+{
+    // Here occlusionProbeChannels used as mask selector to select shadows in shadowMask
+    // If occlusionProbeChannels all components are zero we use default baked shadow value 1.0
+    // This code is optimized for mobile platforms:
+    // half bakedShadow = any(occlusionProbeChannels) ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
+    return half(1.0) + dot(shadowMask - half(1.0), occlusionProbeChannels);
+}
+
+Light GetMainLight(const float3 shadowCoords, const float3 positionWs, const float4 shadowMask)
+{
+    Light light = GetMainLight(shadowCoords, positionWs);
+    #ifdef CALCULATE_BAKED_SHADOWS
+    half bakedShadow = BakedShadow(shadowMask, _DirectionalLightOcclusionProbes);
+    #else // !CALCULATE_BAKED_SHADOWS
+    half bakedShadow = half(1.0);
+    #endif // CALCULATE_BAKED_SHADOWS
+
+    #ifdef _TOON_RP_ANY_SHADOWS
+    half shadowFade = ComputeShadowDistanceFade(positionWs);
+    #else // !_TOON_RP_ANY_SHADOWS
+    half shadowFade = half(1.0);
+    #endif // _TOON_RP_ANY_SHADOWS
+
+    light.shadowAttenuation = MixRealtimeAndBakedShadows(light.shadowAttenuation, bakedShadow, shadowFade);
+    return light;
+}
 
 #endif // TOON_RP_LIGHTING

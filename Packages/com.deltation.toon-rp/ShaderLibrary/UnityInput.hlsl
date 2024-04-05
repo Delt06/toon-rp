@@ -42,6 +42,8 @@ CBUFFER_START(UnityPerDraw)
     real4 unity_LightData;
     real4 unity_LightIndices[2];
 
+    float4 unity_ProbesOcclusion;
+
     // Lightmap block feature
     float4 unity_LightmapST;
     float4 unity_DynamicLightmapST;

@@ -64,7 +64,7 @@ MonoBehaviour:
     Threshold: 0.194
     CrispAntiAliased: 0
     Smoothness: 0.194
-    MaxDistance: 85
+    MaxDistance: 15
     DistanceFade: 0.1
     Pattern: {fileID: 0}
     PatternScale: {x: 1, y: 0, z: 1}
@@ -87,11 +87,11 @@ MonoBehaviour:
       Directional:
         Enabled: 1
         AtlasSize: 1024
-        CascadeCount: 4
+        CascadeCount: 1
         CascadeRatio1: 0.1
         CascadeRatio2: 0.25
         CascadeRatio3: 0.5
-        DepthBias: 0.15
+        DepthBias: 0.287
         NormalBias: 0
         SlopeBias: 0
     Blobs:

@@ -93,15 +93,25 @@ namespace DELTation.ToonRP.Lighting
                 _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightColorId, visibleLight.finalColor);
 
                 Vector4 direction = (visibleLight.localToWorldMatrix * Vector3.back).normalized;
-                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirection, direction);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirectionId, direction);
 
                 InitializeLightCommon(visibleLight, shadowSettings);
                 LightBakingOutput lightBakingOutput = visibleLight.light.bakingOutput;
+
+                Vector4 occlusionProbeChannel = Vector4.zero;
+                if (lightBakingOutput is
+                    { lightmapBakeType: LightmapBakeType.Mixed, occlusionMaskChannel: >= 0 and < 4 })
+                {
+                    occlusionProbeChannel[lightBakingOutput.occlusionMaskChannel] = 1.0f;
+                }
+
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightOcclusionProbesId, occlusionProbeChannel);
             }
             else
             {
                 _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightColorId, Vector4.zero);
-                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirection, Vector4.zero);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightDirectionId, Vector4.zero);
+                _cmd.SetGlobalVector(ShaderPropertyId.DirectionalLightOcclusionProbesId, Vector4.zero);
             }
         }
 
@@ -329,9 +339,13 @@ namespace DELTation.ToonRP.Lighting
         private static class ShaderPropertyId
         {
             public static readonly int SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
-            public static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
 
-            public static readonly int DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
+            public static readonly int DirectionalLightColorId = Shader.PropertyToID("_DirectionalLightColor");
+            public static readonly int DirectionalLightDirectionId = Shader.PropertyToID("_DirectionalLightDirection");
+
+            public static readonly int DirectionalLightOcclusionProbesId =
+                Shader.PropertyToID("_DirectionalLightOcclusionProbes");
+
             public static readonly int AdditionalLightCount = Shader.PropertyToID("_AdditionalLightCount");
             public static readonly int AdditionalLightColors = Shader.PropertyToID("_AdditionalLightColors");
             public static readonly int AdditionalLightPositions = Shader.PropertyToID("_AdditionalLightPositions");

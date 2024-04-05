@@ -24,6 +24,7 @@ struct LightComputationParameters
     float3 normalWs;
     float3 viewDirectionWs;
     float3 perVertexAdditionalLights;
+    float2 lightmapUv;
 
     float4 albedo;
     float4 shadowColor;
@@ -89,7 +90,7 @@ float GetSsao(const LightComputationParameters parameters)
 
 float ApplyShadowRampAndPattern(const LightComputationParameters parameters, float shadowAttenuation)
 {
-    shadowAttenuation = ComputeShadowRamp(shadowAttenuation, parameters.positionWs);
+    shadowAttenuation = ComputeShadowRamp(shadowAttenuation);
 
     #ifdef _TOON_RP_SHADOWS_PATTERN
     const float pattern = SampleShadowPattern(parameters.positionWs);
@@ -105,24 +106,24 @@ float GetShadowAttenuation(const LightComputationParameters parameters, const Li
     return parameters.mainLightOcclusion == 1.0f ? 1.0f : ApplyShadowRampAndPattern(parameters, parameters.mainLightOcclusion);
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
 
-    #if defined(_TOON_RP_ANY_SHADOWS)
+    // #if defined(_TOON_RP_ANY_SHADOWS)
     return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation * parameters.mainLightOcclusion);
-    #else // !_TOON_RP_ANY_SHADOWS
-    return 1.0f;
-    #endif  // _TOON_RP_ANY_SHADOWS
+    // #else // !_TOON_RP_ANY_SHADOWS
+    // return 1.0f;
+    // #endif  // _TOON_RP_ANY_SHADOWS
 }
 
 Light GetMainLight(const LightComputationParameters parameters)
 {
     const float3 shadowPositionWs = parameters.positionWs + parameters.shadowReceivePositionOffset;
 
-    #ifdef _TOON_RP_SHADOW_MAPS
+    // #ifdef _TOON_RP_SHADOW_MAPS
     const uint tileIndex = ComputeShadowTileIndex(shadowPositionWs);
     const float3 shadowCoords = TransformWorldToShadowCoords(shadowPositionWs, tileIndex);
-    Light light = GetMainLight(shadowCoords, parameters.positionWs);
-    #else // !_TOON_RP_SHADOW_MAPS
-    Light light = GetMainLight();
-    #endif // _TOON_RP_SHADOW_MAPS
+    Light light = GetMainLight(shadowCoords, parameters.positionWs, SAMPLE_SHADOWMASK(parameters.lightmapUv));
+    // #else // !_TOON_RP_SHADOW_MAPS
+    // Light light = GetMainLight();
+    // #endif // _TOON_RP_SHADOW_MAPS
 
     #if defined(_TOON_RP_BLOB_SHADOWS) && defined(_RECEIVE_BLOB_SHADOWS)
 

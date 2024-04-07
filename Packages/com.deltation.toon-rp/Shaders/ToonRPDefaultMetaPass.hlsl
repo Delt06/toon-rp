@@ -20,10 +20,14 @@ half4 PS(const v2f IN) : SV_Target
     #endif // _ALPHATEST_ON
 
     #ifdef EMISSION
-    const float3 emission = _EmissionColor * albedo.a;
+    float3 emission = _EmissionColor * albedo.a;
     #else // !EMISSION
-    const float3 emission = 0;
+    float3 emission = 0;
     #endif // EMISSION
+        
+    #ifdef META_SIMULATE_EMISSION
+    emission += max(0.0, albedo.rgb - 1.0) * albedo.a;
+    #endif // META_SIMULATE_EMISSION
 
     MetaInput metaInput;
     metaInput.Albedo = albedo.rgb;

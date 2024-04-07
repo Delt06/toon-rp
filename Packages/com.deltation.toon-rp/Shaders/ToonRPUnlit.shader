@@ -193,6 +193,30 @@
 			
 			ENDHLSL
 		}
+
+        Pass
+        {
+            Name "Toon RP Meta (Unlit)"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_instancing
+
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
+            
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #define META_SIMULATE_EMISSION
+
+            #include "ToonRPUnlitInput.hlsl"
+            #include "ToonRPDefaultMetaPass.hlsl"
+
+            ENDHLSL
+        }
 	}
     
     CustomEditor "DELTation.ToonRP.Editor.ShaderGUI.ToonRpUnlitShaderGui"

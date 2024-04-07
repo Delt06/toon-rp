@@ -1645,10 +1645,37 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             },
         };
 
-        public static readonly KeywordDescriptor ToonRpTiledLighting = new()
+        public static readonly KeywordDescriptor LightmapShadowMixing = new()
         {
-            displayName = "Toon RP Tiled Lighting",
-            referenceName = "_TOON_RP_TILED_LIGHTING",
+            displayName = "Lightmap Shadow Mixing",
+            referenceName = "LIGHTMAP_SHADOW_MIXING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+        
+        public static readonly KeywordDescriptor ShadowsShadowmask = new()
+        {
+            displayName = "Shadows Shadowmask",
+            referenceName = "SHADOWS_SHADOWMASK",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+        
+        public static readonly KeywordDescriptor DirLightmapCombined = new()
+        {
+            displayName = "Directional Lightmap Combined",
+            referenceName = "DIRLIGHTMAP_COMBINED",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+        
+        public static readonly KeywordDescriptor LightmapOn = new()
+        {
+            displayName = "Lightmap On",
+            referenceName = "LIGHTMAP_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

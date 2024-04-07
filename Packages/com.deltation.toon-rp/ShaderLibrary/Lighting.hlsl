@@ -203,13 +203,15 @@ float4 _SubtractiveShadowColor;
 #if defined(LIGHTMAP_ON)
 #define TOON_RP_GI_ATTRIBUTE float2 lightmapUv : TEXCOORD1;
 #define TOON_RP_GI_INTERPOLANT float2 lightmapUv : TOON_RP_LIGHTMAP_UV;
-#define TOON_RP_GI_TRANSFER(input, output) \
-    output.lightmapUv = input.lightmapUv * \
+#define TOON_RP_GI_TRANSFER_ATT(input, output, attributeName) \
+    output.lightmapUv = input.attributeName * \
     unity_LightmapST.xy + unity_LightmapST.zw;
+#define TOON_RP_GI_TRANSFER(input, output) TOON_RP_GI_TRANSFER_ATT(input, output, lightmapUv)
 #define TOON_RP_GI_FRAGMENT_DATA(input) input.lightmapUv
 #else // !LIGHTMAP_ON
 #define TOON_RP_GI_ATTRIBUTE
 #define TOON_RP_GI_INTERPOLANT
+#define TOON_RP_GI_TRANSFER_ATT(input, output, attributeName)
 #define TOON_RP_GI_TRANSFER(input, output)
 #define TOON_RP_GI_FRAGMENT_DATA(input) 0.0
 #endif // LIGHTMAP_ON

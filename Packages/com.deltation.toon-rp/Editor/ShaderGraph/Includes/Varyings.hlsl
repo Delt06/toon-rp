@@ -204,6 +204,10 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     
     #endif
 
+    #if defined(VARYINGS_NEED_LIGHTMAP_UV)
+    TOON_RP_GI_TRANSFER_ATT(input, output, uv1.xy);
+    #endif
+    
     #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
     #endif

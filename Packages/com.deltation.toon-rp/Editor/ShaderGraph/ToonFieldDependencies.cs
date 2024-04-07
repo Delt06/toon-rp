@@ -23,6 +23,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             new FieldDependency(ToonStructFields.Varyings.previousPositionCsNoJitter,
                 ToonStructFields.Attributes.positionOld
             ),
+            new FieldDependency(ToonStructFields.Varyings.lightmapUv, StructFields.Attributes.uv1),
         };
 
         private static readonly DependencyCollection VertexDescription = new()

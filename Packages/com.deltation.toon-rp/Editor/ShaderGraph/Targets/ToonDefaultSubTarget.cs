@@ -448,6 +448,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
                 ToonStructFields.Varyings.fogFactorAndVertexLight,
+                ToonStructFields.Varyings.lightmapUv,
             };
         }
 
@@ -479,7 +480,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CoreKeywordDescriptors.ToonRpShadowsPattern,
 
                 CoreKeywordDescriptors.ToonRpAdditionalLights,
-                CoreKeywordDescriptors.ToonRpTiledLighting,
+                
+                CoreKeywordDescriptors.LightmapShadowMixing,
+                CoreKeywordDescriptors.ShadowsShadowmask,
+                CoreKeywordDescriptors.DirLightmapCombined,
+                CoreKeywordDescriptors.LightmapOn,
 
                 CoreKeywordDescriptors.ToonRpSsao,
 

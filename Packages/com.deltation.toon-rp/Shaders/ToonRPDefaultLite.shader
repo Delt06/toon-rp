@@ -201,6 +201,26 @@
 			
 			ENDHLSL
 		}
+
+        Pass
+        {
+            Name "Toon RP Meta (Lite)"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseMultiCompileList.hlsl"
+			#include_with_pragmas "PragmaIncludes/ToonRPDefaultBaseShaderFeatureList.hlsl"
+            
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #include "ToonRPDefaultLiteInput.hlsl"
+            #include "ToonRPDefaultMetaPass.hlsl"
+
+            ENDHLSL
+        }
 	}
     
     CustomEditor "DELTation.ToonRP.Editor.ShaderGUI.ToonRpDefaultLiteShaderGui"

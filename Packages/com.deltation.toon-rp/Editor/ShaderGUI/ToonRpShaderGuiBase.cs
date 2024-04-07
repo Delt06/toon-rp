@@ -84,8 +84,18 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (DrawFoldout(HeaderNames.Misc))
                 {
                     materialEditor.EnableInstancingField();
+
+                    EditorGUI.BeginChangeCheck();
                     materialEditor.LightmapEmissionProperty();
-                    
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        foreach (Object target in materialEditor.targets)
+                        {
+                            ((Material) target).globalIlluminationFlags &=
+                                ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                        }
+                    }
+
                     DrawQueue();
                 }
 

@@ -59,6 +59,8 @@ $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
 $Varyings.lightmapUv: #define VARYINGS_NEED_LIGHTMAP_UV
+$Varyings.VizUV: #define VARYINGS_NEED_VIZ_UV
+$Varyings.LightCoord: #define VARYINGS_NEED_LIGHT_COORD
 $Varyings.shadowCoord: #define VARYINGS_NEED_SHADOW_COORD
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX

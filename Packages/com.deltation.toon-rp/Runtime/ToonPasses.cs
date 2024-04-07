@@ -16,6 +16,7 @@
             new("Toon RP Motion Vectors", "ToonRPMotionVectors", "SHADERPASS_MOTIONVECTORS");
         public static readonly Pass ShadowCaster =
             new("Toon RP Shadow Caster", "ShadowCaster", "SHADERPASS_SHADOWCASTER");
+        public static readonly Pass Meta = new("Toon RP Meta", "Meta", "SHADERPASS_META");
 
         public readonly struct Pass
         {

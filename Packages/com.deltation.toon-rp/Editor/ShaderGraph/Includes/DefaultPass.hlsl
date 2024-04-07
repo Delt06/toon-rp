@@ -96,7 +96,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
     float3 bakedGi = ComputeBakedGi(lightComputationParameters.lightmapUv, normalWs);
     MixRealtimeAndBakedGi(bakedGi, mainLightDiffuseRamp, shadowAttenuation);
-    const float3 ambient = bakedGi* albedo.rgb;
+    const float3 ambient = bakedGi * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
     float3 emission = surfaceDescription.Emission * albedo.a;

@@ -24,6 +24,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 ToonStructFields.Attributes.positionOld
             ),
             new FieldDependency(ToonStructFields.Varyings.lightmapUv, StructFields.Attributes.uv1),
+            new FieldDependency(ToonStructFields.Varyings.vizUV, StructFields.Attributes.positionOS),
+            new FieldDependency(ToonStructFields.Varyings.vizUV, StructFields.Attributes.uv0),
+            new FieldDependency(ToonStructFields.Varyings.vizUV, StructFields.Attributes.uv1),
+            new FieldDependency(ToonStructFields.Varyings.vizUV, StructFields.Attributes.uv2),
+            new FieldDependency(ToonStructFields.Varyings.lightCoord, StructFields.Attributes.positionOS),
+            new FieldDependency(ToonStructFields.Varyings.lightCoord, StructFields.Attributes.uv0),
+            new FieldDependency(ToonStructFields.Varyings.lightCoord, StructFields.Attributes.uv1),
+            new FieldDependency(ToonStructFields.Varyings.lightCoord, StructFields.Attributes.uv2),
         };
 
         private static readonly DependencyCollection VertexDescription = new()

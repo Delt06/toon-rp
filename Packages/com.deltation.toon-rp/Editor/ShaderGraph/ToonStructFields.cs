@@ -36,7 +36,17 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
             );
             public static readonly FieldDescriptor lightmapUv = new(Name, "lightmapUv",
                 "VARYINGS_NEED_LIGHTMAP_UV", ShaderValueType.Float2,
-                preprocessor: "LIGHTMAP_ON",
+                preprocessor: "defined(LIGHTMAP_ON)",
+                subscriptOptions: StructFieldOptions.Optional
+            );
+            public static readonly FieldDescriptor vizUV = new(Name, "VizUV",
+                "VARYINGS_NEED_VIZ_UV", ShaderValueType.Float2,
+                preprocessor: "defined(EDITOR_VISUALIZATION)",
+                subscriptOptions: StructFieldOptions.Optional
+            );
+            public static readonly FieldDescriptor lightCoord = new(Name, "LightCoord",
+                "VARYINGS_NEED_LIGHT_COORD", ShaderValueType.Float4,
+                preprocessor: "defined(EDITOR_VISUALIZATION)",
                 subscriptOptions: StructFieldOptions.Optional
             );
             public static readonly FieldDescriptor vsmDepth = new(Name, "vsmDepth",

@@ -26,9 +26,9 @@
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
-	    _ForwardStencilRef ("Ref", Integer) = 0
-	    _ForwardStencilReadMask ("Read Mask", Integer) = 255
-	    _ForwardStencilWriteMask ("Write Mask", Integer) = 255
+	    _ForwardStencilRef ("Ref", Int) = 0
+	    _ForwardStencilReadMask ("Read Mask", Int) = 255
+	    _ForwardStencilWriteMask ("Write Mask", Int) = 255
 	    [Enum(UnityEngine.Rendering.CompareFunction)]
 	    _ForwardStencilComp ("Comp", Float) = 0
 	    [Enum(UnityEngine.Rendering.StencilOp)]

@@ -338,17 +338,17 @@ namespace DELTation.ToonRP.Editor.ShaderGUI
                 if (enableStencil)
                 {
                     byte reference = ((StencilLayer) stencilPreset).ToReference();
-                    m.SetInteger(ForwardStencilRefId, reference);
-                    m.SetInteger(ForwardStencilReadMaskId, 255);
-                    m.SetInteger(ForwardStencilWriteMaskId, reference);
+                    m.SetFloat(ForwardStencilRefId, reference);
+                    m.SetFloat(ForwardStencilReadMaskId, 255);
+                    m.SetFloat(ForwardStencilWriteMaskId, reference);
                     m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
                     m.SetFloat(ForwardStencilPassId, (int) StencilOp.Replace);
                 }
                 else
                 {
-                    m.SetInteger(ForwardStencilRefId, 0);
-                    m.SetInteger(ForwardStencilReadMaskId, 255);
-                    m.SetInteger(ForwardStencilWriteMaskId, 255);
+                    m.SetFloat(ForwardStencilRefId, 0);
+                    m.SetFloat(ForwardStencilReadMaskId, 255);
+                    m.SetFloat(ForwardStencilWriteMaskId, 255);
                     m.SetFloat(ForwardStencilCompId, (int) CompareFunction.Always);
                     m.SetFloat(ForwardStencilPassId, (int) StencilOp.Keep);
                 }

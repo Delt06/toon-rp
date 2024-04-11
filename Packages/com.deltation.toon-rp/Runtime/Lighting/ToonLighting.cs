@@ -42,8 +42,8 @@ namespace DELTation.ToonRP.Lighting
 
         public ToonLighting()
         {
-            _additionalLightsGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLightsGlobalKeyword);
-            _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLightsVertexGlobalKeyword);
+            _additionalLightsGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLights);
+            _additionalLightsVertexGlobalKeyword = GlobalKeyword.Create(Keywords.AdditionalLightsVertex);
         }
 
         public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
@@ -145,8 +145,8 @@ namespace DELTation.ToonRP.Lighting
             bool isShadowMask = shadowMaskEnabled && _mixedLightingSetup == ToonMixedLightingSetup.ShadowMask;
             bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
             bool isSubtractive = mixedLightingEnabled && _mixedLightingSetup == ToonMixedLightingSetup.Subtractive;
-            CoreUtils.SetKeyword(_cmd, Keywords.LightmapShadowMixingGlobalKeyword, isSubtractive || isShadowMaskAlways);
-            CoreUtils.SetKeyword(_cmd, Keywords.ShadowsShadowMaskGlobalKeyword, isShadowMask);
+            CoreUtils.SetKeyword(_cmd, Keywords.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
+            CoreUtils.SetKeyword(_cmd, Keywords.ShadowsShadowMask, isShadowMask);
 
             _cmd.SetGlobalVector(ShaderPropertyId.SubtractiveShadowColor,
                 CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor)
@@ -355,10 +355,16 @@ namespace DELTation.ToonRP.Lighting
 
         public static class Keywords
         {
-            public const string LightmapShadowMixingGlobalKeyword = "LIGHTMAP_SHADOW_MIXING";
-            public const string ShadowsShadowMaskGlobalKeyword = "SHADOWS_SHADOWMASK";
-            public const string AdditionalLightsGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS";
-            public const string AdditionalLightsVertexGlobalKeyword = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
+            public const string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
+            public const string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
+            public const string AdditionalLights = "_TOON_RP_ADDITIONAL_LIGHTS";
+            public const string AdditionalLightsVertex = "_TOON_RP_ADDITIONAL_LIGHTS_VERTEX";
+
+            public static class BuiltIn
+            {
+                public const string DirLightmapCombined = "DIRLIGHTMAP_COMBINED";
+                public const string LightmapOn = "LIGHTMAP_ON";
+            }
         }
     }
 }

@@ -56,7 +56,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonCameraRendererSettings.AdditionalLightsMode.PerPixel
                     ))
                 {
-                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLightsGlobalKeyword));
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLights));
                 }
 
                 if (_allToonRenderPipelineAssets.All(a =>
@@ -64,7 +64,7 @@ namespace DELTation.ToonRP.Editor.Stripping
                         ToonCameraRendererSettings.AdditionalLightsMode.PerVertex
                     ))
                 {
-                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLightsVertexGlobalKeyword));
+                    _keywordsToStrip.Add(new ShaderKeyword(ToonLighting.Keywords.AdditionalLightsVertex));
                 }
             }
 
@@ -219,6 +219,21 @@ namespace DELTation.ToonRP.Editor.Stripping
                 ))
             {
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.ShadowsPatternKeywordName));
+            }
+
+            // Baked Lighting
+            {
+                if (_allToonRenderPipelineAssets.All(a => (a.CameraRendererSettings.BakedLightingFeatures & ToonRpBakedLightingFeatures.LightMaps) == 0))
+                {
+                    _shadersToStrip.Add(ToonLighting.Keywords.LightmapShadowMixing);
+                    _shadersToStrip.Add(ToonLighting.Keywords.BuiltIn.LightmapOn);
+                    _shadersToStrip.Add(ToonLighting.Keywords.BuiltIn.DirLightmapCombined);
+                }
+
+                if (_allToonRenderPipelineAssets.All(a => (a.CameraRendererSettings.BakedLightingFeatures & ToonRpBakedLightingFeatures.ShadowMask) == 0))
+                {
+                    _shadersToStrip.Add(ToonLighting.Keywords.ShadowsShadowMask);
+                }
             }
 
             // SSAO for forward shaders

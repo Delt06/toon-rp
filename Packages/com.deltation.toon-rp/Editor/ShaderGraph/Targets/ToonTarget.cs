@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DELTation.ToonRP.Editor.ShaderGUI;
+using DELTation.ToonRP.Lighting;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
@@ -1746,7 +1747,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly KeywordDescriptor LightmapShadowMixing = new()
         {
             displayName = "Lightmap Shadow Mixing",
-            referenceName = "LIGHTMAP_SHADOW_MIXING",
+            referenceName = ToonLighting.Keywords.LightmapShadowMixing,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1755,7 +1756,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly KeywordDescriptor ShadowsShadowmask = new()
         {
             displayName = "Shadows Shadowmask",
-            referenceName = "SHADOWS_SHADOWMASK",
+            referenceName = ToonLighting.Keywords.ShadowsShadowMask,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1764,7 +1765,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly KeywordDescriptor DirLightmapCombined = new()
         {
             displayName = "Directional Lightmap Combined",
-            referenceName = "DIRLIGHTMAP_COMBINED",
+            referenceName = ToonLighting.Keywords.BuiltIn.DirLightmapCombined,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -1773,7 +1774,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly KeywordDescriptor LightmapOn = new()
         {
             displayName = "Lightmap On",
-            referenceName = "LIGHTMAP_ON",
+            referenceName = ToonLighting.Keywords.BuiltIn.LightmapOn,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

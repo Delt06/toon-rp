@@ -20,6 +20,7 @@ struct v2f
     float3 additionalLights : ADDITIONAL_LIGHTS;
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
 
+    TOON_RP_GI_INTERPOLANT
     TOON_RP_FOG_FACTOR_INTERPOLANT
 
     float4 positionCs : SV_POSITION;

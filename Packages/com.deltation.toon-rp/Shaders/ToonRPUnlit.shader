@@ -26,9 +26,9 @@
 	    
 	    _QueueOffset ("Queue Offset", Float) = 0
 	    
-	    _ForwardStencilRef ("Ref", Integer) = 0
-	    _ForwardStencilReadMask ("Read Mask", Integer) = 255
-	    _ForwardStencilWriteMask ("Write Mask", Integer) = 255
+	    _ForwardStencilRef ("Ref", Int) = 0
+	    _ForwardStencilReadMask ("Read Mask", Int) = 255
+	    _ForwardStencilWriteMask ("Write Mask", Int) = 255
 	    [Enum(UnityEngine.Rendering.CompareFunction)]
 	    _ForwardStencilComp ("Comp", Float) = 0
 	    [Enum(UnityEngine.Rendering.StencilOp)]
@@ -193,6 +193,30 @@
 			
 			ENDHLSL
 		}
+
+        Pass
+        {
+            Name "Toon RP Meta (Unlit)"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma multi_compile_instancing
+
+			// Per-Material
+			#pragma shader_feature_local _ALPHATEST_ON
+            
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #define META_SIMULATE_EMISSION
+
+            #include "ToonRPUnlitInput.hlsl"
+            #include "ToonRPDefaultMetaPass.hlsl"
+
+            ENDHLSL
+        }
 	}
     
     CustomEditor "DELTation.ToonRP.Editor.ShaderGUI.ToonRpUnlitShaderGui"

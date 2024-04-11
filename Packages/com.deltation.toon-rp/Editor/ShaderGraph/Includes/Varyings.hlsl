@@ -127,8 +127,10 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     #ifdef _TOON_RP_VSM
     output.vsmDepth = GetPackedVsmDepth(positionWS);
     #endif // _TOON_RP_VSM
-    
-    #else // (SHADERPASS != SHADERPASS_SHADOWCASTER)
+
+    #elif (SHADERPASS == SHADERPASS_META)
+    output.positionCS = UnityMetaVertexPosition(input.positionOS.xyz, input.uv1.xy, input.uv2.xy);
+    #else // (SHADERPASS != SHADERPASS_SHADOWCASTER && SHADERPASS != SHADERPASS_META)
     output.positionCS = TRANSFORM_WORLD_TO_HCLIP(positionWS, normalWS, input, vertexDescription);
 
     #if UNITY_REVERSED_Z
@@ -143,23 +145,13 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     output.texCoord0 = input.uv0;
     #endif
     #ifdef EDITOR_VISUALIZATION
-    float2 VizUV = 0;
-    float4 LightCoord = 0;
-    UnityEditorVizData(input.positionOS, input.uv0, input.uv1, input.uv2, VizUV, LightCoord);
+    UnityEditorVizData(input.positionOS, input.uv0, input.uv1, input.uv2, output.VizUV, output.LightCoord);
     #endif
     #if defined(VARYINGS_NEED_TEXCOORD1) || defined(VARYINGS_DS_NEED_TEXCOORD1)
-    #ifdef EDITOR_VISUALIZATION
-    output.texCoord1 = float4(VizUV, 0, 0);
-    #else
     output.texCoord1 = input.uv1;
     #endif
-    #endif
     #if defined(VARYINGS_NEED_TEXCOORD2) || defined(VARYINGS_DS_NEED_TEXCOORD2)
-    #ifdef EDITOR_VISUALIZATION
-    output.texCoord2 = LightCoord;
-    #else
     output.texCoord2 = input.uv2;
-    #endif
     #endif
     #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
     output.texCoord3 = input.uv3;
@@ -204,6 +196,10 @@ Varyings BuildVaryings(Attributes input, out VertexDescription vertexDescription
     
     #endif
 
+    #if defined(VARYINGS_NEED_LIGHTMAP_UV)
+    TOON_RP_GI_TRANSFER_ATT(input, output, uv1.xy);
+    #endif
+    
     #if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
     #endif

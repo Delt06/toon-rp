@@ -52,6 +52,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph
                 ToonStructFields.Varyings.positionCsNoJitter,
                 ToonStructFields.Varyings.previousPositionCsNoJitter,
                 ToonStructFields.Varyings.fogFactorAndVertexLight,
+                ToonStructFields.Varyings.lightmapUv,
+                ToonStructFields.Varyings.vizUV,
+                ToonStructFields.Varyings.lightCoord,
                 ToonStructFields.Varyings.vsmDepth,
             },
         };

@@ -54,6 +54,7 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     lightComputationParameters.diffuseOffset = surfaceDescription.DiffuseOffset;
     lightComputationParameters.mainLightOcclusion = surfaceDescription.MainLightOcclusion;
     lightComputationParameters.shadowReceivePositionOffset = surfaceDescription.ShadowReceivePositionOffset;
+    lightComputationParameters.lightmapUv = TOON_RP_GI_FRAGMENT_DATA(unpacked);
 
     #if _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = surfaceDescription.SpecularSizeOffset;
@@ -79,8 +80,8 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #endif // _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
     
     // ReSharper disable once CppEntityAssignedButNoRead
-    float shadowAttenuation;
-    const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
+    float shadowAttenuation, mainLightDiffuseRamp;
+    const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation, mainLightDiffuseRamp);
 
     #if _RIM
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
@@ -93,7 +94,9 @@ float4 PS(PackedVaryings packedInput) : SV_TARGET
     #if _FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = 0;
     #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
-    const float3 ambient = SampleSH(normalWs) * albedo.rgb;
+    float3 bakedGi = ComputeBakedGi(lightComputationParameters.lightmapUv, normalWs);
+    MixRealtimeAndBakedGi(bakedGi, mainLightDiffuseRamp, shadowAttenuation);
+    const float3 ambient = bakedGi * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
     float3 emission = surfaceDescription.Emission * albedo.a;

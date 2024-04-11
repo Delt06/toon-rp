@@ -13,8 +13,14 @@
 #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_RAMP_CRISP
 #pragma multi_compile_fragment _ _TOON_RP_SHADOWS_PATTERN
 
-// Lights
+// Light
 #pragma multi_compile _ _TOON_RP_TILED_LIGHTING _TOON_RP_ADDITIONAL_LIGHTS _TOON_RP_ADDITIONAL_LIGHTS_VERTEX
+
+// GI
+#pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+#pragma multi_compile _ SHADOWS_SHADOWMASK
+#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+#pragma multi_compile _ LIGHTMAP_ON
 
 // SSAO
 #pragma multi_compile_fragment _ _TOON_RP_SSAO _TOON_RP_SSAO_PATTERN

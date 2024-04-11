@@ -67,6 +67,7 @@ namespace DELTation.ToonRP
             "Enable this to always use StoreAction.Store for camera depth. By default, it uses StoreAction.DontCare unless any extension or post-processing effect overrides it."
         )]
         public bool ForceStoreCameraDepth;
+        public ToonRpBakedLightingFeatures BakedLightingFeatures;
 
         public bool IsTiledLightingEnabled =>
             AdditionalLights == AdditionalLightsMode.PerPixel &&

@@ -135,6 +135,12 @@ namespace DELTation.ToonRP.Editor
                 )
             );
 
+            root.Add(
+                new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.BakedLightingFeatures)
+                    )
+                )
+            );
+
             return root;
         }
     }

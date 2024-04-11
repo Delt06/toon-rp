@@ -26,6 +26,7 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     lightComputationParameters.albedo = albedo;
     lightComputationParameters.shadowColor = _ShadowColor;
     lightComputationParameters.mainLightOcclusion = 1;
+    lightComputationParameters.lightmapUv = TOON_RP_GI_FRAGMENT_DATA(IN);
     #ifdef _TOON_LIGHTING_SPECULAR
     lightComputationParameters.specularSizeOffset = _SpecularSizeOffset;
     lightComputationParameters.specularColor = _SpecularColor;
@@ -36,8 +37,8 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     lightComputationParameters.overrideRampRim = ConstructOverrideRampRim();
     
     // ReSharper disable once CppEntityAssignedButNoRead
-    float shadowAttenuation;
-    const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation);
+    float shadowAttenuation, mainLightDiffuseRamp;
+    const float3 lights = ComputeLights(lightComputationParameters, shadowAttenuation, mainLightDiffuseRamp);
     
     #ifdef _RIM
     const float fresnel = 1 - saturate(dot(viewDirectionWs, normalWs));
@@ -50,7 +51,9 @@ float3 ComputeLitOutputColor(const v2f IN, const float4 albedo)
     #ifdef _FORCE_DISABLE_ENVIRONMENT_LIGHT
     const float3 ambient = 0;
     #else // !_FORCE_DISABLE_ENVIRONMENT_LIGHT
-    const float3 ambient = SampleSH(normalWs) * albedo.rgb;
+    float3 bakedGi = ComputeBakedGi(lightComputationParameters.lightmapUv, normalWs);
+    MixRealtimeAndBakedGi(bakedGi, mainLightDiffuseRamp, shadowAttenuation);
+    const float3 ambient = bakedGi * albedo.rgb;
     #endif // _FORCE_DISABLE_ENVIRONMENT_LIGHT
 
     #ifdef EMISSION

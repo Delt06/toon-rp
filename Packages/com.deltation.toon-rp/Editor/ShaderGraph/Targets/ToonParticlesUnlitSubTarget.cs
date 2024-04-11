@@ -118,6 +118,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
                 CorePasses.AddPrePasses(target, ref result, passConfigurator);
                 CorePasses.AddShadowCasterPass(target, ref result, passConfigurator);
+                CorePasses.AddMetaPass(target, ref result, passConfigurator);
 
                 return result;
             }

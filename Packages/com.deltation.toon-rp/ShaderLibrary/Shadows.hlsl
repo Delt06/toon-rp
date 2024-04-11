@@ -209,11 +209,4 @@ float ComputeShadowDistanceFade(const float3 positionWs)
     return fade;
 }
 
-float ComputeShadowRamp(const float shadowAttenuation, const float3 positionWs)
-{
-    const float ramp = ComputeShadowRamp(shadowAttenuation);
-    const float fade = ComputeShadowDistanceFade(positionWs);
-    return lerp(ramp, 1, fade);
-}
-
 #endif // TOON_RP_SHADOWS

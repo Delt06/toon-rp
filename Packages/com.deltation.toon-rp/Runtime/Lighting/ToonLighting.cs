@@ -78,7 +78,7 @@ namespace DELTation.ToonRP.Lighting
                 indexMap.Dispose();
             }
 
-            SetMixedLightingKeywordsAndProperties();
+            SetMixedLightingKeywordsAndProperties(settings);
             SetAdditionalLightsKeywords(additionalLightsMode);
 
             _cmd.EndSample(CmdName);
@@ -138,13 +138,13 @@ namespace DELTation.ToonRP.Lighting
             }
         }
 
-        private void SetMixedLightingKeywordsAndProperties()
+        private void SetMixedLightingKeywordsAndProperties(in ToonCameraRendererSettings settings)
         {
-            // TODO: check if enabled in the pipeline settings
-            const bool supportsMixedLighting = true;
-            bool isShadowMask = supportsMixedLighting && _mixedLightingSetup == ToonMixedLightingSetup.ShadowMask;
+            bool mixedLightingEnabled = (settings.BakedLightingFeatures & ToonRpBakedLightingFeatures.LightMaps) != 0;
+            bool shadowMaskEnabled = (settings.BakedLightingFeatures & ToonRpBakedLightingFeatures.ShadowMask) != 0;
+            bool isShadowMask = shadowMaskEnabled && _mixedLightingSetup == ToonMixedLightingSetup.ShadowMask;
             bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;
-            bool isSubtractive = supportsMixedLighting && _mixedLightingSetup == ToonMixedLightingSetup.Subtractive;
+            bool isSubtractive = mixedLightingEnabled && _mixedLightingSetup == ToonMixedLightingSetup.Subtractive;
             CoreUtils.SetKeyword(_cmd, Keywords.LightmapShadowMixingGlobalKeyword, isSubtractive || isShadowMaskAlways);
             CoreUtils.SetKeyword(_cmd, Keywords.ShadowsShadowMaskGlobalKeyword, isShadowMask);
 
@@ -305,6 +305,7 @@ namespace DELTation.ToonRP.Lighting
             // SdotL * invAngleRange + (-cosOuterAngle * invAngleRange)
             // If we precompute the terms in a MAD instruction
             float cosOuterAngle = Mathf.Cos(Mathf.Deg2Rad * spotAngle * 0.5f);
+
             // We need to do a null check for particle lights
             // This should be changed in the future
             // Particle lights will use an inline function

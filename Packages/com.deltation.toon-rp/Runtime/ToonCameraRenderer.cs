@@ -845,8 +845,27 @@ namespace DELTation.ToonRP
             IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
         {
-            PerObjectData perObjectData = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume |
-                                          PerObjectData.Lightmaps | PerObjectData.ShadowMask | PerObjectData.OcclusionProbe;
+            PerObjectData perObjectData = PerObjectData.None;
+
+            if ((settings.BakedLightingFeatures & ToonRpBakedLightingFeatures.LightProbes) != 0)
+            {
+                perObjectData |= PerObjectData.LightProbe;
+            }
+
+            if ((settings.BakedLightingFeatures & ToonRpBakedLightingFeatures.LightMaps) != 0)
+            {
+                perObjectData |= PerObjectData.Lightmaps;
+            }
+
+            if ((settings.BakedLightingFeatures & ToonRpBakedLightingFeatures.ShadowMask) != 0)
+            {
+                perObjectData |= PerObjectData.ShadowMask;
+            }
+
+            if ((settings.BakedLightingFeatures & (ToonRpBakedLightingFeatures.LightMaps | ToonRpBakedLightingFeatures.ShadowMask)) != 0)
+            {
+                perObjectData |= PerObjectData.OcclusionProbe;
+            }
 
             bool perObjectLightData =
                 perObjectLightDataOverride ?? settings.AdditionalLights != AdditionalLightsMode.Off;
@@ -889,6 +908,7 @@ namespace DELTation.ToonRP
         private void DrawSkybox(CommandBuffer cmd)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
+
             // XRTODO: Remove this code once Skybox pass is moved to SRP land.
             XRPass xrPass = _additionalCameraData.XrPass;
             if (xrPass.enabled)
@@ -910,6 +930,7 @@ namespace DELTation.ToonRP
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     _context.ExecuteCommandBuffer(cmd);
+
                     // We do not need to submit here due to special handling of stereo matrices in core.
                     // context.Submit();
                     cmd.Clear();

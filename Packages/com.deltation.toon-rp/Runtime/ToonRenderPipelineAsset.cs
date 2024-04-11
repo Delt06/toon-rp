@@ -64,6 +64,7 @@ namespace DELTation.ToonRP
             UseDynamicBatching = false,
             ForceRenderToIntermediateBuffer = false,
             Stencil = true,
+            BakedLightingFeatures = ToonRpBakedLightingFeatures.Everything,
         };
 
         public ToonShadowSettings ShadowSettings = new()

@@ -63,6 +63,7 @@ namespace DELTation.ToonRP
             UseSrpBatching = true,
             UseDynamicBatching = false,
             ForceRenderToIntermediateBuffer = false,
+            Stencil = true,
         };
 
         public ToonShadowSettings ShadowSettings = new()

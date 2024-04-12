@@ -1086,6 +1086,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         public static readonly FieldCollection ShadowCaster = new()
         {
             ToonStructFields.Varyings.vsmDepth,
+            StructFields.Varyings.positionWS,
         };
 
         public static readonly FieldCollection DepthNormals = new()

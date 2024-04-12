@@ -226,7 +226,7 @@ float3 GetNormalWsFromVaryings(SurfaceDescription surfaceDescription, Varyings v
     // Retrieve the normal from the bump map or mesh normal
     #ifdef VARYINGS_NEED_NORMAL_WS
 
-    #if defined(_NORMALMAP)
+    #if defined(_NORMALMAP) && (SHADERPASS != SHADERPASS_SHADOWCASTER)
     #if _NORMAL_DROPOFF_TS
     // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
     float crossSign = (varyings.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
@@ -236,6 +236,8 @@ float3 GetNormalWsFromVaryings(SurfaceDescription surfaceDescription, Varyings v
     float3 normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
     #elif _NORMAL_DROPOFF_WS
     float3 normalWS = surfaceDescription.NormalWS;
+    #else
+    float3 normalWS = varyings.normalWS;
     #endif
     #else
     float3 normalWS = varyings.normalWS;

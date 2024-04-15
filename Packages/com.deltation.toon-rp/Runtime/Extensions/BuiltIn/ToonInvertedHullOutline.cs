@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 using static DELTation.ToonRP.Extensions.BuiltIn.ToonInvertedHullOutlineSettings;
 using static DELTation.ToonRP.ToonCameraRenderer;
 
@@ -171,15 +172,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         cameraOverride.OverrideIfEnabled(cmd, pass.CameraOverrides);
                         context.ExecuteCommandBufferAndClear(cmd);
 
-                        drawingSettings.overrideMaterial = material;
-
-                        for (int i = 0; i < ShaderTagIds.Length; i++)
-                        {
-                            drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
-                        }
-
-                        filteringSettings.layerMask = pass.LayerMask;
-
                         renderStateBlock.mask |= RenderStateMask.Raster | RenderStateMask.Stencil;
                         renderStateBlock.rasterState = new RasterState(CullMode.Front, 0, pass.DepthBias);
 
@@ -201,9 +193,18 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                             renderStateBlock.stencilState = new StencilState(false);
                         }
 
-                        context.DrawRenderers(_cullingResults,
-                            ref drawingSettings, ref filteringSettings, ref renderStateBlock
-                        );
+                        var rendererListDesc = new RendererListDesc(ShaderTagIds, _cullingResults, _camera)
+                        {
+                            stateBlock = renderStateBlock,
+                            layerMask = pass.LayerMask,
+                            overrideMaterial = material,
+                            renderQueueRange = filteringSettings.renderQueueRange,
+                            sortingCriteria = drawingSettings.sortingSettings.criteria,
+                            overrideMaterialPassIndex = drawingSettings.overrideMaterialPassIndex,
+                            rendererConfiguration = drawingSettings.perObjectData,
+                        };
+                        RendererList rendererList = context.CreateRendererList(rendererListDesc);
+                        cmd.DrawRendererList(rendererList);
 
                         cmd.SetGlobalDepthBias(0, 0);
                         cameraOverride.Restore(cmd);

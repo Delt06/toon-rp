@@ -82,15 +82,15 @@ namespace DELTation.ToonRP
             }
 
             GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
-            FormatUsage formatUsage = FormatUsage.Render;
+            GraphicsFormatUsage formatUsage = GraphicsFormatUsage.Render;
             if (!ignoreMsaa)
             {
                 // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 formatUsage |= settings.Msaa switch
                 {
-                    MsaaMode._2x => FormatUsage.MSAA2x,
-                    MsaaMode._4x => FormatUsage.MSAA4x,
-                    MsaaMode._8x => FormatUsage.MSAA8x,
+                    MsaaMode._2x => GraphicsFormatUsage.MSAA2x,
+                    MsaaMode._4x => GraphicsFormatUsage.MSAA4x,
+                    MsaaMode._8x => GraphicsFormatUsage.MSAA8x,
                     _ => 0,
                 };
             }

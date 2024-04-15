@@ -485,6 +485,11 @@ namespace DELTation.ToonRP.Shadows
                     {
                         continue;
                     }
+                    
+                    if (!_cullingResults.GetShadowCasterBounds(additionalLight.VisibleLightIndex, out Bounds _))
+                    {
+                        continue;
+                    }
 
                     // TODO: add point light later
                     if (visibleLight.lightType is LightType.Spot)

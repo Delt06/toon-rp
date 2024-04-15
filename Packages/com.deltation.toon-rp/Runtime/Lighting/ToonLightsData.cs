@@ -4,11 +4,17 @@ namespace DELTation.ToonRP.Lighting
 {
     public class ToonLightsData
     {
-        public readonly List<int> AdditionalLightsIndices = new();
+        public readonly List<AdditionalLight> AdditionalLights = new();
 
         public void Reset()
         {
-            AdditionalLightsIndices.Clear();
+            AdditionalLights.Clear();
+        }
+
+        public struct AdditionalLight
+        {
+            public int VisibleLightIndex;
+            public int? ShadowLightIndex;
         }
     }
 }

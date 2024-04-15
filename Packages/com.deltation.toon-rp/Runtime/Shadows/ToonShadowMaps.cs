@@ -162,7 +162,7 @@ namespace DELTation.ToonRP.Shadows
 
             (GraphicsFormat _, int depthBits) =
                 ToonShadowMapFormatUtils.GetSupportedShadowMapFormat(_shadowMapsSettings.GetShadowMapDepthBits());
-            
+
             // TODO: check if additional lights are enabled
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.AdditionalLightsShadows)))
             {
@@ -352,7 +352,7 @@ namespace DELTation.ToonRP.Shadows
         private static Vector4 PackLightDirectionPosition(Light light)
         {
             Vector4 result;
-            
+
             if (light.type == LightType.Directional)
             {
                 result = -light.transform.forward;
@@ -416,7 +416,7 @@ namespace DELTation.ToonRP.Shadows
                     , BatchCullingProjectionType.Orthographic // directional shadows are rendered with orthographic projection
 #endif // UNITY_2022_2_OR_NEWER
                 );
-            
+
             ref DirectionalShadows directionalShadowSettings = ref _shadowMapsSettings.Directional;
             int cascadeCount = directionalShadowSettings.CascadeCount;
             int tileOffset = index * cascadeCount;
@@ -445,7 +445,7 @@ namespace DELTation.ToonRP.Shadows
                     int tileIndex = tileOffset + i;
                     SetTileViewport(cmd, tileIndex, split, tileSize, out Vector2 offset);
                     _directionalShadowMatricesVp[tileIndex] =
-                        ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split, _settings.ShadowMaps.Blur != BlurMode.None);
+                        ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split, _settings.ShadowMaps.Blur == BlurMode.None);
                     _directionalShadowMatricesV[tileIndex] = viewMatrix;
                     cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
@@ -464,26 +464,19 @@ namespace DELTation.ToonRP.Shadows
 
         private void RenderAdditionalShadows(CommandBuffer cmd, int depthBits, in ToonLightsData lightsData)
         {
-            const int resolution = 1024;
-            cmd.GetTemporaryRT(AdditionalShadowsDepthId, resolution, resolution, depthBits, ShadowmapFiltering, DepthRenderTextureFormat);
-            cmd.SetRenderTarget(AdditionalShadowsDepthId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.ClearRenderTarget(true, false, Color.clear);
+            // Mark shadowed lights
+            int shadowLightsCount = 0;
 
-            var defaultMetadata = new Vector4(-1, 0, 0, 0);
-
-            for (int i = 0; i < _additionalShadowMetadata.Length; i++)
+            for (int additionalLightIndex = 0; additionalLightIndex < lightsData.AdditionalLights.Count; additionalLightIndex++)
             {
-                _additionalShadowMetadata[i] = defaultMetadata;
-            }
-            
-            int shadowLightIndex = 0;
+                ToonLightsData.AdditionalLight additionalLight = lightsData.AdditionalLights[additionalLightIndex];
+                VisibleLight visibleLight = _cullingResults.visibleLights[additionalLight.VisibleLightIndex];
+                if (visibleLight.light.shadows == LightShadows.None)
+                {
+                    continue;
+                }
 
-            for (int additionalLightIndex = 0; additionalLightIndex < lightsData.AdditionalLightsIndices.Count; additionalLightIndex++)
-            {
-                int visibleLightIndex = lightsData.AdditionalLightsIndices[additionalLightIndex];
-                VisibleLight visibleLight = _cullingResults.visibleLights[visibleLightIndex];
-                Light light = visibleLight.light;
-                if (light.shadows == LightShadows.None)
+                if (additionalLightIndex >= _additionalShadowMetadata.Length)
                 {
                     continue;
                 }
@@ -491,18 +484,56 @@ namespace DELTation.ToonRP.Shadows
                 // TODO: add point light later
                 if (visibleLight.lightType is LightType.Spot)
                 {
-                    _cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(visibleLightIndex, out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData shadowSplitData);
+                    additionalLight.ShadowLightIndex = shadowLightsCount;
+                    lightsData.AdditionalLights[additionalLightIndex] = additionalLight;
 
-                    _additionalShadowMatricesVp[additionalLightIndex] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, Vector2.zero, 1);
-                    _additionalShadowMetadata[additionalLightIndex] = new Vector4(shadowLightIndex, 0, 0, 0);
-                    ++shadowLightIndex;
+                    ++shadowLightsCount;
+                }
+            }
 
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-                    BindLightParams(cmd, light, light.shadowBias, -light.shadowNormalBias, 0.0f);
-                    _context.ExecuteCommandBufferAndClear(cmd);
+            var defaultMetadata = new Vector4(-1, 0, 0, 0);
 
-                    var shadowSettings = new ShadowDrawingSettings(_cullingResults, visibleLightIndex, BatchCullingProjectionType.Perspective);
-                    _context.DrawShadows(ref shadowSettings);
+            for (int i = 0; i < _additionalShadowMetadata.Length; i++)
+            {
+                _additionalShadowMetadata[i] = defaultMetadata;
+            }
+
+            if (shadowLightsCount > 0)
+            {
+                int resolution = 1024;
+                int split = Mathf.CeilToInt(Mathf.Sqrt(shadowLightsCount));
+                int tileSize = resolution / split;
+                resolution = tileSize * split;
+
+                cmd.GetTemporaryRT(AdditionalShadowsDepthId, resolution, resolution, depthBits, ShadowmapFiltering, DepthRenderTextureFormat);
+                cmd.SetRenderTarget(AdditionalShadowsDepthId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.ClearRenderTarget(true, false, Color.clear);
+
+                for (int additionalLightIndex = 0; additionalLightIndex < lightsData.AdditionalLights.Count; additionalLightIndex++)
+                {
+                    ToonLightsData.AdditionalLight additionalLight = lightsData.AdditionalLights[additionalLightIndex];
+                    if (additionalLight.ShadowLightIndex == null)
+                    {
+                        continue;
+                    }
+
+                    int visibleLightIndex = additionalLight.VisibleLightIndex;
+                    Light light = _cullingResults.visibleLights[visibleLightIndex].light;
+                    if (_cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(visibleLightIndex, out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData _))
+                    {
+                        int shadowLightIndex = additionalLight.ShadowLightIndex.Value;
+                        SetTileViewport(cmd, shadowLightIndex, split, tileSize, out Vector2 offset);
+                        _additionalShadowMatricesVp[shadowLightIndex] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
+                        _additionalShadowMetadata[additionalLightIndex] = new Vector4(shadowLightIndex, 0, 0, 0);
+
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                        BindLightParams(cmd, light, light.shadowBias, -light.shadowNormalBias, 0.0f);
+
+                        _context.ExecuteCommandBufferAndClear(cmd);
+
+                        var shadowSettings = new ShadowDrawingSettings(_cullingResults, visibleLightIndex, BatchCullingProjectionType.Perspective);
+                        _context.DrawShadows(ref shadowSettings);
+                    }
                 }
             }
 
@@ -607,13 +638,13 @@ namespace DELTation.ToonRP.Shadows
             );
         }
 
-        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split, bool vsm = false)
+        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split, bool correctZ = true)
         {
             Matrix4x4 remap = Matrix4x4.identity;
             remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
             remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
 
-            if (!vsm)
+            if (correctZ)
             {
                 remap.m22 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
 

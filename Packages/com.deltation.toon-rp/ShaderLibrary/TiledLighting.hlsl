@@ -49,6 +49,7 @@ LightEntry GetTiledLightEntry(const uint globalLightIndex)
     lightEntry.distanceAttenuation = positionWs_attenuation.w;
     lightEntry.spotAttenuation = float2(0, 1);
     lightEntry.spotDir = float3(0, 0, 0);
+    lightEntry.shadowIndex = -1;
     
     return lightEntry;
 }

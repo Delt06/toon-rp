@@ -169,7 +169,7 @@ namespace DELTation.ToonRP.Lighting
         }
 
         private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights,
-            in ToonShadowSettings shadowSettings, ref  ToonLightsData lightsData)
+            in ToonShadowSettings shadowSettings, ref ToonLightsData lightsData)
         {
             const int lightSkipIndex = -1;
             _additionalLightsCount = 0;
@@ -197,7 +197,12 @@ namespace DELTation.ToonRP.Lighting
                         {
                             newIndex = _additionalLightsCount;
                             SetupAdditionalLight(_additionalLightsCount, visibleLight, shadowSettings);
-                            lightsData.AdditionalLightsIndices.Add(visibleLightIndex);
+                            lightsData.AdditionalLights.Add(new ToonLightsData.AdditionalLight
+                                {
+                                    VisibleLightIndex = visibleLightIndex,
+                                    ShadowLightIndex = null,
+                                }
+                            );
                             _additionalLightsCount++;
                         }
 

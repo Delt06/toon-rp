@@ -162,6 +162,7 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
     const float3 offset = lightEntry.positionWs - positionWs;
     light.direction = normalize(offset);
 
+#ifdef _TOON_RP_ADDITIONAL_SHADOWS
     UNITY_BRANCH
     if (lightEntry.shadowIndex >= 0)
     {
@@ -169,6 +170,7 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
         light.shadowAttenuation = SampleAdditionalShadowAttenuation(shadowCoords, lightEntry.shadowIndex);
     }
     else
+#endif // _TOON_RP_ADDITIONAL_SHADOWS
     {
         light.shadowAttenuation = 1.0f;    
     }

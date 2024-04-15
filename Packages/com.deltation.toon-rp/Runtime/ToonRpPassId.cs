@@ -2,9 +2,10 @@
 {
     public static class ToonRpPassId
     {
-        public const string VsmShadows = "VSM Shadows";
-        public const string Shadows = "Shadows";
+        public const string MainLightShadows = "Main Light Shadows";
+        public const string MainLightVsmShadows = "Main Light Shadows (VSM)";
         public const string BlobShadows = "Blob Shadows";
+        public const string AdditionalLightsShadows = "Additional Lights Shadows";
         public const string FakeAdditionalLights = "Fake Additional Lights";
         public const string DepthPrePass = "Depth Pre-Pass";
         public const string OpaqueTexture = "Copy Opaque Texture";

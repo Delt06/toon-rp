@@ -84,6 +84,7 @@ struct LightEntry
     float distanceAttenuation;
     half3 spotDir;
     half2 spotAttenuation;
+    int shadowIndex;
 };
 
 LightEntry GetUniformLightEntry(const uint globalLightIndex)
@@ -106,6 +107,18 @@ LightEntry GetUniformLightEntry(const uint globalLightIndex)
         const half4 spotDir_spotAttenuation = _AdditionalLightSpotDir[globalLightIndex];
         lightEntry.spotDir = spotDir_spotAttenuation.xyz;
         lightEntry.spotAttenuation.y = spotDir_spotAttenuation.w;
+    }
+
+    {
+        if (globalLightIndex < MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT)
+        {
+            const half4 metadata = _ToonRP_AdditionalShadows_Metadata[globalLightIndex];
+            lightEntry.shadowIndex = (int) metadata.x;
+        }
+        else
+        {
+            lightEntry.shadowIndex = -1;
+        }
     }
     
     return lightEntry;
@@ -148,7 +161,18 @@ Light ConvertEntryToLight(const LightEntry lightEntry, const float3 positionWs)
     light.color = lightEntry.color;
     const float3 offset = lightEntry.positionWs - positionWs;
     light.direction = normalize(offset);
-    light.shadowAttenuation = 1.0f;
+
+    UNITY_BRANCH
+    if (lightEntry.shadowIndex >= 0)
+    {
+        const float3 shadowCoords = TransformWorldToAdditionalShadowCoords(positionWs, lightEntry.shadowIndex);
+        light.shadowAttenuation = SampleAdditionalShadowAttenuation(shadowCoords, lightEntry.shadowIndex);
+    }
+    else
+    {
+        light.shadowAttenuation = 1.0f;    
+    }
+    
 
     light.distanceAttenuation = DistanceAttenuation(offset, lightEntry.distanceAttenuation) *
         AngleAttenuation(lightEntry.spotDir, light.direction, lightEntry.spotAttenuation);

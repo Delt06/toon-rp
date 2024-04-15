@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.Shadows.Blobs;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -137,7 +138,7 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
-        public void Render([CanBeNull] Light mainLight)
+        public void Render([CanBeNull] Light mainLight, in ToonLightsData lightsData)
         {
             switch (_settings.Mode)
             {
@@ -149,7 +150,7 @@ namespace DELTation.ToonRP.Shadows
                         _shadowMaps.ReserveDirectionalShadows(mainLight, 0);
                     }
 
-                    _shadowMaps.Render();
+                    _shadowMaps.Render(lightsData);
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows.Render();

@@ -49,6 +49,7 @@ namespace DELTation.ToonRP
         private ToonPrePassRequirement _prePassRequirement;
         private bool _requireStencil;
         private ToonCameraRendererSettings _settings;
+        private ToonLightsData _lightsData = new();
 
         public ToonCameraRenderer()
         {
@@ -171,6 +172,8 @@ namespace DELTation.ToonRP
             {
                 return;
             }
+            
+            _lightsData.Reset();
 
             CommandBuffer cmd = CommandBufferPool.Get();
             PrepareBufferName();
@@ -601,11 +604,11 @@ namespace DELTation.ToonRP
             _globalRamp.Setup(_context, globalRampSettings);
 
             VisibleLight? mainLight = FindMainLightOrDefault();
-            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, shadowSettings, mainLight);
+            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, shadowSettings, mainLight, ref _lightsData);
 
             {
                 _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
-                _shadows.Render(mainLight?.light);
+                _shadows.Render(mainLight?.light, _lightsData);
             }
         }
 

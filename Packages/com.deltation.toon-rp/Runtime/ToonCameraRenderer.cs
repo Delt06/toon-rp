@@ -640,7 +640,7 @@ namespace DELTation.ToonRP
 
             DrawOcclusionMesh(cmd);
             DrawVisibleGeometry(cmd);
-            DrawUnsupportedShaders();
+            DrawUnsupportedShaders(cmd);
             DrawGizmosPreImageEffects();
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -942,7 +942,7 @@ namespace DELTation.ToonRP
         partial void DrawGizmosPreImageEffects();
         partial void DrawGizmosPostImageEffects();
 
-        partial void DrawUnsupportedShaders();
+        partial void DrawUnsupportedShaders(CommandBuffer cmd);
 
         public void InvalidateExtensions()
         {

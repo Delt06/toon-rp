@@ -82,9 +82,14 @@ namespace DELTation.ToonRP
                 depthState = new DepthState { writeEnabled = true, compareFunction = CompareFunction.LessEqual },
             };
 
-            context.Srp.DrawRenderers(context.CullingResults,
-                ref drawingSettings, ref filteringSettings, ref renderStateBlock
-            );
+            var rendererListParams = new RendererListParams(context.CullingResults, drawingSettings, filteringSettings)
+            {
+                stateBlocks = NativeCollectionsUtils.CreateTempSingletonArray(renderStateBlock),
+                tagValues = NativeCollectionsUtils.CreateTempSingletonArray(MotionVectorsShaderTagId),
+            };
+            RendererList rendererList = context.Srp.CreateRendererList(ref rendererListParams);
+            cmd.DrawRendererList(rendererList);
+            context.Srp.ExecuteCommandBufferAndClear(cmd);
 
             context.ExtensionsCollection.OnPrePass(PrePassMode.MotionVectors,
                 ref context.Srp, cmd,

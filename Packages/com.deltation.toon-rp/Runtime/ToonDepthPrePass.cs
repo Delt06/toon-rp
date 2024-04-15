@@ -123,9 +123,9 @@ namespace DELTation.ToonRP
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers(CommandBuffer cmd, ref RenderContext renderContext)
+        private void DrawRenderers(CommandBuffer cmd, ref RenderContext context)
         {
-            Camera camera = renderContext.Camera;
+            Camera camera = context.Camera;
 
             var sortingSettings = new SortingSettings(camera)
             {
@@ -134,18 +134,23 @@ namespace DELTation.ToonRP
             ShaderTagId shaderPassName = _normals ? DepthNormalsShaderTagId : DepthOnlyShaderTagId;
             var drawingSettings = new DrawingSettings(shaderPassName, sortingSettings)
             {
-                enableDynamicBatching = renderContext.Settings.UseDynamicBatching,
+                enableDynamicBatching = context.Settings.UseDynamicBatching,
             };
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            renderContext.Srp.DrawRenderers(renderContext.CullingResults,
-                ref drawingSettings, ref filteringSettings, ref renderStateBlock
-            );
+            var rendererListParams = new RendererListParams(context.CullingResults, drawingSettings, filteringSettings)
+            {
+                stateBlocks = NativeCollectionsUtils.CreateTempSingletonArray(renderStateBlock),
+                tagValues = NativeCollectionsUtils.CreateTempSingletonArray(shaderPassName),
+            };
+            RendererList rendererList = context.Srp.CreateRendererList(ref rendererListParams);
+            cmd.DrawRendererList(rendererList);
+            context.Srp.ExecuteCommandBufferAndClear(cmd);
 
-            renderContext.ExtensionsCollection.OnPrePass(
+            context.ExtensionsCollection.OnPrePass(
                 _normals ? PrePassMode.Normals | PrePassMode.Depth : PrePassMode.Depth,
-                ref renderContext.Srp, cmd,
+                ref context.Srp, cmd,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
         }

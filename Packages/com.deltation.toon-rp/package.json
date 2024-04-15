@@ -11,11 +11,11 @@
         "url": "https://deltation.tatar/"
     },
     "dependencies": {
-        "com.unity.render-pipelines.core": "14.0.9",
-        "com.unity.shadergraph": "14.0.9",
+        "com.unity.render-pipelines.core": "17.0.2",
+        "com.unity.shadergraph": "17.0.2",
         "com.unity.modules.uielements": "1.0.0",
         "com.unity.mathematics": "1.2.6",
         "com.unity.burst": "1.8.9",
-        "com.unity.collections": "2.1.4"
+        "com.unity.collections": "2.4.0"
     }
 }

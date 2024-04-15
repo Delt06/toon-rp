@@ -12,12 +12,12 @@
             "depth": 0,
             "source": "embedded",
             "dependencies": {
-                "com.unity.render-pipelines.core": "14.0.9",
-                "com.unity.shadergraph": "14.0.9",
+                "com.unity.render-pipelines.core": "17.0.2",
+                "com.unity.shadergraph": "17.0.2",
                 "com.unity.modules.uielements": "1.0.0",
                 "com.unity.mathematics": "1.2.6",
                 "com.unity.burst": "1.8.9",
-                "com.unity.collections": "2.1.4"
+                "com.unity.collections": "2.4.0"
             }
         },
         "com.tayx.graphy": {
@@ -47,13 +47,13 @@
             "url": "https://packages.unity.com"
         },
         "com.unity.collections": {
-            "version": "2.4.0-pre.2",
+            "version": "2.4.0",
             "depth": 1,
             "source": "registry",
             "dependencies": {
-                "com.unity.burst": "1.8.10",
+                "com.unity.burst": "1.8.12",
                 "com.unity.nuget.mono-cecil": "1.11.4",
-                "com.unity.test-framework": "1.3.8",
+                "com.unity.test-framework": "1.4.3",
                 "com.unity.test-framework.performance": "3.0.3"
             },
             "url": "https://packages.unity.com"

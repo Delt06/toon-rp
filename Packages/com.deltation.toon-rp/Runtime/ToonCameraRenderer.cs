@@ -104,6 +104,7 @@ namespace DELTation.ToonRP
         {
             ToonPrePassRequirement requirement;
             requirement.Mode = settings.PrePass;
+
             // assuming that if the pipeline settings ask for a pre-pass, it should be not earlier than BeforeTransparent (e.g., soft particles)
             requirement.Event = settings.PrePass != PrePassMode.Off
                 ? ToonRenderingEvent.BeforeTransparent
@@ -907,46 +908,35 @@ namespace DELTation.ToonRP
 
         private void DrawSkybox(CommandBuffer cmd)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+            RendererList rendererList;
 
-            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+#if ENABLE_VR && ENABLE_XR_MODULE
             XRPass xrPass = _additionalCameraData.XrPass;
             if (xrPass.enabled)
             {
-                // Setup Legacy XR buffer states
                 if (xrPass.singlePassEnabled)
                 {
-                    // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview
-                        ? SinglePassStereoMode.Multiview
-                        : SinglePassStereoMode.Instancing
+                    rendererList = _context.CreateSkyboxRendererList(
+                        _camera,
+                        xrPass.GetProjMatrix(0), xrPass.GetViewMatrix(0),
+                        xrPass.GetProjMatrix(1), xrPass.GetViewMatrix(1)
                     );
-                    _context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    // Calling into built-in skybox pass
-                    _context.DrawSkybox(_camera);
-
-                    // Disable Legacy XR path
-                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
-                    _context.ExecuteCommandBuffer(cmd);
-
-                    // We do not need to submit here due to special handling of stereo matrices in core.
-                    // context.Submit();
-                    cmd.Clear();
-
-                    ToonXr.UpdateCameraStereoMatrices(_camera, xrPass);
                 }
                 else
                 {
-                    _context.DrawSkybox(_camera);
+                    rendererList = _context.CreateSkyboxRendererList(_camera,
+                        xrPass.GetProjMatrix(), xrPass.GetViewMatrix()
+                    );
                 }
             }
             else
 #endif
             {
-                _context.DrawSkybox(_camera);
+                rendererList = _context.CreateSkyboxRendererList(_camera);
             }
+
+            cmd.DrawRendererList(rendererList);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         partial void DrawGizmosPreImageEffects();

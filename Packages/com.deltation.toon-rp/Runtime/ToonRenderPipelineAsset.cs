@@ -90,6 +90,10 @@ namespace DELTation.ToonRP
                     CascadeRatio3 = 0.5f,
                     DepthBias = 0.035f,
                 },
+                Additional = new ToonShadowMapsSettings.AdditionalShadows
+                {
+                    Enabled = false, AtlasSize = TextureSize._1024,
+                },
                 SoftShadows =
                 {
                     Spread = 0.2f,

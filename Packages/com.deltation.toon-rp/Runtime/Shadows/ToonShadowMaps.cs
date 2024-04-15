@@ -500,7 +500,7 @@ namespace DELTation.ToonRP.Shadows
 
             if (shadowLightsCount > 0)
             {
-                int resolution = 1024;
+                int resolution = (int) _settings.ShadowMaps.Additional.AtlasSize;
                 int split = Mathf.CeilToInt(Mathf.Sqrt(shadowLightsCount));
                 int tileSize = resolution / split;
                 resolution = tileSize * split;

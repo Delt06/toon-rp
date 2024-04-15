@@ -115,11 +115,11 @@ float GetDirectionalShadowAttenuation(const LightComputationParameters parameter
 
 float GetAdditionalShadowAttenuation(const LightComputationParameters parameters, const Light light)
 {
-    #if defined(_TOON_RP_ANY_SHADOWS)
+    #if defined(_TOON_RP_ADDITIONAL_SHADOWS)
     return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
-    #else // !_TOON_RP_ANY_SHADOWS
+    #else // !_TOON_RP_ADDITIONAL_SHADOWS
     return 1.0f;
-    #endif  // _TOON_RP_ANY_SHADOWS
+    #endif  // _TOON_RP_ADDITIONAL_SHADOWS
 }
 
 Light GetMainLight(const LightComputationParameters parameters)

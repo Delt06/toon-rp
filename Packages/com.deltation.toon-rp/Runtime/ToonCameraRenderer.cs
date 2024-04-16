@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
@@ -10,6 +9,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
@@ -782,11 +782,11 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
-                    _context.ExecuteCommandBufferAndClear(cmd);
-                    DrawGeometry(false);
+                    DrawGeometry(cmd, false);
                 }
 
                 _context.ExecuteCommandBufferAndClear(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
 
@@ -815,8 +815,7 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
-                    _context.ExecuteCommandBufferAndClear(cmd);
-                    DrawGeometry(true);
+                    DrawGeometry(cmd, true);
                 }
 
                 _context.ExecuteCommandBufferAndClear(cmd);
@@ -825,25 +824,21 @@ namespace DELTation.ToonRP
             }
         }
 
-        private void DrawGeometry(bool transparent)
+        private void DrawGeometry(CommandBuffer cmd, bool transparent)
         {
             (SortingCriteria sortingCriteria, RenderQueueRange renderQueueRange, int layerMask) = transparent
                 ? (SortingCriteria.CommonTransparent, RenderQueueRange.transparent, _settings.TransparentLayerMask)
                 : (SortingCriteria.CommonOpaque, RenderQueueRange.opaque, _settings.OpaqueLayerMask);
-            var sortingSettings = new SortingSettings(_camera)
-            {
-                criteria = sortingCriteria,
-            };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, transparent,
-                layerMask
+            DrawGeometry(_settings, ref _context, cmd, _camera, _cullingResults,
+                sortingCriteria, renderQueueRange, transparent, layerMask
             );
         }
 
-        public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
-            in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+        public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context, CommandBuffer cmd, Camera camera,
+            in CullingResults cullingResults, SortingCriteria sortingCriteria, RenderQueueRange renderQueueRange,
             bool includesTransparent,
             int layerMask = -1, in RenderStateBlock? renderStateBlock = null,
-            IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
+            ShaderTagId[] shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
         {
             PerObjectData perObjectData = PerObjectData.None;
@@ -879,31 +874,18 @@ namespace DELTation.ToonRP
             }
 
             shaderTagIds ??= ShaderTagIds;
-            var drawingSettings = new DrawingSettings(shaderTagIds[0], sortingSettings)
+
+            var rendererListDesc = new RendererListDesc(shaderTagIds, cullingResults, camera)
             {
-                enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = perObjectData,
+                rendererConfiguration = perObjectData,
                 overrideMaterial = overrideMaterial,
+                renderQueueRange = renderQueueRange,
+                sortingCriteria = sortingCriteria,
+                stateBlock = renderStateBlock,
+                layerMask = layerMask,
             };
-
-            for (int i = 0; i < shaderTagIds.Count; i++)
-            {
-                drawingSettings.SetShaderPassName(i, shaderTagIds[i]);
-            }
-
-            var filteringSettings = new FilteringSettings(renderQueueRange, layerMask);
-
-            if (renderStateBlock == null)
-            {
-                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
-            }
-            else
-            {
-                RenderStateBlock renderStateBlockValue = renderStateBlock.Value;
-                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings,
-                    ref renderStateBlockValue
-                );
-            }
+            RendererList rendererList = context.CreateRendererList(rendererListDesc);
+            cmd.DrawRendererList(rendererList);
         }
 
         private void DrawSkybox(CommandBuffer cmd)

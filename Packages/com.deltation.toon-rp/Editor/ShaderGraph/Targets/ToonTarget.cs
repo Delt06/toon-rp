@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DELTation.ToonRP.Editor.ShaderGUI;
 using DELTation.ToonRP.Lighting;
+using DELTation.ToonRP.Shadows;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
@@ -1668,6 +1669,15 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Cascade", referenceName = "TOON_RP_DIRECTIONAL_CASCADED_SHADOWS" },
                 new() { displayName = "Blob", referenceName = "TOON_RP_BLOB_SHADOWS" },
             },
+        };
+
+        public static readonly KeywordDescriptor ToonRpAdditionalShadows = new()
+        {
+            displayName = "Toon RP Additional Shadows",
+            referenceName = ToonShadows.AdditionalShadowsKeywordName,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
 
         public static readonly KeywordDescriptor ToonRpShadowSmoothingMode = new()

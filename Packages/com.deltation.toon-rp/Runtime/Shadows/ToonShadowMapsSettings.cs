@@ -69,6 +69,7 @@ namespace DELTation.ToonRP.Shadows
         [Range(0.0f, 0.1f)]
         public float PrecisionCompensation;
         public DirectionalShadows Directional;
+        public AdditionalShadows Additional;
 
         private bool IsBlurEnabled => Blur != BlurMode.None;
         public bool IsBlurEarlyBailAllowed => Blur == BlurMode.GaussianHighQuality;
@@ -121,6 +122,14 @@ namespace DELTation.ToonRP.Shadows
             public float SlopeBias;
 
             public Vector3 GetRatios() => new(CascadeRatio1, CascadeRatio2, CascadeRatio3);
+        }
+
+        [Serializable]
+        public struct AdditionalShadows
+        {
+            public bool Enabled;
+            [ToonRpShowIf(nameof(Enabled))]
+            public TextureSize AtlasSize;
         }
     }
 }

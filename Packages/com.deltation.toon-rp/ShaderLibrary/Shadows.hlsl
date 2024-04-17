@@ -15,6 +15,7 @@
 #include "VSM.hlsl"
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 1
+#define MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT 16
 #define MAX_CASCADE_COUNT 4
 
 #ifdef _TOON_RP_VSM
@@ -28,6 +29,9 @@ SAMPLER_CMP(sampler_LinearClampCompare);
 TEXTURE2D(_ToonRP_ShadowPattern);
 SAMPLER(sampler_ToonRP_ShadowPattern);
 
+TEXTURE2D_SHADOW(_ToonRP_AdditionalShadows);
+SAMPLER_CMP(sampler_ToonRP_AdditionalShadows);
+
 CBUFFER_START(_ToonRpShadows)
     float4x4 _ToonRP_DirectionalShadowMatrices_VP[MAX_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
     int _ToonRP_CascadeCount;
@@ -38,6 +42,9 @@ CBUFFER_START(_ToonRpShadows)
     float2 _ToonRP_ShadowDistanceFade;
     float2 _ToonRP_ShadowBias; // x - depth, y - normal
     float3 _ToonRP_ShadowPatternScale;
+
+    float4x4 _ToonRP_AdditionalShadowMatrices_VP[MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT];
+    half4 _ToonRP_AdditionalShadows_Metadata[MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT];
 
     uint _ToonRP_PoissonDiskSize;
     float _ToonRP_fPoissonDiskSize;
@@ -150,6 +157,11 @@ float SampleShadowAttenuation(const float3 shadowCoords, const float3 positionWs
     #endif
 }
 
+float SampleAdditionalShadowAttenuation(const float3 shadowCoords, const uint shadowIndex)
+{
+    return SAMPLE_TEXTURE2D_SHADOW(_ToonRP_AdditionalShadows, sampler_ToonRP_AdditionalShadows, shadowCoords).r;
+}
+
 float SampleShadowPattern(const float3 positionWs)
 {
     const float2 uv = EncodePositionToUv(positionWs, _ToonRP_ShadowPatternScale);
@@ -182,6 +194,18 @@ uint ComputeShadowTileIndex(const float3 positionWs)
 float3 TransformWorldToShadowCoords(const float3 positionWs, uint tileIndex, const bool perspectiveProjection = false)
 {
     float4 shadowCoords = mul(_ToonRP_DirectionalShadowMatrices_VP[tileIndex], float4(positionWs, 1.0f));
+
+    if (perspectiveProjection)
+    {
+        shadowCoords.xyz /= shadowCoords.w;
+    }
+
+    return shadowCoords.xyz;
+}
+
+float3 TransformWorldToAdditionalShadowCoords(const float3 positionWs, uint shadowIndex, const bool perspectiveProjection = true)
+{
+    float4 shadowCoords = mul(_ToonRP_AdditionalShadowMatrices_VP[shadowIndex], float4(positionWs, 1.0f));
 
     if (perspectiveProjection)
     {

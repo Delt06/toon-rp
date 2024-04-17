@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Lighting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -11,7 +12,8 @@ namespace DELTation.ToonRP.Shadows
         private const string RenderShadowsSample = "Render Shadows";
         private const string BlurSample = "Blur";
 
-        private const int MaxShadowedDirectionalLightCount = 1;
+        private const int MaxShadowedDirectionalLightsCount = 1;
+        private const int MaxShadowedAdditionalLightsCount = 16;
         public const int MaxCascades = 4;
 
         // Should mirror the value in VSM.hlsl
@@ -53,6 +55,11 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int RotatedPoissonSamplingTextureId =
             Shader.PropertyToID("_ToonRP_RotatedPoissonSamplingTexture");
 
+        private static readonly int LightDirectionPositionId = Shader.PropertyToID("_ToonRP_LightDirectionPosition");
+        private static readonly int AdditionalShadowsDepthId = Shader.PropertyToID("_ToonRP_AdditionalShadows");
+        private static readonly int AdditionalShadowsVpId = Shader.PropertyToID("_ToonRP_AdditionalShadowMatrices_VP");
+        private static readonly int AdditionalShadowsMetadataId = Shader.PropertyToID("_ToonRP_AdditionalShadows_Metadata");
+
         private static readonly Vector2[] PoissonDiskRaw =
         {
             new(-0.94201624f, -0.39906216f),
@@ -72,23 +79,23 @@ namespace DELTation.ToonRP.Shadows
             new(0.19984126f, 0.78641367f),
             new(0.14383161f, -0.14100790f),
         };
+
+        private readonly Matrix4x4[] _additionalShadowMatricesVp = new Matrix4x4[MaxShadowedAdditionalLightsCount];
+        private readonly Vector4[] _additionalShadowMetadata = new Vector4[MaxShadowedAdditionalLightsCount];
         private readonly ToonPipelineMaterial _blurMaterial;
         private readonly Shader _blurShader;
         private readonly Vector4[] _cascadeCullingSpheres = new Vector4[MaxCascades];
-
-        private readonly Matrix4x4[] _directionalShadowMatricesV =
-            new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
-        private readonly Matrix4x4[] _directionalShadowMatricesVp =
-            new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades];
+        private readonly Matrix4x4[] _directionalShadowMatricesV = new Matrix4x4[MaxShadowedDirectionalLightsCount * MaxCascades];
+        private readonly Matrix4x4[] _directionalShadowMatricesVp = new Matrix4x4[MaxShadowedDirectionalLightsCount * MaxCascades];
         private readonly Vector4[] _poissonDiskAdjusted = new Vector4[MaxPoissonDiskSize];
 
         private readonly ShadowedDirectionalLight[] _shadowedDirectionalLights =
-            new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
+            new ShadowedDirectionalLight[MaxShadowedDirectionalLightsCount];
+        private ToonCameraRendererSettings _cameraRendererSettings;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonShadowSettings _settings;
         private int _shadowedDirectionalLightCount;
-
         private ToonShadowMapsSettings _shadowMapsSettings;
 
         static ToonShadowMaps()
@@ -107,13 +114,13 @@ namespace DELTation.ToonRP.Shadows
             _blurMaterial = new ToonPipelineMaterial(_blurShader, "Toon RP VSM Blur");
         }
 
-        private string PassName
+        private string DirectionalShadowPassName
         {
             get
             {
                 string passName = _shadowMapsSettings.Blur == BlurMode.None
-                    ? ToonRpPassId.Shadows
-                    : ToonRpPassId.VsmShadows;
+                    ? ToonRpPassId.MainLightShadows
+                    : ToonRpPassId.MainLightVsmShadows;
                 return passName;
             }
         }
@@ -125,18 +132,21 @@ namespace DELTation.ToonRP.Shadows
 
         public void Setup(in ScriptableRenderContext context,
             in CullingResults cullingResults,
-            in ToonShadowSettings settings)
+            in ToonShadowSettings settings,
+            in ToonCameraRendererSettings cameraRendererSettings
+        )
         {
             _context = context;
             _cullingResults = cullingResults;
             _settings = settings;
+            _cameraRendererSettings = cameraRendererSettings;
             _shadowMapsSettings = settings.ShadowMaps;
             _shadowedDirectionalLightCount = 0;
         }
 
         public void ReserveDirectionalShadows(Light light, int visibleLightIndex)
         {
-            if (_shadowedDirectionalLightCount < MaxShadowedDirectionalLightCount &&
+            if (_shadowedDirectionalLightCount < MaxShadowedDirectionalLightsCount &&
                 light.shadows != LightShadows.None && light.shadowStrength > 0f &&
                 _cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds _)
                )
@@ -149,14 +159,20 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
-        public void Render()
+        public void Render(in ToonLightsData lightsData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
 
             (GraphicsFormat _, int depthBits) =
                 ToonShadowMapFormatUtils.GetSupportedShadowMapFormat(_shadowMapsSettings.GetShadowMapDepthBits());
 
-            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(PassName)))
+            // TODO: check if additional lights are enabled
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.AdditionalLightsShadows)))
+            {
+                RenderAdditionalShadows(cmd, depthBits, lightsData);
+            }
+
+            using (new ProfilingScope(cmd, NamedProfilingSampler.Get(DirectionalShadowPassName)))
             {
                 if (_shadowMapsSettings.Directional.Enabled && _shadowedDirectionalLightCount > 0)
                 {
@@ -327,6 +343,33 @@ namespace DELTation.ToonRP.Shadows
             _context.ExecuteCommandBufferAndClear(cmd);
         }
 
+        private static void BindLightParams(CommandBuffer cmd, Light light, float depthBias, float normalBias, float slopeBias)
+        {
+            cmd.SetGlobalDepthBias(0.0f, slopeBias);
+            cmd.SetGlobalVector(ShadowBiasId, PackShadowBias(depthBias, normalBias));
+            cmd.SetGlobalVector(LightDirectionPositionId, PackLightDirectionPosition(light));
+        }
+
+        private static Vector4 PackShadowBias(float depthBias, float normalBias) => new(-depthBias, normalBias);
+
+        private static Vector4 PackLightDirectionPosition(Light light)
+        {
+            Vector4 result;
+
+            if (light.type == LightType.Directional)
+            {
+                result = -light.transform.forward;
+                result.w = 0.0f;
+            }
+            else
+            {
+                result = light.transform.position;
+                result.w = 1.0f;
+            }
+
+            return result;
+        }
+
         private void BakeViewSpaceZIntoMatrix()
         {
             for (int index = 0; index < _directionalShadowMatricesVp.Length; index++)
@@ -369,29 +412,29 @@ namespace DELTation.ToonRP.Shadows
 
         private void RenderDirectionalShadows(CommandBuffer cmd, int index, int split, int tileSize)
         {
-            ShadowedDirectionalLight light = _shadowedDirectionalLights[index];
+            ShadowedDirectionalLight shadowedLight = _shadowedDirectionalLights[index];
             var shadowSettings =
-                new ShadowDrawingSettings(_cullingResults, light.VisibleLightIndex
+                new ShadowDrawingSettings(_cullingResults, shadowedLight.VisibleLightIndex
 #if UNITY_2022_2_OR_NEWER
                     , BatchCullingProjectionType.Orthographic // directional shadows are rendered with orthographic projection
 #endif // UNITY_2022_2_OR_NEWER
                 );
-            int cascadeCount = _shadowMapsSettings.Directional.CascadeCount;
+
+            ref DirectionalShadows directionalShadowSettings = ref _shadowMapsSettings.Directional;
+            int cascadeCount = directionalShadowSettings.CascadeCount;
             int tileOffset = index * cascadeCount;
-            Vector3 ratios = _shadowMapsSettings.Directional.GetRatios();
+            Vector3 ratios = directionalShadowSettings.GetRatios();
 
             cmd.BeginSample(RenderShadowsSample);
-            cmd.SetGlobalDepthBias(0.0f, _shadowMapsSettings.Directional.SlopeBias);
-            cmd.SetGlobalVector(ShadowBiasId,
-                new Vector4(-_shadowMapsSettings.Directional.DepthBias, _shadowMapsSettings.Directional.NormalBias)
-            );
+            Light light = _cullingResults.visibleLights[shadowedLight.VisibleLightIndex].light;
+            BindLightParams(cmd, light, directionalShadowSettings.DepthBias, directionalShadowSettings.NormalBias, directionalShadowSettings.SlopeBias);
 
             for (int i = 0; i < cascadeCount; i++)
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(CascadeProfilingNames[i])))
                 {
                     _cullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                        light.VisibleLightIndex, i, cascadeCount, ratios, tileSize, light.NearPlaneOffset,
+                        shadowedLight.VisibleLightIndex, i, cascadeCount, ratios, tileSize, shadowedLight.NearPlaneOffset,
                         out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
                     );
                     shadowSettings.splitData = splitData;
@@ -405,7 +448,7 @@ namespace DELTation.ToonRP.Shadows
                     int tileIndex = tileOffset + i;
                     SetTileViewport(cmd, tileIndex, split, tileSize, out Vector2 offset);
                     _directionalShadowMatricesVp[tileIndex] =
-                        ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
+                        ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split, _settings.ShadowMaps.Blur == BlurMode.None);
                     _directionalShadowMatricesV[tileIndex] = viewMatrix;
                     cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
 
@@ -420,6 +463,98 @@ namespace DELTation.ToonRP.Shadows
             _context.ExecuteCommandBufferAndClear(cmd);
 
             ExecuteBlur(cmd);
+        }
+
+        private void RenderAdditionalShadows(CommandBuffer cmd, int depthBits, in ToonLightsData lightsData)
+        {
+            int shadowLightsCount = 0;
+
+            if (_settings.ShadowMaps.Additional.Enabled && _cameraRendererSettings.AdditionalLights == ToonCameraRendererSettings.AdditionalLightsMode.PerPixel)
+            {
+                // Mark shadowed lights
+                for (int additionalLightIndex = 0; additionalLightIndex < lightsData.AdditionalLights.Count; additionalLightIndex++)
+                {
+                    ToonLightsData.AdditionalLight additionalLight = lightsData.AdditionalLights[additionalLightIndex];
+                    VisibleLight visibleLight = _cullingResults.visibleLights[additionalLight.VisibleLightIndex];
+                    if (visibleLight.light.shadows == LightShadows.None)
+                    {
+                        continue;
+                    }
+
+                    if (additionalLightIndex >= _additionalShadowMetadata.Length)
+                    {
+                        continue;
+                    }
+                    
+                    if (!_cullingResults.GetShadowCasterBounds(additionalLight.VisibleLightIndex, out Bounds _))
+                    {
+                        continue;
+                    }
+
+                    // TODO: add point light later
+                    if (visibleLight.lightType is LightType.Spot)
+                    {
+                        additionalLight.ShadowLightIndex = shadowLightsCount;
+                        lightsData.AdditionalLights[additionalLightIndex] = additionalLight;
+
+                        ++shadowLightsCount;
+                    }
+                }
+
+                var defaultMetadata = new Vector4(-1, 0, 0, 0);
+
+                for (int i = 0; i < _additionalShadowMetadata.Length; i++)
+                {
+                    _additionalShadowMetadata[i] = defaultMetadata;
+                }
+            }
+
+            if (shadowLightsCount > 0)
+            {
+                int resolution = (int) _settings.ShadowMaps.Additional.AtlasSize;
+                int split = Mathf.CeilToInt(Mathf.Sqrt(shadowLightsCount));
+                int tileSize = resolution / split;
+                resolution = tileSize * split;
+
+                cmd.GetTemporaryRT(AdditionalShadowsDepthId, resolution, resolution, depthBits, ShadowmapFiltering, DepthRenderTextureFormat);
+                cmd.SetRenderTarget(AdditionalShadowsDepthId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.ClearRenderTarget(true, false, Color.clear);
+
+                for (int additionalLightIndex = 0; additionalLightIndex < lightsData.AdditionalLights.Count; additionalLightIndex++)
+                {
+                    ToonLightsData.AdditionalLight additionalLight = lightsData.AdditionalLights[additionalLightIndex];
+                    if (additionalLight.ShadowLightIndex == null)
+                    {
+                        continue;
+                    }
+
+                    int visibleLightIndex = additionalLight.VisibleLightIndex;
+                    Light light = _cullingResults.visibleLights[visibleLightIndex].light;
+                    if (_cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(visibleLightIndex, out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData _))
+                    {
+                        int shadowLightIndex = additionalLight.ShadowLightIndex.Value;
+                        SetTileViewport(cmd, shadowLightIndex, split, tileSize, out Vector2 offset);
+                        _additionalShadowMatricesVp[shadowLightIndex] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, split);
+                        _additionalShadowMetadata[additionalLightIndex] = new Vector4(shadowLightIndex, 0, 0, 0);
+
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                        BindLightParams(cmd, light, light.shadowBias, -light.shadowNormalBias, 0.0f);
+
+                        _context.ExecuteCommandBufferAndClear(cmd);
+
+                        var shadowSettings = new ShadowDrawingSettings(_cullingResults, visibleLightIndex, BatchCullingProjectionType.Perspective);
+                        _context.DrawShadows(ref shadowSettings);
+                    }
+                }
+
+                cmd.SetGlobalMatrixArray(AdditionalShadowsVpId, _additionalShadowMatricesVp);
+                cmd.SetGlobalVectorArray(AdditionalShadowsMetadataId, _additionalShadowMetadata);
+                cmd.EnableKeyword(ToonShadows.AdditionalShadowsGlobalKeyword);
+            }
+            else
+            {
+                cmd.DisableKeyword(ToonShadows.AdditionalShadowsGlobalKeyword);
+            }
         }
 
         private void ExecuteBlur(CommandBuffer cmd)
@@ -481,6 +616,7 @@ namespace DELTation.ToonRP.Shadows
                         );
                         Color shadowmapClearColor = GetShadowmapClearColor();
                         cmd.ClearRenderTarget(false, true, shadowmapClearColor);
+
                         // ReSharper disable once RedundantArgumentDefaultValue
                         ToonBlitter.Blit(cmd, blurMaterial, true, gaussianHorizontalPass);
                     }
@@ -518,13 +654,13 @@ namespace DELTation.ToonRP.Shadows
             );
         }
 
-        private Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split)
+        private static Matrix4x4 ConvertToAtlasMatrix(Matrix4x4 m, Vector2 offset, int split, bool correctZ = true)
         {
             Matrix4x4 remap = Matrix4x4.identity;
             remap.m00 = remap.m11 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
             remap.m03 = remap.m13 = 0.5f; // translate [-0.5, 0.5] -> [0, 1]
 
-            if (_shadowMapsSettings.Blur == BlurMode.None)
+            if (correctZ)
             {
                 remap.m22 = 0.5f; // scale [-1; 1] -> [-0.5, 0.5]
 

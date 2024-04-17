@@ -46,6 +46,7 @@ namespace DELTation.ToonRP
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
         private ToonRenderingExtensionContext _extensionContext;
+        private ToonLightsData _lightsData = new();
         private ToonPrePassRequirement _prePassRequirement;
         private bool _requireStencil;
         private ToonCameraRendererSettings _settings;
@@ -104,6 +105,7 @@ namespace DELTation.ToonRP
         {
             ToonPrePassRequirement requirement;
             requirement.Mode = settings.PrePass;
+
             // assuming that if the pipeline settings ask for a pre-pass, it should be not earlier than BeforeTransparent (e.g., soft particles)
             requirement.Event = settings.PrePass != PrePassMode.Off
                 ? ToonRenderingEvent.BeforeTransparent
@@ -171,6 +173,8 @@ namespace DELTation.ToonRP
             {
                 return;
             }
+
+            _lightsData.Reset();
 
             CommandBuffer cmd = CommandBufferPool.Get();
             PrepareBufferName();
@@ -601,11 +605,11 @@ namespace DELTation.ToonRP
             _globalRamp.Setup(_context, globalRampSettings);
 
             VisibleLight? mainLight = FindMainLightOrDefault();
-            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, shadowSettings, mainLight);
+            _lighting.Setup(ref _context, _camera, ref _cullingResults, _settings, shadowSettings, mainLight, ref _lightsData);
 
             {
-                _shadows.Setup(_context, _cullingResults, shadowSettings, _camera);
-                _shadows.Render(mainLight?.light);
+                _shadows.Setup(_context, _cullingResults, shadowSettings, _settings, _camera);
+                _shadows.Render(mainLight?.light, _lightsData);
             }
         }
 

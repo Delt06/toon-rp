@@ -130,7 +130,7 @@
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
                 const float2 uv = UnityStereoTransformScreenSpaceTex(IN.texcoord);
-                const float2 motionVectorsSample = SAMPLE_TEXTURE2D_X_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, uv, 0).rg;
+                const float2 motionVectorsSample = SampleMotionVectors(uv);
                 const float3 result = SampleSource(uv) * _MotionVectors_SceneIntensity + float3(abs(motionVectorsSample) * _MotionVectors_Scale, 0.0f);
                 return float4(result, 1.0f);
             }

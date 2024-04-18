@@ -63,7 +63,9 @@ namespace DELTation.ToonRP
 
         private void DrawRenderers(CommandBuffer cmd, ref RenderContext context)
         {
-            var sortingSettings = new SortingSettings(context.Camera)
+            Camera camera = context.Camera;
+
+            var sortingSettings = new SortingSettings(camera)
             {
                 criteria = SortingCriteria.CommonOpaque,
             };
@@ -72,7 +74,9 @@ namespace DELTation.ToonRP
                 enableDynamicBatching = context.Settings.UseDynamicBatching,
                 perObjectData = PerObjectData.MotionVectors,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, context.Camera.cullingMask)
+
+            int layerMask = camera.cullingMask & context.Settings.OpaqueLayerMask;
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask)
             {
                 excludeMotionVectorObjects = true,
             };

@@ -474,6 +474,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CoreKeywordDescriptors.ToonRpGlobalRamp,
 
                 CoreKeywordDescriptors.ToonRpDirectionalShadows,
+                CoreKeywordDescriptors.ToonRpAdditionalShadows,
                 CoreKeywordDescriptors.ToonRpShadowSmoothingMode,
                 CoreKeywordDescriptors.ToonRpPoissonSamplingMode,
                 CoreKeywordDescriptors.ToonRpPoissonSamplingEarlyBail,
@@ -481,7 +482,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 CoreKeywordDescriptors.ToonRpShadowsPattern,
 
                 CoreKeywordDescriptors.ToonRpAdditionalLights,
-                
+
                 CoreKeywordDescriptors.LightmapShadowMixing,
                 CoreKeywordDescriptors.ShadowsShadowmask,
                 CoreKeywordDescriptors.DirLightmapCombined,
@@ -538,6 +539,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
 
         [field: SerializeField]
         private NormalDropOffSpace NormalDropOffSpace { get; set; } = NormalDropOffSpace.Tangent;
+
         // ReSharper restore Unity.RedundantSerializeFieldAttribute
     }
 }

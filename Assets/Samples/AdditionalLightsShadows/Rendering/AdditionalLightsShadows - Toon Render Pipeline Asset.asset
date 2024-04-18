@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f6a429550954192bf507d745572b8de, type: 3}
+  m_Name: AdditionalLightsShadows - Toon Render Pipeline Asset
+  m_EditorClassIdentifier: 
+  ForceIncludedShaders:
+  - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 11527595c9484fb09a4ee48b0e47204f, type: 3}
+  - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
+  - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  - {fileID: 4800000, guid: 7be86da3d47840bd8b73ba28db1a2ca1, type: 3}
+  - {fileID: 4800000, guid: 2268c7f425a8453ba9e77607d402a9b4, type: 3}
+  - {fileID: 4800000, guid: 4aee5d6e842043a384557e2f0557f76c, type: 3}
+  GlobalRampSettings:
+    Threshold: -0.056
+    SpecularThreshold: 0.99
+    RimThreshold: 0.5
+    Mode: 0
+    Smoothness: 0.094
+    SpecularSmoothness: 0.005
+    RimSmoothness: 0.1
+    RampTexture: {fileID: 0}
+    AdditionalLights:
+      DiffuseOffset: 0
+      SpecularOffset: 0
+      DistanceAttenuationFactor: 1
+  CameraRendererSettings:
+    AdditionalLights: 1
+    TiledLighting: 0
+    MaxLightsPerTile: 32
+    OverrideRenderTextureFormat: 0
+    RenderTextureFormat: 4
+    AllowHdr: 0
+    Stencil: 1
+    Msaa: 1
+    RenderScale: 1
+    MaxRenderTextureWidth: 0
+    MaxRenderTextureHeight: 0
+    RenderTextureFilterMode: 1
+    PrePass: 0
+    OpaqueTexture: 0
+    OpaqueLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    TransparentLayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    UseSrpBatching: 1
+    UseDynamicBatching: 0
+    ForceRenderToIntermediateBuffer: 0
+    NativeRenderPasses: 0
+    ForceStoreCameraDepth: 0
+    BakedLightingFeatures: -1
+  ShadowSettings:
+    Mode: 1
+    Threshold: 0.5
+    CrispAntiAliased: 0
+    Smoothness: 0.075
+    MaxDistance: 100
+    DistanceFade: 0.1
+    Pattern: {fileID: 0}
+    PatternScale: {x: 1, y: 0, z: 1}
+    ShadowMaps:
+      DepthBits: 16
+      Blur: 0
+      BlurEarlyBail: 1
+      BlurEarlyBailThreshold: 0.01
+      BlurScatter: 1
+      VsmPrecision: 0
+      SoftShadows:
+        Enabled: 1
+        Quality: 1
+        Mode: 0
+        EarlyBail: 0
+        Spread: 0.2
+        RotatedPoissonSamplingTexture: {fileID: 11700000, guid: 4adf240cd9847b14085d5b3253f0d979, type: 2}
+      LightBleedingReduction: 0.4
+      PrecisionCompensation: 0
+      Directional:
+        Enabled: 1
+        AtlasSize: 1024
+        CascadeCount: 4
+        CascadeRatio1: 0.1
+        CascadeRatio2: 0.25
+        CascadeRatio3: 0.5
+        DepthBias: 0.035
+        NormalBias: 0
+        SlopeBias: 0
+      Additional:
+        Enabled: 1
+        AtlasSize: 1024
+    Blobs:
+      AtlasSize: 128
+      Mode: 0
+      BakedShadowsAtlas: {fileID: 0}
+      Saturation: 1
+      ShadowPositionOffset: {x: 0, y: 0}
+      ReceiverPlaneY: 0
+  Extensions:
+    Extensions: []
+  PostProcessing:
+    Enabled: 0
+    Passes: []

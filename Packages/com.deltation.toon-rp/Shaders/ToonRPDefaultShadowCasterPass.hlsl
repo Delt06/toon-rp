@@ -4,6 +4,7 @@
 #include "../ShaderLibrary/Common.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
+#include "../ShaderLibrary/ShadowCaster.hlsl"
 #include "../ShaderLibrary/Textures.hlsl"
 
 #if defined(_NORMAL_MAP)
@@ -51,8 +52,7 @@ v2f VS(const appdata IN)
 
     float3 positionWs = TransformObjectToWorld(IN.vertex);
     const float3 normalWs = TransformObjectToWorldNormal(IN.normal);
-    // TODO: if in point light shadow pass, use a different light direction
-    positionWs = ApplyShadowBias(positionWs, normalWs, _DirectionalLightDirection);
+    positionWs = ApplyShadowBias(positionWs, normalWs, GetCastingLightDirection(positionWs));
     OUT.positionCs = TransformWorldToHClip(positionWs);
 
     #ifdef _TOON_RP_VSM

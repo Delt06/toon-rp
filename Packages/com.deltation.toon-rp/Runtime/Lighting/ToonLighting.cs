@@ -48,7 +48,7 @@ namespace DELTation.ToonRP.Lighting
 
         public void Setup(ref ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,
             in ToonCameraRendererSettings settings, in ToonShadowSettings shadowSettings,
-            in VisibleLight? mainLight
+            in VisibleLight? mainLight, ref ToonLightsData lightsData
         )
         {
             _camera = camera;
@@ -73,7 +73,7 @@ namespace DELTation.ToonRP.Lighting
             if (additionalLightsMode != AdditionalLightsMode.Off)
             {
                 NativeArray<int> indexMap = cullingResults.GetLightIndexMap(Allocator.Temp);
-                SetupAdditionalLights(indexMap, cullingResults.visibleLights, shadowSettings);
+                SetupAdditionalLights(indexMap, cullingResults.visibleLights, shadowSettings, ref lightsData);
                 cullingResults.SetLightIndexMap(indexMap);
                 indexMap.Dispose();
             }
@@ -169,7 +169,7 @@ namespace DELTation.ToonRP.Lighting
         }
 
         private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights,
-            in ToonShadowSettings shadowSettings)
+            in ToonShadowSettings shadowSettings, ref ToonLightsData lightsData)
         {
             const int lightSkipIndex = -1;
             _additionalLightsCount = 0;
@@ -197,6 +197,12 @@ namespace DELTation.ToonRP.Lighting
                         {
                             newIndex = _additionalLightsCount;
                             SetupAdditionalLight(_additionalLightsCount, visibleLight, shadowSettings);
+                            lightsData.AdditionalLights.Add(new ToonLightsData.AdditionalLight
+                                {
+                                    VisibleLightIndex = visibleLightIndex,
+                                    ShadowLightIndex = null,
+                                }
+                            );
                             _additionalLightsCount++;
                         }
 

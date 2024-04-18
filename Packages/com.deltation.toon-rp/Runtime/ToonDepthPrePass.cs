@@ -136,7 +136,9 @@ namespace DELTation.ToonRP
             {
                 enableDynamicBatching = context.Settings.UseDynamicBatching,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
+
+            int layerMask = camera.cullingMask & context.Settings.OpaqueLayerMask;
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
             var rendererListParams = new RendererListParams(context.CullingResults, drawingSettings, filteringSettings)

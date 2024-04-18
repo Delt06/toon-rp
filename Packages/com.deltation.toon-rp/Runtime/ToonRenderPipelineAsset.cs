@@ -60,6 +60,7 @@ namespace DELTation.ToonRP
             RenderTextureFilterMode = FilterMode.Bilinear,
             OpaqueLayerMask = -1,
             TransparentLayerMask = -1,
+            MotionVectorsZeroLayerMask = 0,
             UseSrpBatching = true,
             UseDynamicBatching = false,
             ForceRenderToIntermediateBuffer = false,
@@ -89,6 +90,10 @@ namespace DELTation.ToonRP
                     CascadeRatio2 = 0.25f,
                     CascadeRatio3 = 0.5f,
                     DepthBias = 0.035f,
+                },
+                Additional = new ToonShadowMapsSettings.AdditionalShadows
+                {
+                    Enabled = false, AtlasSize = TextureSize._1024,
                 },
                 SoftShadows =
                 {

@@ -100,17 +100,26 @@ float ApplyShadowRampAndPattern(const LightComputationParameters parameters, flo
     return shadowAttenuation;
 }
 
-float GetShadowAttenuation(const LightComputationParameters parameters, const Light light)
+float GetDirectionalShadowAttenuation(const LightComputationParameters parameters, const Light light)
 {
     #if defined(_TOON_RP_BLOB_SHADOWS) && !defined(_RECEIVE_BLOB_SHADOWS)
     return parameters.mainLightOcclusion == 1.0f ? 1.0f : ApplyShadowRampAndPattern(parameters, parameters.mainLightOcclusion);
     #endif // _TOON_RP_BLOB_SHADOWS && _RECEIVE_BLOB_SHADOWS
 
-    // #if defined(_TOON_RP_ANY_SHADOWS)
+    #if defined(_TOON_RP_ANY_SHADOWS)
     return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation * parameters.mainLightOcclusion);
-    // #else // !_TOON_RP_ANY_SHADOWS
-    // return 1.0f;
-    // #endif  // _TOON_RP_ANY_SHADOWS
+    #else // !_TOON_RP_ANY_SHADOWS
+    return 1.0f;
+    #endif  // _TOON_RP_ANY_SHADOWS
+}
+
+float GetAdditionalShadowAttenuation(const LightComputationParameters parameters, const Light light)
+{
+    #if defined(_TOON_RP_ADDITIONAL_SHADOWS)
+    return ApplyShadowRampAndPattern(parameters, light.shadowAttenuation);
+    #else // !_TOON_RP_ADDITIONAL_SHADOWS
+    return 1.0f;
+    #endif  // _TOON_RP_ADDITIONAL_SHADOWS
 }
 
 Light GetMainLight(const LightComputationParameters parameters)
@@ -145,7 +154,7 @@ float3 ComputeMainLightComponent(const in LightComputationParameters parameters,
     #if _RECEIVE_SHADOWS_OFF
     outShadowAttenuation = 1.0f;
     #else // !_RECEIVE_SHADOWS_OFF
-    outShadowAttenuation = GetShadowAttenuation(parameters, light);
+    outShadowAttenuation = GetDirectionalShadowAttenuation(parameters, light);
     #endif // _RECEIVE_SHADOWS_OFF
     outShadowAttenuation *= ssao;
 
@@ -185,7 +194,7 @@ void ComputeAdditionalLightsDiffuseSpecular(const LightComputationParameters par
         const Light light = GetAdditionalLight(i, parameters.positionWs);
         #endif // _TOON_RP_TILED_LIGHTING
         float nDotL = dot(parameters.normalWs, light.direction);
-        const float attenuation = light.distanceAttenuation * ssao;
+        const float attenuation = light.distanceAttenuation * light.shadowAttenuation * ssao;
         nDotL = min(nDotL * attenuation, attenuation);
 
         const float rampCutoffEdge = 0.00001f;

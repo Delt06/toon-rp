@@ -7,7 +7,9 @@ A Scriptable Render Pipeline (SRP) designed specifically for toon/stylized visua
 
 > 🚧 The project is in its **early** stages and has **not** been tested in production.
 
-> ⚠️ The project only supports **Linear** color space. 
+> ⚠️ The project only supports **Linear** color space.
+
+> 📝 The development progress can be tracked via [Issues](https://github.com/Delt06/toon-rp/issues) and [Project Board](https://github.com/users/Delt06/projects/3).
  
 ![Main](./Documentation/demo.jpg?raw=true)
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.Shadows.Blobs;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace DELTation.ToonRP.Shadows
     public sealed class ToonShadows : IDisposable
     {
         public const string DirectionalShadowsKeywordName = "_TOON_RP_DIRECTIONAL_SHADOWS";
+        public const string AdditionalShadowsKeywordName = "_TOON_RP_ADDITIONAL_SHADOWS";
         public const string DirectionalCascadedShadowsKeywordName = "_TOON_RP_DIRECTIONAL_CASCADED_SHADOWS";
         public const string VsmKeywordName = "_TOON_RP_VSM";
         public const string PcfKeywordName = "_TOON_RP_PCF";
@@ -35,6 +37,7 @@ namespace DELTation.ToonRP.Shadows
         public ToonShadows()
         {
             DirectionalShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalShadowsKeywordName);
+            AdditionalShadowsGlobalKeyword = GlobalKeyword.Create(AdditionalShadowsKeywordName);
             DirectionalCascadedShadowsGlobalKeyword = GlobalKeyword.Create(DirectionalCascadedShadowsKeywordName);
             VsmGlobalKeyword = GlobalKeyword.Create(VsmKeywordName);
             PcfGlobalKeyword = GlobalKeyword.Create(PcfKeywordName);
@@ -47,6 +50,7 @@ namespace DELTation.ToonRP.Shadows
         }
 
         public static GlobalKeyword DirectionalShadowsGlobalKeyword { get; private set; }
+        public static GlobalKeyword AdditionalShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword DirectionalCascadedShadowsGlobalKeyword { get; private set; }
         public static GlobalKeyword VsmGlobalKeyword { get; private set; }
         public static GlobalKeyword PcfGlobalKeyword { get; private set; }
@@ -63,7 +67,7 @@ namespace DELTation.ToonRP.Shadows
         }
 
         public void Setup(in ScriptableRenderContext context, in CullingResults cullingResults,
-            in ToonShadowSettings settings, Camera camera)
+            in ToonShadowSettings settings, in ToonCameraRendererSettings cameraRendererSettings, Camera camera)
         {
             _context = context;
             _settings = settings;
@@ -126,7 +130,7 @@ namespace DELTation.ToonRP.Shadows
                     break;
                 case ToonShadowSettings.ShadowMode.ShadowMapping:
                     _shadowMaps ??= new ToonShadowMaps();
-                    _shadowMaps.Setup(context, cullingResults, settings);
+                    _shadowMaps.Setup(context, cullingResults, settings, cameraRendererSettings);
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows ??= new ToonBlobShadows();
@@ -137,7 +141,7 @@ namespace DELTation.ToonRP.Shadows
             }
         }
 
-        public void Render([CanBeNull] Light mainLight)
+        public void Render([CanBeNull] Light mainLight, in ToonLightsData lightsData)
         {
             switch (_settings.Mode)
             {
@@ -149,7 +153,7 @@ namespace DELTation.ToonRP.Shadows
                         _shadowMaps.ReserveDirectionalShadows(mainLight, 0);
                     }
 
-                    _shadowMaps.Render();
+                    _shadowMaps.Render(lightsData);
                     break;
                 case ToonShadowSettings.ShadowMode.Blobs:
                     _blobShadows.Render();

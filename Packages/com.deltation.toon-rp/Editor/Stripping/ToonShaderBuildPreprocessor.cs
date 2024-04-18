@@ -98,6 +98,15 @@ namespace DELTation.ToonRP.Editor.Stripping
                 _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.DirectionalCascadedShadowsKeywordName));
             }
 
+            // Additional Lights Shadows
+            if (_allToonRenderPipelineAssets.All(a =>
+                    a.CameraRendererSettings.AdditionalLights != ToonCameraRendererSettings.AdditionalLightsMode.PerPixel ||
+                    !a.ShadowSettings.ShadowMaps.Additional.Enabled
+                ))
+            {
+                _keywordsToStrip.Add(new ShaderKeyword(ToonShadows.AdditionalShadowsKeywordName));
+            }
+
             if (!_allToonRenderPipelineAssets.Any(a =>
                     a.ShadowSettings.Mode == ToonShadowSettings.ShadowMode.ShadowMapping &&
                     a.ShadowSettings.ShadowMaps.Blur != BlurMode.None

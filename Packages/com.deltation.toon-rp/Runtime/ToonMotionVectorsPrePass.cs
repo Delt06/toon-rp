@@ -9,6 +9,7 @@ namespace DELTation.ToonRP
     {
         private static readonly ShaderTagId MotionVectorsShaderTagId = new(ToonPasses.MotionVectors.LightMode);
         private static readonly int PrevViewProjMatrixId = Shader.PropertyToID("_PrevViewProjMatrix");
+        private static readonly int ZeroMotionVectorsId = Shader.PropertyToID("_ToonRP_ZeroMotionVectors");
         private static readonly int NonJitteredViewProjMatrixId = Shader.PropertyToID("_NonJitteredViewProjMatrix");
         private static readonly int MotionVectorsTextureId = Shader.PropertyToID("_ToonRP_MotionVectorsTexture");
 
@@ -44,9 +45,16 @@ namespace DELTation.ToonRP
                 );
                 cmd.ClearRenderTarget(false, true, Color.black);
 
-                context.Srp.ExecuteCommandBufferAndClear(cmd);
+                using (new ProfilingScope(cmd, NamedProfilingSampler.Get("Zero Motion Vectors")))
+                {
+                    cmd.SetGlobalFloat(ZeroMotionVectorsId, 1.0f);
+                    context.Srp.ExecuteCommandBufferAndClear(cmd);
+                    DrawRenderers(cmd, ref context, context.Settings.MotionVectorsZeroLayerMask);
+                }
 
-                DrawRenderers(cmd, ref context);
+                cmd.SetGlobalFloat(ZeroMotionVectorsId, 0.0f);
+                context.Srp.ExecuteCommandBufferAndClear(cmd);
+                DrawRenderers(cmd, ref context, ~context.Settings.MotionVectorsZeroLayerMask);
             }
 
             context.Srp.ExecuteCommandBufferAndClear(cmd);
@@ -61,9 +69,11 @@ namespace DELTation.ToonRP
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers(CommandBuffer cmd, ref RenderContext context)
+        private void DrawRenderers(CommandBuffer cmd, ref RenderContext context, int extraLayerMask)
         {
-            var sortingSettings = new SortingSettings(context.Camera)
+            Camera camera = context.Camera;
+
+            var sortingSettings = new SortingSettings(camera)
             {
                 criteria = SortingCriteria.CommonOpaque,
             };
@@ -72,7 +82,14 @@ namespace DELTation.ToonRP
                 enableDynamicBatching = context.Settings.UseDynamicBatching,
                 perObjectData = PerObjectData.MotionVectors,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, context.Camera.cullingMask)
+
+            int layerMask = camera.cullingMask & context.Settings.OpaqueLayerMask & extraLayerMask;
+            if (layerMask == 0)
+            {
+                return;
+            }
+
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask)
             {
                 excludeMotionVectorObjects = true,
             };

@@ -123,9 +123,9 @@ namespace DELTation.ToonRP
             CommandBufferPool.Release(cmd);
         }
 
-        private void DrawRenderers(CommandBuffer cmd, ref RenderContext renderContext)
+        private void DrawRenderers(CommandBuffer cmd, ref RenderContext context)
         {
-            Camera camera = renderContext.Camera;
+            Camera camera = context.Camera;
 
             var sortingSettings = new SortingSettings(camera)
             {
@@ -134,18 +134,20 @@ namespace DELTation.ToonRP
             ShaderTagId shaderPassName = _normals ? DepthNormalsShaderTagId : DepthOnlyShaderTagId;
             var drawingSettings = new DrawingSettings(shaderPassName, sortingSettings)
             {
-                enableDynamicBatching = renderContext.Settings.UseDynamicBatching,
+                enableDynamicBatching = context.Settings.UseDynamicBatching,
             };
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
+
+            int layerMask = camera.cullingMask & context.Settings.OpaqueLayerMask;
+            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            renderContext.Srp.DrawRenderers(renderContext.CullingResults,
+            context.Srp.DrawRenderers(context.CullingResults,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
 
-            renderContext.ExtensionsCollection.OnPrePass(
+            context.ExtensionsCollection.OnPrePass(
                 _normals ? PrePassMode.Normals | PrePassMode.Depth : PrePassMode.Depth,
-                ref renderContext.Srp, cmd,
+                ref context.Srp, cmd,
                 ref drawingSettings, ref filteringSettings, ref renderStateBlock
             );
         }

@@ -60,6 +60,7 @@ namespace DELTation.ToonRP
             RenderTextureFilterMode = FilterMode.Bilinear,
             OpaqueLayerMask = -1,
             TransparentLayerMask = -1,
+            MotionVectorsZeroLayerMask = 0,
             UseSrpBatching = true,
             UseDynamicBatching = false,
             ForceRenderToIntermediateBuffer = false,

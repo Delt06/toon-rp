@@ -49,10 +49,20 @@ v2f VS(const appdata IN)
     const float3 positionWs = TransformObjectToWorld(IN.vertex);
 
     OUT.positionCs = TransformWorldToHClip(positionWs);
-    OUT.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
 
-    const float3 previousPosition = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
-    OUT.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));
+    UNITY_BRANCH
+    if (RenderZeroMotionVectors())
+    {
+        OUT.positionCsNoJitter = 0;
+        OUT.previousPositionCsNoJitter = 0;
+    }
+    else
+    {
+        OUT.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
+
+        const float3 previousPosition = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
+        OUT.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));   
+    }
 
     ApplyMotionVectorZBias(OUT.positionCs);
 
@@ -66,6 +76,12 @@ float2 PS(const v2f IN) : SV_TARGET
     AlphaClip(alpha);
     #endif // _ALPHATEST_ON
 
+    UNITY_BRANCH
+    if (RenderZeroMotionVectors())
+    {
+        return 0;
+    }
+    
     return CalcNdcMotionVectorFromCsPositions(IN.positionCsNoJitter, IN.previousPositionCsNoJitter);
 }
 

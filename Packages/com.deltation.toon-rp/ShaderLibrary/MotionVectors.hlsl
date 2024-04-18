@@ -7,10 +7,17 @@
 TEXTURE2D_X(_ToonRP_MotionVectorsTexture);
 SAMPLER(sampler_ToonRP_MotionVectorsTexture);
 
+float _ToonRP_ZeroMotionVectors;
+
 // Use last frame positions from the vertex buffer (required for skinned meshes)
 bool UseLastFramePositions()
 {
     return unity_MotionVectorsParams.x == 1;      
+}
+
+bool RenderZeroMotionVectors()
+{
+    return _ToonRP_ZeroMotionVectors == 1;
 }
 
 // This is required to avoid artifacts ("gaps" in the _MotionVectorTexture) on some platform
@@ -51,5 +58,9 @@ float2 CalcNdcMotionVectorFromCsPositions(const float4 positionCs, const float4 
     return velocity;
 }
 
+float2 SampleMotionVectors(const float2 uv)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_ToonRP_MotionVectorsTexture, sampler_ToonRP_MotionVectorsTexture, uv, 0).xy;
+}
 
 #endif // TOON_RP_UNITY_INPUT

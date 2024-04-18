@@ -148,6 +148,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 
             PopulateMaterialsForAllPasses();
 
+            int originalLayerMask = filteringSettings.layerMask;
+
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.InvertedHullOutlines)))
             {
                 context.ExecuteCommandBufferAndClear(cmd);
@@ -164,6 +166,12 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     string passName = string.IsNullOrWhiteSpace(pass.Name) ? "Unnamed Outline Pass" : pass.Name;
                     using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
                     {
+                        filteringSettings.layerMask = originalLayerMask & pass.LayerMask;
+                        if (filteringSettings.layerMask == 0)
+                        {
+                            continue;
+                        }
+                        
                         Material material = _materials[passIndex].GetOrCreate();
                         SetPassProperties(cmd, pass, material);
 
@@ -177,8 +185,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         {
                             drawingSettings.SetShaderPassName(i, ShaderTagIds[i]);
                         }
-
-                        filteringSettings.layerMask = pass.LayerMask;
 
                         renderStateBlock.mask |= RenderStateMask.Raster | RenderStateMask.Stencil;
                         renderStateBlock.rasterState = new RasterState(CullMode.Front, 0, pass.DepthBias);

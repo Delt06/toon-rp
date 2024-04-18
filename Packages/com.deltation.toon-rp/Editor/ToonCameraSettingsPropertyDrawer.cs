@@ -101,6 +101,10 @@ namespace DELTation.ToonRP.Editor
                     property.FindPropertyRelative(nameof(ToonCameraRendererSettings.TransparentLayerMask))
                 )
             );
+            root.Add(new PropertyField(
+                    property.FindPropertyRelative(nameof(ToonCameraRendererSettings.MotionVectorsZeroLayerMask))
+                )
+            );
 
             root.Add(
                 new PropertyField(property.FindPropertyRelative(nameof(ToonCameraRendererSettings.UseSrpBatching)))

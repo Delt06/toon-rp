@@ -11,10 +11,14 @@ PackedVaryings VS(Attributes input)
     float3 positionWs, normalWs;
     output = BuildVaryings(input, vertexDescription, positionWs, normalWs);
 
-    output.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
+    UNITY_BRANCH
+    if (!RenderZeroMotionVectors())
+    {
+        output.positionCsNoJitter = mul(_NonJitteredViewProjMatrix, float4(positionWs, 1));
 
-    const float3 previousPosition = UseLastFramePositions() ? input.positionOld : input.positionOS;
-    output.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));
+        const float3 previousPosition = UseLastFramePositions() ? input.positionOld : input.positionOS;
+        output.previousPositionCsNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, float4(previousPosition, 1)));    
+    }
 
     ApplyMotionVectorZBias(output.positionCS);
 
@@ -34,6 +38,12 @@ float2 PS(PackedVaryings packedInput) : SV_TARGET
     const float alpha = surfaceDescription.Alpha;
     clip(alpha - surfaceDescription.AlphaClipThreshold);
     #endif
+
+    UNITY_BRANCH
+    if (RenderZeroMotionVectors())
+    {
+        return 0;
+    }
 
     return CalcNdcMotionVectorFromCsPositions(unpacked.positionCsNoJitter, unpacked.previousPositionCsNoJitter);
 }

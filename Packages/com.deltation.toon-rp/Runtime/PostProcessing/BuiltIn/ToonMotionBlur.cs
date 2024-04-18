@@ -10,6 +10,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int NumSamplesId = Shader.PropertyToID("_ToonRP_MotionBlur_NumSamples");
         private static readonly int StrengthId = Shader.PropertyToID("_ToonRP_MotionBlur_Strength");
         private static readonly int TargetFpsId = Shader.PropertyToID("_ToonRP_MotionBlur_TargetFPS");
+        private static readonly int WeightChangeRateId = Shader.PropertyToID("_ToonRP_MotionBlur_WeightChangeRate");
 
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Motion Blur");
         private Camera _camera;
@@ -35,6 +36,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, FixupTextureArrayIdentifier(source));
                     cmd.SetGlobalFloat(StrengthId, _settings.Strength);
                     cmd.SetGlobalFloat(NumSamplesId, _settings.NumSamples);
+                    cmd.SetGlobalFloat(WeightChangeRateId, _settings.WeightChangeRate);
                     cmd.SetGlobalFloat(TargetFpsId, ToonMotionBlurSettings.TargetFPS);
                     ToonBlitter.Blit(cmd, _material.GetOrCreate(), destinationIsIntermediateTexture, 0);
                 }

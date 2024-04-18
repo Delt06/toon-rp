@@ -12,5 +12,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public float Strength;
         [Min(1)]
         public int NumSamples;
+        [Range(0.0f, 1.0f)]
+        public float WeightChangeRate;
     }
 }

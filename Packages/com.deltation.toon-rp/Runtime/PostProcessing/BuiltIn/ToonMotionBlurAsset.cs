@@ -9,8 +9,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             Settings = new ToonMotionBlurSettings
             {
-                Strength = 1.0f,
-                NumSamples = 32,
+                Strength = 2.0f,
+                WeightChangeRate = 0.95f,
+                NumSamples = 8,
             };
         }
 

@@ -35,24 +35,31 @@
 			HLSLPROGRAM
 
 			float _ToonRP_MotionBlur_NumSamples;
+			float _ToonRP_MotionBlur_WeightChangeRate;
 			float _ToonRP_MotionBlur_Strength;
 			float _ToonRP_MotionBlur_TargetFPS;
 
 			float3 Apply(const float2 uv)
             {
-                float3 color = SampleSource(uv);
 			    const float velocityFactor = -_ToonRP_MotionBlur_Strength * _ToonRP_MotionBlur_TargetFPS * unity_DeltaTime.x;
                 const float2 velocity = SampleMotionVectors(uv) * velocityFactor;
 			    const float numSamples = _ToonRP_MotionBlur_NumSamples;
 			    const float invNumSamplesMinusOne = rcp(float(numSamples - 1));
 
-			    for (int i = 1; i < numSamples; ++i)
+			    float currentWeight = 1.0f;
+			    float totalWeight = 0.0f;
+                float3 color = 0.0f;
+
+			    for (int i = 0; i < numSamples; ++i)
 			    {
-			        const float2 offset = velocity * (float(i) * invNumSamplesMinusOne - 0.5);
-			        color += SampleSource(uv + offset);
+			        const float2 offset = velocity * (float(i) * invNumSamplesMinusOne);
+			        color += SampleSource(uv + offset) * currentWeight;
+			        totalWeight += currentWeight;
+
+			        currentWeight *= _ToonRP_MotionBlur_WeightChangeRate;
 			    }
 
-			    color /= numSamples;
+			    color /= totalWeight;
 			    
                 return color;
             }

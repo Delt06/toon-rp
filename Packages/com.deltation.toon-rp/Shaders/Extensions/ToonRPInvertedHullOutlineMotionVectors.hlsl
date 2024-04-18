@@ -30,14 +30,32 @@ v2f VS(const appdata IN)
     {
         const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), positionWs, normalWs);
         OUT.positionCs = ApplyThicknessAndTransformToHClip(positionWs, normalWs, thickness);
-        OUT.positionCsNoJitter = ApplyThicknessAndTransformToHClip(_NonJitteredViewProjMatrix, positionWs, normalWs, thickness);    
+
+        UNITY_BRANCH
+        if (RenderZeroMotionVectors())
+        {
+            OUT.positionCsNoJitter = 0;
+        }
+        else
+        {
+            OUT.positionCsNoJitter = ApplyThicknessAndTransformToHClip(_NonJitteredViewProjMatrix, positionWs, normalWs, thickness);
+        }
     }
 
     {
         const float3 previousPositionOs = UseLastFramePositions() ? IN.positionOld.xyz : IN.vertex;
         const float3 previousPositionWs = mul(UNITY_PREV_MATRIX_M, float4(previousPositionOs, 1)).xyz;
         const float thickness = ComputeThickness(TOON_RP_OUTLINES_UV(IN), previousPositionWs, normalWs);
-        OUT.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);    
+
+        UNITY_BRANCH
+        if (RenderZeroMotionVectors())
+        {
+            OUT.previousPositionCsNoJitter = 0;
+        }
+        else
+        {
+            OUT.previousPositionCsNoJitter = ApplyThicknessAndTransformToHClip(_PrevViewProjMatrix, previousPositionWs, normalWs, thickness);
+        }
     }
 
     ApplyMotionVectorZBias(OUT.positionCs);
@@ -47,6 +65,12 @@ v2f VS(const appdata IN)
 
 float4 PS(const v2f IN) : SV_TARGET
 {
+    UNITY_BRANCH
+    if (RenderZeroMotionVectors())
+    {
+        return 0;
+    }
+    
     return float4(CalcNdcMotionVectorFromCsPositions(IN.positionCsNoJitter, IN.previousPositionCsNoJitter), 0, 0);
 }
 

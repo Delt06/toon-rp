@@ -52,6 +52,8 @@ namespace DELTation.ToonRP
         public bool OpaqueTexture;
         public LayerMask OpaqueLayerMask;
         public LayerMask TransparentLayerMask;
+        [Tooltip("Layer mask of objects, which will render zero motion vectors. Can be useful for selectively excluding objects from temporal effects")]
+        public LayerMask MotionVectorsZeroLayerMask;
 
         public bool UseSrpBatching;
         public bool UseDynamicBatching;

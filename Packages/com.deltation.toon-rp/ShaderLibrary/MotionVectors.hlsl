@@ -7,10 +7,17 @@
 TEXTURE2D_X(_ToonRP_MotionVectorsTexture);
 SAMPLER(sampler_ToonRP_MotionVectorsTexture);
 
+float _ToonRP_ZeroMotionVectors;
+
 // Use last frame positions from the vertex buffer (required for skinned meshes)
 bool UseLastFramePositions()
 {
     return unity_MotionVectorsParams.x == 1;      
+}
+
+bool RenderZeroMotionVectors()
+{
+    return _ToonRP_ZeroMotionVectors == 1;
 }
 
 // This is required to avoid artifacts ("gaps" in the _MotionVectorTexture) on some platform

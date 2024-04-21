@@ -15,6 +15,6 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 77588950c0eb425cbba9e446487a3166, type: 3}
   Settings:
-    Strength: 10
+    Strength: 15
     NumSamples: 32
-    WeightChangeRate: 0.9
+    WeightChangeRate: 0.95

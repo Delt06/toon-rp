@@ -281,6 +281,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: George
       objectReference: {fileID: 0}
+    - target: {fileID: 2223639932434330405, guid: eaa42215fec37ff42a7fc22c96434a4a, type: 3}
+      propertyPath: m_Animation
+      value: 
+      objectReference: {fileID: 7227484905004306851, guid: eaa42215fec37ff42a7fc22c96434a4a, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -381,7 +385,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 20.49, y: -122.91855, z: 0}
 --- !u!114 &1519985217
 MonoBehaviour:
   m_ObjectHideFlags: 0

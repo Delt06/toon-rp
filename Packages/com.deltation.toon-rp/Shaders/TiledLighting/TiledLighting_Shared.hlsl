@@ -39,6 +39,10 @@ CBUFFER_START(TiledLighting_Lights_CB_PositionsAttenuations)
 float4 _TiledLighting_Light_PositionsWs_Attenuation[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
 CBUFFER_END
 
+CBUFFER_START(TiledLighting_Lights_CB_SpotDirAttenuations)
+float4 _TiledLighting_Light_SpotDir_Attenuation[MAX_ADDITIONAL_LIGHTS_COUNT_TILED];
+CBUFFER_END
+
 struct TiledLighting_Plane
 {
     float3 normal;

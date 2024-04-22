@@ -1,6 +1,7 @@
 ﻿using System;
 using DELTation.ToonRP.Shadows;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -32,13 +33,11 @@ namespace DELTation.ToonRP.Lighting
 
         private readonly CommandBuffer _cmd = new() { name = CmdName };
         private int _additionalLightsCount;
-        private TiledLight[] _additionalTiledLights;
-        private Vector4[] _additionalTiledLightsColors;
-        private Vector4[] _additionalTiledLightsPositionWsAttenuations;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private int _currentMaxAdditionalLights;
         private ToonMixedLightingSetup _mixedLightingSetup;
+        private TiledAdditionalLightsData _tiledData;
 
         public ToonLighting()
         {
@@ -61,9 +60,7 @@ namespace DELTation.ToonRP.Lighting
 
             if (_cameraRendererSettings.IsTiledLightingEnabledAndSupported())
             {
-                _additionalTiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
-                _additionalTiledLightsColors ??= new Vector4[MaxAdditionalLightCountTiled];
-                _additionalTiledLightsPositionWsAttenuations ??= new Vector4[MaxAdditionalLightCountTiled];
+                _tiledData.EnsureBuffersAreCreated();
             }
 
             _cmd.BeginSample(CmdName);
@@ -172,6 +169,7 @@ namespace DELTation.ToonRP.Lighting
             in ToonShadowSettings shadowSettings, ref ToonLightsData lightsData)
         {
             const int lightSkipIndex = -1;
+
             _additionalLightsCount = 0;
 
             for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; visibleLightIndex++)
@@ -185,14 +183,6 @@ namespace DELTation.ToonRP.Lighting
                     case LightType.Point:
                     case LightType.Spot:
                     {
-                        // Currently, Tiled Lighting only supports Point lights
-                        // https://github.com/Delt06/toon-rp/issues/229
-                        if (visibleLight.lightType != LightType.Point &&
-                            _cameraRendererSettings.IsTiledLightingEnabledAndSupported())
-                        {
-                            break;
-                        }
-
                         if (_additionalLightsCount < _currentMaxAdditionalLights)
                         {
                             newIndex = _additionalLightsCount;
@@ -236,16 +226,13 @@ namespace DELTation.ToonRP.Lighting
             }
         }
 
-        public void GetTiledAdditionalLightsBuffer(out TiledLight[] lights, out Vector4[] colors,
-            out Vector4[] positionsAttenuations, out int count)
+        public ref readonly TiledAdditionalLightsData GetTiledAdditionalLightsBuffers()
         {
-            Assert.IsNotNull(_additionalTiledLights, "Tiled lights are not initialized");
-
-            lights = _additionalTiledLights;
-            colors = _additionalTiledLightsColors;
-            positionsAttenuations = _additionalTiledLightsPositionWsAttenuations;
-            count = _additionalLightsCount;
+            Assert.IsNotNull(_tiledData.TiledLights, "Tiled lights are not initialized");
+            return ref _tiledData;
         }
+
+        public int GetAdditionalLightsCount() => _additionalLightsCount;
 
         private void SetupAdditionalLight(int index, in VisibleLight visibleLight, in ToonShadowSettings shadowSettings)
         {
@@ -276,27 +263,35 @@ namespace DELTation.ToonRP.Lighting
             }
 
             var positionWsAttenuation = new Vector4(positionWs.x, positionWs.y, positionWs.z, distanceAttenuation);
+            half2 spotAttenuationHalf = math.half2((half) spotAttenuation.x, (half) spotAttenuation.y);
+            float spotAttenuationPacked = math.asfloat(spotAttenuationHalf.x.value << 16 | spotAttenuationHalf.y.value);
+            var spotDirAttenuationPacked = new Vector4(spotDir.x, spotDir.y, spotDir.z, spotAttenuationPacked);
 
-            if (_additionalTiledLights != null)
+            if (_tiledData.TiledLights != null)
             {
                 Vector4 positionVsRange =
                     _camera.worldToCameraMatrix.MultiplyPoint(lightLocalToWorld.GetColumn(3));
                 positionVsRange.w = visibleLight.range;
 
-                ref TiledLight tiledLight = ref _additionalTiledLights[index];
+                ref TiledLight tiledLight = ref _tiledData.TiledLights[index];
                 tiledLight.Color = color;
                 tiledLight.PositionVsRange = positionVsRange;
                 tiledLight.PositionWsAttenuation = positionWsAttenuation;
             }
 
-            if (_additionalTiledLightsColors != null)
+            if (_tiledData.Colors != null)
             {
-                _additionalTiledLightsColors[index] = color;
+                _tiledData.Colors[index] = color;
             }
 
-            if (_additionalTiledLightsPositionWsAttenuations != null)
+            if (_tiledData.PositionsAttenuations != null)
             {
-                _additionalTiledLightsPositionWsAttenuations[index] = positionWsAttenuation;
+                _tiledData.PositionsAttenuations[index] = positionWsAttenuation;
+            }
+
+            if (_tiledData.SpotDirsAttenuations != null)
+            {
+                _tiledData.SpotDirsAttenuations[index] = spotDirAttenuationPacked;
             }
         }
 
@@ -341,6 +336,22 @@ namespace DELTation.ToonRP.Lighting
         {
             Vector4 dir = lightLocalToWorldMatrix.GetColumn(2);
             spotDir = new Vector4(-dir.x, -dir.y, -dir.z);
+        }
+
+        public struct TiledAdditionalLightsData
+        {
+            public TiledLight[] TiledLights;
+            public Vector4[] Colors;
+            public Vector4[] PositionsAttenuations;
+            public Vector4[] SpotDirsAttenuations;
+
+            public void EnsureBuffersAreCreated()
+            {
+                TiledLights ??= new TiledLight[MaxAdditionalLightCountTiled];
+                Colors ??= new Vector4[MaxAdditionalLightCountTiled];
+                PositionsAttenuations ??= new Vector4[MaxAdditionalLightCountTiled];
+                SpotDirsAttenuations ??= new Vector4[MaxAdditionalLightCountTiled];
+            }
         }
 
         private static class ShaderPropertyId

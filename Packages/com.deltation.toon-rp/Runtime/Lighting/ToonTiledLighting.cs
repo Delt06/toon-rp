@@ -109,10 +109,8 @@ namespace DELTation.ToonRP.Lighting
             );
             _lightIndexList.Update(totalTilesCount * _reservedLightsPerTile + LightIndexListBaseIndexOffset);
 
-            _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] _, out Vector4[] _, out Vector4[] _,
-                out int tiledLightsCount
-            );
-            _tiledLightsBuffer.Update(tiledLightsCount);
+            int lightsCount = _lighting.GetAdditionalLightsCount();
+            _tiledLightsBuffer.Update(lightsCount);
 
             _computeTileBoundsKernel.Setup();
         }
@@ -127,16 +125,18 @@ namespace DELTation.ToonRP.Lighting
             {
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TiledLighting)))
                 {
-                    _lighting.GetTiledAdditionalLightsBuffer(out TiledLight[] tiledLights,
-                        out Vector4[] colors, out Vector4[] positionsAttenuations, out int tiledLightsCount
-                    );
+                    ref readonly ToonLighting.TiledAdditionalLightsData lightsData = ref _lighting.GetTiledAdditionalLightsBuffers();
+                    int lightsCount = _lighting.GetAdditionalLightsCount();
 
-                    _tiledLightsBuffer.Buffer.SetData(tiledLights, 0, 0, tiledLightsCount);
+                    _tiledLightsBuffer.Buffer.SetData(lightsData.TiledLights, 0, 0, lightsCount);
                     cmd.SetGlobalBuffer(ShaderIds.LightsStructuredBufferId, _tiledLightsBuffer.Buffer);
 
-                    cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferColorsId, colors);
+                    cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferColorsId, lightsData.Colors);
                     cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferPositionsAttenuationsId,
-                        positionsAttenuations
+                        lightsData.PositionsAttenuations
+                    );
+                    cmd.SetGlobalVectorArray(ShaderIds.LightsConstantBufferSpotDirAttenuationsId,
+                        lightsData.SpotDirsAttenuations
                     );
 
                     cmd.SetGlobalVector(ShaderIds.ScreenDimensionsId,
@@ -182,6 +182,8 @@ namespace DELTation.ToonRP.Lighting
             public static readonly int LightsConstantBufferColorsId = Shader.PropertyToID("_TiledLighting_Light_Color");
             public static readonly int LightsConstantBufferPositionsAttenuationsId =
                 Shader.PropertyToID("_TiledLighting_Light_PositionsWs_Attenuation");
+            public static readonly int LightsConstantBufferSpotDirAttenuationsId =
+                Shader.PropertyToID("_TiledLighting_Light_SpotDir_Attenuation");
             public static readonly int ScreenDimensionsId = Shader.PropertyToID("_TiledLighting_ScreenDimensions");
             public static readonly int LightIndexListId = Shader.PropertyToID("_TiledLighting_LightIndexList");
             public static readonly int TileBoundsId = Shader.PropertyToID("_TiledLighting_TileBounds");

@@ -52,8 +52,8 @@ LightEntry GetTiledLightEntry(const uint globalLightIndex)
     lightEntry.spotDir = spotDir_Attenuation.xyz;
     const uint spotAttenuation = asuint(spotDir_Attenuation.w);
     lightEntry.spotAttenuation = half2((half) f16tof32(spotAttenuation >> 16), (half) f16tof32(spotAttenuation));
-    
-    lightEntry.shadowIndex = -1;
+
+    lightEntry.shadowIndex = GetLightShadowIndex(globalLightIndex);
     
     return lightEntry;
 }

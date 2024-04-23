@@ -1108,6 +1108,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             StructFields.Attributes.uv0,
             StructFields.Attributes.uv1,
             StructFields.Attributes.uv2,
+            StructFields.Varyings.tangentWS,
             ToonStructFields.Varyings.vizUV,
             ToonStructFields.Varyings.lightCoord,
         };

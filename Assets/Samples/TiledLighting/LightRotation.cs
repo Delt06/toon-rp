@@ -13,7 +13,7 @@ namespace Samples.TiledLighting
         private void Awake()
         {
             _lights = FindObjectsByType<Light>(FindObjectsSortMode.None)
-                .Where(l => l.type == LightType.Point)
+                .Where(l => l.type is LightType.Point or LightType.Spot)
                 .Select(l =>
                     {
                         float speed = Random.Range(_speedRange.x, _speedRange.y);

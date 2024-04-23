@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028386, g: 0.22571427, b: 0.3069231, a: 1}
+  m_IndirectSpecularColor: {r: 0.1802907, g: 0.22573434, b: 0.30694622, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1814,7 +1814,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &698310811
 Transform:
   m_ObjectHideFlags: 0
@@ -1964,6 +1964,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95c2934b0cd14cf6acf388dc989c86dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EnableXRRendering: 1
 --- !u!114 &732565568
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1976,7 +1977,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 537b5ce2bfa94abb94691791a107a48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _fakeAdditionalLights: {fileID: 11400000, guid: a9b798b399d4657428fef606553f2893, type: 2}
   DesignWidth: 640
 --- !u!114 &732565569
 MonoBehaviour:
@@ -3563,9 +3563,17 @@ PrefabInstance:
       propertyPath: m_Range
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 1821736254522438764, guid: b088d083237bf7f4a955cc253211f889, type: 3}
-      propertyPath: m_Range
-      value: 1
+    - target: {fileID: 1821736254522438765, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 84.472
+      objectReference: {fileID: 0}
+    - target: {fileID: 1821736254522438765, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -295.414
+      objectReference: {fileID: 0}
+    - target: {fileID: 1821736254522438765, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -25.311
       objectReference: {fileID: 0}
     - target: {fileID: 1821736254524669771, guid: b088d083237bf7f4a955cc253211f889, type: 3}
       propertyPath: m_Range
@@ -3619,9 +3627,17 @@ PrefabInstance:
       propertyPath: m_Range
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 1821736255014025135, guid: b088d083237bf7f4a955cc253211f889, type: 3}
-      propertyPath: m_Range
-      value: 1
+    - target: {fileID: 1821736255014025128, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.989
+      objectReference: {fileID: 0}
+    - target: {fileID: 1821736255014025128, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.639
+      objectReference: {fileID: 0}
+    - target: {fileID: 1821736255014025128, guid: b088d083237bf7f4a955cc253211f889, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.654
       objectReference: {fileID: 0}
     - target: {fileID: 1821736255026452549, guid: b088d083237bf7f4a955cc253211f889, type: 3}
       propertyPath: m_Range
@@ -5487,10 +5503,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1821736254397161913, guid: b088d083237bf7f4a955cc253211f889, type: 3}
-      propertyPath: m_RootOrder
-      value: 4
-      objectReference: {fileID: 0}
     - target: {fileID: 1821736254397161913, guid: b088d083237bf7f4a955cc253211f889, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

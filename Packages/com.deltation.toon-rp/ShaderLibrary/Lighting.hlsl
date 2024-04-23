@@ -87,6 +87,17 @@ struct LightEntry
     int shadowIndex;
 };
 
+int GetLightShadowIndex(const uint globalLightIndex)
+{
+    if (globalLightIndex < MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT)
+    {
+        const half4 metadata = _ToonRP_AdditionalShadows_Metadata[globalLightIndex];
+        return metadata.x;
+    }
+    
+    return -1;
+}
+
 LightEntry GetUniformLightEntry(const uint globalLightIndex)
 {
     LightEntry lightEntry;
@@ -109,17 +120,7 @@ LightEntry GetUniformLightEntry(const uint globalLightIndex)
         lightEntry.spotAttenuation.y = spotDir_spotAttenuation.w;
     }
 
-    {
-        if (globalLightIndex < MAX_ADDITIONAL_LIGHT_SHADOWS_COUNT)
-        {
-            const half4 metadata = _ToonRP_AdditionalShadows_Metadata[globalLightIndex];
-            lightEntry.shadowIndex = (int) metadata.x;
-        }
-        else
-        {
-            lightEntry.shadowIndex = -1;
-        }
-    }
+    lightEntry.shadowIndex = GetLightShadowIndex(globalLightIndex);
     
     return lightEntry;
 }

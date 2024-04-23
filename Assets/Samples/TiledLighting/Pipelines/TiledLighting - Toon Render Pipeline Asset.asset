@@ -14,8 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ForceIncludedShaders:
   - {fileID: 4800000, guid: 32cf79821a574ca29fd7697e92aae19d, type: 3}
+  - {fileID: 4800000, guid: 11527595c9484fb09a4ee48b0e47204f, type: 3}
   - {fileID: 4800000, guid: 48be904f99f74bee85d2e82c67910da8, type: 3}
   - {fileID: 4800000, guid: 3774c88acba044f58195398345cfc7cd, type: 3}
+  - {fileID: 4800000, guid: 7be86da3d47840bd8b73ba28db1a2ca1, type: 3}
+  - {fileID: 4800000, guid: 2268c7f425a8453ba9e77607d402a9b4, type: 3}
+  - {fileID: 4800000, guid: 4aee5d6e842043a384557e2f0557f76c, type: 3}
   GlobalRampSettings:
     Threshold: 0
     SpecularThreshold: 0.99
@@ -50,10 +54,15 @@ MonoBehaviour:
     TransparentLayerMask:
       serializedVersion: 2
       m_Bits: 4294967295
+    MotionVectorsZeroLayerMask:
+      serializedVersion: 2
+      m_Bits: 0
     UseSrpBatching: 1
     UseDynamicBatching: 0
+    ForceRenderToIntermediateBuffer: 0
     NativeRenderPasses: 0
     ForceStoreCameraDepth: 0
+    BakedLightingFeatures: 7
   ShadowSettings:
     Mode: 1
     Threshold: 0.505
@@ -89,6 +98,9 @@ MonoBehaviour:
         DepthBias: 0.287
         NormalBias: 0
         SlopeBias: 3.72
+      Additional:
+        Enabled: 1
+        AtlasSize: 1024
     Blobs:
       AtlasSize: 128
       Mode: 0

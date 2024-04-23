@@ -105,16 +105,22 @@ void CS(
     for (i = localIndex; i < _AdditionalLightCount; i += TILE_SIZE * TILE_SIZE)
     {
         const TiledLight light = _TiledLighting_Lights_SB[i];
-        const float3 positionVs = light.positionVs_range.xyz;
-        const float range = light.positionVs_range.w;
 
         TiledLighting_Sphere boundingSphere;
-        boundingSphere.center = positionVs;
-        boundingSphere.radius = range;
+        boundingSphere.center = light.BoundingSphere_CenterVs_Radius.xyz;
+        boundingSphere.radius = light.BoundingSphere_CenterVs_Radius.w;
 
         if (TiledLighting_SphereInsideAabb(boundingSphere, opaqueAabb))
         {
-            AppendLight_Opaque(i);
+            TiledLighting_Sphere coneBoundingSphere;
+            coneBoundingSphere.center = light.ConeBoundingSphere_CenterVs_Radius.xyz;
+            coneBoundingSphere.radius = light.ConeBoundingSphere_CenterVs_Radius.w;
+            
+            if (coneBoundingSphere.radius == 0.0f ||
+                TiledLighting_SphereInsideAabb(coneBoundingSphere, opaqueAabb))
+            {
+                AppendLight_Opaque(i);
+            }
         }
     }
 

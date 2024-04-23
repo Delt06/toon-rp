@@ -47,9 +47,13 @@ LightEntry GetTiledLightEntry(const uint globalLightIndex)
     const float4 positionWs_attenuation = _TiledLighting_Light_PositionsWs_Attenuation[globalLightIndex]; 
     lightEntry.positionWs = positionWs_attenuation.xyz;
     lightEntry.distanceAttenuation = positionWs_attenuation.w;
-    lightEntry.spotAttenuation = float2(0, 1);
-    lightEntry.spotDir = float3(0, 0, 0);
-    lightEntry.shadowIndex = -1;
+
+    const float4 spotDir_Attenuation = _TiledLighting_Light_SpotDir_Attenuation[globalLightIndex];
+    lightEntry.spotDir = spotDir_Attenuation.xyz;
+    const uint spotAttenuation = asuint(spotDir_Attenuation.w);
+    lightEntry.spotAttenuation = half2((half) f16tof32(spotAttenuation >> 16), (half) f16tof32(spotAttenuation));
+
+    lightEntry.shadowIndex = GetLightShadowIndex(globalLightIndex);
     
     return lightEntry;
 }

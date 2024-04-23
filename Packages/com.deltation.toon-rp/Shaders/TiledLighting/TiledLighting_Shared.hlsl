@@ -13,6 +13,7 @@
 
 #include "../../ShaderLibrary/Common.hlsl"
 #include "../../ShaderLibrary/Lighting.hlsl"
+#include "../../Runtime/Lighting/TiledLight.cs.hlsl"
 
 CBUFFER_START(TiledLighting)
     float2 _TiledLighting_ScreenDimensions;
@@ -21,13 +22,6 @@ CBUFFER_START(TiledLighting)
 
     uint _TiledLighting_ReservedLightsPerTile;
 CBUFFER_END
-
-struct TiledLight
-{
-    float4 color; // rgb = color
-    float4 positionVs_range; // xyz = position VS, w = range
-    float4 positionWs_attenuation; // xyz = position, w = 1/range^2
-};
 
 StructuredBuffer<TiledLight> _TiledLighting_Lights_SB;
 

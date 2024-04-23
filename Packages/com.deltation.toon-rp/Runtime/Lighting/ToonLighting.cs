@@ -269,14 +269,29 @@ namespace DELTation.ToonRP.Lighting
 
             if (_tiledData.TiledLights != null)
             {
-                Vector4 positionVsRange =
-                    _camera.worldToCameraMatrix.MultiplyPoint(lightLocalToWorld.GetColumn(3));
-                positionVsRange.w = visibleLight.range;
+                Vector4 boundingSphereCenterVsRadius = _camera.worldToCameraMatrix.MultiplyPoint(lightLocalToWorld.GetColumn(3));
+                boundingSphereCenterVsRadius.w = visibleLight.range;
 
                 ref TiledLight tiledLight = ref _tiledData.TiledLights[index];
                 tiledLight.Color = color;
-                tiledLight.PositionVsRange = positionVsRange;
-                tiledLight.PositionWsAttenuation = positionWsAttenuation;
+                tiledLight.BoundingSphere_CenterVs_Radius = boundingSphereCenterVsRadius;
+                tiledLight.PositionWs_Attenuation = positionWsAttenuation;
+                
+                if (visibleLight.lightType == LightType.Spot)
+                {
+                    // https://wickedengine.net/2018/01/optimizing-tile-based-light-culling/
+                    float spotAngleCos = Mathf.Cos(Mathf.Deg2Rad * visibleLight.spotAngle * 0.5f);
+                    float boundingSphereRadius = visibleLight.range * 0.5f / spotAngleCos;
+                    Vector4 boundingSphereCenter = lightLocalToWorld.GetColumn(3) - (Vector4)(spotDir * boundingSphereRadius);
+
+                    Vector4 coneBoundingSphereCenterVsRadius = _camera.worldToCameraMatrix.MultiplyPoint(boundingSphereCenter);
+                    coneBoundingSphereCenterVsRadius.w = boundingSphereRadius;
+                    tiledLight.ConeBoundingSphere_CenterVs_Radius = coneBoundingSphereCenterVsRadius;
+                }
+                else
+                {
+                    tiledLight.ConeBoundingSphere_CenterVs_Radius = default;
+                }
             }
 
             if (_tiledData.Colors != null)

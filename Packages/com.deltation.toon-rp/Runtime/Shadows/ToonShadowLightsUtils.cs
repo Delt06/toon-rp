@@ -71,7 +71,7 @@ namespace DELTation.ToonRP.Shadows
 
             LightSliceInfo lightSliceInfo;
 
-            if (data.CullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(visibleLightIndex, out lightSliceInfo.ViewMatrix, out lightSliceInfo.ProjectionMatrix, out ShadowSplitData splitData))
+            if (!data.CullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(visibleLightIndex, out lightSliceInfo.ViewMatrix, out lightSliceInfo.ProjectionMatrix, out ShadowSplitData splitData))
             {
                 return false;
             }

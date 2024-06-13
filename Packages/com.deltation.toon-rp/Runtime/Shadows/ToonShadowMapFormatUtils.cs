@@ -23,7 +23,7 @@ namespace DELTation.ToonRP.Shadows
 
                 const int stencilBits = 0;
                 GraphicsFormat format = GraphicsFormatUtility.GetDepthStencilFormat((int) shadowMapBits, stencilBits);
-                if (SystemInfo.IsFormatSupported(format, FormatUsage.Render | FormatUsage.Sample))
+                if (SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render | GraphicsFormatUsage.Sample))
                 {
                     return (format, (int) shadowMapBits);
                 }
@@ -48,7 +48,7 @@ namespace DELTation.ToonRP.Shadows
             };
 
             return UnityEngine.SystemInfo.IsFormatSupported(desiredFormat,
-                FormatUsage.Render | FormatUsage.Sample | FormatUsage.Linear
+                GraphicsFormatUsage.Render | GraphicsFormatUsage.Sample | GraphicsFormatUsage.Linear
             )
                 ? desiredFormat
                 : halfFormat;

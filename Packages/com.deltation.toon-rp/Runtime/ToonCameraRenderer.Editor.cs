@@ -56,7 +56,7 @@ namespace DELTation.ToonRP
             _cmdName = _camera.name;
         }
 
-        partial void DrawUnsupportedShaders()
+        partial void DrawUnsupportedShaders(CommandBuffer cmd)
         {
             if (_errorMaterial == null)
             {
@@ -74,7 +74,9 @@ namespace DELTation.ToonRP
             }
 
             FilteringSettings filteringSettings = FilteringSettings.defaultValue;
-            _context.DrawRenderers(_cullingResults, ref drawingSettings, ref filteringSettings);
+            var rendererListParams = new RendererListParams(_cullingResults, drawingSettings, filteringSettings);
+            RendererList rendererList = _context.CreateRendererList(ref rendererListParams);
+            cmd.DrawRendererList(rendererList);
         }
 #endif // UNITY_EDITOR || DEBUG
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -6,13 +6,13 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
 {
     public class ToonRenderObjects : ToonRenderingExtensionBase
     {
-        private readonly List<ShaderTagId> _lightModeTags = new();
         private ToonAdditionalCameraData _additionalCameraData;
         private Camera _camera;
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonCameraRenderTarget _cameraRenderTarget;
         private ScriptableRenderContext _context;
         private CullingResults _cullingResults;
+        private ShaderTagId[] _lightModeTags = new ShaderTagId[1];
         private ToonRenderObjectsSettings _settings;
 
         public override void Setup(in ToonRenderingExtensionContext context,
@@ -38,13 +38,16 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(passName)))
             {
                 bool overrideLightModeTags = false;
-                if (_settings.Filters.LightModeTags is { Length: > 0 })
+                string[] lightModeTags = _settings.Filters.LightModeTags;
+                if (lightModeTags is { Length: > 0 })
                 {
                     overrideLightModeTags = true;
-                    _lightModeTags.Clear();
-                    foreach (string lightMode in _settings.Filters.LightModeTags)
+
+                    Array.Resize(ref _lightModeTags, lightModeTags.Length);
+
+                    for (int index = 0; index < lightModeTags.Length; index++)
                     {
-                        _lightModeTags.Add(new ShaderTagId(lightMode));
+                        _lightModeTags[index] = new ShaderTagId(lightModeTags[index]);
                     }
                 }
 
@@ -53,19 +56,17 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                 _context.ExecuteCommandBufferAndClear(cmd);
 
                 bool opaque = _settings.Filters.Queue == ToonRenderObjectsSettings.FilterSettings.RenderQueue.Opaque;
-                var sortingSettings = new SortingSettings(_camera)
-                {
-                    criteria = opaque
-                        ? SortingCriteria.CommonOpaque
-                        : SortingCriteria.CommonTransparent,
-                };
+                SortingCriteria sortingCriteria = opaque
+                    ? SortingCriteria.CommonOpaque
+                    : SortingCriteria.CommonTransparent;
 
                 ClearRenderTargetIfEnabled(cmd);
 
                 RenderStateBlock? renderStateBlock = ConstructRenderStateBlock();
                 RenderQueueRange renderQueueRange = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent;
                 bool includesTransparent = !opaque;
-                ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, _cullingResults, sortingSettings,
+                ToonCameraRenderer.DrawGeometry(_cameraRendererSettings, ref _context, cmd, _camera, _cullingResults,
+                    sortingCriteria,
                     renderQueueRange, includesTransparent, _settings.Filters.LayerMask, renderStateBlock,
                     overrideLightModeTags ? _lightModeTags : null,
                     false,

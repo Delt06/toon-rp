@@ -200,7 +200,7 @@ namespace DELTation.ToonRP.Lighting
                     }
 
                     case LightType.Directional:
-                    case LightType.Area:
+                    case LightType.Rectangle:
                     case LightType.Disc:
                         break;
                     default:

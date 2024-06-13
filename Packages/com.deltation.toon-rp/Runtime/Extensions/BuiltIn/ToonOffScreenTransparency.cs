@@ -114,10 +114,6 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                     _srpContext.ExecuteCommandBufferAndClear(cmd);
 
                     {
-                        var sortingSettings = new SortingSettings(_camera)
-                        {
-                            criteria = SortingCriteria.CommonTransparent,
-                        };
                         // See 23-3: https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-23-high-speed-screen-particles
                         RenderTargetBlendState renderTargetBlendState = _settings.BlendMode switch
                         {
@@ -134,7 +130,8 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                         };
                         const bool includesTransparent = true;
                         ToonCameraRenderer.DrawGeometry(_cameraRendererSettings,
-                            ref _srpContext, _cullingResults, sortingSettings, RenderQueueRange.transparent,
+                            ref _srpContext, cmd, _camera, _cullingResults,
+                            SortingCriteria.CommonTransparent, RenderQueueRange.transparent,
                             includesTransparent,
                             _settings.LayerMask,
                             new RenderStateBlock(RenderStateMask.Blend)
@@ -145,6 +142,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
                                 },
                             }
                         );
+                        _srpContext.ExecuteCommandBufferAndClear(cmd);
                     }
                 }
 

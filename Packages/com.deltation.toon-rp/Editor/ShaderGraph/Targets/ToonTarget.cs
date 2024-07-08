@@ -22,14 +22,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         Opaque,
         Transparent,
     }
-
+    
     internal enum ZWriteControl
     {
         Auto = 0,
         ForceEnabled = 1,
         ForceDisabled = 2,
     }
-
+    
     internal enum ZTestMode // the values here match UnityEngine.Rendering.CompareFunction
     {
         Disabled = 0,
@@ -42,7 +42,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         GEqual = 7,
         Always = 8,
     }
-
+    
     internal enum AlphaMode
     {
         Alpha,
@@ -50,19 +50,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         Additive,
         Multiply,
     }
-
+    
     internal enum RenderFace
     {
         Front = 2, // = CullMode.Back -- render front face only
         Back = 1, // = CullMode.Front -- render back face only
         Both = 0, // = CullMode.Off -- render both faces
     }
-
+    
     internal sealed class ToonTarget : Target, IHasMetadata
     {
         public const string UberTemplatePath =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Templates/ShaderPass.template";
-
+        
         // Constants
         private static readonly GUID SourceCodeGuid = new("5887ebecda26f434fbc73c8064f0525a"); // ToonTarget.cs
         public static readonly string[] SharedTemplateDirectories = GenerationUtils
@@ -73,13 +73,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ).ToArray();
         private readonly List<string> _subTargetNames;
         private TextField _customGUIField;
-
+        
         // View
         private PopupField<string> _subTargetField;
-
+        
         // SubTarget
         private List<SubTarget> _subTargets;
-
+        
         public ToonTarget()
         {
             displayName = "Toon";
@@ -87,21 +87,21 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             _subTargetNames = _subTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref _activeSubTarget, ref _subTargets);
         }
-
+        
         public override int latestVersion => 1;
         private int ActiveSubTargetIndex => _subTargets.IndexOf(_activeSubTarget);
-
+        
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
         internal override bool prefersSpritePreview => _activeSubTarget.value is ToonParticlesUnlitSubTarget;
-
+        
         public string RenderType => SurfaceType == SurfaceType.Transparent
             ? $"{UnityEditor.ShaderGraph.RenderType.Transparent}"
             : $"{UnityEditor.ShaderGraph.RenderType.Opaque}";
-
+        
         // this sets up the default renderQueue -- but it can be overridden by ResetMaterialKeywords()
         public string RenderQueueString => RenderQueue.ToString();
-
+        
         public RenderQueue RenderQueue
         {
             get
@@ -110,113 +110,113 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     return RenderQueue.Transparent;
                 }
-
+                
                 return AlphaClip
                     ? RenderQueue.AlphaTest
                     : RenderQueue.Geometry;
             }
         }
-
+        
         public SubTarget ActiveSubTarget
         {
             get => _activeSubTarget.value;
             set => _activeSubTarget = value;
         }
-
+        
         public bool AllowMaterialOverride
         {
             get => _allowMaterialOverride;
             private set => _allowMaterialOverride = value;
         }
-
+        
         public SurfaceType SurfaceType
         {
             get => _surfaceType;
             set => _surfaceType = value;
         }
-
+        
         public ZWriteControl ZWriteControl
         {
             get => _zWriteControl;
             private set => _zWriteControl = value;
         }
-
+        
         public ZTestMode ZTestMode
         {
             get => _zTestMode;
             private set => _zTestMode = value;
         }
-
+        
         public AlphaMode AlphaMode
         {
             get => _alphaMode;
             private set => _alphaMode = value;
         }
-
+        
         public RenderFace RenderFace
         {
             get => _renderFace;
             private set => _renderFace = value;
         }
-
+        
         public bool AlphaClip
         {
             get => _alphaClip;
             set => _alphaClip = value;
         }
-
+        
         public bool AlphaToCoverage
         {
             get => _alphaToCoverage;
             private set => _alphaToCoverage = value;
         }
-
+        
         public bool ControlStencil
         {
             get => _controlStencil;
             set => _controlStencil = value;
         }
-
+        
         public bool ControlStencilEffectivelyEnabled => ControlStencil && ControlStencilCanBeEnabled;
-
+        
         private bool ControlStencilCanBeEnabled => true;
-
+        
         public bool CastShadows
         {
             get => _castShadows;
             private set => _castShadows = value;
         }
-
+        
         public bool ReceiveShadows
         {
             get => _receiveShadows;
             private set => _receiveShadows = value;
         }
-
+        
         public PrePassMode IgnoredPrePasses
         {
             get => _ignoredPrePasses;
             private set => _ignoredPrePasses = value;
         }
-
+        
         public bool Fog
         {
             get => _fog;
             private set => _fog = value;
         }
-
+        
         public bool CustomFog
         {
             get => _customFog;
             private set => _customFog = value;
         }
-
+        
         private string CustomEditorGUI
         {
             get => _customEditorGUI;
             set => _customEditorGUI = value;
         }
-
+        
         // generally used to know if we need to build a depth pass
         public bool MayWriteDepth
         {
@@ -227,7 +227,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     // material may or may not choose to write depth... we should create the depth pass
                     return true;
                 }
-
+                
                 return ZWriteControl switch
                 {
                     ZWriteControl.Auto => SurfaceType == SurfaceType.Opaque,
@@ -236,55 +236,55 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 };
             }
         }
-
+        
         public override object saveContext => _activeSubTarget.value?.saveContext;
-
+        
         public override bool IsActive()
         {
             bool isUniversalRenderPipeline = GraphicsSettings.currentRenderPipeline is ToonRenderPipelineAsset;
             return isUniversalRenderPipeline && ActiveSubTarget.IsActive();
         }
-
+        
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(ToonRenderPipeline));
-
+            
             SubTargetFilterAttribute subTargetFilter =
                 NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
             bool worksWithThisSubTarget = subTargetFilter == null ||
                                           subTargetFilter.subTargetTypes.Contains(ActiveSubTarget.GetType());
-
+            
             return worksWithThisSrp && worksWithThisSubTarget && base.IsNodeAllowedByTarget(nodeType);
         }
-
+        
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
             context.AddAssetDependency(SourceCodeGuid, AssetCollection.Flags.SourceDependency);
-
+            
             // Override EditorGUI (replaces the ToonRP material editor by a custom one)
             if (!string.IsNullOrEmpty(_customEditorGUI))
             {
                 context.AddCustomEditorForRenderPipeline(_customEditorGUI, typeof(ToonRenderPipelineAsset));
             }
-
+            
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref _activeSubTarget, ref _subTargets);
             _activeSubTarget.value.target = this;
             _activeSubTarget.value.Setup(ref context);
         }
-
+        
         public override void OnAfterMultiDeserialize(string json)
         {
             TargetUtils.ProcessSubTargetList(ref _activeSubTarget, ref _subTargets);
             _activeSubTarget.value.target = this;
         }
-
+        
         public override void GetFields(ref TargetFieldContext context)
         {
             BlockFieldDescriptor[] descs = context.blocks.Select(x => x.descriptor).ToArray();
-
+            
             // Core fields
             context.AddField(Fields.GraphVertex, descs.Contains(ToonBlockFields.VertexDescription.Position) ||
                                                  descs.Contains(ToonBlockFields.VertexDescription.Normal) ||
@@ -292,11 +292,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                                                  descs.Contains(ToonBlockFields.VertexDescription.DepthBias)
             );
             context.AddField(Fields.GraphPixel);
-
+            
             // SubTarget fields
             _activeSubTarget.value.GetFields(ref context);
         }
-
+        
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             // Core blocks
@@ -304,28 +304,28 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             context.AddBlock(ToonBlockFields.VertexDescription.Normal);
             context.AddBlock(ToonBlockFields.VertexDescription.Tangent);
             context.AddBlock(ToonBlockFields.VertexDescription.DepthBias);
-
+            
             context.AddBlock(ToonBlockFields.SurfaceDescription.Albedo);
             context.AddBlock(ToonBlockFields.SurfaceDescription.Emission);
-
+            
             // SubTarget blocks
             _activeSubTarget.value.GetActiveBlocks(ref context);
         }
-
+        
         public override void ProcessPreviewMaterial(Material material)
         {
             _activeSubTarget.value.ProcessPreviewMaterial(material);
         }
-
+        
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
             ActiveSubTarget.CollectShaderProperties(collector, generationMode);
-
+            
             // SubTarget blocks
             _activeSubTarget.value.CollectShaderProperties(collector, generationMode);
         }
-
+        
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo)
         {
@@ -337,16 +337,16 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Material");
                     _activeSubTarget = _subTargets[_subTargetField.index];
                     onChange();
                 }
             );
-
+            
             // SubTarget properties
             _activeSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
-
+            
             // Custom Editor GUI
             // Requires FocusOutEvent
             _customGUIField = new TextField("") { value = CustomEditorGUI };
@@ -356,7 +356,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Custom Editor GUI");
                     CustomEditorGUI = _customGUIField.value;
                     onChange();
@@ -364,7 +364,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             );
             context.AddProperty("Custom Editor GUI", _customGUIField, _ => { });
         }
-
+        
         public void AddDefaultMaterialOverrideGUI(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo)
         {
@@ -381,7 +381,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             //     }
             // );
         }
-
+        
         public void AddDefaultSurfacePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo, bool showReceiveShadows)
         {
@@ -391,13 +391,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Surface");
                     SurfaceType = (SurfaceType) evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = AlphaMode },
                 SurfaceType == SurfaceType.Transparent, evt =>
                 {
@@ -405,39 +405,39 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Blend");
                     AlphaMode = (AlphaMode) evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = RenderFace }, evt =>
                 {
                     if (Equals(RenderFace, evt.newValue))
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Render Face");
                     RenderFace = (RenderFace) evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Depth Write", new EnumField(ZWriteControl.Auto) { value = ZWriteControl }, evt =>
                 {
                     if (Equals(ZWriteControl, evt.newValue))
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Depth Write Control");
                     ZWriteControl = (ZWriteControl) evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Depth Test",
                 new EnumField(ZTestModeForUI.LEqual) { value = (ZTestModeForUI) ZTestMode }, evt =>
                 {
@@ -445,26 +445,26 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Depth Test");
                     ZTestMode = (ZTestMode) evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Alpha Clipping", new Toggle { value = AlphaClip }, evt =>
                 {
                     if (Equals(AlphaClip, evt.newValue))
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Alpha Clip");
                     AlphaClip = evt.newValue;
                     onChange();
                 }
             );
-
+            
             if (AlphaClip)
             {
                 context.AddProperty("Alpha To Coverage", new Toggle { value = AlphaToCoverage }, evt =>
@@ -473,14 +473,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                         {
                             return;
                         }
-
+                        
                         registerUndo("Change Alpha To Coverage");
                         AlphaToCoverage = evt.newValue;
                         onChange();
                     }
                 );
             }
-
+            
             if (ControlStencilCanBeEnabled)
             {
                 context.AddProperty("Control Stencil",
@@ -491,29 +491,29 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                         {
                             return;
                         }
-
+                        
                         registerUndo("Change Control Stencil");
                         ControlStencil = evt.newValue;
                         onChange();
                     }
                 );
             }
-
+            
             AddDefaultFogProperties(ref context, onChange, registerUndo);
-
+            
             context.AddProperty("Cast Shadows", new Toggle { value = CastShadows }, evt =>
                 {
                     if (Equals(CastShadows, evt.newValue))
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Cast Shadows");
                     CastShadows = evt.newValue;
                     onChange();
                 }
             );
-
+            
             if (showReceiveShadows)
             {
                 context.AddProperty("Receive Shadows", new Toggle { value = ReceiveShadows }, evt =>
@@ -522,14 +522,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                         {
                             return;
                         }
-
+                        
                         registerUndo("Change Receive Shadows");
                         ReceiveShadows = evt.newValue;
                         onChange();
                     }
                 );
             }
-
+            
             context.AddProperty("Ignored Pre-Passes", new EnumFlagsField(PrePassMode.Off) { value = IgnoredPrePasses },
                 evt =>
                 {
@@ -537,14 +537,14 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Ignored Pre-Passes");
                     IgnoredPrePasses = (PrePassMode) evt.newValue;
                     onChange();
                 }
             );
         }
-
+        
         public void AddDefaultFogProperties(ref TargetPropertyGUIContext context, Action onChange,
             Action<string> registerUndo)
         {
@@ -554,34 +554,34 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Fog");
                     Fog = evt.newValue;
                     onChange();
                 }
             );
-
+            
             context.AddProperty("Custom Fog", new Toggle { value = CustomFog }, evt =>
                 {
                     if (Equals(CustomFog, evt.newValue))
                     {
                         return;
                     }
-
+                    
                     registerUndo("Change Custom Fog");
                     CustomFog = evt.newValue;
                     onChange();
                 }
             );
         }
-
+        
         public bool TrySetActiveSubTarget(Type subTargetType)
         {
             if (!subTargetType.IsSubclassOf(typeof(SubTarget)))
             {
                 return false;
             }
-
+            
             foreach (SubTarget subTarget in _subTargets)
             {
                 if (subTarget.GetType() == subTargetType)
@@ -590,25 +590,25 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     return true;
                 }
             }
-
+            
             return false;
         }
-
+        
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) =>
-
+            
             // ReSharper disable once Unity.NoNullPropagation
             scriptableRenderPipeline?.GetType() == typeof(ToonRenderPipelineAsset);
-
+        
         public override void OnAfterDeserialize(string json)
         {
             base.OnAfterDeserialize(json);
-
+            
             if (sgVersion < latestVersion)
             {
                 ChangeVersion(latestVersion);
             }
         }
-
+        
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         private enum ZTestModeForUI
@@ -622,10 +622,10 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             GEqual = 7,
             Always = 8,
         }
-
+        
         // ReSharper disable Unity.RedundantSerializeFieldAttribute
         [SerializeField] private JsonData<SubTarget> _activeSubTarget;
-
+        
         // when checked, allows the material to control ALL surface settings (uber shader style)
         [SerializeField] private bool _allowMaterialOverride;
         [SerializeField] private SurfaceType _surfaceType = SurfaceType.Opaque;
@@ -642,11 +642,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
         [SerializeField] private bool _fog = true;
         [SerializeField] private bool _customFog;
         [SerializeField] private string _customEditorGUI;
-
+        
         // ReSharper restore Unity.RedundantSerializeFieldAttribute
-
+        
         #region Metadata
-
+        
         string IHasMetadata.identifier
         {
             get
@@ -656,11 +656,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     return subTargetHasMetaData.identifier;
                 }
-
+                
                 return null;
             }
         }
-
+        
         ScriptableObject IHasMetadata.GetMetadataObject(GraphDataReadOnly graph)
         {
             // defer to subtarget
@@ -668,19 +668,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             {
                 return subTargetHasMetaData.GetMetadataObject(graph);
             }
-
+            
             return null;
         }
-
+        
         #endregion
     }
-
+    
     #region Passes
-
+    
     internal static class CorePasses
     {
         public delegate void PassConfigurator(ref PassDescriptor passDescriptor);
-
+        
         private static void AddAlphaClipControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
@@ -692,7 +692,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
             }
         }
-
+        
         internal static void AddFogControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
@@ -704,7 +704,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.defines.Add(CoreKeywordDescriptors.ForceDisableFog, 1);
             }
         }
-
+        
         internal static void AddCustomFogControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.AllowMaterialOverride)
@@ -716,7 +716,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.defines.Add(CoreKeywordDescriptors.CustomFog, 1);
             }
         }
-
+        
         private static void AddOutlinesControlToPass(ref PassDescriptor pass, ToonTarget target)
         {
             if (target.ControlStencilEffectivelyEnabled || target.AllowMaterialOverride)
@@ -724,7 +724,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 pass.keywords.Add(CoreKeywordDescriptors.StencilOverride);
             }
         }
-
+        
         internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, ToonTarget target)
         {
             // the surface settings can either be material controlled or target controlled
@@ -741,19 +741,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
                 }
-
+                
                 if (target.AlphaMode == AlphaMode.Premultiply)
                 {
                     pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
                 }
             }
-
+            
             AddAlphaClipControlToPass(ref pass, target);
             AddFogControlToPass(ref pass, target);
             AddCustomFogControlToPass(ref pass, target);
             AddOutlinesControlToPass(ref pass, target);
         }
-
+        
         public static void AddPrePasses(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor,
             [CanBeNull] PassConfigurator configurePass = null)
         {
@@ -765,19 +765,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 {
                     subShaderDescriptor.passes.Add(DepthOnly(target, configurePass));
                 }
-
+                
                 if (!target.IgnoredPrePasses.Includes(PrePassMode.Depth | PrePassMode.Normals))
                 {
                     subShaderDescriptor.passes.Add(DepthNormals(target, configurePass));
                 }
-
+                
                 if (!target.IgnoredPrePasses.Includes(PrePassMode.MotionVectors))
                 {
                     subShaderDescriptor.passes.Add(MotionVectors(target, configurePass));
                 }
             }
         }
-
+        
         public static PassDescriptor DepthOnly(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthOnly;
@@ -788,36 +788,36 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 referenceName = pass.ReferenceName,
                 lightMode = pass.LightMode,
                 useInPreview = true,
-
+                
                 // Template
                 passTemplatePath = ToonTarget.UberTemplatePath,
                 sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
-
+                
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
+                
                 // Fields
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-
+                
                 // Conditional State
                 renderStates = CoreRenderStates.DepthOnly(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.DepthOnly,
-
+                
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common,
             };
-
+            
             AddAlphaClipControlToPass(ref result, target);
             configurePass?.Invoke(ref result);
-
+            
             return result;
         }
-
+        
         public static PassDescriptor DepthNormals(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.DepthNormals;
@@ -828,37 +828,37 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 referenceName = pass.ReferenceName,
                 lightMode = pass.LightMode,
                 useInPreview = false,
-
+                
                 // Template
                 passTemplatePath = ToonTarget.UberTemplatePath,
                 sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
-
+                
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
-
+                
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.DepthNormals,
                 fieldDependencies = CoreFieldDependencies.Default,
-
+                
                 // Conditional State
                 renderStates = CoreRenderStates.DepthNormals(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.DepthNormals,
-
+                
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common,
             };
-
+            
             AddAlphaClipControlToPass(ref result, target);
             configurePass?.Invoke(ref result);
-
+            
             return result;
         }
-
+        
         public static PassDescriptor MotionVectors(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.MotionVectors;
@@ -869,37 +869,37 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 referenceName = pass.ReferenceName,
                 lightMode = pass.LightMode,
                 useInPreview = false,
-
+                
                 // Template
                 passTemplatePath = ToonTarget.UberTemplatePath,
                 sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
-
+                
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = CoreBlockMasks.MotionVectors,
-
+                
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.MotionVectors,
                 fieldDependencies = CoreFieldDependencies.Default,
-
+                
                 // Conditional State
                 renderStates = CoreRenderStates.MotionVectors(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.MotionVectors,
-
+                
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common,
             };
-
+            
             AddAlphaClipControlToPass(ref result, target);
             configurePass?.Invoke(ref result);
-
+            
             return result;
         }
-
+        
         public static void AddShadowCasterPass(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor,
             [CanBeNull] PassConfigurator configurePass = null)
         {
@@ -909,7 +909,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 subShaderDescriptor.passes.Add(ShadowCaster(target, configurePass));
             }
         }
-
+        
         private static PassDescriptor ShadowCaster(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.ShadowCaster;
@@ -919,43 +919,43 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 displayName = pass.Name,
                 referenceName = pass.ReferenceName,
                 lightMode = pass.LightMode,
-
+                
                 // Template
                 passTemplatePath = ToonTarget.UberTemplatePath,
                 sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
-
+                
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
-
+                
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.ShadowCaster,
                 fieldDependencies = CoreFieldDependencies.Default,
-
+                
                 // Conditional State
                 renderStates = CoreRenderStates.ShadowCaster(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = DefaultKeywords.ShadowCaster,
                 includes = CoreIncludes.ShadowCaster,
-
+                
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common,
             };
-
+            
             AddAlphaClipControlToPass(ref result, target);
             configurePass?.Invoke(ref result);
-
+            
             return result;
         }
-
+        
         public static void AddMetaPass(ToonTarget target, ref SubShaderDescriptor subShaderDescriptor,
             [CanBeNull] PassConfigurator configurePass = null)
         {
             subShaderDescriptor.passes.Add(Meta(target, configurePass));
         }
-
+        
         private static PassDescriptor Meta(ToonTarget target, [CanBeNull] PassConfigurator configurePass = null)
         {
             ref readonly ToonPasses.Pass pass = ref ToonPasses.Meta;
@@ -965,42 +965,42 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 displayName = pass.Name,
                 referenceName = pass.ReferenceName,
                 lightMode = pass.LightMode,
-
+                
                 // Template
                 passTemplatePath = ToonTarget.UberTemplatePath,
                 sharedTemplateDirectories = ToonTarget.SharedTemplateDirectories,
-
+                
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
                 validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
-
+                
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.Meta,
                 fieldDependencies = CoreFieldDependencies.Default,
-
+                
                 // Conditional State
                 renderStates = CoreRenderStates.Meta(target),
                 pragmas = CorePragmas.Instanced,
                 defines = new DefineCollection(),
                 keywords = DefaultKeywords.Meta,
                 includes = CoreIncludes.Meta,
-
+                
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common,
             };
-
+            
             AddAlphaClipControlToPass(ref result, target);
             configurePass?.Invoke(ref result);
-
+            
             return result;
         }
     }
-
+    
     #endregion
-
+    
     #region PortMasks
-
+    
     internal static class CoreBlockMasks
     {
         public static readonly BlockFieldDescriptor[] Vertex =
@@ -1016,7 +1016,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-
+        
         public static readonly BlockFieldDescriptor[] FragmentColor =
         {
             ToonBlockFields.SurfaceDescription.PositionWs,
@@ -1025,7 +1025,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.CustomFogFactor,
             ToonBlockFields.SurfaceDescription.CustomFogColor,
         };
-
+        
         public static readonly BlockFieldDescriptor[] FragmentColorAlpha =
         {
             ToonBlockFields.SurfaceDescription.PositionWs,
@@ -1036,7 +1036,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-
+        
         public static readonly BlockFieldDescriptor[] FragmentDepthNormals =
         {
             ToonBlockFields.SurfaceDescription.PositionWs,
@@ -1046,7 +1046,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.Alpha,
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
-
+        
         public static readonly BlockFieldDescriptor[] FragmentDepthNormalsNoAlpha =
         {
             ToonBlockFields.SurfaceDescription.PositionWs,
@@ -1054,7 +1054,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.NormalTs,
             ToonBlockFields.SurfaceDescription.NormalWs,
         };
-
+        
         public static readonly BlockFieldDescriptor[] MotionVectors =
         {
             ToonBlockFields.SurfaceDescription.PositionWs,
@@ -1062,11 +1062,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonBlockFields.SurfaceDescription.AlphaClipThreshold,
         };
     }
-
+    
     #endregion
-
+    
     #region StructCollections
-
+    
     internal static class CoreStructCollections
     {
         public static readonly StructCollection Default = new()
@@ -1077,11 +1077,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             Structs.VertexDescriptionInputs,
         };
     }
-
+    
     #endregion
-
+    
     #region RequiredFields
-
+    
     internal static class CoreRequiredFields
     {
         public static readonly FieldCollection ShadowCaster = new()
@@ -1089,20 +1089,20 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonStructFields.Varyings.vsmDepth,
             StructFields.Varyings.positionWS,
         };
-
+        
         public static readonly FieldCollection DepthNormals = new()
         {
             StructFields.Varyings.normalWS,
             StructFields.Varyings.tangentWS,
         };
-
+        
         public static readonly FieldCollection MotionVectors = new()
         {
             ToonStructFields.Attributes.positionOld,
             ToonStructFields.Varyings.positionCsNoJitter,
             ToonStructFields.Varyings.previousPositionCsNoJitter,
         };
-
+        
         public static readonly FieldCollection Meta = new()
         {
             StructFields.Attributes.uv0,
@@ -1113,28 +1113,28 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ToonStructFields.Varyings.lightCoord,
         };
     }
-
+    
     #endregion
-
+    
     #region Keywords
-
+    
     internal static class DefaultKeywords
     {
         public static readonly KeywordCollection ShadowCaster = new()
         {
             CoreKeywordDescriptors.ToonRpVsmShadowCaster,
         };
-
+        
         public static readonly KeywordCollection Meta = new()
         {
             CoreKeywordDescriptors.EditorVisualization,
         };
     }
-
+    
     #endregion
-
+    
     #region FieldDependencies
-
+    
     internal static class CoreFieldDependencies
     {
         public static readonly DependencyCollection Default = new()
@@ -1148,11 +1148,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ),
         };
     }
-
+    
     #endregion
-
+    
     #region RenderStates
-
+    
     internal static class CoreRenderStates
     {
         private static readonly RenderStateCollection MaterialControlledRenderState = new()
@@ -1163,7 +1163,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             RenderState.Blend(Uniforms.SrcBlend, Uniforms.DstBlend
             ), //, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
         };
-
+        
         private static Cull RenderFaceToCull(RenderFace renderFace) =>
             renderFace switch
             {
@@ -1172,19 +1172,19 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderFace.Both => Cull.Off,
                 _ => Cull.Back,
             };
-
+        
         public static RenderStateCollection UberSwitchedRenderState(ToonTarget target)
         {
             if (target.AllowMaterialOverride)
             {
                 return MaterialControlledRenderState;
             }
-
+            
             var result = new RenderStateCollection
             {
                 RenderState.ZTest(target.ZTestMode.ToString()),
             };
-
+            
             switch (target.ZWriteControl)
             {
                 case ZWriteControl.Auto:
@@ -1201,9 +1201,9 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                     result.Add(RenderState.ZWrite(ZWrite.Off));
                     break;
             }
-
+            
             result.Add(RenderState.Cull(RenderFaceToCull(target.RenderFace)));
-
+            
             if (target.SurfaceType == SurfaceType.Opaque)
             {
                 result.Add(RenderState.Blend(Blend.One, Blend.Zero));
@@ -1234,13 +1234,13 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                         throw new ArgumentOutOfRangeException();
                 }
             }
-
+            
             UberSwitchedAlphaToCoverageRenderState(target, result);
             StencilControlRenderState(target, result);
-
+            
             return result;
         }
-
+        
         public static void StencilControlRenderState(ToonTarget target, RenderStateCollection renderStateCollection)
         {
             if (target.ControlStencilEffectivelyEnabled)
@@ -1257,12 +1257,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 );
             }
         }
-
+        
         private static RenderStateDescriptor UberSwitchedCullRenderState(ToonTarget target) =>
             target.AllowMaterialOverride
                 ? RenderState.Cull(Uniforms.CullMode)
                 : RenderState.Cull(RenderFaceToCull(target.RenderFace));
-
+        
         private static void UberSwitchedAlphaToCoverageRenderState(ToonTarget target,
             RenderStateCollection renderStateCollection)
         {
@@ -1271,7 +1271,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 renderStateCollection.Add(RenderState.AlphaToMask("On"));
             }
         }
-
+        
         public static RenderStateCollection ShadowCaster(ToonTarget target)
         {
             var result = new RenderStateCollection
@@ -1280,10 +1280,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 RenderState.ZWrite(ZWrite.On),
                 UberSwitchedCullRenderState(target),
                 RenderState.ColorMask("ColorMask RG"),
+                RenderState.ZClip(Uniforms.ZClip),
             };
             return result;
         }
-
+        
         public static RenderStateCollection Meta(ToonTarget target)
         {
             var result = new RenderStateCollection
@@ -1292,7 +1293,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             };
             return result;
         }
-
+        
         public static RenderStateCollection DepthOnly(ToonTarget target)
         {
             var result = new RenderStateCollection
@@ -1302,12 +1303,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 UberSwitchedCullRenderState(target),
                 RenderState.ColorMask("ColorMask 0"),
             };
-
+            
             StencilControlRenderState(target, result);
-
+            
             return result;
         }
-
+        
         public static RenderStateCollection DepthNormals(ToonTarget target)
         {
             var result = new RenderStateCollection
@@ -1317,12 +1318,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 UberSwitchedCullRenderState(target),
                 RenderState.ColorMask("ColorMask RGB"),
             };
-
+            
             StencilControlRenderState(target, result);
-
+            
             return result;
         }
-
+        
         public static RenderStateCollection MotionVectors(ToonTarget target)
         {
             var result = new RenderStateCollection
@@ -1332,12 +1333,12 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 UberSwitchedCullRenderState(target),
                 RenderState.ColorMask("ColorMask RG"),
             };
-
+            
             StencilControlRenderState(target, result);
-
+            
             return result;
         }
-
+        
         private static class Uniforms
         {
             public const string SrcBlend = "[" + PropertyNames.BlendSrc + "]";
@@ -1345,7 +1346,8 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             public const string CullMode = "[" + PropertyNames.RenderFace + "]";
             public const string ZWrite = "[" + PropertyNames.ZWrite + "]";
             public const string ZTest = "[" + PropertyNames.ZTest + "]";
-
+            public const string ZClip = "[" + PropertyNames.ZClip + "]";
+            
             public const string ForwardStencilRef = "[" + PropertyNames.ForwardStencilRef + "]";
             public const string ForwardStencilReadMask = "[" + PropertyNames.ForwardStencilReadMask + "]";
             public const string ForwardStencilWriteMask = "[" + PropertyNames.ForwardStencilWriteMask + "]";
@@ -1353,23 +1355,23 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             public const string ForwardStencilPass = "[" + PropertyNames.ForwardStencilPass + "]";
         }
     }
-
+    
     #endregion
-
+    
     #region Pragmas
-
+    
     internal static class CorePragmas
     {
         private static readonly PragmaDescriptor VS = Pragma.Vertex("VS");
         private static readonly PragmaDescriptor PS = Pragma.Fragment("PS");
-
+        
         public static readonly PragmaCollection Default = new()
         {
             Pragma.Target(ShaderModel.Target20),
             VS,
             PS,
         };
-
+        
         public static readonly PragmaCollection Instanced = new()
         {
             Pragma.Target(ShaderModel.Target20),
@@ -1377,7 +1379,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             VS,
             PS,
         };
-
+        
         public static readonly PragmaCollection Forward = new()
         {
             Pragma.Target(ShaderModel.Target35),
@@ -1388,17 +1390,17 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             PS,
         };
     }
-
+    
     #endregion
-
+    
     #region Includes
-
+    
     internal static class CoreIncludes
     {
         private const string CoreColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
         private const string CoreTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
         private const string CoreMetaPass = "Packages/com.unity.render-pipelines.core/ShaderLibrary/MetaPass.hlsl";
-
+        
         private const string Common = "Packages/com.deltation.toon-rp/ShaderLibrary/Common.hlsl";
         private const string Lighting = "Packages/com.deltation.toon-rp/ShaderLibrary/Lighting.hlsl";
         private const string Shadows = "Packages/com.deltation.toon-rp/ShaderLibrary/Shadows.hlsl";
@@ -1418,7 +1420,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         public const string MetaPass =
             "Packages/com.deltation.toon-rp/Editor/ShaderGraph/Includes/MetaPass.hlsl";
-
+        
         public static readonly IncludeCollection CorePregraph = new()
         {
             { Common, IncludeLocation.Pregraph },
@@ -1428,79 +1430,79 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             { Shadows, IncludeLocation.Pregraph },
             { Textures, IncludeLocation.Pregraph },
         };
-
+        
         public static readonly IncludeCollection ShaderGraphPregraph = new()
         {
             { GraphFunctions, IncludeLocation.Pregraph },
         };
-
+        
         public static readonly IncludeCollection CorePostgraph = new()
         {
             { ShaderPass, IncludeLocation.Pregraph },
             { Varyings, IncludeLocation.Postgraph },
         };
-
+        
         public static readonly IncludeCollection DepthOnly = new()
         {
             // Pre-graph
             CorePregraph,
             ShaderGraphPregraph,
-
+            
             // Post-graph
             CorePostgraph,
             { DepthOnlyPass, IncludeLocation.Postgraph },
         };
-
+        
         public static readonly IncludeCollection DepthNormals = new()
         {
             // Pre-graph
             CorePregraph,
             ShaderGraphPregraph,
-
+            
             // Post-graph
             CorePostgraph,
             { DepthNormalsPass, IncludeLocation.Postgraph },
         };
-
+        
         public static readonly IncludeCollection MotionVectors = new()
         {
             // Pre-graph
             CorePregraph,
             ShaderGraphPregraph,
-
+            
             // Post-graph
             CorePostgraph,
             { MotionVectorsPass, IncludeLocation.Postgraph },
         };
-
+        
         public static readonly IncludeCollection ShadowCaster = new()
         {
             // Pre-graph
             CorePregraph,
             ShaderGraphPregraph,
-
+            
             // Post-graph
             CorePostgraph,
             { ShadowCasterPass, IncludeLocation.Postgraph },
         };
-
+        
         public static readonly IncludeCollection Meta = new()
         {
             // Pre-graph
             CorePregraph,
             { CoreMetaPass, IncludeLocation.Pregraph },
             ShaderGraphPregraph,
-
+            
             // Post-graph
             CorePostgraph,
             { MetaPass, IncludeLocation.Postgraph },
         };
     }
-
+    
     #endregion
-
+    
     #region KeywordDescriptors
-
+    
     internal static class CoreKeywordDescriptors
     {
         public static readonly KeywordDescriptor AlphaTestOn = new()
@@ -1512,7 +1514,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor AlphaPremultiplyOn = new()
         {
             displayName = ShaderKeywords.AlphaPremultiplyOn,
@@ -1522,7 +1524,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor SurfaceTypeTransparent = new()
         {
             displayName = ShaderKeywords.SurfaceTypeTransparent,
@@ -1532,7 +1534,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ReceiveBlobShadows = new()
         {
             displayName = ShaderKeywords.ReceiveBlobShadows,
@@ -1542,7 +1544,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor OverrideRamp = new()
         {
             displayName = ShaderKeywords.OverrideRamp,
@@ -1552,7 +1554,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor Specular = new()
         {
             displayName = ShaderKeywords.Specular,
@@ -1562,7 +1564,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor AdditionalLightsSpecular = new()
         {
             displayName = ShaderKeywords.AdditionalLightsSpecular,
@@ -1572,7 +1574,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor Rim = new()
         {
             displayName = ShaderKeywords.Rim,
@@ -1582,7 +1584,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ForceDisableFog = new()
         {
             displayName = ShaderKeywords.ForceDisableFog,
@@ -1591,7 +1593,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
         };
-
+        
         public static readonly KeywordDescriptor CustomFog = new()
         {
             displayName = ShaderKeywords.CustomFog,
@@ -1601,7 +1603,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ForceDisableEnvironmentLight = new()
         {
             displayName = ShaderKeywords.ForceDisableEnvironmentLight,
@@ -1611,7 +1613,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor StencilOverride = new()
         {
             displayName = ShaderKeywords.StencilOverride,
@@ -1621,7 +1623,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Vertex,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpVsmShadowCaster = new()
         {
             displayName = "Toon RP VSM",
@@ -1630,7 +1632,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor EditorVisualization = new()
         {
             displayName = "Editor Visualization",
@@ -1639,7 +1641,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpGlobalRamp = new()
         {
             displayName = "Toon RP Global Ramp",
@@ -1655,7 +1657,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Texture", referenceName = "TOON_RP_GLOBAL_RAMP_TEXTURE" },
             },
         };
-
+        
         public static readonly KeywordDescriptor ToonRpDirectionalShadows = new()
         {
             displayName = "Toon RP Directional Shadows",
@@ -1671,7 +1673,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Blob", referenceName = "TOON_RP_BLOB_SHADOWS" },
             },
         };
-
+        
         public static readonly KeywordDescriptor ToonRpAdditionalShadows = new()
         {
             displayName = "Toon RP Additional Shadows",
@@ -1680,7 +1682,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpShadowSmoothingMode = new()
         {
             displayName = "Toon RP Shadow Smoothing Mode",
@@ -1696,7 +1698,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "VSM", referenceName = "TOON_RP_VSM" },
             },
         };
-
+        
         public static readonly KeywordDescriptor ToonRpPoissonSamplingMode = new()
         {
             displayName = "Toon RP Poisson Sampling Mode",
@@ -1712,7 +1714,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Rotated", referenceName = "TOON_RP_POISSON_SAMPLING_ROTATED" },
             },
         };
-
+        
         public static readonly KeywordDescriptor ToonRpPoissonSamplingEarlyBail = new()
         {
             displayName = "Toon RP Poisson Sampling Early Bail",
@@ -1722,7 +1724,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpShadowsRampCrisp = new()
         {
             displayName = "Toon RP Shadows Ramp Crisp",
@@ -1732,7 +1734,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpShadowsPattern = new()
         {
             displayName = "Toon RP Shadows Pattern",
@@ -1742,7 +1744,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpAdditionalLights = new()
         {
             displayName = "Toon RP Additional Lights",
@@ -1758,7 +1760,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
                 new() { displayName = "Per Vertex", referenceName = "TOON_RP_ADDITIONAL_LIGHTS_VERTEX" },
             },
         };
-
+        
         public static readonly KeywordDescriptor LightmapShadowMixing = new()
         {
             displayName = "Lightmap Shadow Mixing",
@@ -1767,7 +1769,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor ShadowsShadowmask = new()
         {
             displayName = "Shadows Shadowmask",
@@ -1776,7 +1778,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor DirLightmapCombined = new()
         {
             displayName = "Directional Lightmap Combined",
@@ -1785,7 +1787,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor LightmapOn = new()
         {
             displayName = "Lightmap On",
@@ -1794,7 +1796,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
-
+        
         public static readonly KeywordDescriptor ToonRpSsao = new()
         {
             displayName = "Toon RP SSAO",
@@ -1811,11 +1813,11 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             },
         };
     }
-
+    
     #endregion
-
+    
     #region CustomInterpolators
-
+    
     internal static class CoreCustomInterpDescriptors
     {
         public static readonly CustomInterpSubGen.Collection Common = new()
@@ -1823,7 +1825,7 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
             // This entry point will let us generate a block of pass-through assignments for each field.
             CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
-
+            
             // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
             // this entry point allows for the function to be defined before it is used.
             CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface,
@@ -1832,6 +1834,6 @@ namespace DELTation.ToonRP.Editor.ShaderGraph.Targets
             ),
         };
     }
-
+    
     #endregion
 }

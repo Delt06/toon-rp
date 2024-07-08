@@ -12,7 +12,7 @@ namespace Samples.TiledLighting
 
         private void Awake()
         {
-            _lights = FindObjectsOfType<Light>()
+            _lights = FindObjectsByType<Light>(FindObjectsSortMode.None)
                 .Where(l => l.type is LightType.Point or LightType.Spot)
                 .Select(l =>
                     {

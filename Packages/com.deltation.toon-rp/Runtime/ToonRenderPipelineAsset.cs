@@ -17,7 +17,7 @@ using UnityEditor;
 namespace DELTation.ToonRP
 {
     [CreateAssetMenu(menuName = "Toon RP/Toon Render Pipeline Asset")]
-    public sealed class ToonRenderPipelineAsset : RenderPipelineAsset
+    public sealed class ToonRenderPipelineAsset : RenderPipelineAsset<ToonRenderPipeline>
     {
         private static readonly string[] ForceIncludedShaderNames =
         {

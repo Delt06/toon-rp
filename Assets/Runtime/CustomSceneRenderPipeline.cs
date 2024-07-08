@@ -22,7 +22,7 @@ namespace Runtime
         {
             if (_pipelineAsset != null)
             {
-                GraphicsSettings.renderPipelineAsset = _pipelineAsset;
+                GraphicsSettings.defaultRenderPipeline = _pipelineAsset;
             }
         }
     }

@@ -63,8 +63,8 @@ namespace DELTation.ToonRP.Editor.BlobShadowBake
             };
 
             var depthRt = RenderTexture.GetTemporary(Width, Height, 32, RenderTextureFormat.Depth);
-            var tempRt1 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8);
-            var tempRt2 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8);
+            var tempRt1 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
+            var tempRt2 = RenderTexture.GetTemporary(Width, Height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
 
             Shader blurShader = AssetDatabase.LoadAssetAtPath<Shader>(BlurShaderPath);
             var blurMaterial = new Material(blurShader);

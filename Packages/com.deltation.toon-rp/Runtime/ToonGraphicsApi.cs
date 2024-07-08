@@ -17,7 +17,9 @@ namespace DELTation.ToonRP
                 GraphicsDeviceType api = SystemInfo.graphicsDeviceType;
                 return api is
                     GraphicsDeviceType.OpenGLCore or
+#if !UNITY_2023_1_OR_NEWER
                     GraphicsDeviceType.OpenGLES2 or
+#endif // !UNITY_2023_1_OR_NEWER
                     GraphicsDeviceType.OpenGLES3;
 #endif // UNITY_WEBGL
             }

@@ -141,9 +141,14 @@ namespace DELTation.ToonRP
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, layerMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            context.Srp.DrawRenderers(context.CullingResults,
-                ref drawingSettings, ref filteringSettings, ref renderStateBlock
-            );
+            var rendererListParams = new RendererListParams(context.CullingResults, drawingSettings, filteringSettings)
+            {
+                stateBlocks = NativeCollectionsUtils.CreateTempSingletonArray(renderStateBlock),
+                tagValues = NativeCollectionsUtils.CreateTempSingletonArray(shaderPassName),
+            };
+            RendererList rendererList = context.Srp.CreateRendererList(ref rendererListParams);
+            cmd.DrawRendererList(rendererList);
+            context.Srp.ExecuteCommandBufferAndClear(cmd);
 
             context.ExtensionsCollection.OnPrePass(
                 _normals ? PrePassMode.Normals | PrePassMode.Depth : PrePassMode.Depth,

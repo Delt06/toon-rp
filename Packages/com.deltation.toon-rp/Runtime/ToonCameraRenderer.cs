@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using DELTation.ToonRP.Extensions;
 using DELTation.ToonRP.Lighting;
 using DELTation.ToonRP.PostProcessing;
@@ -10,6 +9,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 using static DELTation.ToonRP.ToonCameraRendererSettings;
 
 namespace DELTation.ToonRP
@@ -83,15 +83,15 @@ namespace DELTation.ToonRP
             }
 
             GraphicsFormat rawGraphicsFormat = settings.RenderTextureFormat;
-            FormatUsage formatUsage = FormatUsage.Render;
+            GraphicsFormatUsage formatUsage = GraphicsFormatUsage.Render;
             if (!ignoreMsaa)
             {
                 // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                 formatUsage |= settings.Msaa switch
                 {
-                    MsaaMode._2x => FormatUsage.MSAA2x,
-                    MsaaMode._4x => FormatUsage.MSAA4x,
-                    MsaaMode._8x => FormatUsage.MSAA8x,
+                    MsaaMode._2x => GraphicsFormatUsage.MSAA2x,
+                    MsaaMode._4x => GraphicsFormatUsage.MSAA4x,
+                    MsaaMode._8x => GraphicsFormatUsage.MSAA8x,
                     _ => 0,
                 };
             }
@@ -643,7 +643,7 @@ namespace DELTation.ToonRP
 
             DrawOcclusionMesh(cmd);
             DrawVisibleGeometry(cmd);
-            DrawUnsupportedShaders();
+            DrawUnsupportedShaders(cmd);
             DrawGizmosPreImageEffects();
 
             _context.ExecuteCommandBufferAndClear(cmd);
@@ -785,11 +785,11 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.OpaqueGeometry)))
                 {
-                    _context.ExecuteCommandBufferAndClear(cmd);
-                    DrawGeometry(false);
+                    DrawGeometry(cmd, false);
                 }
 
                 _context.ExecuteCommandBufferAndClear(cmd);
+
                 _extensionsCollection.RenderEvent(ToonRenderingEvent.AfterOpaque);
             }
 
@@ -818,8 +818,7 @@ namespace DELTation.ToonRP
 
                 using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.TransparentGeometry)))
                 {
-                    _context.ExecuteCommandBufferAndClear(cmd);
-                    DrawGeometry(true);
+                    DrawGeometry(cmd, true);
                 }
 
                 _context.ExecuteCommandBufferAndClear(cmd);
@@ -828,25 +827,21 @@ namespace DELTation.ToonRP
             }
         }
 
-        private void DrawGeometry(bool transparent)
+        private void DrawGeometry(CommandBuffer cmd, bool transparent)
         {
             (SortingCriteria sortingCriteria, RenderQueueRange renderQueueRange, int layerMask) = transparent
                 ? (SortingCriteria.CommonTransparent, RenderQueueRange.transparent, _settings.TransparentLayerMask)
                 : (SortingCriteria.CommonOpaque, RenderQueueRange.opaque, _settings.OpaqueLayerMask);
-            var sortingSettings = new SortingSettings(_camera)
-            {
-                criteria = sortingCriteria,
-            };
-            DrawGeometry(_settings, ref _context, _cullingResults, sortingSettings, renderQueueRange, transparent,
-                layerMask
+            DrawGeometry(_settings, ref _context, cmd, _camera, _cullingResults,
+                sortingCriteria, renderQueueRange, transparent, layerMask
             );
         }
 
-        public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context,
-            in CullingResults cullingResults, in SortingSettings sortingSettings, RenderQueueRange renderQueueRange,
+        public static void DrawGeometry(in ToonCameraRendererSettings settings, ref ScriptableRenderContext context, CommandBuffer cmd, Camera camera,
+            in CullingResults cullingResults, SortingCriteria sortingCriteria, RenderQueueRange renderQueueRange,
             bool includesTransparent,
             int layerMask = -1, in RenderStateBlock? renderStateBlock = null,
-            IReadOnlyList<ShaderTagId> shaderTagIds = null, bool? perObjectLightDataOverride = null,
+            ShaderTagId[] shaderTagIds = null, bool? perObjectLightDataOverride = null,
             Material overrideMaterial = null)
         {
             PerObjectData perObjectData = PerObjectData.None;
@@ -882,81 +877,57 @@ namespace DELTation.ToonRP
             }
 
             shaderTagIds ??= ShaderTagIds;
-            var drawingSettings = new DrawingSettings(shaderTagIds[0], sortingSettings)
+
+            var rendererListDesc = new RendererListDesc(shaderTagIds, cullingResults, camera)
             {
-                enableDynamicBatching = settings.UseDynamicBatching,
-                perObjectData = perObjectData,
+                rendererConfiguration = perObjectData,
                 overrideMaterial = overrideMaterial,
+                renderQueueRange = renderQueueRange,
+                sortingCriteria = sortingCriteria,
+                stateBlock = renderStateBlock,
+                layerMask = layerMask,
             };
-
-            for (int i = 0; i < shaderTagIds.Count; i++)
-            {
-                drawingSettings.SetShaderPassName(i, shaderTagIds[i]);
-            }
-
-            var filteringSettings = new FilteringSettings(renderQueueRange, layerMask);
-
-            if (renderStateBlock == null)
-            {
-                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
-            }
-            else
-            {
-                RenderStateBlock renderStateBlockValue = renderStateBlock.Value;
-                context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings,
-                    ref renderStateBlockValue
-                );
-            }
+            RendererList rendererList = context.CreateRendererList(rendererListDesc);
+            cmd.DrawRendererList(rendererList);
         }
 
         private void DrawSkybox(CommandBuffer cmd)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+            RendererList rendererList;
 
-            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+#if ENABLE_VR && ENABLE_XR_MODULE
             XRPass xrPass = _additionalCameraData.XrPass;
             if (xrPass.enabled)
             {
-                // Setup Legacy XR buffer states
                 if (xrPass.singlePassEnabled)
                 {
-                    // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview
-                        ? SinglePassStereoMode.Multiview
-                        : SinglePassStereoMode.Instancing
+                    rendererList = _context.CreateSkyboxRendererList(
+                        _camera,
+                        xrPass.GetProjMatrix(0), xrPass.GetViewMatrix(0),
+                        xrPass.GetProjMatrix(1), xrPass.GetViewMatrix(1)
                     );
-                    _context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    // Calling into built-in skybox pass
-                    _context.DrawSkybox(_camera);
-
-                    // Disable Legacy XR path
-                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
-                    _context.ExecuteCommandBuffer(cmd);
-
-                    // We do not need to submit here due to special handling of stereo matrices in core.
-                    // context.Submit();
-                    cmd.Clear();
-
-                    ToonXr.UpdateCameraStereoMatrices(_camera, xrPass);
                 }
                 else
                 {
-                    _context.DrawSkybox(_camera);
+                    rendererList = _context.CreateSkyboxRendererList(_camera,
+                        xrPass.GetProjMatrix(), xrPass.GetViewMatrix()
+                    );
                 }
             }
             else
 #endif
             {
-                _context.DrawSkybox(_camera);
+                rendererList = _context.CreateSkyboxRendererList(_camera);
             }
+
+            cmd.DrawRendererList(rendererList);
+            _context.ExecuteCommandBufferAndClear(cmd);
         }
 
         partial void DrawGizmosPreImageEffects();
         partial void DrawGizmosPostImageEffects();
 
-        partial void DrawUnsupportedShaders();
+        partial void DrawUnsupportedShaders(CommandBuffer cmd);
 
         public void InvalidateExtensions()
         {

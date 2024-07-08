@@ -12,7 +12,7 @@ float2 ComputeDecalSpaceUv(const float sceneRawDepth, const float2 screenUv, out
 
     clipValue = 0.5h - reconstructedPositionOs;
 
-    return reconstructedPositionOs.xy + 0.5h; // [-0.5, 0.5] -> [0.0, 1.0]
+    return saturate(reconstructedPositionOs.xy + 0.5h); // [-0.5, 0.5] -> [0.0, 1.0]
 }
 
 half ComputeDecalAngleClipValue(const float3 sceneNormalsWs, const half angleThreshold)

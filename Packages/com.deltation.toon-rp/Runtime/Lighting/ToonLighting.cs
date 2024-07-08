@@ -76,7 +76,7 @@ namespace DELTation.ToonRP.Lighting
             }
 
             SetMixedLightingKeywordsAndProperties(settings);
-            SetAdditionalLightsKeywords(additionalLightsMode);
+            SetAdditionalLightsKeywords(_cmd, additionalLightsMode);
 
             _cmd.EndSample(CmdName);
             context.ExecuteCommandBufferAndClear(_cmd);
@@ -149,8 +149,8 @@ namespace DELTation.ToonRP.Lighting
                 CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor)
             );
         }
-
-        private void SetAdditionalLightsKeywords(AdditionalLightsMode lightsMode)
+        
+        public void SetAdditionalLightsKeywords(CommandBuffer cmd, AdditionalLightsMode lightsMode)
         {
             bool anyAdditionalLights = _additionalLightsCount > 0;
             (bool enablePerPixel, bool enablePerVertex) = (anyAdditionalLights, lightsMode) switch
@@ -161,8 +161,8 @@ namespace DELTation.ToonRP.Lighting
                 (true, AdditionalLightsMode.PerVertex) => (false, true),
                 _ => throw new ArgumentOutOfRangeException(),
             };
-            _cmd.SetKeyword(_additionalLightsGlobalKeyword, enablePerPixel);
-            _cmd.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
+            cmd.SetKeyword(_additionalLightsGlobalKeyword, enablePerPixel);
+            cmd.SetKeyword(_additionalLightsVertexGlobalKeyword, enablePerVertex);
         }
 
         private void SetupAdditionalLights(NativeArray<int> indexMap, in NativeArray<VisibleLight> visibleLights,

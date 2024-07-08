@@ -45,11 +45,10 @@ namespace DELTation.ToonRP.Shadows
             {
                 LightSliceInfo lightSliceInfo;
 
-                bool computeSuccess = data.CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
+                data.CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(
                     visibleLightIndex, i, cascadeCount, ratios, shadowResolution, nearPlaneOffset,
                     out lightSliceInfo.ViewMatrix, out lightSliceInfo.ProjectionMatrix, out ShadowSplitData splitData
                 );
-                Assert.IsTrue(computeSuccess);
 
                 data.ShadowCastersCullingInfos.splitBuffer[data.CurrentShadowSplitBufferOffset] = splitData;
                 ++data.CurrentShadowSplitBufferOffset;

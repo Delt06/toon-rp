@@ -77,6 +77,7 @@
 			Tags{ "LightMode" = "ShadowCaster" }
 		    
 		    ColorMask RG
+		    ZClip [_ZClip]
 			
 			HLSLPROGRAM
 

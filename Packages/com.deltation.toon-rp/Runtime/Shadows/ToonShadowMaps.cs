@@ -59,6 +59,8 @@ namespace DELTation.ToonRP.Shadows
         private static readonly int AdditionalShadowsDepthId = Shader.PropertyToID("_ToonRP_AdditionalShadows");
         private static readonly int AdditionalShadowsVpId = Shader.PropertyToID("_ToonRP_AdditionalShadowMatrices_VP");
         private static readonly int AdditionalShadowsMetadataId = Shader.PropertyToID("_ToonRP_AdditionalShadows_Metadata");
+        
+        private static readonly int ZClipId = Shader.PropertyToID("_ZClip");
 
         private static readonly Vector2[] PoissonDiskRaw =
         {
@@ -206,6 +208,7 @@ namespace DELTation.ToonRP.Shadows
                         }
                     );
                     cmd.SetKeyword(ToonShadows.ShadowsRampCrisp, _settings.CrispAntiAliased);
+                    cmd.SetGlobalFloat(ZClipId, 0);
 
                     RenderDirectionalShadows(cmd, depthBits);
                 }
@@ -515,7 +518,8 @@ namespace DELTation.ToonRP.Shadows
                 int split = Mathf.CeilToInt(Mathf.Sqrt(shadowLightsCount));
                 int tileSize = resolution / split;
                 resolution = tileSize * split;
-
+                
+                cmd.SetGlobalFloat(ZClipId, 1);
                 cmd.GetTemporaryRT(AdditionalShadowsDepthId, resolution, resolution, depthBits, ShadowmapFiltering, DepthRenderTextureFormat);
                 cmd.SetRenderTarget(AdditionalShadowsDepthId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.ClearRenderTarget(true, false, Color.clear);

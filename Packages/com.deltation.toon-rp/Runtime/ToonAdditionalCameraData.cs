@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DELTation.ToonRP.Attributes;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -38,6 +39,15 @@ namespace DELTation.ToonRP
         public bool UsingCustomProjection { get; private set; }
         public RTHandleSystem RTHandleSystem { get; } = new();
 
+        // Volume System
+        [Header("Volume Stack")]
+        public VolumeStack VolumeStack { get; private set; }
+        [SerializeField] public LayerMask VolumeLayerMask = 1; // "Default"
+        [HideInInspector]
+        [SerializeField] public Transform VolumeTrigger = null;
+        [SerializeField] public VolumeFrameworkUpdateMode VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateMode.UsePipelineSettings;
+
+
         private void Awake()
         {
             Camera = GetComponent<Camera>();
@@ -57,8 +67,9 @@ namespace DELTation.ToonRP
 
             RTHandleSystem.ReleaseIfAllocated(ref IntermediateColorRt);
             RTHandleSystem.ReleaseIfAllocated(ref IntermediateDepthRt);
-
             RTHandleSystem.Dispose();
+
+            Camera.DestroyVolumeStack(this);
         }
 
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
@@ -121,6 +132,73 @@ namespace DELTation.ToonRP
 
             UsingCustomProjection = false;
             Camera.ResetProjectionMatrix();
+        }
+
+        /// <summary>
+        /// Returns true if this camera requires the volume framework to be updated every frame.
+        /// </summary>
+        public bool requiresVolumeFrameworkUpdate
+        {
+            get
+            {
+                if (VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.UsePipelineSettings)
+                {
+                    // TO-DO: Load settings from ToonRenderPipelineAsset
+                    // return ToonRenderPipelineAsset.asset.volumeFrameworkUpdateMode != VolumeFrameworkUpdateMode.ViaScripting;
+                }
+
+                return VolumeFrameworkUpdateModeOption == VolumeFrameworkUpdateMode.EveryFrame;
+            }
+        }
+
+        /// <summary>
+        /// Container for volume stacks in order to reuse stacks and avoid
+        /// creating new ones every time a new camera is instantiated.
+        /// </summary>
+        private static List<VolumeStack> s_CachedVolumeStacks;
+
+        /// <summary>
+        /// Returns the current volume stack used by this camera.
+        /// </summary>
+        public VolumeStack volumeStack
+        {
+            get => m_VolumeStack;
+            set
+            {
+                // If the volume stack is being removed,
+                // add it back to the list so it can be reused later
+                if (value == null && m_VolumeStack != null && m_VolumeStack.isValid)
+                {
+                    if (s_CachedVolumeStacks == null)
+                        s_CachedVolumeStacks = new List<VolumeStack>(4);
+
+                    s_CachedVolumeStacks.Add(m_VolumeStack);
+                }
+
+                m_VolumeStack = value;
+            }
+        }
+        VolumeStack m_VolumeStack = null;
+
+        /// <summary>
+        /// Tries to retrieve a volume stack from the container
+        /// and creates a new one if that fails.
+        /// </summary>
+        internal void GetOrCreateVolumeStack()
+        {
+            // Try first to reuse a volume stack
+            if (s_CachedVolumeStacks != null && s_CachedVolumeStacks.Count > 0)
+            {
+                int index = s_CachedVolumeStacks.Count - 1;
+                var stack = s_CachedVolumeStacks[index];
+                s_CachedVolumeStacks.RemoveAt(index);
+                if (stack.isValid)
+                    volumeStack = stack;
+            }
+
+            // Create a new stack if was not possible to reuse an old one
+            if (volumeStack == null)
+                volumeStack = VolumeManager.instance.CreateStack();
         }
     }
 }

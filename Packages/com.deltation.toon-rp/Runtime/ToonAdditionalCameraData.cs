@@ -20,6 +20,14 @@ namespace DELTation.ToonRP
         [NonSerialized] [CanBeNull]
         public RTHandle IntermediateDepthRt;
 
+        // Volume System
+        [Header("Volume Stack")]
+        [SerializeField] public LayerMask VolumeLayerMask = 1; // "Default"
+        [HideInInspector]
+        [SerializeField] public Transform VolumeTrigger = null;
+        [SerializeField] public VolumeFrameworkUpdateMode VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateMode.UsePipelineSettings;
+
+
 #if !(ENABLE_VR && ENABLE_XR_MODULE)
         [HideInInspector]
 #endif // !(ENABLE_VR && ENABLE_XR_MODULE)
@@ -38,14 +46,7 @@ namespace DELTation.ToonRP
 
         public bool UsingCustomProjection { get; private set; }
         public RTHandleSystem RTHandleSystem { get; } = new();
-
-        // Volume System
-        [Header("Volume Stack")]
         public VolumeStack VolumeStack { get; private set; }
-        [SerializeField] public LayerMask VolumeLayerMask = 1; // "Default"
-        [HideInInspector]
-        [SerializeField] public Transform VolumeTrigger = null;
-        [SerializeField] public VolumeFrameworkUpdateMode VolumeFrameworkUpdateModeOption = VolumeFrameworkUpdateMode.UsePipelineSettings;
 
 
         private void Awake()
@@ -137,7 +138,7 @@ namespace DELTation.ToonRP
         /// <summary>
         /// Returns true if this camera requires the volume framework to be updated every frame.
         /// </summary>
-        public bool requiresVolumeFrameworkUpdate
+        public bool RequiresVolumeFrameworkUpdate
         {
             get
             {
@@ -155,30 +156,30 @@ namespace DELTation.ToonRP
         /// Container for volume stacks in order to reuse stacks and avoid
         /// creating new ones every time a new camera is instantiated.
         /// </summary>
-        private static List<VolumeStack> s_CachedVolumeStacks;
+        private static List<VolumeStack> _cachedVolumeStacks;
 
         /// <summary>
         /// Returns the current volume stack used by this camera.
         /// </summary>
         public VolumeStack volumeStack
         {
-            get => m_VolumeStack;
+            get => _volumeStack;
             set
             {
                 // If the volume stack is being removed,
                 // add it back to the list so it can be reused later
-                if (value == null && m_VolumeStack != null && m_VolumeStack.isValid)
+                if (value == null && _volumeStack != null && _volumeStack.isValid)
                 {
-                    if (s_CachedVolumeStacks == null)
-                        s_CachedVolumeStacks = new List<VolumeStack>(4);
+                    if (_cachedVolumeStacks == null)
+                        _cachedVolumeStacks = new List<VolumeStack>(4);
 
-                    s_CachedVolumeStacks.Add(m_VolumeStack);
+                    _cachedVolumeStacks.Add(_volumeStack);
                 }
 
-                m_VolumeStack = value;
+                _volumeStack = value;
             }
         }
-        VolumeStack m_VolumeStack = null;
+        VolumeStack _volumeStack = null;
 
         /// <summary>
         /// Tries to retrieve a volume stack from the container
@@ -187,11 +188,11 @@ namespace DELTation.ToonRP
         internal void GetOrCreateVolumeStack()
         {
             // Try first to reuse a volume stack
-            if (s_CachedVolumeStacks != null && s_CachedVolumeStacks.Count > 0)
+            if (_cachedVolumeStacks != null && _cachedVolumeStacks.Count > 0)
             {
-                int index = s_CachedVolumeStacks.Count - 1;
-                var stack = s_CachedVolumeStacks[index];
-                s_CachedVolumeStacks.RemoveAt(index);
+                int index = _cachedVolumeStacks.Count - 1;
+                var stack = _cachedVolumeStacks[index];
+                _cachedVolumeStacks.RemoveAt(index);
                 if (stack.isValid)
                     volumeStack = stack;
             }

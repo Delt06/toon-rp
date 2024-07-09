@@ -53,14 +53,14 @@ namespace DELTation.ToonRP
             if (cameraData.VolumeFrameworkUpdateModeOption == mode)
                 return;
 
-            bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
+            bool requiredUpdatePreviously = cameraData.RequiresVolumeFrameworkUpdate;
             cameraData.VolumeFrameworkUpdateModeOption = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in every frame.
             // We also check the previous value to make sure we're not updating when
             // switching between Camera ViaScripting and the ToonRP Asset set to ViaScripting
-            if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
+            if (requiredUpdatePreviously && !cameraData.RequiresVolumeFrameworkUpdate)
                 camera.UpdateVolumeStack(cameraData);
         }
 
@@ -89,7 +89,7 @@ namespace DELTation.ToonRP
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in the frame.
-            if (cameraData.requiresVolumeFrameworkUpdate)
+            if (cameraData.RequiresVolumeFrameworkUpdate)
                 return;
 
             // Create stack for camera

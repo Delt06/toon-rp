@@ -154,7 +154,7 @@ namespace DELTation.ToonRP
             // * cameras with update mode set to EveryFrame
             
             bool shouldUpdate = camera.cameraType == CameraType.SceneView;
-            shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
+            shouldUpdate |= additionalCameraData != null && additionalCameraData.RequiresVolumeFrameworkUpdate;
 
 
 #if UNITY_EDITOR

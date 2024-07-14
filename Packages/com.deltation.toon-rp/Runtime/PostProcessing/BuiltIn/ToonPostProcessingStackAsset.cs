@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif // UNITY_EDITOR
@@ -64,5 +66,32 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonPostProcessingStack.ShaderName,
         };
+
+        public override void CopySettingsToVolumeProfile(VolumeProfile profile)
+        {
+            ToonToneMappingComponent tonemappingComponent = GetOrAddVolumeComponent<ToonToneMappingComponent>(profile);
+            tonemappingComponent.Enabled.value = Settings.ToneMapping.Enabled;
+            tonemappingComponent.Exposure.value = Settings.ToneMapping.Exposure;
+
+            ToonVignetteComponent vignetteComponent = GetOrAddVolumeComponent<ToonVignetteComponent>(profile);
+            vignetteComponent.Enabled.value = Settings.Vignette.Enabled;
+            vignetteComponent.CenterX.value = Settings.Vignette.CenterX;
+            vignetteComponent.CenterY.value = Settings.Vignette.CenterY;
+            vignetteComponent.Intensity.value = Settings.Vignette.Intensity;
+            vignetteComponent.Roundness.value = Settings.Vignette.Roundness;
+            vignetteComponent.Smoothness.value = Settings.Vignette.Smoothness;
+            vignetteComponent.VignetteColor.value = Settings.Vignette.Color;
+
+            ToonFilmGrainComponent filmGrainComponent = GetOrAddVolumeComponent<ToonFilmGrainComponent>(profile);
+            filmGrainComponent.Enabled.value = Settings.FilmGrain.Enabled;
+            filmGrainComponent.Intensity.value = Settings.FilmGrain.Intensity;
+            filmGrainComponent.LuminanceThreshold.value = Settings.FilmGrain.LuminanceThreshold;
+            filmGrainComponent.Texture.value = Settings.FilmGrain.Texture;
+
+            ToonLookupTableComponent lookupTableComponent = GetOrAddVolumeComponent<ToonLookupTableComponent>(profile);
+            lookupTableComponent.Enabled.value = Settings.LookupTable.Enabled;
+            lookupTableComponent.Texture.value = Settings.LookupTable.Texture;
+            
+        }
     }
 }

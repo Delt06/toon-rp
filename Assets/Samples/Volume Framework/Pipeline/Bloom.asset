@@ -15,10 +15,10 @@ MonoBehaviour:
   _forceIncludedShaders:
   - {fileID: 4800000, guid: 531d53f86c674b2abace47f403d44f9c, type: 3}
   Settings:
-    Intensity: 4.8
+    Intensity: 1
     Threshold: 0.75
-    ThresholdKnee: 0.5
-    MaxIterations: 16
+    ThresholdKnee: 0.629
+    MaxIterations: 6
     ResolutionFactor: 2
     DownsampleLimit: 2
     Pattern:

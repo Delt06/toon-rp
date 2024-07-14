@@ -40,7 +40,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private ToonVignetteComponent _vignetteComponent;
         private ToonFilmGrainComponent  _filmGrainComponent;
-        private ToonTonemappingComponent _tonemappingComponent;
+        private ToonToneMappingComponent _tonemappingComponent;
+        private ToonLookupTableComponent _lookupTableComponent;
 
 
         public override void Dispose()
@@ -67,7 +68,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             _vignetteComponent = GetComponentVolume<ToonVignetteComponent>();
             _filmGrainComponent = GetComponentVolume<ToonFilmGrainComponent>();
-            _tonemappingComponent = GetComponentVolume<ToonTonemappingComponent>();
+            _tonemappingComponent = GetComponentVolume<ToonToneMappingComponent>();
+            _lookupTableComponent = GetComponentVolume<ToonLookupTableComponent>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -78,7 +80,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             HandleFxaaProperties(material, _stackSettings.Fxaa);
             HandleToneMappingProperties(material, _tonemappingComponent);
             HandleVignetteProperties(material, _vignetteComponent);
-            HandleLookupTextureProperties(material, _stackSettings.LookupTable);
+            HandleLookupTextureProperties(material, _lookupTableComponent);
             HandleFilmGrainProperties(material, _filmGrainComponent);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
@@ -108,7 +110,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             material.SetKeyword(FxaaHighKeywordName, fxaaHigh);
         }
 
-        private static void HandleToneMappingProperties(Material material, ToonTonemappingComponent toneMappingSettings)
+        private static void HandleToneMappingProperties(Material material, ToonToneMappingComponent toneMappingSettings)
         {
             material.SetKeyword(ToneMappingKeywordName, toneMappingSettings.IsActive());
             if (toneMappingSettings.IsActive())
@@ -133,10 +135,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         }
 
         private static void HandleLookupTextureProperties(Material material,
-            in ToonLookupTableSettings lookupTableSettings)
+            in ToonLookupTableComponent lookupTableSettings)
         {
-            material.SetKeyword(LookupTableKeywordName, lookupTableSettings.Enabled);
-            material.SetTexture(LookupTableTextureId, lookupTableSettings.Enabled ? lookupTableSettings.Texture : null);
+            material.SetKeyword(LookupTableKeywordName, lookupTableSettings.IsActive());
+            material.SetTexture(LookupTableTextureId, lookupTableSettings.Enabled.value ? lookupTableSettings.Texture.value : null);
         }
 
         private static void HandleFilmGrainProperties(Material material, in ToonFilmGrainComponent filmGrainSettings)

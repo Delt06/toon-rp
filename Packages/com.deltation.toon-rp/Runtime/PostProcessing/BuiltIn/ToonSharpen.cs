@@ -31,18 +31,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Sharpen)))
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-
-                if (_camera.cameraType == CameraType.Game)
-                {
-                    Material material = _material.GetOrCreate();
-                    material.SetFloat(AmountId, _component.Amount.value);
-                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                    ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
-                }
-                else
-                {
-                    ToonBlitter.BlitDefault(cmd, source, destinationIsIntermediateTexture);
-                }
+                Material material = _material.GetOrCreate();
+                material.SetFloat(AmountId, _component.Amount.value);
+                cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
             }
         }
     }

@@ -109,12 +109,12 @@ MonoBehaviour:
       ShadowPositionOffset: {x: 0, y: 0}
       ReceiverPlaneY: 0
   Extensions:
-    Extensions:
-    - {fileID: 11400000, guid: 91c04dff8aa908e4e951dac087bdf2ad, type: 2}
-    - {fileID: 11400000, guid: 1646ef03c10aee74d9d024dabb976ff3, type: 2}
+    Extensions: []
   PostProcessing:
     Enabled: 1
     Passes:
+    - {fileID: 11400000, guid: 719a74fa74f7b264ab7f2e1b5ba2b720, type: 2}
     - {fileID: 11400000, guid: 4bd89e55cf2d6ea49a19add129f0b302, type: 2}
     - {fileID: 11400000, guid: 57c0bd5c632fff04490164e0cd30e07d, type: 2}
     - {fileID: 11400000, guid: 37ebe324bf971c147bdbbc8005d6e3ad, type: 2}
+    - {fileID: 11400000, guid: c08902b8f3d793e4b95eeff796dfccd0, type: 2}

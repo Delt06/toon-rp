@@ -8,20 +8,20 @@ using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
-    [VolumeComponentMenu("ToonRP/Toon Tone Mapping")]
-    public class ToonToneMappingComponent : VolumeComponent
+    [VolumeComponentMenu("ToonRP/Toon Lookup Table (LUT)")]
+    public class ToonLookupTableComponent : VolumeComponent
     {
         [Header("General")]
+        //TODO: Convert enabled to intensity controls?
         public BoolParameter Enabled = new BoolParameter(false);
-        public MinFloatParameter Exposure = new MinFloatParameter(0f, 0.1f);
+        public Texture2DParameter Texture = new Texture2DParameter(null);
 
-
-        public bool IsActive() => Enabled.value;
+        public bool IsActive() => Enabled.value && Texture.value != null;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            displayName = "Toon Tone Mapping";
+            displayName = "Toon Lookup Table";
         }
     }
 }

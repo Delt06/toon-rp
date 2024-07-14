@@ -24,14 +24,14 @@ MonoBehaviour:
       SubpixelBlendingFactor: 0.75
     ToneMapping:
       Enabled: 1
-      Exposure: 0.01
+      Exposure: 2
     Vignette:
       Enabled: 1
       Color: {r: 0, g: 0, b: 0, a: 0}
       CenterX: 0.5
       CenterY: 0.5
-      Intensity: 1
-      Roundness: 0.5
+      Intensity: 0.503
+      Roundness: 0.524
       Smoothness: 0.6
     LookupTable:
       Enabled: 1

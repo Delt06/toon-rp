@@ -4,6 +4,7 @@ using DELTation.ToonRP.Shadows;
 using DELTation.ToonRP.Xr;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP
@@ -18,6 +19,7 @@ namespace DELTation.ToonRP
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonRenderingExtensionSettings _extensions;
         private ToonPostProcessingSettings _postProcessingSettings;
+        private VolumeProfile _defaultVolumeProfile;
 
         public ToonRenderPipeline(in ToonCameraRendererSettings cameraRendererSettings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings,
@@ -31,7 +33,10 @@ namespace DELTation.ToonRP
             _postProcessingSettings = postProcessingSettings;
             _extensions = extensions;
             GraphicsSettings.useScriptableRenderPipelineBatching = _cameraRendererSettings.UseSrpBatching;
-            VolumeManager.instance.Initialize();
+
+            _defaultVolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            LoadVolumeFrameworkDefaults(_defaultVolumeProfile);
+            VolumeManager.instance.Initialize(globalDefaultVolumeProfile: _defaultVolumeProfile);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             var occlusionMeshShader = Shader.Find(ToonXr.OcclusionMeshShaderName);
@@ -54,6 +59,13 @@ namespace DELTation.ToonRP
             base.Dispose(disposing);
             _cameraRenderer.Dispose();
             VolumeManager.instance.Deinitialize();
+
+#if UNITY_EDITOR
+            Object.DestroyImmediate(_defaultVolumeProfile);
+#else
+            Object.Destroy(_defaultVolumeProfile);
+#endif
+            
             XRSystem.Dispose();
         }
 
@@ -70,6 +82,12 @@ namespace DELTation.ToonRP
             XRSystem.SetDisplayMSAASamples((MSAASamples) _cameraRendererSettings.Msaa);
 
             var sharedContext = new ToonRenderPipelineSharedContext();
+
+#if UNITY_EDITOR
+            // Update profile to match any changes the user makes in the Pass Asset
+            LoadVolumeFrameworkDefaults(_defaultVolumeProfile);
+            VolumeManager.instance.OnVolumeProfileChanged(_defaultVolumeProfile);
+#endif
 
             foreach (Camera camera in cameras)
             {
@@ -197,5 +215,16 @@ namespace DELTation.ToonRP
         }
 
 
+        /// <summary>
+        /// Copies settings from all currently assigned passes into the volume profile.
+        /// </summary>
+        /// <param name="defaultProfile"></param>
+        private void LoadVolumeFrameworkDefaults(VolumeProfile defaultProfile)
+        {
+            foreach (ToonPostProcessingPassAsset pass in _postProcessingSettings.Passes)
+            {
+                    pass.CopySettingsToVolumeProfile(defaultProfile);
+            }
+        }
     }
 }

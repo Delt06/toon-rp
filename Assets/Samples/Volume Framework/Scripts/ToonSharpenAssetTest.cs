@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -24,5 +25,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override IToonPostProcessingPass CreatePass() => new ToonSharpenTest();
 
         protected override string[] ForceIncludedShaderNames() => new[] { ToonSharpenTest.ShaderName };
+
+
+        public override void CopySettingsToVolumeProfile(VolumeProfile profile)
+        {
+            ToonSharpenVolumeComponent component = GetOrAddVolumeComponent<ToonSharpenVolumeComponent>(profile);
+            component.Amount.value = Settings.Amount;
+        }
     }
 }

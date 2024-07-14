@@ -16,4 +16,4 @@ MonoBehaviour:
   - {fileID: 0}
   Settings:
     Order: 0
-    Amount: 0
+    Amount: 10

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: ToonSharpenVolumeComponent
   m_EditorClassIdentifier: 
   active: 1
-  amount:
+  Amount:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 0
   Order:
     m_OverrideState: 0
     m_Value: 0

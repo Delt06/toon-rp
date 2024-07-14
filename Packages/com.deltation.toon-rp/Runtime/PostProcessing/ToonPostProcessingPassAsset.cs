@@ -8,7 +8,7 @@ namespace DELTation.ToonRP.PostProcessing
     public abstract class ToonPostProcessingPassAsset : ScriptableObject
     {
         public const string Path = "Toon RP/Post-Processing/";
-        const bool overrideSettings = true;
+        
 
         [SerializeField][HideInInspector] private Shader[] _forceIncludedShaders;
 
@@ -45,6 +45,8 @@ namespace DELTation.ToonRP.PostProcessing
         /// <returns></returns>
         public static T GetOrAddVolumeComponent<T>(VolumeProfile profile) where T : VolumeComponent
         {
+            const bool overrideSettings = true;
+
             if (profile.TryGet(out T component))
                 return component;
 

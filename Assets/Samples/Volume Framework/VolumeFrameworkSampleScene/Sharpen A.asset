@@ -13,11 +13,89 @@ MonoBehaviour:
   m_Name: ToonSharpenVolumeComponent
   m_EditorClassIdentifier: 
   active: 1
+  <displayName>k__BackingField: Toon Sharpen
   Amount:
     m_OverrideState: 1
     m_Value: 0
   Order:
     m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &-3343483490591058898
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a65b3498767273459abcedca5192b64, type: 3}
+  m_Name: ToonBloomComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Intensity:
+    m_OverrideState: 0
+    m_Value: 1
+  Threshold:
+    m_OverrideState: 1
+    m_Value: 0.97
+  TresholdKnee:
+    m_OverrideState: 0
+    m_Value: 0.5
+  MaxIterations:
+    m_OverrideState: 0
+    m_Value: 16
+  ResolutionFactor:
+    m_OverrideState: 0
+    m_Value: 2
+  DownsampleLimit:
+    m_OverrideState: 0
+    m_Value: 2
+  PatternEnabled:
+    m_OverrideState: 0
+    m_Value: 0
+  PatternScale:
+    m_OverrideState: 0
+    m_Value: 350
+  PatternPower:
+    m_OverrideState: 0
+    m_Value: 2
+  PatternMultiplier:
+    m_OverrideState: 0
+    m_Value: 4
+  PatternSmoothness:
+    m_OverrideState: 0
+    m_Value: 0.5
+  PatternLuminanceTreshold:
+    m_OverrideState: 0
+    m_Value: 0.1
+  PatternLuminanceMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  PatternDotSizeLimit:
+    m_OverrideState: 0
+    m_Value: 1
+  PatternBlend:
+    m_OverrideState: 0
+    m_Value: 0.1
+  PatternFinalIntensityThreshold:
+    m_OverrideState: 0
+    m_Value: 0.25
+--- !u!114 &-1196357477930246234
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8bc22f244e4b474a980ba7cfcbab6e2, type: 3}
+  m_Name: ToonSharpenComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Amount:
+    m_OverrideState: 1
     m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
@@ -32,4 +110,5 @@ MonoBehaviour:
   m_Name: Sharpen A
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -4805968318345671116}
+  - {fileID: -1196357477930246234}
+  - {fileID: -3343483490591058898}

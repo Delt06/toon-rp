@@ -115,4 +115,6 @@ MonoBehaviour:
   PostProcessing:
     Enabled: 1
     Passes:
-    - {fileID: 11400000, guid: 9ade2ead8e7d2434b9b7f3e48c84c5ad, type: 2}
+    - {fileID: 11400000, guid: 4bd89e55cf2d6ea49a19add129f0b302, type: 2}
+    - {fileID: 11400000, guid: 57c0bd5c632fff04490164e0cd30e07d, type: 2}
+    - {fileID: 11400000, guid: 37ebe324bf971c147bdbbc8005d6e3ad, type: 2}

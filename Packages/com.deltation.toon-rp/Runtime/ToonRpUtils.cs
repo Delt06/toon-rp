@@ -111,6 +111,8 @@ namespace DELTation.ToonRP
             public static readonly int InverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
             public static readonly int InverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
             public static readonly int InverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
+
+            public static readonly int FogColor = Shader.PropertyToID("unity_FogColor");
         }
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -25,5 +26,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonMotionBlur.ShaderName,
         };
+
+        public override void CopySettingsToVolumeProfile(VolumeProfile profile)
+        {
+            ToonMotionBlurComponent component = profile.GetOrAddVolumeComponent<ToonMotionBlurComponent>();
+
+            component.Strength.value = Settings.Strength;
+            component.NumSamples.value = Settings.NumSamples;
+
+        }
     }
 }

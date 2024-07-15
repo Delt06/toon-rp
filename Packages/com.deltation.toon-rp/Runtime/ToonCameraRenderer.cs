@@ -185,7 +185,7 @@ namespace DELTation.ToonRP
 
             _postProcessing.PreSetup(camera, postProcessingSettings);
             _extensionsCollection.PreSetup(extensionSettings);
-            Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, msaaSamples);
+            Setup(cmd, globalRampSettings, shadowSettings, extensionSettings, msaaSamples, additionalCameraData);
 
             _prePassRequirement = GetOverridePrePassRequirement(settings, postProcessingSettings, extensionSettings)
                 .Sanitize();
@@ -363,10 +363,11 @@ namespace DELTation.ToonRP
 
         private void Setup(CommandBuffer cmd, in ToonRampSettings globalRampSettings,
             in ToonShadowSettings toonShadowSettings, in ToonRenderingExtensionSettings extensionSettings,
-            int msaaSamples)
+            int msaaSamples, ToonAdditionalCameraData additionalData)
         {
             SetupLighting(cmd, globalRampSettings, toonShadowSettings);
             SetShaderTimeValues(cmd, Time.time);
+            SetEnvironmentGlobals(cmd, additionalData);
 
             float renderScale = _camera.cameraType == CameraType.Game ? _settings.RenderScale : 1.0f;
             int maxRtWidth = int.MaxValue;
@@ -553,6 +554,14 @@ namespace DELTation.ToonRP
                 Matrix4x4.Inverse(ToonRpUtils.GetGPUProjectionMatrix(projectionMatrix * viewMatrix, renderIntoTexture));
             cmd.SetGlobalMatrix(ToonRpUtils.ShaderPropertyId.InverseViewAndProjectionMatrix, inverseViewProjectionMatrix
             );
+        }
+
+        private static void SetEnvironmentGlobals(CommandBuffer cmd, ToonAdditionalCameraData additionalData)
+        {
+            ToonFogComponent toonFog =  VolumeManager.instance.stack.GetComponent<ToonFogComponent>();
+
+            // Do RenderSettings related global overrides 
+            cmd.SetGlobalVector("unity_FogColor", toonFog.FogColor.value);
         }
 
         private void UpdateRtHandles(int rtWidth, int rtHeight)

@@ -18,15 +18,15 @@ MonoBehaviour:
     Color: {r: 1, g: 0, b: 0, a: 1}
     ColorFilter:
       Enabled: 0
-      Threshold: 0.05
-      Smoothness: 0.5
+      Threshold: 1.01
+      Smoothness: 0.07
     DepthFilter:
-      Enabled: 1
-      Threshold: 0.29
-      Smoothness: 0.33
+      Enabled: 0
+      Threshold: 0.11
+      Smoothness: 0.03
     NormalsFilter:
       Enabled: 1
-      Threshold: 0.5
+      Threshold: 0.14
       Smoothness: 5
     UseFog: 1
     MaxDistance: 100

@@ -81,6 +81,40 @@ MonoBehaviour:
   PatternFinalIntensityThreshold:
     m_OverrideState: 0
     m_Value: 0.25
+--- !u!114 &-2812088514656626828
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25a63f0edd762064793adc208ccf6a8b, type: 3}
+  m_Name: ToonVignetteComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  Enabled:
+    m_OverrideState: 1
+    m_Value: 1
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  VignetteColor:
+    m_OverrideState: 1
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+  CenterX:
+    m_OverrideState: 1
+    m_Value: 0.5
+  CenterY:
+    m_OverrideState: 1
+    m_Value: 0.5
+  Roundness:
+    m_OverrideState: 1
+    m_Value: 0
+  Smoothness:
+    m_OverrideState: 1
+    m_Value: 1
 --- !u!114 &-1196357477930246234
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -112,3 +146,4 @@ MonoBehaviour:
   components:
   - {fileID: -1196357477930246234}
   - {fileID: -3343483490591058898}
+  - {fileID: -2812088514656626828}

@@ -35,14 +35,20 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private void UpdateSettingsFromComponent()
         {
 
-            _settings.ColorFilter = _component.ColorFilter.value;
             _settings.Color = _component.OutlineColor.value;
             _settings.MaxDistance = _component.MaxDistance.value;
             _settings.DistanceFade = _component.DistanceFade.value;
             _settings.UseFog = _component.UseFog.value;
             
-            _settings.DepthFilter = _component.DepthFilter.value;
-            _settings.NormalsFilter = _component.NormalsFilter.value;
+            _settings.DepthFilter.Threshold = _component.DepthFilter.value.Threshold;
+            _settings.DepthFilter.Smoothness = _component.DepthFilter.value.Smoothness;
+
+            _settings.NormalsFilter.Threshold = _component.NormalsFilter.value.Threshold;
+            _settings.NormalsFilter.Smoothness = _component.NormalsFilter.value.Smoothness;
+
+            _settings.ColorFilter.Threshold = _component.ColorFilter.value.Threshold;
+            _settings.ColorFilter.Smoothness = _component.ColorFilter.value.Smoothness;
+
             _settings.Color = _component.OutlineColor.value;
             
         }

@@ -23,8 +23,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public OutlineFilterParameter ColorFilter = new OutlineFilterParameter(new OutlineFilterReduced());
         public OutlineFilterParameter DepthFilter = new OutlineFilterParameter(new OutlineFilterReduced());
         public OutlineFilterParameter NormalsFilter = new OutlineFilterParameter(new OutlineFilterReduced());
-        
-        // public BoolParameter boolParameter = new BoolParameter(false);
+
 
         public bool IsActive() => OutlineColor.value.a > 0f;
 
@@ -42,26 +41,19 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
     public class OutlineFilterParameter : VolumeParameter<OutlineFilterReduced>
     {
         public OutlineFilterParameter(OutlineFilterReduced value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState)
+        {
+        }
 
-        /*
         public override void Interp(OutlineFilterReduced from, OutlineFilterReduced to, float t)
         {
-            m_Value.Enabled = from.Enabled;
             m_Value.Threshold = Mathf.Lerp(from.Threshold, to.Threshold, t);
             m_Value.Smoothness = Mathf.Lerp(from.Smoothness, to.Smoothness, t);
-            
-        }*/
+        }
     }
     [Serializable]
     public class OutlineFilterReduced
     {
-        /// <summary>
-        /// Used only for passing data from default settings
-        /// </summary>
-        /// Since this is true it will not have any effect on the filter asset, it also allows easier casts
-        [HideInInspector]
-        public bool FilterEnabled = true;
 
         [Min(0.05f)]
         public float Threshold;
@@ -71,7 +63,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         // Cast to OutlineFilter
         public static implicit operator OutlineFilter(OutlineFilterReduced reduced) => new OutlineFilter
         {
-            Enabled = reduced.FilterEnabled,
             Threshold = reduced.Threshold,
             Smoothness = reduced.Smoothness
         };
@@ -79,7 +70,6 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         // Cast to OutlineFilterReduced
         public static implicit operator OutlineFilterReduced(OutlineFilter filter) => new OutlineFilterReduced
         {
-            FilterEnabled = filter.Enabled,
             Threshold = filter.Threshold,
             Smoothness = filter.Smoothness
         };

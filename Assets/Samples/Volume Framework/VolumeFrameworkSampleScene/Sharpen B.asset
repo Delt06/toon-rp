@@ -32,10 +32,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8bc22f244e4b474a980ba7cfcbab6e2, type: 3}
   m_Name: ToonSharpenComponent
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   Amount:
     m_OverrideState: 1
-    m_Value: 0.79
+    m_Value: 6.11
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,7 +136,7 @@ MonoBehaviour:
     m_Value: {r: 0, g: 0.13257027, b: 1, a: 1}
   UseFog:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   MaxDistance:
     m_OverrideState: 0
     m_Value: 7.61
@@ -144,22 +144,19 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.081
   ColorFilter:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value:
-      FilterEnabled: 0
-      Threshold: 1.98
-      Smoothness: 1.17
+      Threshold: 0.05
+      Smoothness: 0
   DepthFilter:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value:
-      FilterEnabled: 1
-      Threshold: 0.08
-      Smoothness: 1.85
+      Threshold: 7.26
+      Smoothness: 2.38
   NormalsFilter:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value:
-      FilterEnabled: 1
-      Threshold: 1.27
+      Threshold: 0.05
       Smoothness: 0
 --- !u!114 &6006129045691385612
 MonoBehaviour:

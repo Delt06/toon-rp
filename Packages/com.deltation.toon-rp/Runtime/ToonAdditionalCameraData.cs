@@ -46,7 +46,6 @@ namespace DELTation.ToonRP
 
         public bool UsingCustomProjection { get; private set; }
         public RTHandleSystem RTHandleSystem { get; } = new();
-        public VolumeStack VolumeStack { get; private set; }
 
 
         private void Awake()

@@ -48,7 +48,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override void CopySettingsToVolumeProfile(VolumeProfile profile)
         {
-            ToonScreenSpaceOutlineComponent component = GetOrAddVolumeComponent<ToonScreenSpaceOutlineComponent>(profile);
+            ToonScreenSpaceOutlineComponent component = profile.GetOrAddVolumeComponent<ToonScreenSpaceOutlineComponent>();
             component.OutlineColor.value = Settings.Color;
             component.UseFog.value = Settings.UseFog;
             component.MaxDistance.value = Settings.MaxDistance;

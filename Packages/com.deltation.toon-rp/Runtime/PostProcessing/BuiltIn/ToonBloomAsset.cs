@@ -41,7 +41,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override void CopySettingsToVolumeProfile(VolumeProfile profile)
         {
-            ToonBloomComponent component = GetOrAddVolumeComponent<ToonBloomComponent>(profile);
+            ToonBloomComponent component = profile.GetOrAddVolumeComponent<ToonBloomComponent>();
 
             component.Intensity.value = Settings.Intensity;
             component.Threshold.value = Settings.Threshold;

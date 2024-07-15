@@ -37,21 +37,6 @@ namespace DELTation.ToonRP.PostProcessing
             return;
         }
 
-        /// <summary>
-        /// Gets or adds a volume component from the VolumeProfile.
-        /// </summary>
-        /// <typeparam name="T">VolumeComponent type</typeparam>
-        /// <param name="profile">Profile to check for Component</param>
-        /// <returns></returns>
-        public static T GetOrAddVolumeComponent<T>(VolumeProfile profile) where T : VolumeComponent
-        {
-            const bool overrideSettings = true;
-
-            if (profile.TryGet(out T component))
-                return component;
-
-            return profile.Add<T>(overrideSettings);
-        }
     }
 
     public abstract class ToonPostProcessingPassAsset<TSettings> : ToonPostProcessingPassAsset

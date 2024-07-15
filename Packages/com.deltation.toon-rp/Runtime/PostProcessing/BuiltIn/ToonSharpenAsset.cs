@@ -28,7 +28,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override void CopySettingsToVolumeProfile(VolumeProfile profile)
         {
-            ToonSharpenComponent component = GetOrAddVolumeComponent<ToonSharpenComponent>(profile);
+            ToonSharpenComponent component = profile.GetOrAddVolumeComponent<ToonSharpenComponent>();
             component.Amount.value = Settings.Amount;
         }
     }

@@ -36,6 +36,22 @@ MonoBehaviour:
   Amount:
     m_OverrideState: 1
     m_Value: 6.11
+--- !u!114 &-1039719526452109787
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7090f652b47e1b745b1e09e3f1f6e725, type: 3}
+  m_Name: ToonFogComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  FogColor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55,6 +71,7 @@ MonoBehaviour:
   - {fileID: 795383675695779055}
   - {fileID: 1563406529300208093}
   - {fileID: 5600975978333764801}
+  - {fileID: -1039719526452109787}
 --- !u!114 &205383348472627059
 MonoBehaviour:
   m_ObjectHideFlags: 3

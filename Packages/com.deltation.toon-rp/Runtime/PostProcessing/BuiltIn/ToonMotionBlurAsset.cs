@@ -29,7 +29,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override void CopySettingsToVolumeProfile(VolumeProfile profile)
         {
-            ToonMotionBlurComponent component = GetOrAddVolumeComponent<ToonMotionBlurComponent>(profile);
+            ToonMotionBlurComponent component = profile.GetOrAddVolumeComponent<ToonMotionBlurComponent>();
 
             component.Strength.value = Settings.Strength;
             component.NumSamples.value = Settings.NumSamples;

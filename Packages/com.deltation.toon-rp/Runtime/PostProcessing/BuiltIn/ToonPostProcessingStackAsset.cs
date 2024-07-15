@@ -69,11 +69,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         public override void CopySettingsToVolumeProfile(VolumeProfile profile)
         {
-            ToonToneMappingComponent tonemappingComponent = GetOrAddVolumeComponent<ToonToneMappingComponent>(profile);
+            ToonToneMappingComponent tonemappingComponent = profile.GetOrAddVolumeComponent<ToonToneMappingComponent>();
             tonemappingComponent.Enabled.value = Settings.ToneMapping.Enabled;
             tonemappingComponent.Exposure.value = Settings.ToneMapping.Exposure;
 
-            ToonVignetteComponent vignetteComponent = GetOrAddVolumeComponent<ToonVignetteComponent>(profile);
+            ToonVignetteComponent vignetteComponent = profile.GetOrAddVolumeComponent<ToonVignetteComponent>();
             vignetteComponent.Enabled.value = Settings.Vignette.Enabled;
             vignetteComponent.CenterX.value = Settings.Vignette.CenterX;
             vignetteComponent.CenterY.value = Settings.Vignette.CenterY;
@@ -82,13 +82,13 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             vignetteComponent.Smoothness.value = Settings.Vignette.Smoothness;
             vignetteComponent.VignetteColor.value = Settings.Vignette.Color;
 
-            ToonFilmGrainComponent filmGrainComponent = GetOrAddVolumeComponent<ToonFilmGrainComponent>(profile);
+            ToonFilmGrainComponent filmGrainComponent = profile.GetOrAddVolumeComponent<ToonFilmGrainComponent>();
             filmGrainComponent.Enabled.value = Settings.FilmGrain.Enabled;
             filmGrainComponent.Intensity.value = Settings.FilmGrain.Intensity;
             filmGrainComponent.LuminanceThreshold.value = Settings.FilmGrain.LuminanceThreshold;
             filmGrainComponent.Texture.value = Settings.FilmGrain.Texture;
 
-            ToonLookupTableComponent lookupTableComponent = GetOrAddVolumeComponent<ToonLookupTableComponent>(profile);
+            ToonLookupTableComponent lookupTableComponent = profile.GetOrAddVolumeComponent<ToonLookupTableComponent>();
             lookupTableComponent.Enabled.value = Settings.LookupTable.Enabled;
             lookupTableComponent.Texture.value = Settings.LookupTable.Texture;
             

@@ -89,7 +89,7 @@ Add the following line to `Packages/manifest.json`:
 
 ### 2. Create a pipeline asset
 
-Inside the Project window, right click and select `Create/Rendering/Toon Render Pipeline Asset`.
+Inside the Project window, right click and select `Create/Toon RP/Toon Render Pipeline Asset`.
 
 ### 3. Set the pipeline asset
 

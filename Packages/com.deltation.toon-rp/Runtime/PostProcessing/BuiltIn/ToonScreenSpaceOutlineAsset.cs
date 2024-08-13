@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -44,5 +45,19 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonScreenSpaceOutlineImpl.ShaderName,
         };
+
+        public override void CopySettingsToVolumeProfile(VolumeProfile profile)
+        {
+            ToonScreenSpaceOutlineComponent component = profile.GetOrAddVolumeComponent<ToonScreenSpaceOutlineComponent>();
+            component.OutlineColor.value = Settings.Color;
+            component.UseFog.value = Settings.UseFog;
+            component.MaxDistance.value = Settings.MaxDistance;
+            component.DistanceFade.value = Settings.DistanceFade;
+
+            component.ColorFilter.value = Settings.ColorFilter;
+            component.NormalsFilter.value = Settings.NormalsFilter;
+            component.DepthFilter.value = Settings.DepthFilter;
+            
+        }
     }
 }

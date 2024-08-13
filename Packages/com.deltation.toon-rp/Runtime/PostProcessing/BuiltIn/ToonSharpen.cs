@@ -9,7 +9,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private static readonly int AmountId = Shader.PropertyToID("_Amount");
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Sharpen");
         private Camera _camera;
-        private ToonSharpenSettings _settings;
+        private ToonSharpenComponent _component;
 
         public override void Dispose()
         {
@@ -22,7 +22,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             base.Setup(cmd, in context);
 
             _camera = context.Camera;
-            _settings = context.Settings.Find<ToonSharpenSettings>();
+            _component = GetComponentVolume<ToonSharpenComponent>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -31,18 +31,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Sharpen)))
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-
-                if (_camera.cameraType == CameraType.Game)
-                {
-                    Material material = _material.GetOrCreate();
-                    material.SetFloat(AmountId, _settings.Amount);
-                    cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
-                    ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
-                }
-                else
-                {
-                    ToonBlitter.BlitDefault(cmd, source, destinationIsIntermediateTexture);
-                }
+                Material material = _material.GetOrCreate();
+                material.SetFloat(AmountId, _component.Amount.value);
+                cmd.SetGlobalTexture(ToonBlitter.MainTexId, source);
+                ToonBlitter.Blit(cmd, material, destinationIsIntermediateTexture, 0);
             }
         }
     }

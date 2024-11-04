@@ -38,6 +38,12 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
         private ToonPostProcessingStackSettings _stackSettings;
 
+        private ToonVignetteComponent _vignetteComponent;
+        private ToonFilmGrainComponent  _filmGrainComponent;
+        private ToonToneMappingComponent _tonemappingComponent;
+        private ToonLookupTableComponent _lookupTableComponent;
+
+
         public override void Dispose()
         {
             base.Dispose();
@@ -59,6 +65,11 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             base.Setup(cmd, in context);
             _stackSettings = context.Settings.Find<ToonPostProcessingStackSettings>();
+
+            _vignetteComponent = GetComponentVolume<ToonVignetteComponent>();
+            _filmGrainComponent = GetComponentVolume<ToonFilmGrainComponent>();
+            _tonemappingComponent = GetComponentVolume<ToonToneMappingComponent>();
+            _lookupTableComponent = GetComponentVolume<ToonLookupTableComponent>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -67,10 +78,10 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             Material material = _material.GetOrCreate();
 
             HandleFxaaProperties(material, _stackSettings.Fxaa);
-            HandleToneMappingProperties(material, _stackSettings.ToneMapping);
-            HandleVignetteProperties(material, _stackSettings.Vignette);
-            HandleLookupTextureProperties(material, _stackSettings.LookupTable);
-            HandleFilmGrainProperties(material, _stackSettings.FilmGrain);
+            HandleToneMappingProperties(material, _tonemappingComponent);
+            HandleVignetteProperties(material, _vignetteComponent);
+            HandleLookupTextureProperties(material, _lookupTableComponent);
+            HandleFilmGrainProperties(material, _filmGrainComponent);
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.PostProcessingStack)))
             {
@@ -99,53 +110,52 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
             material.SetKeyword(FxaaHighKeywordName, fxaaHigh);
         }
 
-        private static void HandleToneMappingProperties(Material material,
-            in ToonToneMappingSettings toneMappingSettings)
+        private static void HandleToneMappingProperties(Material material, ToonToneMappingComponent toneMappingSettings)
         {
-            material.SetKeyword(ToneMappingKeywordName, toneMappingSettings.Enabled);
-            if (toneMappingSettings.Enabled)
+            material.SetKeyword(ToneMappingKeywordName, toneMappingSettings.IsActive());
+            if (toneMappingSettings.IsActive())
             {
-                material.SetFloat(ToneMappingExposureId, toneMappingSettings.Exposure);
+                material.SetFloat(ToneMappingExposureId, toneMappingSettings.Exposure.value);
             }
         }
 
-        private static void HandleVignetteProperties(Material material, in ToonVignetteSettings vignetteSettings)
+        private static void HandleVignetteProperties(Material material, in ToonVignetteComponent vignetteSettings)
         {
-            material.SetKeyword(VignetteKeywordName, vignetteSettings.Enabled);
-            if (!vignetteSettings.Enabled)
+            material.SetKeyword(VignetteKeywordName, vignetteSettings.IsActive());
+            if (!vignetteSettings.IsActive())
             {
                 return;
             }
 
-            material.SetVector(VignetteCenterId, new Vector4(vignetteSettings.CenterX, vignetteSettings.CenterY));
-            material.SetFloat(VignetteIntensityId, vignetteSettings.Intensity);
-            material.SetFloat(VignetteSmoothnessId, 1.0f / vignetteSettings.Roundness);
-            material.SetFloat(VignetteRoundnessId, 1.0f / vignetteSettings.Smoothness);
-            material.SetColor(VignetteColorId, vignetteSettings.Color);
+            material.SetVector(VignetteCenterId, new Vector4(vignetteSettings.CenterX.value, vignetteSettings.CenterY.value));
+            material.SetFloat(VignetteIntensityId, vignetteSettings.Intensity.value);
+            material.SetFloat(VignetteSmoothnessId, 1.0f / vignetteSettings.Roundness.value);
+            material.SetFloat(VignetteRoundnessId, 1.0f / vignetteSettings.Smoothness.value);
+            material.SetColor(VignetteColorId, vignetteSettings.VignetteColor.value);
         }
 
         private static void HandleLookupTextureProperties(Material material,
-            in ToonLookupTableSettings lookupTableSettings)
+            in ToonLookupTableComponent lookupTableSettings)
         {
-            material.SetKeyword(LookupTableKeywordName, lookupTableSettings.Enabled);
-            material.SetTexture(LookupTableTextureId, lookupTableSettings.Enabled ? lookupTableSettings.Texture : null);
+            material.SetKeyword(LookupTableKeywordName, lookupTableSettings.IsActive());
+            material.SetTexture(LookupTableTextureId, lookupTableSettings.Enabled.value ? lookupTableSettings.Texture.value : null);
         }
 
-        private static void HandleFilmGrainProperties(Material material, in ToonFilmGrainSettings filmGrainSettings)
+        private static void HandleFilmGrainProperties(Material material, in ToonFilmGrainComponent filmGrainSettings)
         {
-            material.SetKeyword(FilmGrainKeywordName, filmGrainSettings.Enabled);
-            Texture2D texture = filmGrainSettings.Enabled ? filmGrainSettings.Texture : null;
+            material.SetKeyword(FilmGrainKeywordName, filmGrainSettings.IsActive());
+            Texture2D texture = ((filmGrainSettings.IsActive()) ? (Texture2D) filmGrainSettings.Texture.value : null);
             material.SetTexture(FilmGrainTextureId, texture);
 
-            if (!filmGrainSettings.Enabled)
+            if (!filmGrainSettings.IsActive())
             {
                 return;
             }
 
-            material.SetFloat(FilmGrainIntensityId, filmGrainSettings.Intensity);
+            material.SetFloat(FilmGrainIntensityId, filmGrainSettings.Intensity.value);
 
-            float threshold0 = filmGrainSettings.LuminanceThreshold * 0.5f;
-            float threshold1 = filmGrainSettings.LuminanceThreshold;
+            float threshold0 = filmGrainSettings.LuminanceThreshold.value * 0.5f;
+            float threshold1 = filmGrainSettings.LuminanceThreshold.value;
             material.SetFloat(FilmGrainLuminanceThreshold0Id, threshold0);
             material.SetFloat(FilmGrainLuminanceThreshold1Id, threshold1);
         }

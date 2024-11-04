@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DELTation.ToonRP.PostProcessing.BuiltIn
 {
@@ -37,5 +38,29 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             ToonBloom.ShaderName,
         };
+
+        public override void CopySettingsToVolumeProfile(VolumeProfile profile)
+        {
+            ToonBloomComponent component = profile.GetOrAddVolumeComponent<ToonBloomComponent>();
+
+            component.Intensity.value = Settings.Intensity;
+            component.Threshold.value = Settings.Threshold;
+            component.TresholdKnee.value = Settings.ThresholdKnee;
+            component.MaxIterations.value = Settings.MaxIterations;
+            component.ResolutionFactor.value = Settings.ResolutionFactor;
+            component.DownsampleLimit.value = Settings.DownsampleLimit;
+
+            component.PatternEnabled.value = Settings.Pattern.Enabled;
+            component.PatternScale.value = Settings.Pattern.Scale;
+            component.PatternPower.value = Settings.Pattern.Power;
+            component.PatternMultiplier.value = Settings.Pattern.Multiplier;
+            component.PatternSmoothness.value = Settings.Pattern.Smoothness;
+            component.PatternLuminanceTreshold.value = Settings.Pattern.LuminanceThreshold;
+            component.PatternDotSizeLimit.value = Settings.Pattern.DotSizeLimit;
+            component.PatternBlend.value = Settings.Pattern.Blend;
+            component.PatternFinalIntensityThreshold.value = Settings.Pattern.FinalIntensityThreshold;
+
+            
+        }
     }
 }

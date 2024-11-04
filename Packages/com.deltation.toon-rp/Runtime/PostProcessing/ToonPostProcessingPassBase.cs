@@ -24,5 +24,15 @@ namespace DELTation.ToonRP.PostProcessing
         public virtual void Dispose() { }
 
         public virtual bool InterruptsGeometryRenderPass(in ToonPostProcessingContext context) => false;
+
+        /// <summary>
+        /// Gets a VolumeComponent from the current VolumeManager stack.
+        /// </summary>
+        /// <typeparam name="T">VolumeComponent Type to return</typeparam>
+        /// <returns></returns>
+        protected static T GetComponentVolume<T>() where T : VolumeComponent
+        {
+            return VolumeManager.instance.stack.GetComponent<T>();
+        }
     }
 }

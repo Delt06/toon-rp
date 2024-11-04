@@ -13,6 +13,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
         private int _rtHeight;
         private int _rtWidth;
         private ToonScreenSpaceOutlineSettings _settings;
+        private ToonScreenSpaceOutlineComponent _component;
 
         public override bool ShouldRender(in ToonRenderingExtensionContext context) => IsGameOrSceneView(context);
 
@@ -28,6 +29,7 @@ namespace DELTation.ToonRP.Extensions.BuiltIn
             _rtWidth = _cameraRenderTarget.Width;
             _rtHeight = _cameraRenderTarget.Height;
             _camera = context.Camera;
+            _component = VolumeManager.instance.stack.GetComponent<ToonScreenSpaceOutlineComponent>();
         }
 
         public override void Render()

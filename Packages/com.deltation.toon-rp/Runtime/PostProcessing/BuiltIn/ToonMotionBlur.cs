@@ -15,12 +15,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Motion Blur");
         private Camera _camera;
         private ToonMotionBlurSettings _settings;
+        private ToonMotionBlurComponent _component;
 
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
             _camera = context.Camera;
             _settings = context.Settings.Find<ToonMotionBlurSettings>();
+            _component = GetComponentVolume<ToonMotionBlurComponent>();
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, bool destinationIsIntermediateTexture)
@@ -34,8 +36,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 if (_camera.cameraType == CameraType.Game)
                 {
                     cmd.SetGlobalTexture(ToonBlitter.MainTexId, FixupTextureArrayIdentifier(source));
-                    cmd.SetGlobalFloat(StrengthId, _settings.Strength);
-                    cmd.SetGlobalFloat(NumSamplesId, _settings.NumSamples);
+                    cmd.SetGlobalFloat(StrengthId, _component.Strength.value);
+                    cmd.SetGlobalFloat(NumSamplesId, _component.NumSamples.value);
                     cmd.SetGlobalFloat(WeightChangeRateId, _settings.WeightChangeRate);
                     cmd.SetGlobalFloat(TargetFpsId, ToonMotionBlurSettings.TargetFPS);
                     ToonBlitter.Blit(cmd, _material.GetOrCreate(), destinationIsIntermediateTexture, 0);

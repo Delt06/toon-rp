@@ -43,7 +43,7 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         private readonly ToonPipelineMaterial _material = new(ShaderName, "Toon RP Bloom");
         private ToonCameraRendererSettings _cameraRendererSettings;
         private ToonPostProcessingContext _postProcessingContext;
-        private ToonBloomSettings _settings;
+        private ToonBloomComponent _component;
 
         public ToonBloom()
         {
@@ -64,8 +64,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         public override void Setup(CommandBuffer cmd, in ToonPostProcessingContext context)
         {
             base.Setup(cmd, in context);
-            _settings = context.Settings.Find<ToonBloomSettings>();
+            _component = GetComponentVolume<ToonBloomComponent>();
             _postProcessingContext = context;
+
         }
 
         public override void Render(CommandBuffer cmd, RenderTargetIdentifier source,
@@ -73,14 +74,14 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             int rtWidth = Context.RtWidth;
             int rtHeight = Context.RtHeight;
-            int resolutionFactor = _settings.ResolutionFactor;
+            int resolutionFactor = _component.ResolutionFactor.value;
 
             using (new ProfilingScope(cmd, NamedProfilingSampler.Get(ToonRpPassId.Bloom)))
             {
                 int width = rtWidth / resolutionFactor, height = rtHeight / resolutionFactor;
-                int downscaleLimit = _settings.DownsampleLimit;
+                int downscaleLimit = _component.DownsampleLimit.value;
 
-                if (_settings.MaxIterations == 0 || _settings.Intensity <= 0.0f ||
+                if (_component.MaxIterations.value == 0 || _component.Intensity.value <= 0.0f ||
                     height < downscaleLimit || width < downscaleLimit)
                 {
                     BlitDefault(cmd, source, destination);
@@ -110,8 +111,8 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
 
             {
                 Vector4 threshold;
-                threshold.x = Mathf.GammaToLinearSpace(_settings.Threshold);
-                threshold.y = threshold.x * _settings.ThresholdKnee;
+                threshold.x = Mathf.GammaToLinearSpace(_component.Threshold.value);
+                threshold.y = threshold.x * _component.TresholdKnee.value;
                 threshold.z = 2.0f * threshold.y;
                 threshold.w = 0.25f / (threshold.y + 0.00001f);
                 threshold.y -= threshold.x;
@@ -127,9 +128,9 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
         {
             cmd.BeginSample(DownsampleSampleName);
             int i;
-            for (i = 0; i < _settings.MaxIterations; ++i)
+            for (i = 0; i < _component.MaxIterations.value; ++i)
             {
-                if (height < _settings.DownsampleLimit || width < _settings.DownsampleLimit)
+                if (height < _component.DownsampleLimit.value || width < _component.DownsampleLimit.value)
                 {
                     break;
                 }
@@ -200,28 +201,28 @@ namespace DELTation.ToonRP.PostProcessing.BuiltIn
                 cmd.ReleaseTemporaryRT(_bloomPyramidId);
             }
 
-            cmd.SetGlobalFloat(IntensityId, _settings.Intensity);
+            cmd.SetGlobalFloat(IntensityId, _component.Intensity.value);
 
-            if (_settings.Pattern.Enabled)
+            if (_component.PatternEnabled.value)
             {
                 cmd.SetGlobalInteger(UsePatternId, 1);
 
                 {
                     float minPatternScale = Mathf.Min(Context.RtWidth, Context.RtHeight) / MinPatternSize;
-                    float patternScale = Mathf.Min(_settings.Pattern.Scale, minPatternScale);
+                    float patternScale = Mathf.Min(_component.PatternScale.value, minPatternScale);
                     cmd.SetGlobalFloat(PatternScaleId, patternScale);
                 }
 
-                cmd.SetGlobalFloat(PatternPowerId, _settings.Pattern.Power);
-                cmd.SetGlobalFloat(PatternMultiplierId, _settings.Pattern.Multiplier);
-                cmd.SetGlobalFloat(PatternEdgeId, 1 - _settings.Pattern.Smoothness);
-                cmd.SetGlobalFloat(PatternLuminanceThresholdId, _settings.Pattern.LuminanceThreshold);
+                cmd.SetGlobalFloat(PatternPowerId, _component.PatternPower.value);
+                cmd.SetGlobalFloat(PatternMultiplierId, _component.PatternMultiplier.value);
+                cmd.SetGlobalFloat(PatternEdgeId, 1 - _component.PatternSmoothness.value);
+                cmd.SetGlobalFloat(PatternLuminanceThresholdId, _component.PatternLuminanceTreshold.value);
                 cmd.SetGlobalFloat(PatternDotSizeLimitId,
-                    _settings.Pattern.DotSizeLimit > 0.0f ? _settings.Pattern.DotSizeLimit : 10.0f
+                    _component.PatternDotSizeLimit.value > 0.0f ? _component.PatternDotSizeLimit.value : 10.0f
                 );
-                cmd.SetGlobalFloat(PatternBlendId, _settings.Pattern.Blend);
+                cmd.SetGlobalFloat(PatternBlendId, _component.PatternBlend.value);
                 cmd.SetGlobalVector(PatternFinalIntensityRampId,
-                    BuildRampVectorFromEdges(_settings.Pattern.FinalIntensityThreshold, 1.0f)
+                    BuildRampVectorFromEdges(_component.PatternFinalIntensityThreshold.value, 1.0f)
                 );
             }
 

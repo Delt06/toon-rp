@@ -561,7 +561,7 @@ namespace DELTation.ToonRP
             ToonFogComponent toonFog =  VolumeManager.instance.stack.GetComponent<ToonFogComponent>();
 
             // Do RenderSettings related global overrides 
-            cmd.SetGlobalVector("unity_FogColor", toonFog.FogColor.value);
+            cmd.SetGlobalVector(ToonRpUtils.ShaderPropertyId.FogColor, toonFog.FogColor.value);
         }
 
         private void UpdateRtHandles(int rtWidth, int rtHeight)

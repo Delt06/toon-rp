@@ -21,7 +21,6 @@ namespace DELTation.ToonRP
         private ToonRenderingExtensionSettings _extensions;
         private ToonPostProcessingSettings _postProcessingSettings;
         private VolumeProfile _defaultVolumeProfile;
-        private ToonBuiltinVolumeComponentContainer _builtinVolumesContainer = new();
 
         public ToonRenderPipeline(in ToonCameraRendererSettings cameraRendererSettings,
             in ToonRampSettings globalRampSettings, in ToonShadowSettings shadowSettings,
@@ -232,12 +231,9 @@ namespace DELTation.ToonRP
             // Load extensions
             // TO-DO: Implement this later
 
-
             // Load global settings
-            _builtinVolumesContainer._fogComponent = defaultProfile.GetOrAddVolumeComponent<ToonFogComponent>();
-            _builtinVolumesContainer._fogComponent.LoadValuesFromRenderSettings();
-            
-
+            var _fogComponent = defaultProfile.GetOrAddVolumeComponent<ToonFogComponent>();
+            _fogComponent.LoadValuesFromRenderSettings();
         }
     }
 }
